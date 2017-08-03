@@ -1,0 +1,22 @@
+## Example 1
+## ----------------------------------------------------------------------------
+PREFIX cth: <http://localhost:8890/TestGraph/>
+
+SELECT ?variant
+WHERE {
+  ?variant a cth:Variant .
+}
+
+
+## Example 2
+## ----------------------------------------------------------------------------
+PREFIX cth: <http://localhost:8890/TestGraph/>
+
+SELECT ?variant, ?quality, ?chromosome, ?position
+WHERE {
+  ?variant a cth:Variant .
+  ?variant cth:quality ?quality .
+  ?variant cth:genome_position ?gp .
+  ?gp cth:chromosome ?chromosome .
+  ?gp cth:position ?position .
+}
