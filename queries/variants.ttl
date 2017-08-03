@@ -1,0 +1,29 @@
+@prefix cth: <http://localhost:8890/TestGraph/> .
+@prefix v: <http://localhost:8890/TestGraph/Variant/> .
+@prefix p: <http://localhost:8890/TestGraph/Position/> .
+
+p:p0001 a cth:GenomePosition ;
+  cth:position   170266857 ;
+  cth:chromosome "1" .
+
+v:v0001 a cth:Variant ;
+  cth:genome_position p:p0001 ;
+  cth:identifer       "1:170266857_G/A" ;
+  cth:reference       "G" ;
+  cth:alternative     "A" ;
+  cth:quality          238.19 ;
+  cth:filter          "PASS" .
+
+
+p:p0002 a cth:GenomePosition ;
+  cth:position   188715025 ;
+  cth:chromosome "1" .
+
+v:v0002 a cth:Variant ;
+  cth:genome_position p:p0002 ;
+  cth:identifier      "1:188715025_G/A" ;
+  cth:reference       "G" ;
+  cth:alternative     "A" ;
+  cth:quality         882.19 ;
+  cth:filter          "PASS" .
+
