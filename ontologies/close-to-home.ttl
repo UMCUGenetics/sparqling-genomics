@@ -1,0 +1,54 @@
+## Please note that this ontology definition is not available on the web.
+## This ontology may change considerably before it is published on the web.
+@prefix : <http://localhost:8890/TestGraph#> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix edam: <http://edamontology.org/> .
+
+
+## GenomePosition class
+## ----------------------------------------------------------------------------
+:GenomePosition a owl:Class .
+
+  # Properties
+  # -------------------------------------------------------------------------
+  :position a owl:DatatypeProperty ;
+    rdfs:label   "Start position" ;
+    rdfs:comment "The POS field of the VCF file." .
+
+  :chromosome a owl:DatatypeProperty ;
+    rdfs:label   "Chromosome" ;
+    rdfs:comment "The CHR field of the VCF file." .
+
+  # Scoping
+  # -------------------------------------------------------------------------
+  :position   rdfs:domain :GenomePosition ;
+              rdfs:range  xsd:nonNegativeInteger .
+  :chromosome rdfs:domain :GenomePosition ;
+              rdfs:range xsd:string .
+
+  # Limit the scope of GenomePosition to :Variant.
+  :GenomePosition rdfs:domain :Variant .
+
+
+
+## Variant class
+## ----------------------------------------------------------------------------
+:Variant a owl:Class ;
+  edam:has_format edam:format_3016 .
+
+  # Properties
+  # -------------------------------------------------------------------------
+  :genome_position a :GenomePosition ;
+     rdfs:label   "Genomic position" ;
+     rdfs:comment "The position in the genome when mapped to a reference." .
+
+
+
+## StructuralVariant class
+## ----------------------------------------------------------------------------
+:StructuralVariant rdf:type owl:Class ;
+                   rdfs:subClassOf :Variant .
