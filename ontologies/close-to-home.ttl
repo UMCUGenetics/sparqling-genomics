@@ -17,6 +17,25 @@
   <http://purl.org/dc/elements/1.1/title> "Ontology for describing variants" .
 
 
+
+## Sample Class
+## ----------------------------------------------------------------------------
+:Sample a owl:Class .
+
+  # Properties
+  # -------------------------------------------------------------------------
+  :name a owl:DatatypeProperty ;
+  rdfs:label "Name" ;
+  rdfs:comment "The name of a sample." ;
+  rdfs:domain :Sample ;
+  rdfs:range xsd:string .
+
+  # Scoping
+  # -------------------------------------------------------------------------
+  :Sample rdfs:domain :Variant .
+
+
+
 ## GenomePosition class
 ## ----------------------------------------------------------------------------
 :GenomePosition a owl:Class .
