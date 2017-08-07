@@ -45,14 +45,14 @@
   :chromosome a owl:DatatypeProperty ;
     rdfs:label   "Chromosome" ;
     rdfs:comment "The CHR field of the VCF file." ;
-    rdfs:domain :GenomePosition ;
-    rdfs:range xsd:string .
+    rdfs:domain  :GenomePosition ;
+    rdfs:range   xsd:string .
 
   :position a owl:DatatypeProperty ;
     rdfs:label   "Start position" ;
     rdfs:comment "The POS field of the VCF file." ;
-    rdfs:domain :GenomePosition ;
-    rdfs:range  xsd:nonNegativeInteger .
+    rdfs:domain  :GenomePosition ;
+    rdfs:range   xsd:nonNegativeInteger .
 
   # Scoping
   # -------------------------------------------------------------------------
@@ -63,49 +63,58 @@
 ## Variant class
 ## ----------------------------------------------------------------------------
 :Variant a owl:Class ;
-  edam:has_format edam:format_3016 .
+  edam:has_format   edam:format_3016 ;
+  edam:is_output_of edam:operation_3227 .
 
   # Properties
   # -------------------------------------------------------------------------
+  :reference_genome a :Sample ;
+     rdfs:label   "Reference genome" ;
+     rdfs:comment "The reference genome used to map the sequences to." ;
+     rdfs:domain  :Variant ;
+     rdfs:range   :Sample .
+
   :genome_position a :GenomePosition ;
-     rdfs:label   "Genomic position" ;
-     rdfs:comment "The position in the genome when mapped to a reference." .
+     rdfs:label   "Genome position" ;
+     rdfs:comment "The position in the genome when mapped to a reference." ;
+     rdfs:domain  :Variant ;
+     rdfs:range   :GenomePosition .
 
   :identifier a owl:DatatypeProperty ;
     rdfs:label   "ID" ;
     rdfs:comment "The ID field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
   :reference a owl:DatatypeProperty ;
     rdfs:label   "Reference" ;
     rdfs:comment "The REF field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
   :alternative a owl:DatatypeProperty ;
     rdfs:label   "Alternative" ;
     rdfs:comment "The ALT field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
   :quality a owl:DatatypeProperty ;
     rdfs:label   "Quality" ;
     rdfs:comment "The QUAL field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
   :filter a owl:DatatypeProperty ;
     rdfs:label   "Filter" ;
     rdfs:comment "The FILTER field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
   :info a owl:DatatypeProperty ;
     rdfs:label   "Info" ;
     rdfs:comment "The INFO field of the VCF file." ;
-    rdfs:domain :Variant ;
-    rdfs:range  xsd:string .
+    rdfs:domain  :Variant ;
+    rdfs:range   xsd:string .
 
 
 
@@ -113,3 +122,18 @@
 ## ----------------------------------------------------------------------------
 :StructuralVariant rdf:type owl:Class ;
                    rdfs:subClassOf :Variant .
+
+  # Properties
+  # -------------------------------------------------------------------------
+  :genome_position2 a :GenomePosition ;
+     rdfs:label   "Second genome position" ;
+     rdfs:comment "The second position in the genome when mapped to a reference." ;
+     rdfs:domain  :StructuralVariant ;
+     rdfs:range   :GenomePosition .
+
+
+## SNPVariant class
+## Single-Nucleotide Polymorphism type
+## ----------------------------------------------------------------------------
+:SNPVariant rdf:type owl:Class ;
+            rdfs:subClassOf :Variant .
