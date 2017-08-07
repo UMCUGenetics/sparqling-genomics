@@ -113,8 +113,8 @@ print_GenomePosition (GenomePosition *g)
 
 typedef struct
 {
-  GenomePosition *head_position;
-  GenomePosition *tail_position;
+  GenomePosition *position1;
+  GenomePosition *position2;
   float quality;
   char *filter;
   char *type;
@@ -126,7 +126,7 @@ char *
 hash_Variant (Variant *v, bool use_cache)
 {
   if (v == NULL) return NULL;
-  if (v->head_position == NULL || v->tail_position == NULL) return NULL;
+  if (v->position1 == NULL || v->position2 == NULL) return NULL;
 
   /* Cache the hash generation. */
   if (v->hash != NULL && use_cache) return v->hash;
@@ -157,11 +157,11 @@ hash_Variant (Variant *v, bool use_cache)
 
   /* Provide input for the hash. */
   gcry_md_write (handler,
-                 hash_GenomePosition (v->head_position, true),
+                 hash_GenomePosition (v->position1, true),
                  HASH_LENGTH);
 
   gcry_md_write (handler,
-                 hash_GenomePosition (v->tail_position, true),
+                 hash_GenomePosition (v->position2, true),
                  HASH_LENGTH);
 
   gcry_md_write (handler, quality_str, quality_strlen);
@@ -182,9 +182,9 @@ print_Variant (Variant *v)
   if (v == NULL) return;
 
   printf ("v:%s a :Variant ;\n", hash_Variant (v, true));
-  printf ("  :head_position   p:%s ;\n", hash_GenomePosition (v->head_position, true));
-  printf ("  :tail_position   p:%s ;\n", hash_GenomePosition (v->tail_position, true));
-  printf ("  :quality         %f ", v->quality);
+  printf ("  :genome_position  p:%s ;\n", hash_GenomePosition (v->position1, true));
+  printf ("  :genome_position2 p:%s ;\n", hash_GenomePosition (v->position2, true));
+  printf ("  :quality          %f ", v->quality);
   //printf ("  :filter          \"%s\" ", v->filter);
 
   if (v->type)
@@ -316,8 +316,8 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
       p2.chromosome_len = 0;
 
       Variant v = {
-        .head_position = &p1,
-        .tail_position = &p2,
+        .position1 = &p1,
+        .position2 = &p2,
         .quality = buffer->qual,
         .filter = NULL,
         .type = NULL,
