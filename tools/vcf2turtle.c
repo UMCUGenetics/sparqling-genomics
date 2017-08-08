@@ -30,6 +30,7 @@
 #define HASH_ALGORITHM GCRY_MD_SHA256
 #define HASH_LENGTH    gcry_md_get_algo_dlen (HASH_ALGORITHM)
 
+const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/TestGraph/";
 
 /*----------------------------------------------------------------------------.
  | GENERAL HELPER FUNCTIONS                                                   |
@@ -56,6 +57,25 @@ get_pretty_hash (unsigned char *hash, uint32_t length)
 /*----------------------------------------------------------------------------.
  | DATA TYPE DEFINITIONS                                                      |
  '----------------------------------------------------------------------------*/
+
+/* This struct can be used to make program options available throughout the
+ * entire code without needing to pass them around as parameters.  Do not write
+ * to these values, other than in the option parser inside main(). */
+typedef struct
+{
+  bool filter_lowqual_calls;
+  bool only_keep_lowqual_calls;
+  char *input_file;
+  char *graph_location;
+} RuntimeConfiguration;
+
+/* This is where we can set default values for the program's options. */
+RuntimeConfiguration config = {
+  .filter_lowqual_calls = false,
+  .only_keep_lowqual_calls = false,
+  .input_file = NULL,
+  .graph_location = (char *)DEFAULT_GRAPH_LOCATION
+};
 
 typedef struct
 {
@@ -203,6 +223,9 @@ show_help (void)
 {
   puts ("\nAvailable options:\n"
         "  --input-file,        -i  The input to process.\n"
+        "  --filter-lowqual,    -f  Do not process calls with FILTER=LowQual.\n"
+        "  --only-keep-lowqual, -o  Do not process calls without FILTER=LowQual.\n"
+        "                           This option cannot be used together with -f.\n"
 	"  --version,           -v  Show versioning information.\n"
 	"  --help,              -h  Show this message.\n\n");
 }
@@ -266,6 +289,19 @@ handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 void
 handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 {
+  if (config.filter_lowqual_calls &&
+      bcf_has_filter (vcf_header, buffer, "LowQual") == 1)
+    {
+      puts ("# Skipping record because of LowQual filter");
+      return;
+    }
+
+  if (config.only_keep_lowqual_calls &&
+      bcf_has_filter (vcf_header, buffer, "LowQual") != 1)
+    {
+      puts ("# Skipping record without LowQual filter.");
+      return;
+    }
 
   /* Delly SV output seems to fall into this category. */
   bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
@@ -325,6 +361,20 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
         .hash = NULL
       };
 
+      /* /\* Make sure the buffer->d is filled, so we can access the filters. *\/ */
+      /* bcf_unpack (buffer, BCF_UN_FLT); */
+
+      /* int32_t i = 0; */
+      /* for (; i < buffer->d.n_flt; i++) */
+      /*   { */
+      /*     /\* Now this is a chain of dereferencing..  The program might crash */
+      /*      * here if we don't carefully check whether everything is alright. *\/ */
+      /*     bcf_hrec_t *hrec = ((bcf_idinfo_t *)vcf_header->dict[BCF_DT_ID])->hrec[buffer->d.flt[i]]; */
+
+      /*     printf ("# Filter: key: '%s'\n", hrec->key); */
+      /*     printf ("# Filter: value: '%s'\n", hrec->vals); */
+      /*   } */
+
       print_Variant (&v);
 
       /* Free the memory for the hashes. */
@@ -356,7 +406,6 @@ main (int argc, char **argv)
    | PROCESS COMMAND-LINE OPTIONS                                             |
    '--------------------------------------------------------------------------*/
 
-  char *input_file = NULL;
   if (argc > 1)
     {
       int arg = 0;
@@ -367,6 +416,9 @@ main (int argc, char **argv)
       static struct option options[] =
 	{
           { "input-file",        required_argument, 0, 'i' },
+          { "filter-lowqual",    no_argument,       0, 'f' },
+          { "only-keep-lowqual", no_argument,       0, 'o' },
+          { "graph-location",    required_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
@@ -375,12 +427,15 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:vh", options, &index);
+	  arg = getopt_long (argc, argv, "i:fg:ovh", options, &index);
           switch (arg)
             {
-            case 'i': input_file = optarg; break;
-            case 'h': show_help ();        break;
-            case 'v': show_version ();     break;
+            case 'i': config.input_file = optarg;            break;
+            case 'f': config.filter_lowqual_calls = true;    break;
+            case 'o': config.only_keep_lowqual_calls = true; break;
+            case 'g': config.graph_location = optarg;        break;
+            case 'h': show_help ();                          break;
+            case 'v': show_version ();                       break;
             }
         }
     }
@@ -388,24 +443,33 @@ main (int argc, char **argv)
     show_help ();
 
   /*--------------------------------------------------------------------------.
+   | DON'T WASTE TIME WITH SHORT-CIRCUITS                                     |
+   '--------------------------------------------------------------------------*/
+  if (config.filter_lowqual_calls && config.only_keep_lowqual_calls)
+    {
+      puts ("# Short-circuit: You specified both -f and -o.");
+      return 0;
+    }
+
+  /*--------------------------------------------------------------------------.
    | HANDLE AN INPUT FILE                                                     |
    '--------------------------------------------------------------------------*/
 
-  if (input_file)
+  if (config.input_file)
     {
       /* Determine whether the input file is a VCF or compressed VCF.
        * -------------------------------------------------------------------- */
-      int32_t input_file_len = strlen (input_file);
+      int32_t input_file_len = strlen (config.input_file);
       bool is_vcf = false;
-      bool is_compressed_vcf = false;
+      bool is_gzip_vcf = false;
 
       if (input_file_len > 3)
-        is_vcf = !strcmp (input_file + input_file_len - 3, "vcf");
+        is_vcf = !strcmp (config.input_file + input_file_len - 3, "vcf");
 
       if (!is_vcf && input_file_len > 6)
-        is_compressed_vcf = !strcmp (input_file + input_file_len - 6, "vcf.gz");
+        is_gzip_vcf = !strcmp (config.input_file + input_file_len - 6, "vcf.gz");
 
-      if (!(is_vcf || is_compressed_vcf))
+      if (!(is_vcf || is_gzip_vcf))
         {
           fprintf (stderr, "ERROR: This program only handles \".vcf\" and \".vcf.gz\" files.");
           return 1;
@@ -418,30 +482,29 @@ main (int argc, char **argv)
       htsFile *vcf_stream = NULL;
 
       if (is_vcf)
-        vcf_stream = hts_open (input_file, "r");
-      else if (is_compressed_vcf)
-        vcf_stream = hts_open (input_file, "rz");
+        vcf_stream = hts_open (config.input_file, "r");
+      else if (is_gzip_vcf)
+        vcf_stream = hts_open (config.input_file, "rz");
 
       if (vcf_stream == NULL)
-        return print_vcf_file_error (input_file);
+        return print_vcf_file_error (config.input_file);
 
       vcf_header = bcf_hdr_read (vcf_stream);
       if (vcf_header == NULL)
         {
           hts_close (vcf_stream);
-          return print_vcf_header_error (input_file);
+          return print_vcf_header_error (config.input_file);
         }
 
       buffer = bcf_init ();
-      if (buffer == NULL) return print_memory_error (input_file);
+      if (buffer == NULL) return print_memory_error (config.input_file);
 
       /* Write the prefix of the Turtle output.
        * -------------------------------------------------------------------- */
-      puts ("@prefix : <http://localhost:8890/TestGraph/> .");
-      puts ("@prefix v: <http://localhost:8890/TestGraph/Variant/> .");
-      puts ("@prefix p: <http://localhost:8890/TestGraph/Position/> .");
-      puts ("@prefix s: <http://localhost:8890/TestGraph/Sample/> .");
-      puts ("");
+      printf ("@prefix : <%s> .\n", config.graph_location);
+      printf ("@prefix v: <%sVariant/> .\n", config.graph_location);
+      printf ("@prefix p: <%sPosition/> .\n", config.graph_location);
+      printf ("@prefix s: <%sSample/> .\n\n", config.graph_location);
 
       while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
         {
