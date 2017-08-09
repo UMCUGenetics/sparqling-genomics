@@ -29,15 +29,15 @@ char *
 hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
 {
   if (v == NULL) return NULL;
-  if (v->position1 == NULL || v->position2 == NULL) return NULL;
+  if (v->position1 == NULL) return NULL;
+  if (v->_obj_type == STRUCTURAL_VARIANT &&
+      ((StructuralVariant *)v)->position2 == NULL) return NULL;
 
   /* Cache the hash generation. */
   if (v->hash != NULL && use_cache) return v->hash;
 
-  /* FIXME: A quality of 0 is not the same as infinite.  So, find the
-   * proper way to describe an infinite quality score. */
   if (!isfinite (v->quality))
-    v->quality = 0;
+    v->quality = -1;
 
   gcry_error_t error;
   gcry_md_hd_t handler = NULL;
@@ -63,9 +63,19 @@ hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
                  hash_GenomePosition (v->position1, true),
                  HASH_LENGTH);
 
-  gcry_md_write (handler,
-                 hash_GenomePosition (v->position2, true),
-                 HASH_LENGTH);
+  /* Only StructuralVariant has a second position. */
+  if (v->_obj_type == STRUCTURAL_VARIANT)
+    gcry_md_write (handler,
+                   hash_GenomePosition (((StructuralVariant *)v)->position2, true),
+                   HASH_LENGTH);
+
+  /* Concatenate each filter tag for the hash input. */
+  int i = 0;
+  for (; i < v->filters_len; i++)
+    {
+      char *name = (char *)vcf_header->id[BCF_DT_ID][v->filters[i]].key;
+      gcry_md_write (handler, name, strlen (name));
+    }
 
   gcry_md_write (handler, quality_str, quality_strlen);
 
@@ -84,9 +94,22 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return;
 
-  printf ("v:%s a :Variant ;\n", hash_Variant (v, vcf_header, true));
-  printf ("  :genome_position  p:%s ;\n", hash_GenomePosition (v->position1, true));
-  printf ("  :genome_position2 p:%s ;\n", hash_GenomePosition (v->position2, true));
+  if (v->_obj_type == STRUCTURAL_VARIANT)
+    printf ("v:%s a :StructuralVariant ;\n",
+            hash_Variant (v, vcf_header, true));
+  else if (v->_obj_type == SNP_VARIANT)
+    printf ("v:%s a :SNPVariant ;\n",
+            hash_Variant (v, vcf_header, true));
+  else
+    printf ("v:%s a :Variant ;\n",
+            hash_Variant (v, vcf_header, true));
+
+  printf ("  :genome_position  p:%s ;\n",
+          hash_GenomePosition (v->position1, true));
+
+  if (v->_obj_type == STRUCTURAL_VARIANT)
+    printf ("  :genome_position2 p:%s ;\n",
+            hash_GenomePosition (((StructuralVariant *)v)->position2, true));
 
   int i = 0;
   for (; i < v->filters_len; i++)
@@ -95,7 +118,7 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
       printf ("  :filter \"%s\" ;\n", name);
     }
 
-  printf ("  :quality          %f ", v->quality);
+  printf ("  :quality          %4.2f ", v->quality);
 
   if (v->type)
     printf (";\n  :type          \"%s\" .\n\n", v->type);

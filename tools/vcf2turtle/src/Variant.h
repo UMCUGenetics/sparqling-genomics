@@ -23,10 +23,19 @@
 #include <stdbool.h>
 #include <htslib/vcf.h>
 
+typedef enum {
+  VARIANT,
+  STRUCTURAL_VARIANT,
+  SNP_VARIANT
+} VariantType;
+
+/*----------------------------------------------------------------------------.
+ | VARIANT OBJECT STATE DESCRIPTION                                           |
+ '----------------------------------------------------------------------------*/
 typedef struct
 {
+  VariantType _obj_type;        /* For internal use only. */
   GenomePosition *position1;
-  GenomePosition *position2;
   float quality;
   char *filter;
   char *type;
@@ -38,6 +47,43 @@ typedef struct
   int *filters;
 } Variant;
 
+
+/*----------------------------------------------------------------------------.
+ | STRUCTURALVARIANT OBJECT STATE DESCRIPTION                                 |
+ '----------------------------------------------------------------------------*/
+typedef struct
+{
+  /* Inherit the properties of a regular Variant.
+   * ----------------------------------------------------------------------- */
+  VariantType _obj_type;
+  GenomePosition *position1;
+  float quality;
+  char *filter;
+  char *type;
+  uint32_t type_len;
+  char *hash;
+
+  /* These mirror the internal HTSLib record's information. */
+  int filters_len;
+  int *filters;
+
+  /* Add properties specific to a StructuralVariant.
+   * ----------------------------------------------------------------------- */
+  GenomePosition *position2;
+
+} StructuralVariant;
+
+/* The SNPVariant has no additional properties in comparison to a Variant. */
+typedef Variant SNPVariant;
+
+/*
+ * Even though these functions request a pointer to a Variant, we can also
+ * pass a pointer to a StructuralVariant, because it has the same fields,
+ * in the same order.
+ *
+ * The implementation of these functions will handle the type correctly, as
+ * long as v->type has been set properly.
+ */
 char *hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache);
 void print_Variant (Variant *v, bcf_hdr_t *vcf_header);
 

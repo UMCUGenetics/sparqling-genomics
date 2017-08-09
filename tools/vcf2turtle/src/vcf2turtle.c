@@ -127,29 +127,41 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
       return;
     }
 
+  /* Check for the SVTYPE property. */
+  bcf_info_t *svtype_info = bcf_get_info (vcf_header, buffer, "SVTYPE");
+  bool is_sv = (svtype_info != NULL);
+  bool is_snp = bcf_is_snp (buffer);
+
   /* Delly SV output seems to fall into this category. */
   bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
   bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
 
+  GenomePosition p1 = {
+    .chromosome = NULL,
+    .chromosome_len = 0,
+    .position = 0,
+    .hash = NULL
+  };
+
+  GenomePosition p2 = {
+    .chromosome = NULL,
+    .chromosome_len = 0,
+    .position = 0,
+    .hash = NULL
+  };
+
+  p1.chromosome = (char *)bcf_seqname (vcf_header, buffer);
+  p1.chromosome_len = strlen (p1.chromosome);
+  p1.position = buffer->pos;
+
+  print_GenomePosition (&p1);
+  
   if (end_info != NULL && chr2_info != NULL)
     {
-      GenomePosition p1 = {
-        .chromosome = NULL,
-        .chromosome_len = 0,
-        .position = 0,
-        .hash = NULL
-      };
-
-      p1.chromosome = (char *)bcf_seqname (vcf_header, buffer);
-      p1.chromosome_len = strlen (p1.chromosome);
-
-      GenomePosition p2 = {
-        .chromosome = NULL,
-        .chromosome_len = 0,
-        .position = 0,
-        .hash = NULL
-      };
-
+      p2.chromosome = NULL;
+      p2.chromosome_len = 0;
+      p2.position = 0;
+      p2.hash = NULL;
       p2.chromosome = calloc (1, chr2_info->len + 1);
       p2.chromosome_len = chr2_info->len;
 
@@ -161,10 +173,8 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 
       memcpy (p2.chromosome, chr2_info->vptr, chr2_info->len);
 
-      p1.position = buffer->pos;
       p2.position = end_info->v1.i;
 
-      print_GenomePosition (&p1);
       print_GenomePosition (&p2);
 
       /* The hash has been generated, and the data has been printed.  So, we
@@ -174,36 +184,42 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
        * the appropriate place. */
       free (p2.chromosome);
       p2.chromosome_len = 0;
-
-      Variant v = {
-        .position1 = &p1,
-        .position2 = &p2,
-        .quality = buffer->qual,
-        .filter = NULL,
-        .type = NULL,
-        .type_len = 0,
-        .hash = NULL
-      };
-
-      /* Make sure the FILTER field is available. */
-      if (!(buffer->unpacked & BCF_UN_FLT))
-        bcf_unpack(buffer, BCF_UN_FLT);
-
-      v.filters_len = buffer->d.n_flt;
-      v.filters = buffer->d.flt;
-
-      print_Variant (&v, vcf_header);
-
-      /* Free the memory for the hashes. */
-      free (p1.hash);
-      free (p2.hash);
-      free (v.hash);
     }
-  else
+
+  /* So, a StructuralVariant has all possible fields, so we use that
+   * to allocate memory. */
+  StructuralVariant v;
+
+  if (is_sv)
     {
-      puts ("# OTHER records without END or CHR2 properties have "
-            "not been implemented (yet).");
+      v._obj_type = STRUCTURAL_VARIANT;
+      v.position2 = &p2;
     }
+  else if (is_snp)
+    v._obj_type = SNP_VARIANT;
+  else
+    v._obj_type = VARIANT;
+
+  v.position1 = &p1;
+  v.quality = buffer->qual;
+  v.filter = NULL;
+  v.type = NULL;
+  v.type_len = 0;
+  v.hash = NULL;
+
+  /* Make sure the FILTER field is available. */
+  if (!(buffer->unpacked & BCF_UN_FLT))
+    bcf_unpack(buffer, BCF_UN_FLT);
+
+  v.filters_len = buffer->d.n_flt;
+  v.filters = buffer->d.flt;
+
+  print_Variant ((Variant *)&v, vcf_header);
+
+  /* Free the memory for the hashes. */
+  free (p1.hash);
+  free (p2.hash);
+  free (v.hash);
 }
 
 void
@@ -333,7 +349,7 @@ main (int argc, char **argv)
           switch (variant_type)
             {
             case VCF_REF:    handle_REF_record (vcf_header, buffer);    break;
-            case VCF_SNP:    handle_SNP_record (vcf_header, buffer);    break;
+            case VCF_SNP:    handle_OTHER_record (vcf_header, buffer);  break;
             case VCF_MNP:    handle_MNP_record (vcf_header, buffer);    break;
             case VCF_INDEL:  handle_INDEL_record (vcf_header, buffer);  break;
             case VCF_OTHER:  handle_OTHER_record (vcf_header, buffer);  break;
