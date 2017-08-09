@@ -192,20 +192,6 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
       v.filters_len = buffer->d.n_flt;
       v.filters = buffer->d.flt;
 
-      /* /\* Make sure the buffer->d is filled, so we can access the filters. *\/ */
-      /* bcf_unpack (buffer, BCF_UN_FLT); */
-
-      /* int32_t i = 0; */
-      /* for (; i < buffer->d.n_flt; i++) */
-      /*   { */
-      /*     /\* Now this is a chain of dereferencing..  The program might crash */
-      /*      * here if we don't carefully check whether everything is alright. *\/ */
-      /*     bcf_hrec_t *hrec = ((bcf_idinfo_t *)vcf_header->dict[BCF_DT_ID])->hrec[buffer->d.flt[i]]; */
-
-      /*     printf ("# Filter: key: '%s'\n", hrec->key); */
-      /*     printf ("# Filter: value: '%s'\n", hrec->vals); */
-      /*   } */
-
       print_Variant (&v, vcf_header);
 
       /* Free the memory for the hashes. */
