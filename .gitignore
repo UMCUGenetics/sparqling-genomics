@@ -1,0 +1,9 @@
+Makefile
+Makefile.in
+.dirstamp
+*.o
+.deps
+env
+build-aux
+autom4te.cache aclocal.m4
+*.go

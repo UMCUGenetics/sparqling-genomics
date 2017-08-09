@@ -24,6 +24,7 @@
   '(("/welcome" "Home")
     ("/getting-started" "Getting started")
     ("/about" "About")
+    ("/ontologies" "Ontologies")
     ("/help" "Help")))
 
 (define (page-partial-main-menu request-path)

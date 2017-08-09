@@ -31,7 +31,6 @@
   #:use-module (www config)
   #:use-module (www pages)
   #:use-module (www pages error)
-  #:use-module (www pages welcome)
 
   #:export (run-web-interface))
 
@@ -114,30 +113,28 @@ creates a HTML page that is sent back to the user."
             (lambda (port)
               (set-port-encoding! port "utf8")
               (format port "<!DOCTYPE html>~%")
-              (if (< (string-length request-path) 2)
-                  (sxml->xml (page-welcome "/") port)
-                  (let* ((function-symbol (string->symbol
-                                           (string-map
-                                            (lambda (x)
-                                              (if (eq? x #\/) #\- x))
-                                            (substring request-path 1))))
-                         (module (resolve-module
-                                  (module-path
-                                   '(www pages)
-                                   (string-split (substring request-path 1) #\/))
-                                  #:ensure #f))
-                         (page-symbol (symbol-append 'page- function-symbol)))
-                    (if module
-                        (let ((display-function
-                               (module-ref module page-symbol)))
-                          (if (eq? (request-method request) 'POST)
-                              (sxml->xml (display-function
-                                          request-path
-                                          #:post-data
-                                          (utf8->string
-                                           request-body)) port)
-                              (sxml->xml (display-function request-path) port)))
-                        (sxml->xml (page-error-404 request-path) port))))))))
+              (let* ((function-symbol (string->symbol
+                                       (string-map
+                                        (lambda (x)
+                                          (if (eq? x #\/) #\- x))
+                                        (substring request-path 1))))
+                     (module (resolve-module
+                              (module-path
+                               '(www pages)
+                               (string-split (substring request-path 1) #\/))
+                              #:ensure #f))
+                     (page-symbol (symbol-append 'page- function-symbol)))
+                (if module
+                    (let ((display-function
+                           (module-ref module page-symbol)))
+                      (if (eq? (request-method request) 'POST)
+                          (sxml->xml (display-function
+                                      request-path
+                                      #:post-data
+                                      (utf8->string
+                                       request-body)) port)
+                          (sxml->xml (display-function request-path) port)))
+                    (sxml->xml (page-error-404 request-path) port)))))))
 
 
 ;; ----------------------------------------------------------------------------

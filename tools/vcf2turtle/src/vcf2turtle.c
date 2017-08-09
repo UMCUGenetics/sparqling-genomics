@@ -22,197 +22,14 @@
 #include <getopt.h>
 #include <math.h>
 
-#include <gcrypt.h>
 #include <htslib/vcf.h>
 
-/* Note: The HASH_LENGTH will be 32, but a pretty-printed hexadecimal version
- * of it will need 64 bytes of space. */
-#define HASH_ALGORITHM GCRY_MD_SHA256
-#define HASH_LENGTH    gcry_md_get_algo_dlen (HASH_ALGORITHM)
+#include "RuntimeConfiguration.h"
+#include "GenomePosition.h"
+#include "Variant.h"
 
+extern RuntimeConfiguration program_config;
 const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/TestGraph/";
-
-/*----------------------------------------------------------------------------.
- | GENERAL HELPER FUNCTIONS                                                   |
- '----------------------------------------------------------------------------*/
-
-char *
-get_pretty_hash (unsigned char *hash, uint32_t length)
-{
-  char *output = calloc (1, length * 2 + 1);
-  if (output == NULL) return NULL;
-
-  uint32_t i = 0;
-  for (; i < (length); i++)
-    if (snprintf (output + (i * 2), 3, "%02x", hash[i]) != 2)
-      {
-        free (output);
-        return NULL;
-      }
-
-  return output;
-}
-
-
-/*----------------------------------------------------------------------------.
- | DATA TYPE DEFINITIONS                                                      |
- '----------------------------------------------------------------------------*/
-
-/* This struct can be used to make program options available throughout the
- * entire code without needing to pass them around as parameters.  Do not write
- * to these values, other than in the option parser inside main(). */
-typedef struct
-{
-  bool filter_lowqual_calls;
-  bool only_keep_lowqual_calls;
-  char *input_file;
-  char *graph_location;
-} RuntimeConfiguration;
-
-/* This is where we can set default values for the program's options. */
-RuntimeConfiguration config = {
-  .filter_lowqual_calls = false,
-  .only_keep_lowqual_calls = false,
-  .input_file = NULL,
-  .graph_location = (char *)DEFAULT_GRAPH_LOCATION
-};
-
-typedef struct
-{
-  char *chromosome;
-  uint32_t chromosome_len;
-  uint32_t position;
-  char *hash;
-} GenomePosition;
-
-char *
-hash_GenomePosition (GenomePosition *g, bool use_cache)
-{
-  if (g == NULL) return NULL;
-
-  /* Cache the hash generation. */
-  if (g->hash != NULL && use_cache) return g->hash;
-
-  gcry_error_t error;
-  gcry_md_hd_t handler = NULL;
-
-  error = gcry_md_open (&handler, GCRY_MD_SHA256, 0);
-  if (error)
-    {
-      fprintf (stderr, "ERROR: %s/%s\n",
-               gcry_strsource (error),
-               gcry_strerror (error));
-      return NULL;
-    }
-
-  unsigned char *binary_hash = NULL;
-
-  int32_t position_strlen = 0;
-  char position_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  position_strlen = sprintf (position_str, "%d", g->position);
-
-  gcry_md_write (handler, g->chromosome, g->chromosome_len);
-  gcry_md_write (handler, position_str, position_strlen);
-
-  binary_hash = gcry_md_read (handler, 0);
-  g->hash = get_pretty_hash (binary_hash, HASH_LENGTH);
-
-  gcry_md_close (handler);
-  return g->hash;
-}
-
-void
-print_GenomePosition (GenomePosition *g)
-{
-  if (g == NULL) return;
-
-  printf ("p:%s a :GenomePosition ;\n", hash_GenomePosition (g, true));
-  printf ("  :position   %d ;\n", g->position);
-  printf ("  :chromosome \"%s\" .\n\n", g->chromosome);
-}
-
-typedef struct
-{
-  GenomePosition *position1;
-  GenomePosition *position2;
-  float quality;
-  char *filter;
-  char *type;
-  uint32_t type_len;
-  char *hash;
-} Variant;
-
-char *
-hash_Variant (Variant *v, bool use_cache)
-{
-  if (v == NULL) return NULL;
-  if (v->position1 == NULL || v->position2 == NULL) return NULL;
-
-  /* Cache the hash generation. */
-  if (v->hash != NULL && use_cache) return v->hash;
-
-  /* FIXME: A quality of 0 is not the same as infinite.  So, find the
-   * proper way to describe an infinite quality score. */
-  if (!isfinite (v->quality))
-    v->quality = 0;
-
-  gcry_error_t error;
-  gcry_md_hd_t handler = NULL;
-
-  error = gcry_md_open (&handler, GCRY_MD_SHA256, 0);
-  if (error)
-    {
-      fprintf (stderr, "ERROR: %s/%s\n",
-               gcry_strsource (error),
-               gcry_strerror (error));
-      return NULL;
-    }
-
-  /* Avoid dynamic allocation for a speed-up. */
-  int32_t quality_strlen = 0;
-  char quality_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  quality_strlen = sprintf (quality_str, "%04.4f", v->quality);
-
-  unsigned char *binary_hash = NULL;
-
-  /* Provide input for the hash. */
-  gcry_md_write (handler,
-                 hash_GenomePosition (v->position1, true),
-                 HASH_LENGTH);
-
-  gcry_md_write (handler,
-                 hash_GenomePosition (v->position2, true),
-                 HASH_LENGTH);
-
-  gcry_md_write (handler, quality_str, quality_strlen);
-
-  if (v->type != NULL)
-    gcry_md_write (handler, v->type, v->type_len);
-
-  binary_hash = gcry_md_read (handler, 0);
-  v->hash = get_pretty_hash (binary_hash, HASH_LENGTH);
-
-  gcry_md_close (handler);
-  return v->hash;
-}
-
-void
-print_Variant (Variant *v)
-{
-  if (v == NULL) return;
-
-  printf ("v:%s a :Variant ;\n", hash_Variant (v, true));
-  printf ("  :genome_position  p:%s ;\n", hash_GenomePosition (v->position1, true));
-  printf ("  :genome_position2 p:%s ;\n", hash_GenomePosition (v->position2, true));
-  printf ("  :quality          %f ", v->quality);
-  //printf ("  :filter          \"%s\" ", v->filter);
-
-  if (v->type)
-    printf (";\n  :type          \"%s\" .\n\n", v->type);
-  else
-    printf (".\n\n");
-}
-
 
 /*----------------------------------------------------------------------------.
  | USER INTERFACE HELPERS                                                     |
@@ -289,14 +106,14 @@ handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 void
 handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 {
-  if (config.filter_lowqual_calls &&
+  if (program_config.filter_lowqual_calls &&
       bcf_has_filter (vcf_header, buffer, "LowQual") == 1)
     {
       puts ("# Skipping record because of LowQual filter");
       return;
     }
 
-  if (config.only_keep_lowqual_calls &&
+  if (program_config.only_keep_lowqual_calls &&
       bcf_has_filter (vcf_header, buffer, "LowQual") != 1)
     {
       puts ("# Skipping record without LowQual filter.");
@@ -402,6 +219,11 @@ handle_BND_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 int
 main (int argc, char **argv)
 {
+  program_config.filter_lowqual_calls = false;
+  program_config.only_keep_lowqual_calls = false;
+  program_config.input_file = NULL;
+  program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
+
   /*--------------------------------------------------------------------------.
    | PROCESS COMMAND-LINE OPTIONS                                             |
    '--------------------------------------------------------------------------*/
@@ -430,12 +252,12 @@ main (int argc, char **argv)
 	  arg = getopt_long (argc, argv, "i:fg:ovh", options, &index);
           switch (arg)
             {
-            case 'i': config.input_file = optarg;            break;
-            case 'f': config.filter_lowqual_calls = true;    break;
-            case 'o': config.only_keep_lowqual_calls = true; break;
-            case 'g': config.graph_location = optarg;        break;
-            case 'h': show_help ();                          break;
-            case 'v': show_version ();                       break;
+            case 'i': program_config.input_file = optarg;            break;
+            case 'f': program_config.filter_lowqual_calls = true;    break;
+            case 'o': program_config.only_keep_lowqual_calls = true; break;
+            case 'g': program_config.graph_location = optarg;        break;
+            case 'h': show_help ();                                  break;
+            case 'v': show_version ();                               break;
             }
         }
     }
@@ -445,7 +267,7 @@ main (int argc, char **argv)
   /*--------------------------------------------------------------------------.
    | DON'T WASTE TIME WITH SHORT-CIRCUITS                                     |
    '--------------------------------------------------------------------------*/
-  if (config.filter_lowqual_calls && config.only_keep_lowqual_calls)
+  if (program_config.filter_lowqual_calls && program_config.only_keep_lowqual_calls)
     {
       puts ("# Short-circuit: You specified both -f and -o.");
       return 0;
@@ -455,19 +277,19 @@ main (int argc, char **argv)
    | HANDLE AN INPUT FILE                                                     |
    '--------------------------------------------------------------------------*/
 
-  if (config.input_file)
+  if (program_config.input_file)
     {
       /* Determine whether the input file is a VCF or compressed VCF.
        * -------------------------------------------------------------------- */
-      int32_t input_file_len = strlen (config.input_file);
+      int32_t input_file_len = strlen (program_config.input_file);
       bool is_vcf = false;
       bool is_gzip_vcf = false;
 
       if (input_file_len > 3)
-        is_vcf = !strcmp (config.input_file + input_file_len - 3, "vcf");
+        is_vcf = !strcmp (program_config.input_file + input_file_len - 3, "vcf");
 
       if (!is_vcf && input_file_len > 6)
-        is_gzip_vcf = !strcmp (config.input_file + input_file_len - 6, "vcf.gz");
+        is_gzip_vcf = !strcmp (program_config.input_file + input_file_len - 6, "vcf.gz");
 
       if (!(is_vcf || is_gzip_vcf))
         {
@@ -482,29 +304,29 @@ main (int argc, char **argv)
       htsFile *vcf_stream = NULL;
 
       if (is_vcf)
-        vcf_stream = hts_open (config.input_file, "r");
+        vcf_stream = hts_open (program_config.input_file, "r");
       else if (is_gzip_vcf)
-        vcf_stream = hts_open (config.input_file, "rz");
+        vcf_stream = hts_open (program_config.input_file, "rz");
 
       if (vcf_stream == NULL)
-        return print_vcf_file_error (config.input_file);
+        return print_vcf_file_error (program_config.input_file);
 
       vcf_header = bcf_hdr_read (vcf_stream);
       if (vcf_header == NULL)
         {
           hts_close (vcf_stream);
-          return print_vcf_header_error (config.input_file);
+          return print_vcf_header_error (program_config.input_file);
         }
 
       buffer = bcf_init ();
-      if (buffer == NULL) return print_memory_error (config.input_file);
+      if (buffer == NULL) return print_memory_error (program_config.input_file);
 
       /* Write the prefix of the Turtle output.
        * -------------------------------------------------------------------- */
-      printf ("@prefix : <%s> .\n", config.graph_location);
-      printf ("@prefix v: <%sVariant/> .\n", config.graph_location);
-      printf ("@prefix p: <%sPosition/> .\n", config.graph_location);
-      printf ("@prefix s: <%sSample/> .\n\n", config.graph_location);
+      printf ("@prefix : <%s> .\n", program_config.graph_location);
+      printf ("@prefix v: <%sVariant/> .\n", program_config.graph_location);
+      printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
+      printf ("@prefix s: <%sSample/> .\n\n", program_config.graph_location);
 
       while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
         {
