@@ -26,7 +26,7 @@
 extern RuntimeConfiguration program_config;
 
 char *
-hash_Variant (Variant *v, bool use_cache)
+hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
 {
   if (v == NULL) return NULL;
   if (v->position1 == NULL || v->position2 == NULL) return NULL;
@@ -80,15 +80,22 @@ hash_Variant (Variant *v, bool use_cache)
 }
 
 void
-print_Variant (Variant *v)
+print_Variant (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return;
 
-  printf ("v:%s a :Variant ;\n", hash_Variant (v, true));
+  printf ("v:%s a :Variant ;\n", hash_Variant (v, vcf_header, true));
   printf ("  :genome_position  p:%s ;\n", hash_GenomePosition (v->position1, true));
   printf ("  :genome_position2 p:%s ;\n", hash_GenomePosition (v->position2, true));
+
+  int i = 0;
+  for (; i < v->filters_len; i++)
+    {
+      char *name = (char *)vcf_header->id[BCF_DT_ID][v->filters[i]].key;
+      printf ("  :filter \"%s\" ;\n", name);
+    }
+
   printf ("  :quality          %f ", v->quality);
-  //printf ("  :filter          \"%s\" ", v->filter);
 
   if (v->type)
     printf (";\n  :type          \"%s\" .\n\n", v->type);

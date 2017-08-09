@@ -74,6 +74,13 @@ print_memory_error (const char *file_name)
   return 1;
 }
 
+static int32_t
+print_file_format_error ()
+{
+  fprintf (stderr, "ERROR: This program only handles \".vcf\" and \".vcf.gz\" files.\n");
+  return 1;
+}
+
 
 /*----------------------------------------------------------------------------.
  | HANDLERS FOR SPECIFIC VCF RECORD TYPES                                     |
@@ -178,6 +185,13 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
         .hash = NULL
       };
 
+      /* Make sure the FILTER field is available. */
+      if (!(buffer->unpacked & BCF_UN_FLT))
+        bcf_unpack(buffer, BCF_UN_FLT);
+
+      v.filters_len = buffer->d.n_flt;
+      v.filters = buffer->d.flt;
+
       /* /\* Make sure the buffer->d is filled, so we can access the filters. *\/ */
       /* bcf_unpack (buffer, BCF_UN_FLT); */
 
@@ -192,7 +206,7 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
       /*     printf ("# Filter: value: '%s'\n", hrec->vals); */
       /*   } */
 
-      print_Variant (&v);
+      print_Variant (&v, vcf_header);
 
       /* Free the memory for the hashes. */
       free (p1.hash);
@@ -292,10 +306,7 @@ main (int argc, char **argv)
         is_gzip_vcf = !strcmp (program_config.input_file + input_file_len - 6, "vcf.gz");
 
       if (!(is_vcf || is_gzip_vcf))
-        {
-          fprintf (stderr, "ERROR: This program only handles \".vcf\" and \".vcf.gz\" files.");
-          return 1;
-        }
+        return print_file_format_error ();
 
       /* Prepare the buffers needed to read the VCF file.
        * -------------------------------------------------------------------- */

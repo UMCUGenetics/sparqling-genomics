@@ -21,6 +21,7 @@
 #include "GenomePosition.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <htslib/vcf.h>
 
 typedef struct
 {
@@ -31,9 +32,13 @@ typedef struct
   char *type;
   uint32_t type_len;
   char *hash;
+
+  /* These mirror the internal HTSLib record's information. */
+  int filters_len;
+  int *filters;
 } Variant;
 
-char *hash_Variant (Variant *v, bool use_cache);
-void print_Variant (Variant *v);
+char *hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache);
+void print_Variant (Variant *v, bcf_hdr_t *vcf_header);
 
 #endif  /* VARIANT_H */
