@@ -29,6 +29,8 @@
 #include "Variant.h"
 
 extern RuntimeConfiguration program_config;
+extern int hts_verbose;
+
 const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/TestGraph/";
 
 /*----------------------------------------------------------------------------.
@@ -295,6 +297,10 @@ main (int argc, char **argv)
 
   if (program_config.input_file)
     {
+      /* Disable the output messages from HTSLib.
+       * -------------------------------------------------------------------- */
+      hts_verbose = 0;
+
       /* Determine whether the input file is a VCF or compressed VCF.
        * -------------------------------------------------------------------- */
       int32_t input_file_len = strlen (program_config.input_file);
