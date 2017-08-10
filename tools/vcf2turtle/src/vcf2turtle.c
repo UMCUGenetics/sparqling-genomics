@@ -159,15 +159,15 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
   GenomePosition p2;
   p2.cipos_len = 0;
   p2.cipos = NULL;
+  p2.hash = NULL;
+  p2.chromosome = NULL;
+  p2.chromosome_len = 0;
+  p2.position = 0;
 
   bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2.cipos), &(p2.cipos_len));
 
   if (end_info != NULL && chr2_info != NULL)
     {
-      p2.chromosome = NULL;
-      p2.chromosome_len = 0;
-      p2.position = 0;
-      p2.hash = NULL;
       p2.chromosome = calloc (1, chr2_info->len + 1);
       p2.chromosome_len = chr2_info->len;
 
@@ -201,7 +201,8 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
   v.type = NULL;
   v.type_len = 0;
   v.hash = NULL;
-
+  v.position2 = NULL;
+  
   if (is_sv)
     {
       v._obj_type = STRUCTURAL_VARIANT;
