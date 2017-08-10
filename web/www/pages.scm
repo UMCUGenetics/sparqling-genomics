@@ -21,7 +21,7 @@
 (define page-title-prefix "genomics-db | ")
 
 (define pages
-  '(("/welcome" "Home")
+  '(("/" "Home")
     ("/getting-started" "Getting started")
     ("/about" "About")
     ("/ontologies" "Ontologies")
