@@ -193,3 +193,18 @@ div.action-button a:hover {
 div.action-button:hover {
     background: #a05a2c;
 }
+
+#editor {
+    width: 100%;
+    min-height: 250pt;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /*font-family: 'FiraMono', monospace;*/
+    font-size: 12pt;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    border: solid 1px #cccccc;
+}
