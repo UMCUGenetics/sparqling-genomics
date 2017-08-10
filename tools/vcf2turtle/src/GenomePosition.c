@@ -53,6 +53,16 @@ hash_GenomePosition (GenomePosition *g, bool use_cache)
   gcry_md_write (handler, g->chromosome, g->chromosome_len);
   gcry_md_write (handler, position_str, position_strlen);
 
+  if (g->cipos_len > 0)
+    {
+      int32_t cipos_str_len = 0;
+      char cipos_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+      cipos_str_len = sprintf (cipos_str, "%d%d", g->cipos[0], g->cipos[1]);
+      gcry_md_write (handler, cipos_str, cipos_str_len);
+    }
+
   binary_hash = gcry_md_read (handler, 0);
   g->hash = get_pretty_hash (binary_hash, HASH_LENGTH);
 
@@ -66,7 +76,14 @@ print_GenomePosition (GenomePosition *g)
   if (g == NULL) return;
 
   printf ("p:%s a :GenomePosition ;\n", hash_GenomePosition (g, true));
-  printf ("  :position   %d ;\n", g->position);
+  printf ("  :position %d ;\n", g->position);
+
+  if (g->cipos_len > 0)
+    {
+      printf ("  :confidence_interval_start %d ;\n", g->cipos[0]);
+      printf ("  :confidence_interval_end %d ;\n", g->cipos[1]);
+    }
+
   printf ("  :chromosome \"%s\" .\n\n", g->chromosome);
 }
 

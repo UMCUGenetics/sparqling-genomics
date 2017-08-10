@@ -28,6 +28,10 @@ typedef struct
   uint32_t chromosome_len;
   uint32_t position;
   char *hash;
+
+  int32_t cipos_len;
+  int32_t *cipos;
+
 } GenomePosition;
 
 char *hash_GenomePosition (GenomePosition *g, bool use_cache);

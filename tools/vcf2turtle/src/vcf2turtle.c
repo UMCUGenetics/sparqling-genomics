@@ -115,6 +115,8 @@ handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 void
 handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 {
+  /* Handle the program options for leaving out FILTER fields.
+   * ------------------------------------------------------------------------ */
   if (program_config.filter_lowqual_calls &&
       bcf_has_filter (vcf_header, buffer, "LowQual") == 1)
     {
@@ -129,35 +131,37 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
       return;
     }
 
-  /* Check for the SVTYPE property. */
+  /* Check for the SVTYPE property.
+   * ------------------------------------------------------------------------ */
   bcf_info_t *svtype_info = bcf_get_info (vcf_header, buffer, "SVTYPE");
   bool is_sv = (svtype_info != NULL);
   bool is_snp = bcf_is_snp (buffer);
 
-  /* Delly SV output seems to fall into this category. */
-  bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
-  bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
+  /* Handle the first genome position.
+   * ------------------------------------------------------------------------ */
+  GenomePosition p1;
+  p1.cipos_len = 0;
+  p1.cipos = NULL;
 
-  GenomePosition p1 = {
-    .chromosome = NULL,
-    .chromosome_len = 0,
-    .position = 0,
-    .hash = NULL
-  };
-
-  GenomePosition p2 = {
-    .chromosome = NULL,
-    .chromosome_len = 0,
-    .position = 0,
-    .hash = NULL
-  };
+  bcf_get_info_int32 (vcf_header, buffer, "CIPOS", &(p1.cipos), &(p1.cipos_len));
 
   p1.chromosome = (char *)bcf_seqname (vcf_header, buffer);
   p1.chromosome_len = strlen (p1.chromosome);
   p1.position = buffer->pos;
+  p1.hash = NULL;
 
   print_GenomePosition (&p1);
-  
+
+  /* Handle the second genome position.
+   * ------------------------------------------------------------------------ */
+  bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
+  bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
+  GenomePosition p2;
+  p2.cipos_len = 0;
+  p2.cipos = NULL;
+
+  bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2.cipos), &(p2.cipos_len));
+
   if (end_info != NULL && chr2_info != NULL)
     {
       p2.chromosome = NULL;
@@ -192,6 +196,12 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
    * to allocate memory. */
   StructuralVariant v;
 
+  /* Initialize struct fields.
+   * ------------------------------------------------------------------------ */
+  v.type = NULL;
+  v.type_len = 0;
+  v.hash = NULL;
+
   if (is_sv)
     {
       v._obj_type = STRUCTURAL_VARIANT;
@@ -203,25 +213,40 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
     v._obj_type = VARIANT;
 
   v.position1 = &p1;
-  v.quality = buffer->qual;
-  v.filter = NULL;
-  v.type = NULL;
-  v.type_len = 0;
-  v.hash = NULL;
 
-  /* Make sure the FILTER field is available. */
+  /* Set the 'quality' field.
+   * ------------------------------------------------------------------------ */
+  v.quality = buffer->qual;
+
+  /* Make sure the FILTER field is available.
+   * ------------------------------------------------------------------------ */
   if (!(buffer->unpacked & BCF_UN_FLT))
     bcf_unpack(buffer, BCF_UN_FLT);
 
   v.filters_len = buffer->d.n_flt;
   v.filters = buffer->d.flt;
 
+  /* Set the 'type' field.
+   * ------------------------------------------------------------------------ */
+  if (svtype_info)
+    {
+      v.type = svtype_info->vptr;
+      v.type_len = svtype_info->len;
+    }
+
+  /* Print the Variant.
+   * ------------------------------------------------------------------------ */
   print_Variant ((Variant *)&v, vcf_header);
 
-  /* Free the memory for the hashes. */
-  free (p1.hash);
-  free (p2.hash);
-  free (v.hash);
+  /* Clean up the memory.
+  * ------------------------------------------------------------------------- */
+  free (p1.cipos); p1.cipos = NULL;
+  free (p2.cipos); p2.cipos = NULL;
+
+  free (p1.hash); p1.hash = NULL;
+  free (p2.hash); p2.hash = NULL;
+
+  free (v.hash); v.hash = NULL;
 }
 
 void

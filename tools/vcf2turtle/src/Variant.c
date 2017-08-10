@@ -104,7 +104,7 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
     printf ("v:%s a :Variant ;\n",
             hash_Variant (v, vcf_header, true));
 
-  printf ("  :genome_position  p:%s ;\n",
+  printf ("  :genome_position p:%s ;\n",
           hash_GenomePosition (v->position1, true));
 
   if (v->_obj_type == STRUCTURAL_VARIANT)
@@ -118,10 +118,16 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
       printf ("  :filter \"%s\" ;\n", name);
     }
 
-  printf ("  :quality          %4.2f ", v->quality);
+  printf ("  :quality %4.2f ", v->quality);
 
-  if (v->type)
-    printf (";\n  :type          \"%s\" .\n\n", v->type);
+  if (v->type_len > 0 && v->type)
+    {
+      char type[v->type_len + 1];
+      memset (type, '\0', v->type_len + 1);
+      memcpy (type, v->type, v->type_len);
+
+      printf (";\n  :type \"%s\" .\n\n", type);
+    }
   else
     printf (".\n\n");
 }
