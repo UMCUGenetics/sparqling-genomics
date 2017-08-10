@@ -1,9 +1,15 @@
 Makefile
 Makefile.in
-.dirstamp
-*.o
-.deps
 env
 build-aux
-autom4te.cache aclocal.m4
+autom4te.cache
+aclocal.m4
+config.log
+config.status
+configure
+.dirstamp
+.deps
+*.o
 *.go
+*.xml
+tools/vcf2turtle/vcf2turtle
