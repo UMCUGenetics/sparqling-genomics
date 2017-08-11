@@ -34,7 +34,7 @@ hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
       ((StructuralVariant *)v)->position2 == NULL) return NULL;
 
   /* Cache the hash generation. */
-  if (v->hash != NULL && use_cache) return v->hash;
+  if (v->hash[0] != '\0' && use_cache) return v->hash;
 
   if (!isfinite (v->quality))
     v->quality = -1;
@@ -83,7 +83,11 @@ hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
     gcry_md_write (handler, v->type, v->type_len);
 
   binary_hash = gcry_md_read (handler, 0);
-  v->hash = get_pretty_hash (binary_hash, HASH_LENGTH);
+  if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->hash))
+    {
+      fprintf (stderr, "ERROR: Couldn't print a hash.\n");
+      return NULL;
+    }
 
   gcry_md_close (handler);
   return v->hash;
@@ -130,4 +134,41 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
     }
   else
     printf (".\n\n");
+}
+
+void
+initialize_Variant (Variant *v)
+{
+  if (v == NULL) return;
+  v->position1 = NULL;
+  v->quality = 0.0;
+  v->filter = NULL;
+  v->type = NULL;
+  v->type_len = 0;
+  memset (v->hash, '\0', 65);
+  v->filters_len = 0;
+  v->filters = NULL;
+}
+
+void
+initialize_StructuralVariant (StructuralVariant *v)
+{
+  if (v == NULL) return;
+
+  initialize_Variant ((Variant *)v);
+  v->position2 = NULL;
+}
+
+void
+reset_Variant (Variant *v)
+{
+  if (v == NULL) return;
+  initialize_Variant (v);
+}
+
+void
+reset_StructuralVariant (StructuralVariant *v)
+{
+  if (v == NULL) return;
+  initialize_StructuralVariant (v);
 }

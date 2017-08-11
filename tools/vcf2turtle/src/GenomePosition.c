@@ -30,7 +30,7 @@ hash_GenomePosition (GenomePosition *g, bool use_cache)
   if (g == NULL) return NULL;
 
   /* Cache the hash generation. */
-  if (g->hash != NULL && use_cache) return g->hash;
+  if (g->hash[0] != '\0' && use_cache) return g->hash;
 
   gcry_error_t error;
   gcry_md_hd_t handler = NULL;
@@ -64,7 +64,11 @@ hash_GenomePosition (GenomePosition *g, bool use_cache)
     }
 
   binary_hash = gcry_md_read (handler, 0);
-  g->hash = get_pretty_hash (binary_hash, HASH_LENGTH);
+  if (!get_pretty_hash (binary_hash, HASH_LENGTH, g->hash))
+    {
+      fprintf (stderr, "ERROR: Couldn't print a hash.\n");
+      return NULL;
+    }
 
   gcry_md_close (handler);
   return g->hash;
@@ -87,3 +91,24 @@ print_GenomePosition (GenomePosition *g)
   printf ("  :chromosome \"%s\" .\n\n", g->chromosome);
 }
 
+void
+initialize_GenomePosition (GenomePosition *g)
+{
+  if (g == NULL) return;
+
+  g->chromosome = NULL;
+  g->chromosome_len = 0;
+  g->position = 0;
+  memset (g->hash, '\0', 65);
+  g->cipos_len = 0;
+  g->cipos = NULL;
+}
+
+void
+reset_GenomePosition (GenomePosition *g)
+{
+  if (g == NULL) return;
+
+  free (g->cipos);
+  initialize_GenomePosition (g);
+}

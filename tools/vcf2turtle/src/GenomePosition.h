@@ -27,7 +27,7 @@ typedef struct
   char *chromosome;
   uint32_t chromosome_len;
   uint32_t position;
-  char *hash;
+  char hash[65];
 
   int32_t cipos_len;
   int32_t *cipos;
@@ -36,5 +36,7 @@ typedef struct
 
 char *hash_GenomePosition (GenomePosition *g, bool use_cache);
 void print_GenomePosition (GenomePosition *g);
+void initialize_GenomePosition (GenomePosition *g);
+void reset_GenomePosition (GenomePosition *g);
 
 #endif  /* GENOMEPOSITION_H */

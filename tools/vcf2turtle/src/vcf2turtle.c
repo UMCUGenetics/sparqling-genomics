@@ -46,7 +46,7 @@ show_help (void)
         "  --only-keep-lowqual, -o  Do not process calls without FILTER=LowQual.\n"
         "                           This option cannot be used together with -f.\n"
 	"  --version,           -v  Show versioning information.\n"
-	"  --help,              -h  Show this message.\n\n");
+	"  --help,              -h  Show this message.\n");
 }
 
 static void
@@ -113,7 +113,8 @@ handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 }
 
 void
-handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
+                     GenomePosition *p1, GenomePosition *p2)
 {
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
@@ -139,81 +140,65 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 
   /* Handle the first genome position.
    * ------------------------------------------------------------------------ */
-  GenomePosition p1;
-  p1.cipos_len = 0;
-  p1.cipos = NULL;
+  bcf_get_info_int32 (vcf_header, buffer, "CIPOS", &(p1->cipos), &(p1->cipos_len));
 
-  bcf_get_info_int32 (vcf_header, buffer, "CIPOS", &(p1.cipos), &(p1.cipos_len));
+  p1->chromosome = (char *)bcf_seqname (vcf_header, buffer);
+  p1->chromosome_len = strlen (p1->chromosome);
+  p1->position = buffer->pos;
 
-  p1.chromosome = (char *)bcf_seqname (vcf_header, buffer);
-  p1.chromosome_len = strlen (p1.chromosome);
-  p1.position = buffer->pos;
-  p1.hash = NULL;
-
-  print_GenomePosition (&p1);
+  print_GenomePosition (p1);
 
   /* Handle the second genome position.
    * ------------------------------------------------------------------------ */
   bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
   bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
-  GenomePosition p2;
-  p2.cipos_len = 0;
-  p2.cipos = NULL;
-  p2.hash = NULL;
-  p2.chromosome = NULL;
-  p2.chromosome_len = 0;
-  p2.position = 0;
-
-  bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2.cipos), &(p2.cipos_len));
+  bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
 
   if (end_info != NULL && chr2_info != NULL)
     {
-      p2.chromosome = calloc (1, chr2_info->len + 1);
-      p2.chromosome_len = chr2_info->len;
+      p2->chromosome = calloc (1, chr2_info->len + 1);
+      p2->chromosome_len = chr2_info->len;
 
-      if (p2.chromosome == NULL)
+      if (p2->chromosome == NULL)
         {
           printf ("# ERROR allocating memory.\n");
           return;
         }
 
-      memcpy (p2.chromosome, chr2_info->vptr, chr2_info->len);
+      memcpy (p2->chromosome, chr2_info->vptr, chr2_info->len);
 
-      p2.position = end_info->v1.i;
-
-      print_GenomePosition (&p2);
+      p2->position = end_info->v1.i;
+      print_GenomePosition (p2);
 
       /* The hash has been generated, and the data has been printed.  So, we
        * no longer need to have this data allocated.  Warning:  If you ever
        * implement a feature that does not use the cache of GenomePositions,
        * then remove this code and handle the free()'ing of this string in
        * the appropriate place. */
-      free (p2.chromosome);
-      p2.chromosome_len = 0;
+      free (p2->chromosome);
+      p2->chromosome_len = 0;
     }
+
+
+  /* Handle the variant information.
+   * ------------------------------------------------------------------------ */
 
   /* So, a StructuralVariant has all possible fields, so we use that
    * to allocate memory. */
   StructuralVariant v;
-
-  /* Initialize struct fields.
-   * ------------------------------------------------------------------------ */
-  v.type = NULL;
-  v.type_len = 0;
-  v.hash = NULL;
-  v.position2 = NULL;
+  initialize_StructuralVariant (&v);
   
   if (is_sv)
     {
       v._obj_type = STRUCTURAL_VARIANT;
-      v.position2 = &p2;
+      v.position2 = p2;
     }
   else if (is_snp)
     v._obj_type = SNP_VARIANT;
   else
     v._obj_type = VARIANT;
 
-  v.position1 = &p1;
+  v.position1 = p1;
 
   /* Set the 'quality' field.
    * ------------------------------------------------------------------------ */
@@ -241,13 +226,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 
   /* Clean up the memory.
   * ------------------------------------------------------------------------- */
-  free (p1.cipos); p1.cipos = NULL;
-  free (p2.cipos); p2.cipos = NULL;
-
-  free (p1.hash); p1.hash = NULL;
-  free (p2.hash); p2.hash = NULL;
-
-  free (v.hash); v.hash = NULL;
+  reset_GenomePosition (p1);
+  reset_GenomePosition (p2);
+  reset_StructuralVariant (&v);
 }
 
 void
@@ -323,6 +304,10 @@ main (int argc, char **argv)
 
   if (program_config.input_file)
     {
+      /* Performance optimization for the printf() calls. */
+      char stdout_buf[80 * 65536];
+      setvbuf(stdout, stdout_buf, _IOFBF, 80 * 65536);
+
       /* Disable the output messages from HTSLib.
        * -------------------------------------------------------------------- */
       hts_verbose = 0;
@@ -373,6 +358,11 @@ main (int argc, char **argv)
       printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
       printf ("@prefix s: <%sSample/> .\n\n", program_config.graph_location);
 
+      GenomePosition p1;
+      initialize_GenomePosition (&p1);
+      GenomePosition p2;
+      initialize_GenomePosition (&p2);
+
       while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
         {
           /* A VCF file can contain all kinds of data.  Each is represented
@@ -381,10 +371,14 @@ main (int argc, char **argv)
           switch (variant_type)
             {
             case VCF_REF:    handle_REF_record (vcf_header, buffer);    break;
-            case VCF_SNP:    handle_OTHER_record (vcf_header, buffer);  break;
+            case VCF_SNP:
+              handle_OTHER_record (vcf_header, buffer, &p1, &p2);
+              break;
             case VCF_MNP:    handle_MNP_record (vcf_header, buffer);    break;
             case VCF_INDEL:  handle_INDEL_record (vcf_header, buffer);  break;
-            case VCF_OTHER:  handle_OTHER_record (vcf_header, buffer);  break;
+            case VCF_OTHER:
+              handle_OTHER_record (vcf_header, buffer, &p1, &p2);
+              break;
             case VCF_BND:    handle_BND_record (vcf_header, buffer);    break;
             default:
               puts ("# Encountered an unknown variant call type.");
@@ -399,6 +393,7 @@ main (int argc, char **argv)
       bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
+      fflush (stdout);
     }
 
   return 0;

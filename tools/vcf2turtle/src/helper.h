@@ -19,7 +19,8 @@
 #define HELPER_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-char *get_pretty_hash (unsigned char *hash, uint32_t length);
+bool get_pretty_hash (unsigned char *hash, uint32_t length, char *output);
 
 #endif  /* HELPER_H */

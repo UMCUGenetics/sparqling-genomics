@@ -38,9 +38,9 @@ typedef struct
   GenomePosition *position1;
   float quality;
   char *filter;
-  char *type;
+  unsigned char *type;
   uint32_t type_len;
-  char *hash;
+  char hash[65];
 
   /* These mirror the internal HTSLib record's information. */
   int filters_len;
@@ -59,9 +59,9 @@ typedef struct
   GenomePosition *position1;
   float quality;
   char *filter;
-  char *type;
+  unsigned char *type;
   uint32_t type_len;
-  char *hash;
+  char hash[65];
 
   /* These mirror the internal HTSLib record's information. */
   int filters_len;
@@ -86,5 +86,9 @@ typedef Variant SNPVariant;
  */
 char *hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache);
 void print_Variant (Variant *v, bcf_hdr_t *vcf_header);
+void initialize_Variant (Variant *v);
+void initialize_StructuralVariant (StructuralVariant *v);
+void reset_Variant (Variant *v);
+void reset_StructuralVariant (StructuralVariant *v);
 
 #endif  /* VARIANT_H */
