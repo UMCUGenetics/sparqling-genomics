@@ -208,3 +208,19 @@ div.action-button:hover {
     border-radius: 4pt;
     border: solid 1px #cccccc;
 }
+
+#query-output {
+    width: 100%;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    border: solid 1px #cccccc;
+}
+
+#query-output thead {
+    background: #e8e8e8;
+}
+
+#query-output_wrapper {
+    margin-top: 10pt;
+}

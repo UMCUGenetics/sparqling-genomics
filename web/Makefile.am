@@ -24,7 +24,9 @@ SOURCES =                                               \
   www/config.scm                                        \
   www/util.scm                                          \
   www/pages.scm                                         \
-  www/pages/help.scm
+  www/pages/help.scm                                    \
+  www/pages/welcome.scm                                 \
+  www/pages/query-response.scm
 
 WWW_STATIC_RESOURCES =                                  \
   static/css/main.css                                   \
@@ -42,12 +44,11 @@ WWW_STATIC_RESOURCES =                                  \
   static/highlight/styles/androidstudio.css             \
   static/highlight/styles/github.css                    \
   static/datatables.min.css                             \
-  static/datatables.min.js
+  static/jquery.dataTables.min.js
 
 MARKDOWN_PAGES =                                        \
   www/pages/about.md                                    \
   www/pages/getting-started.md                          \
-  www/pages/ontologies.md                               \
-  www/pages/welcome.md
+  www/pages/ontologies.md
 
 EXTRA_DIST += $(WWW_STATIC_RESOURCES) $(MARKDOWN_PAGES)
