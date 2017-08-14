@@ -63,18 +63,23 @@ $(document).ready(function(){
       $.post('/query-response', editor.getValue(), function (data){
 
         /* Remove the previous query results. */
+        $('.query-error').remove();
         $('#query-results').remove();
         $('#query-output').remove();
         $('#query-output_wrapper').remove();
 
         /*  Insert the results HTML table into the page. */
         $('#editor').after(data);
-        $('#editor').after(function(){ return '" (h3 (@ (id "query-results")) "Query results") "' });
 
-        /* Initialize DataTables. */
-        $('#query-output').addClass('display');
-        var dt = $('#query-output').DataTable({ sDom: 'lrtip' });
-        dt.draw();
+        /* Detect an error response. */
+        if ($('.query-error').length == 0) {
+          $('#editor').after(function(){ return '" (h3 (@ (id "query-results")) "Query results") "' });
+
+          /* Initialize DataTables. */
+          $('#query-output').addClass('display');
+          var dt = $('#query-output').DataTable({ sDom: 'lrtip' });
+          dt.draw();
+        }
       });
       }, readOnly: true
     });

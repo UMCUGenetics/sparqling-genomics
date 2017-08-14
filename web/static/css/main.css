@@ -224,3 +224,21 @@ div.action-button:hover {
 #query-output_wrapper {
     margin-top: 10pt;
 }
+
+#content .query-error .title {
+    margin-top: 10pt;
+    padding: 5pt;
+    font-weight: bold;
+    background: #cc3333;
+    -webkit-border-radius: 4pt 4pt 0pt 0pt;
+    -moz-border-radius: 4pt 4pt 0pt 0pt;
+    border-radius: 4pt 4pt 0pt 0pt;
+}
+
+#content .query-error .content {
+    padding: 5pt;
+    background: #e8e8e8;
+    -webkit-border-radius: 0pt 0pt 4pt 4pt;
+    -moz-border-radius: 0pt 0pt 4pt 4pt;
+    border-radius: 0pt 0pt 4pt 4pt;
+}
