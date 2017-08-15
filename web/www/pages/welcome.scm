@@ -60,16 +60,23 @@ $(document).ready(function(){
     name: 'executeQueryCommand',
     bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
     exec: function(editor) {
-      $.post('/query-response', editor.getValue(), function (data){
+      $('#editor').after(function(){ return '"
+      (div (@ (class "query-data-loader"))
+           (div (@ (class "title")) "Loading data ...")
+           (div (@ (class "content")) "Please wait until the results appears."))
+      "' });
 
         /* Remove the previous query results. */
-        $('.query-error').remove();
-        $('#query-results').remove();
-        $('#query-output').remove();
-        $('#query-output_wrapper').remove();
+      $('.query-error').remove();
+      $('#query-results').remove();
+      $('#query-output').remove();
+      $('#query-output_wrapper').remove();
+
+      $.post('/query-response', editor.getValue(), function (data){
 
         /*  Insert the results HTML table into the page. */
         $('#editor').after(data);
+        $('.query-data-loader').remove();
 
         /* Detect an error response. */
         if ($('.query-error').length == 0) {
