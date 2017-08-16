@@ -304,10 +304,6 @@ main (int argc, char **argv)
 
   if (program_config.input_file)
     {
-      /* Performance optimization for the printf() calls. */
-      char stdout_buf[80 * 65536];
-      setvbuf(stdout, stdout_buf, _IOFBF, 80 * 65536);
-
       /* Disable the output messages from HTSLib.
        * -------------------------------------------------------------------- */
       hts_verbose = 0;
@@ -393,7 +389,6 @@ main (int argc, char **argv)
       bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
-      fflush (stdout);
     }
 
   return 0;
