@@ -228,7 +228,7 @@ main (int argc, char **argv)
       if (snprintf (total_url, total_url_len,
                     "%s/sparql-graph-crud-auth?graph=%s",
                     remote_url, graph_iri_encoded) == total_url_len - 1)
-        curl_easy_setopt (curl, CURLOPT_URL, remote_url);
+        curl_easy_setopt (curl, CURLOPT_URL, total_url);
       else
         return handle_curl_error ();
 
