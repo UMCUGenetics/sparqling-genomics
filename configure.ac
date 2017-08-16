@@ -43,13 +43,23 @@ fi
 AC_CONFIG_FILES([env], [chmod +x env])
 AC_CONFIG_FILES([
   Makefile
-  web/Makefile
-  tools/vcf2turtle/Makefile
+  doc/Makefile
   tools/turtle2remote/Makefile
+  tools/vcf2turtle/Makefile
+  web/Makefile
 ])
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
 PKG_CHECK_MODULES([curl], [libcurl])
+
+dnl Check for presence of 'pdflatex'
+AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
+
+if test "x$PDFLATEX" = "x"; then
+  AC_MSG_WARN([Unable to create PDF version of the user manual.])
+fi
+
+AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 
 AC_OUTPUT
