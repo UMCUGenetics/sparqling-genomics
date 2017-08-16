@@ -1,0 +1,87 @@
+\documentclass[11pt,a4paper]{book}
+\usepackage{umcu}
+\title{SPARQling structural variation}
+\author{Roel Janssen}
+%\date{January August 2017 --- September 2017}
+
+\begin{document}
+
+\begin{titlepage}
+  \maketitle
+  \thispagestyle{empty}
+\end{titlepage}
+
+
+\setcounter{page}{1}
+\pagenumbering{roman}
+\tableofcontents
+\newpage{}
+
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+
+\chapter{Command-line programs}
+
+  The project provides programs to create a complete pipeline including
+  data conversion, data importing and data exploration.
+  
+\section{Preparing data with \texttt{vcf2turtle}}
+
+  Obtaining variants from sequenced data is a task of so called
+  \emph{variant callers}.  These programs output the variants they found in
+  the \emph{Variant Call Format} (VCF).  Before we can use the data described
+  in this format, we need to extract triples from it.
+
+  The \texttt{vcf2turtle} program does exactly this, by converting a VCF file
+  into the \emph{Terse RDF Triple Language} (Turtle) format.  In section
+  \ref{sec:turtle2remote} (\nameref{sec:turtle2remote}) we describe how to
+  import the data produced by \texttt{vcf2turtle} in the database.
+
+\subsection{Example usage}
+
+\begin{verbatim}
+$ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
+\end{verbatim}
+
+\subsection{Run-time properties}
+
+  The program typically uses less than one megabyte of memory, because it
+  processes the variant calls one-by-one.  It reads through the file from top
+  to bottom, so its running time is dependent on the input file size.  The
+  throughput of this program is around $20$ to $60$ megabytes per second,
+  depending on your computer.
+
+\label{sec:turtle2remote}
+\section{Importing data with \texttt{turtle2remote}}
+
+  To import data in the \emph{Terse RDF Triple Language} (Turtle) format in
+  a triple store (our database), we can use the \texttt{turtle2remote} program.
+
+  The triple stores typically store data in \emph{graphs}.  One triple store
+  can host multiple graphs, so we must tell the triple store which graph we
+  would like to add the data to.
+
+\subsection{Example usage}
+
+\begin{verbatim}
+$ turtle2remote --input-file=/path/to/my/variants.ttl        \
+                --remote-url=http://localhost:8890           \
+                --graph-iri=http://localhost:8890/MyVariants
+\end{verbatim}
+
+\chapter{Web interface}
+
+  In addition to the command-line programs, the project provides a web
+  interface for prototyping queries, and quick data reporting.  With the
+  web interface you can:
+  \begin{itemize}
+  \item Write and execute your own SPARQL queries;
+  \item Import and export data;
+  \item Get a general idea about what your data looks like.
+  \end{itemize}
+
+\chapter{Programming in Python, Perl, R, Scheme, C, and C++}
+
+\end{document}

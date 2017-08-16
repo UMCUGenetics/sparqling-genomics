@@ -1,0 +1,65 @@
+\ProvidesPackage{umcu}
+
+% LaTeX preamble
+% ------------------------------------------------------------------------------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{parskip}
+\usepackage{mathtools}
+\usepackage{longtable}
+\usepackage{array}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+\def\arraystretch{1.3}
+
+% Use a different font.
+\usepackage{libertine}
+\usepackage[T1]{fontenc}
+
+% Pretty character placement.
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[titletoc,title]{appendix}
+
+\titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\paragraph{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+% Change the teletype font back to the original.
+\renewcommand*\ttdefault{cmtt}
+
+% Allow an easy way to create full-width tables.
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{float}
+
+\usepackage{color, colortbl}
+\definecolor{Gray}{rgb}{0.5, 0.63, 0.76}
+\definecolor{White}{gray}{1.00}
+\definecolor{LightGray}{rgb}{0.87, 0.90, 0.93}
+\definecolor{CodeGray}{rgb}{0.98, 0.98, 0.98}
+
+\newcommand{\oddcell}{\cellcolor{LightGray}}
+\newcommand{\oddrow}{\rowcolor{LightGray}}
+\newcommand{\evenrow}{\rowcolor{White}}
+\newcommand{\headrow}{\rowcolor{Gray}}
+
+% Allow loading of graphics in the document.
+\usepackage[pdftex]{graphicx}
+
+% Define the style for bibliography
+\bibliographystyle{unsrt}
+
+% Hyperref should be loaded last.
+\usepackage[hidelinks,plainpages=false,pdfpagelabels]{hyperref}
+
+% Enable code listing features.
+%\usepackage{minted}
+%\setminted{autogobble,fontsize=\small}
+%\setmintedinline[c]{bgcolor={},fontsize=\normalsize}
+%\usemintedstyle{colorful}
