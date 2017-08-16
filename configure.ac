@@ -45,9 +45,11 @@ AC_CONFIG_FILES([
   Makefile
   web/Makefile
   tools/vcf2turtle/Makefile
+  tools/turtle2remote/Makefile
 ])
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
+PKG_CHECK_MODULES([curl], [libcurl])
 
 AC_OUTPUT
