@@ -6,14 +6,14 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
 SUBDIRS                 = . 
 
-if HAVE_PDFLATEX
-
 doc_NAME                = sparqling-svs
 doc_PDF                 = $(doc_NAME).pdf
 doc_TEX                 = $(doc_NAME).tex
 doc_STYLE		= umcu.sty
 
 dist_doc_DATA           = $(doc_TEX) $(doc_STYLE)
+
+if HAVE_PDFLATEX
 
 # Run pdflatex twice, so that the table of contents and references are
 # properly set up.
