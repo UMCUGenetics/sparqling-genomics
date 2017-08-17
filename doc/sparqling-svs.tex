@@ -17,12 +17,11 @@
 \hypersetup{linkcolor=black}
 \tableofcontents
 \newpage{}
-
+\hypersetup{linkcolor=LinkGray}
 \setcounter{page}{1}
 \pagenumbering{arabic}
 
 \chapter{Introduction}
-
 
 \section{Prerequisites}
 \label{sec:prerequisites}
@@ -89,10 +88,8 @@ After installing the required tools (see section \ref{sec:prerequisites}), the
 entire project can be built using the Autotools build system commands:
 \begin{siderules}
 \begin{verbatim}
-autoreconf -vfi
-./configure
-make
-make install
+autoreconf -vfi && ./configure
+make && make install
 \end{verbatim}
 \end{siderules}
 
@@ -107,6 +104,7 @@ make install
   \end{itemize}
 
 \section{Preparing data with \texttt{vcf2turtle}}
+\label{sec:vcf2turtle}
 
   Obtaining variants from sequenced data is a task of so called
   \emph{variant callers}.  These programs output the variants they found in
@@ -115,8 +113,8 @@ make install
 
   The \texttt{vcf2turtle} program does exactly this, by converting a VCF file
   into the \emph{Terse RDF Triple Language} (Turtle) format.  In section
-  \ref{sec:turtle2remote} \textcolor{LinkGray}{`}\nameref{sec:turtle2remote}%
-  \textcolor{LinkGray}{'} we describe how to import the data produced by
+  \ref{sec:turtle2remote} {\color{LinkGray}`\nameref{sec:turtle2remote}%
+  '} we describe how to import the data produced by
   \texttt{vcf2turtle} in the database.
 
 \subsection{Data extracted by \texttt{vcf2turtle}}
@@ -140,9 +138,11 @@ make install
 
 \subsection{Example usage}
 
+\begin{siderules}
 \begin{verbatim}
-$ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
+vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
 \end{verbatim}
+\end{siderules}
 
 \subsection{Run-time properties}
 
@@ -164,13 +164,16 @@ $ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
 
 \subsection{Example usage}
 
+\begin{siderules}
 \begin{verbatim}
-$ turtle2remote --input-file=/path/to/my/variants.ttl        \
-                --remote-url=http://localhost:8890           \
-                --graph-iri=http://localhost:8890/MyVariants
+turtle2remote --input-file=/path/to/my/variants.ttl        \
+              --remote-url=http://localhost:8890           \
+              --graph-iri=http://localhost:8890/MyVariants
 \end{verbatim}
+\end{siderules}
 
 \chapter{Web interface}
+\label{chap:web-interface}
 
   In addition to the command-line programs, the project provides a web
   interface for prototyping queries, and quick data reporting.  With the
@@ -181,6 +184,220 @@ $ turtle2remote --input-file=/path/to/my/variants.ttl        \
   \item Get a general idea about what your data looks like.
   \end{itemize}
 
-\chapter{Programming in Python, Perl, R, Scheme, C, and C++}
+\section{Running the web interface}
 
+The web interface can be started using the following command:
+\begin{siderules}
+\begin{verbatim}
+guile -l web/web-interface.scm -e '(begin
+  (use-modules (web-interface))
+  (run-web-interface))'
+\end{verbatim}
+\end{siderules}
+
+\chapter{Information retrieval with SPARQL}
+
+  In section \ref{sec:vcf2turtle} {\color{LinkGray}`%
+  \nameref{sec:vcf2turtle}'} we discussed how to extract
+  triples from common data formats.  In section \ref{sec:turtle2remote}
+  {\color{LinkGray}`\nameref{sec:turtle2remote}'}
+  we discussed how we could insert those triples into a SPARQL endpoint.
+
+  In this section, we will start exploring the inserted data by using the
+  query language called \emph{SPARQL}.  Understanding SPARQL will be crucial
+  for the integration in your own programs or scripts --- something we will
+  discuss in chapter \ref{chap:programming}
+  {\color{LinkGray}`\nameref{chap:programming}'}.
+
+\section{Example SPARQL queries}
+
+  The queries in the remainder of this section can be readily copy/pasted into
+  the query editor in the web interface (see chapter \ref{chap:web-interface}
+  {\color{LinkGray}`\nameref{chap:web-interface}'}).
+
+\subsection{Retrieving all structural variants}
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant
+WHERE {
+  ?variant a :StructuralVariant .
+}
+\end{verbatim} 
+\end{siderules}
+
+\subsection{Retrieving information about structural variants}
+\label{sec:sparqling-svs}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?chromosome ?position ?filter ?quality
+WHERE {
+  ?variant a :StructuralVariant .
+  ?variant :quality ?quality .
+  ?variant :genome_position ?p .
+  ?variant :filter ?filter .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+}
+\end{verbatim}
+\end{siderules}
+
+\subsection{Counting structural variants}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT COUNT(?variant) as ?numberOfVariants
+WHERE {
+  ?variant a :Variant .
+}
+\end{verbatim}
+\end{siderules}
+
+\subsection{Filtering structural variants}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?type ?quality ?chromosome ?position
+WHERE {
+  ?variant a :StructuralVariant .
+  ?variant :quality ?quality .
+  ?variant :genome_position ?p .
+  ?variant :type ?type .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+
+  FILTER (?position > 80000)
+  FILTER (?position < 90000)
+  FILTER (?chromosome = "X")
+  FILTER (?type = "DEL")
+}
+\end{verbatim}
+\end{siderules}
+
+\subsection{Sorting}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?chromosome ?position ?quality ?filter
+WHERE {
+  ?variant a :SNPVariant .
+  ?variant :genome_position ?p .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+  ?variant :quality ?quality .
+  ?variant :filter ?filter .
+  FILTER (?filter = "PASS")
+}
+ORDER BY ?chromosome DESC(?quality)
+\end{verbatim}
+\end{siderules}
+
+\subsection{More advanced filtering}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?quality ?chromosome ?filter
+WHERE {
+  ?variant a :StructuralVariant .
+  ?variant :quality ?quality .
+  ?variant :genome_position ?p .
+  ?variant :filter ?filter .
+  ?variant :genome_position ?p .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+
+  FILTER (?quality < 0)
+  FILTER (?filter != "PASS" 
+          AND ?filter != "MinSomaticScore"
+          AND ?filter != "MaxDepth")
+}
+ORDER BY ?chromosome
+LIMIT 250
+\end{verbatim}
+\end{siderules}
+
+\subsection{Basic arithmetics and combining properties}
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?quality ?chromosome ?filter ?confidenceInterval
+WHERE {
+  ?variant a :StructuralVariant .
+  ?variant :quality ?quality .
+  ?variant :filter ?filter .
+  ?variant :genome_position ?p .
+  ?p :confidence_interval_start ?cistart .
+  ?p :confidence_interval_end ?ciend .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+
+  FILTER (?filter = "PASS")
+  FILTER (?chromosome > 3)
+  BIND( ABS(?cistart) + ABS(?ciend) AS ?confidenceInterval)
+}
+ORDER BY ?chromosome
+LIMIT 250
+\end{verbatim}
+\end{siderules}
+
+%% \begin{siderules}
+%% \begin{verbatim}
+
+%% \end{verbatim}
+%% \end{siderules}
+
+\section{Schema reference}
+
+  In section \ref{sec:sparqling-svs} {\color{LinkGray}`%
+  \nameref{sec:sparqling-svs}'}, we used various triple patterns like:
+
+\begin{siderules}
+\begin{verbatim}
+?variant :genome_position ?p
+\end{verbatim}
+\end{siderules}
+
+  Where does the \texttt{:genome\_position} property come from?  And are
+  there more properties available that we haven't seen yet?
+
+  The schema that describes what can be described is called an \emph{ontology}.
+  The triples that the \texttt{vcf2turtle} program outputs are described in
+  the \emph{close-to-home} ontology.  In table \ref{table:close-to-home}, a
+  complete description of the \emph{close-to-home} ontology can be found.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l l L }
+      \headrow
+      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      & \textbf{Description}\\
+      \evenrow
+      :Variant & rdf:type & owl:Class
+      & \texttt{:Variant} is used as an identifier for describing a variant .\\
+      \oddrow
+      :GenomePosition & rdf:type & owl:Class
+      & \texttt{:GenomePosition} is used to describe the position when mapped
+      to a reference genome.\\
+    \end{tabularx}
+    \caption{\small The triple patterns described by \texttt{vcf2turtle}.}
+    \label{table:close-to-home}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\chapter{Programming in Python, Perl, R, Scheme, C, and/or C++}
+\label{chap:programming}
 \end{document}

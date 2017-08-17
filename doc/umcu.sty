@@ -10,6 +10,7 @@
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{mdframed}
+\usepackage{upquote}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
@@ -37,6 +38,8 @@
 
 % Allow an easy way to create full-width tables.
 \usepackage{tabularx}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
 \usepackage{multirow}
 \usepackage{float}
 
@@ -44,17 +47,22 @@
 \definecolor{Gray}{rgb}{0.5, 0.63, 0.76}
 \definecolor{White}{gray}{1.00}
 \definecolor{LightGray}{rgb}{0.87, 0.90, 0.93}
-\definecolor{CodeGray}{rgb}{0.98, 0.98, 0.98}
-\definecolor{LinkGray}{rgb}{0.33, 0.10, 0.10}
-%\definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
+\definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
+%\definecolor{LinkGray}{rgb}{0.33, 0.10, 0.10}
+\definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
 \definecolor{DarkGray}{rgb}{0.40, 0.40, 0.40}
 \newmdenv[
   topline=false,
   bottomline=false,
   leftmargin=10pt,
   rightline=false,
+  backgroundcolor=CodeGray,
   linecolor=DarkGray,
   linewidth=3pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  skipabove=5pt,
+  skipbelow=5pt
 ]{siderules}
 
 
