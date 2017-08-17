@@ -367,15 +367,13 @@ main (int argc, char **argv)
           switch (variant_type)
             {
             case VCF_REF:    handle_REF_record (vcf_header, buffer);    break;
-            case VCF_SNP:
-              handle_OTHER_record (vcf_header, buffer, &p1, &p2);
-              break;
             case VCF_MNP:    handle_MNP_record (vcf_header, buffer);    break;
-            case VCF_INDEL:  handle_INDEL_record (vcf_header, buffer);  break;
+            case VCF_SNP:
+            case VCF_BND:
+            case VCF_INDEL:
             case VCF_OTHER:
               handle_OTHER_record (vcf_header, buffer, &p1, &p2);
               break;
-            case VCF_BND:    handle_BND_record (vcf_header, buffer);    break;
             default:
               puts ("# Encountered an unknown variant call type.");
               break;
