@@ -56,5 +56,7 @@ get_pretty_hash (unsigned char *hash, uint32_t length, char *output)
   for (; i < (length); i++)
     memcpy (output + (i * 2), numbers[hash[i]], 2);
 
+  output[64] = '\0';
+
   return true;
 }
