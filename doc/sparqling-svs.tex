@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{book}
 \usepackage{umcu}
-\title{SPARQling structural variation}
+\title{SPARQLing structural variation}
 \author{Roel Janssen}
 %\date{January August 2017 --- September 2017}
 
@@ -14,6 +14,7 @@
 
 \setcounter{page}{1}
 \pagenumbering{roman}
+\hypersetup{linkcolor=black}
 \tableofcontents
 \newpage{}
 
@@ -22,11 +23,89 @@
 
 \chapter{Introduction}
 
+
+\section{Prerequisites}
+\label{sec:prerequisites}
+
+  The tools provided by this project do not include a triple store.  There are
+  great triple stores out there like \href{https://virtuoso.openlinksw.com/}
+  {Virtuoso}, \href{https://github.com/4store/4store}{4store}, and
+  \href{https://www.blazegraph.com/}{BlazeGraph}.
+
+  Before we can use the programs provided by this project, we need to build
+  them first.
+
+  The build system needs \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
+  \href{https://www.gnu.org/software/automake}{GNU Automake},
+  \href{https://www.gnu.org/software/make}{GNU Make} and
+  \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config}.
+  Additionally, for building the documentation, a working \LaTeX{} distribution is
+  required including the \texttt{pdflatex} program.  Because \LaTeX{} distributions
+  are rather large, this is optional.
+
+  Each component in the repository has its own dependencies.  Table
+  \ref{table:dependencies} provides an overview for each tool.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ X X X }
+      \headrow
+      \textbf{vcf2turtle} & \textbf{turtle2remote} & \textbf{Web interface}\\
+      \evenrow
+      \href{https://gcc.gnu.org/}{GNU C compiler}
+      & \href{https://gcc.gnu.org/}{GNU C compiler}
+      & \href{https://www.gnu.org/software/guile}{GNU Guile}\\
+      \oddrow
+      \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
+      & \href{https://curl.haxx.se/}{cURL}
+      & \href{https://github.com/OrangeShark/guile-commonmark}{Guile-Commonmark}\\
+      \evenrow
+      \href{http://www.htslib.org/}{HTSLib}
+      &
+      & \href{http://savannah.nongnu.org/projects/guile-json/}{Guile-JSON}\\
+    \end{tabularx}
+    \caption{\small External tools required to build and run the programs this
+      project provides.}
+    \label{table:dependencies}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Setting up a build environment with GNU Guix}
+
+  If \href{https://www.gnu.org/software/guix}{GNU Guix} is available on your
+  system, An environment that contains all external tools required to build
+  the programs in this project can be obtained running the following command
+  from the project's repository root:
+
+\begin{siderules}
+\begin{verbatim}
+guix environment -l guix.scm
+\end{verbatim}
+\end{siderules}
+
+\section{Installation instructions}
+
+After installing the required tools (see section \ref{sec:prerequisites}), the
+entire project can be built using the Autotools build system commands:
+\begin{siderules}
+\begin{verbatim}
+autoreconf -vfi
+./configure
+make
+make install
+\end{verbatim}
+\end{siderules}
+
 \chapter{Command-line programs}
 
   The project provides programs to create a complete pipeline including
-  data conversion, data importing and data exploration.
-  
+  data conversion, data importing and data exploration.  The tasks we can
+  perform with the command-line programs are:
+  \begin{itemize}
+    \item Extract triples from VCF files;
+    \item Push data to a SPARQL endpoint.
+  \end{itemize}
+
 \section{Preparing data with \texttt{vcf2turtle}}
 
   Obtaining variants from sequenced data is a task of so called
@@ -36,8 +115,28 @@
 
   The \texttt{vcf2turtle} program does exactly this, by converting a VCF file
   into the \emph{Terse RDF Triple Language} (Turtle) format.  In section
-  \ref{sec:turtle2remote} (\nameref{sec:turtle2remote}) we describe how to
-  import the data produced by \texttt{vcf2turtle} in the database.
+  \ref{sec:turtle2remote} \textcolor{LinkGray}{`}\nameref{sec:turtle2remote}%
+  \textcolor{LinkGray}{'} we describe how to import the data produced by
+  \texttt{vcf2turtle} in the database.
+
+\subsection{Data extracted by \texttt{vcf2turtle}}
+
+  The triples \texttt{vcf2turtle} extracts are:
+  \begin{itemize}
+    \item Chromosome and position from the \texttt{CHROM} and \texttt{POS}
+      columns;
+    \item Filter names from the \texttt{FILTER} column;
+    \item Quality from the \texttt{QUAL} column;
+  \end{itemize}
+
+  For structural variants, the following extra triples are extracted:
+  \begin{itemize}
+    \item Chromosome and position of the second location specified in the
+      \texttt{CHR2} and \texttt{END} fields.
+    \item Confidence interval using the \texttt{CIPOS} and \texttt{CIEND}
+      fields.
+    \item Structural variant type specified in the \texttt{SVTYPE} field.
+  \end{itemize}
 
 \subsection{Example usage}
 
@@ -53,8 +152,8 @@ $ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
   throughput of this program is around $20$ to $60$ megabytes per second,
   depending on your computer.
 
-\label{sec:turtle2remote}
 \section{Importing data with \texttt{turtle2remote}}
+\label{sec:turtle2remote}
 
   To import data in the \emph{Terse RDF Triple Language} (Turtle) format in
   a triple store (our database), we can use the \texttt{turtle2remote} program.

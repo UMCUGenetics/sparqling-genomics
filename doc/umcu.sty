@@ -9,6 +9,7 @@
 \usepackage{mathtools}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{mdframed}
 
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
@@ -23,6 +24,7 @@
 \usepackage{microtype}
 \usepackage{titlesec}
 \usepackage{enumitem}
+\setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
 \usepackage[titletoc,title]{appendix}
 
 \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
@@ -43,6 +45,18 @@
 \definecolor{White}{gray}{1.00}
 \definecolor{LightGray}{rgb}{0.87, 0.90, 0.93}
 \definecolor{CodeGray}{rgb}{0.98, 0.98, 0.98}
+\definecolor{LinkGray}{rgb}{0.33, 0.10, 0.10}
+%\definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
+\definecolor{DarkGray}{rgb}{0.40, 0.40, 0.40}
+\newmdenv[
+  topline=false,
+  bottomline=false,
+  leftmargin=10pt,
+  rightline=false,
+  linecolor=DarkGray,
+  linewidth=3pt,
+]{siderules}
+
 
 \newcommand{\oddcell}{\cellcolor{LightGray}}
 \newcommand{\oddrow}{\rowcolor{LightGray}}
@@ -56,7 +70,7 @@
 \bibliographystyle{unsrt}
 
 % Hyperref should be loaded last.
-\usepackage[hidelinks,plainpages=false,pdfpagelabels]{hyperref}
+\usepackage[colorlinks=true,linkcolor=LinkGray,urlcolor=LinkGray,plainpages=false,pdfpagelabels]{hyperref}
 
 % Enable code listing features.
 %\usepackage{minted}
