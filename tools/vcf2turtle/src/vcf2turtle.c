@@ -41,12 +41,13 @@ static void
 show_help (void)
 {
   puts ("\nAvailable options:\n"
-        "  --input-file,        -i  The input to process.\n"
-        "  --filter-lowqual,    -f  Do not process calls with FILTER=LowQual.\n"
-        "  --only-keep-lowqual, -o  Do not process calls without FILTER=LowQual.\n"
-        "                           This option cannot be used together with -f.\n"
-	"  --version,           -v  Show versioning information.\n"
-	"  --help,              -h  Show this message.\n");
+        "  --input-file=ARG,   -i  The input file to process.\n"
+        "  --filter=ARG,       -f  Omit calls with FILTER=ARG from the "
+                                   "output.\n"
+        "  --keep=ARG,         -k  Omit calls without FILTER=ARG from the "
+                                   "output.\n"
+	"  --version,          -v  Show versioning information.\n"
+	"  --help,             -h  Show this message.\n");
 }
 
 static void
@@ -118,17 +119,19 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 {
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
-  if (program_config.filter_lowqual_calls &&
-      bcf_has_filter (vcf_header, buffer, "LowQual") == 1)
+  if (program_config.filter &&
+      bcf_has_filter (vcf_header, buffer, program_config.filter) == 1)
     {
-      puts ("# Skipping record because of LowQual filter");
+      printf ("# Skipping record because of %s filter,\n",
+              program_config.filter);
       return;
     }
 
-  if (program_config.only_keep_lowqual_calls &&
-      bcf_has_filter (vcf_header, buffer, "LowQual") != 1)
+  if (program_config.keep &&
+      bcf_has_filter (vcf_header, buffer, program_config.keep) != 1)
     {
-      puts ("# Skipping record without LowQual filter.");
+      printf ("# Skipping record without %s filter.\n",
+              program_config.keep);
       return;
     }
 
@@ -244,8 +247,8 @@ handle_BND_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 int
 main (int argc, char **argv)
 {
-  program_config.filter_lowqual_calls = false;
-  program_config.only_keep_lowqual_calls = false;
+  program_config.filter = NULL;
+  program_config.keep = NULL;
   program_config.input_file = NULL;
   program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
 
@@ -263,8 +266,8 @@ main (int argc, char **argv)
       static struct option options[] =
 	{
           { "input-file",        required_argument, 0, 'i' },
-          { "filter-lowqual",    no_argument,       0, 'f' },
-          { "only-keep-lowqual", no_argument,       0, 'o' },
+          { "filter",            required_argument, 0, 'f' },
+          { "keep",              required_argument, 0, 'k' },
           { "graph-location",    required_argument, 0, 'g' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
@@ -274,12 +277,12 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:fg:ovh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:g:k:vh", options, &index);
           switch (arg)
             {
             case 'i': program_config.input_file = optarg;            break;
-            case 'f': program_config.filter_lowqual_calls = true;    break;
-            case 'o': program_config.only_keep_lowqual_calls = true; break;
+            case 'f': program_config.filter = optarg;                break;
+            case 'k': program_config.keep = optarg;                  break;
             case 'g': program_config.graph_location = optarg;        break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
@@ -288,15 +291,6 @@ main (int argc, char **argv)
     }
   else
     show_help ();
-
-  /*--------------------------------------------------------------------------.
-   | DON'T WASTE TIME WITH SHORT-CIRCUITS                                     |
-   '--------------------------------------------------------------------------*/
-  if (program_config.filter_lowqual_calls && program_config.only_keep_lowqual_calls)
-    {
-      puts ("# Short-circuit: You specified both -f and -o.");
-      return 0;
-    }
 
   /*--------------------------------------------------------------------------.
    | HANDLE AN INPUT FILE                                                     |

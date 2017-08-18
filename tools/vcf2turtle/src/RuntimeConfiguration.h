@@ -30,8 +30,8 @@
  * to these values, other than in the option parser inside main(). */
 typedef struct
 {
-  bool filter_lowqual_calls;
-  bool only_keep_lowqual_calls;
+  char *filter;
+  char *keep;
   char *input_file;
   char *graph_location;
 } RuntimeConfiguration;
