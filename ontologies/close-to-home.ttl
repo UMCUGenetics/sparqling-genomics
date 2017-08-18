@@ -8,6 +8,8 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix edam: <http://edamontology.org/> .
 
+
+
 ##
 ## Ontology metadata
 ## ----------------------------------------------------------------------------
@@ -28,6 +30,11 @@
   rdfs:label "Name" ;
   rdfs:comment "The name of a sample." ;
   rdfs:domain :Sample ;
+  rdfs:range xsd:string .
+
+  :caller a owl:DatatypeProperty ;
+  rdfs:label "Caller" ;
+  rdfs:comment "The caller of the sample" ;
   rdfs:range xsd:string .
 
   # Scoping
@@ -63,6 +70,7 @@
 ## Variant class
 ## ----------------------------------------------------------------------------
 :Variant a owl:Class ;
+
   edam:has_format   edam:format_3016 ;
   edam:is_output_of edam:operation_3227 .
 
@@ -116,6 +124,11 @@
     rdfs:domain  :Variant ;
     rdfs:range   xsd:string .
 
+  :type a owl:DatatypeProperty ;
+    rdfs:label "Type" ;
+    rdfs:comment "The SV type determined by the caller." ;
+    rdfs:domain :Variant ;
+    rdfs:range xsd:string .
 
 
 ## StructuralVariant class
