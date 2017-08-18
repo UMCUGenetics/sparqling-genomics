@@ -260,3 +260,33 @@ div.action-button:hover {
     -moz-border-radius: 0pt 0pt 4pt 4pt;
     border-radius: 0pt 0pt 4pt 4pt;
 }
+
+#ontology-feature-table th {
+    background: #e8e8e8;
+    text-align: left;
+    padding: 5pt;
+}
+
+#ontology-feature-table thead tr :first-child {
+    -webkit-border-radius: 4pt 0pt 0pt 0pt;
+    -moz-border-radius: 4pt 0pt 0pt 0pt;
+    border-radius: 4pt 0pt 0pt 0pt;
+}
+
+#ontology-feature-table thead tr :last-child {
+    -webkit-border-radius: 0pt 4pt 0pt 0pt;
+    -moz-border-radius: 0pt 4pt 0pt 0pt;
+    border-radius: 0pt 4pt 0pt 0pt;
+}
+
+#ontology-feature-table tr:nth-child(even) {
+    background: #eeeeee;
+}
+
+#ontology-feature-table {
+    width: 100%;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    background: #ccc;
+}

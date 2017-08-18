@@ -26,7 +26,8 @@ SOURCES =                                               \
   www/pages.scm                                         \
   www/pages/help.scm                                    \
   www/pages/welcome.scm                                 \
-  www/pages/query-response.scm
+  www/pages/query-response.scm                          \
+  www/pages/cth.scm
 
 WWW_STATIC_RESOURCES =                                  \
   static/css/main.css                                   \

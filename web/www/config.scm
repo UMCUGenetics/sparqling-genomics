@@ -18,9 +18,11 @@
   #:export (%www-root
             %www-max-file-size
             %www-listen-port
-            %www-static-root))
+            %www-static-root
+            %www-sparql-hostname))
 
 (define %www-root (dirname (search-path %load-path "web-interface.scm")))
 (define %www-static-root (string-append %www-root "/static"))
 (define %www-max-file-size 250000000)
 (define %www-listen-port 5000)
+(define %www-sparql-hostname "http://localhost:8890")
