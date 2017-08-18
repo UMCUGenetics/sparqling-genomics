@@ -7,19 +7,17 @@
    `((h2 "Query the database")
      (h3 "Query editor")
      (p "Use " (strong "Ctrl + Enter") " to execute the query.")
-     (div (@ (id "editor")) "PREFIX : <http://localhost:8890/TestGraph/>
+     (div (@ (id "editor")) "PREFIX : <http://localhost:5000/cth/>
 
 SELECT ?variant ?chromosome ?position ?filter
 WHERE {
-  ?variant a :SNPVariant .
+  ?variant a :StructuralVariant .
   ?variant :genome_position ?p .
   ?variant :filter ?filter .
   ?p :chromosome ?chromosome .
   ?p :position ?position .
 
-  FILTER (?chromosome = \"1\")
-  FILTER (?position > 1000000)
-  FILTER (?position < 9000000)
+  FILTER (?chromosome = \"7\")
 }
 LIMIT 500
 ")

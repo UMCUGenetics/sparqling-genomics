@@ -25,4 +25,4 @@
 (define %www-static-root (string-append %www-root "/static"))
 (define %www-max-file-size 250000000)
 (define %www-listen-port 5000)
-(define %www-sparql-hostname "http://localhost:8890")
+(define %www-sparql-hostname "http://localhost:5000")

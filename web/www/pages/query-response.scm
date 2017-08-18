@@ -9,6 +9,13 @@
 
   #:export (page-query-response))
 
+(define (suffix-iri input)
+  (if input
+      (string-trim-both
+       (string-drop input
+                    (1+ (string-rindex input #\/))) #\")
+      "unknown"))
+
 (define* (response->sxml port
                          #:optional (read-header? #t)
                          (header '())
@@ -33,8 +40,14 @@
                 body)
               (response->sxml port #f header
                 (cons body
-                        `((tr ,(map (lambda (token)
-                                     `(td ,(string-trim-both token #\")))
+                      `((tr ,(map (lambda (token)
+                                    (let* ((td-object-raw (string-trim-both token #\"))
+                                           (td-object
+                                            (if (and (> (string-length td-object-raw) 6)
+                                                     (string= "http://" (string-take td-object-raw 7)))
+                                                `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
+                                                td-object-raw)))
+                                     `(td ,td-object)))
                                    tokens))))))))))
 
 (define* (page-query-response request-path #:key (post-data ""))

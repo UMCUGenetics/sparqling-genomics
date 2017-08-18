@@ -76,7 +76,7 @@ WHERE {
                (td-object-raw (string-trim-both object #\"))
                (td-object (if (and (> (string-length td-object-raw) 6)
                                    (string= "http://" (string-take td-object-raw 7)))
-                              `(a (@ (href ,td-object-raw)) ,td-object-raw)
+                              `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
                               td-object-raw)))
           (if (rdf:type? predicate)
               (response->sxml port body object)
