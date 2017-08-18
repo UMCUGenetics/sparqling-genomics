@@ -354,6 +354,29 @@ LIMIT 250
 \end{verbatim}
 \end{siderules}
 
+\subsection{Patterns with optional matches}
+\begin{siderules}
+\begin{verbatim}
+PREFIX : <http://localhost:8890/TestGraph/>
+
+SELECT ?variant ?type ?cistart ?ciend
+WHERE {
+  ?variant a :StructuralVariant .
+  ?variant :quality ?quality .
+  ?variant :type ?type .
+  ?variant :filter ?filter .
+  ?variant :genome_position ?p .
+  ?p :chromosome ?chromosome .
+  ?p :position ?position .
+
+  OPTIONAL { 
+    ?p :confidence_interval_start ?cistart .
+    ?p :confidence_interval_end ?ciend .
+  }
+}
+\end{verbatim}
+\end{siderules}
+
 %% \begin{siderules}
 %% \begin{verbatim}
 
@@ -400,4 +423,6 @@ LIMIT 250
 
 \chapter{Programming in Python, Perl, R, Scheme, C, and/or C++}
 \label{chap:programming}
+
+
 \end{document}
