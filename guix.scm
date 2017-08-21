@@ -14,7 +14,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (use-modules (guix packages)
-             (guix licenses)
+             ((guix licenses) #:prefix license:)
              (guix build-system gnu)
              (gnu packages autotools)
              (gnu packages bioinformatics)
@@ -40,7 +40,7 @@
    (synopsis "Data transformer from VCF to Turtle")
    (description "The vcf2turtle program takes Variant Call Format input and
 outputs it in Turtle-format.")
-   (license gpl3+)))
+   (license license:gpl3+)))
 
 (define turtle2remote
   (package
@@ -57,7 +57,7 @@ outputs it in Turtle-format.")
    (synopsis "Turtle data uploader to a SPARQL endpoint")
    (description "The turtle2remote program takes Turtle-formatted input and
 submits it to a specified SPARQL endpoint.")
-   (license gpl3+)))
+   (license license:gpl3+)))
 
 (define sparqling-svs-web
   (package
@@ -75,7 +75,7 @@ submits it to a specified SPARQL endpoint.")
    (home-page "")
    (synopsis "")
    (description "")
-   (license gpl3+)))
+   (license license:gpl3+)))
 
 (define sparqling-svs
   (package
@@ -96,7 +96,7 @@ submits it to a specified SPARQL endpoint.")
    (home-page "")
    (synopsis "")
    (description "")
-   (license gpl3+)))
+   (license license:gpl3+)))
 
 ;; Evaluate to the complete recipe, so that the development
 ;; environment has everything to start from scratch.
