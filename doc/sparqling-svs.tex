@@ -1,13 +1,25 @@
-\documentclass[11pt,a4paper]{book}
+\documentclass[11pt,a4paper,oneside]{book}
 \usepackage{umcu}
 \title{SPARQLing structural variation}
 \author{Roel Janssen}
-%\date{January August 2017 --- September 2017}
 
 \begin{document}
 
 \begin{titlepage}
-  \maketitle
+  \topskip0pt
+  \vspace*{\fill}
+  \begin{center}
+    \rule{\textwidth}{1.0pt}~\\~\\
+    \Huge SPARQLing structural variation
+    \rule{\textwidth}{1.0pt}
+    \Large Roel Janssen~\\~\\
+    \large August 2017
+    % Put it a little bit above the center of the page.
+    ~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\
+  \end{center}
+  \topskip0pt
+  \vspace*{\fill}
+
   \thispagestyle{empty}
 \end{titlepage}
 
@@ -369,7 +381,7 @@ WHERE {
   ?p :chromosome ?chromosome .
   ?p :position ?position .
 
-  OPTIONAL { 
+  OPTIONAL {
     ?p :confidence_interval_start ?cistart .
     ?p :confidence_interval_end ?ciend .
   }

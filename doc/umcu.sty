@@ -46,9 +46,9 @@
 \usepackage{color, colortbl}
 \definecolor{Gray}{rgb}{0.5, 0.63, 0.76}
 \definecolor{White}{gray}{1.00}
-\definecolor{LightGray}{rgb}{0.87, 0.90, 0.93}
+\definecolor{OddRowColor}{rgb}{0.87, 0.90, 0.93}
+\definecolor{EvenRowColor}{rgb}{0.96, 0.99, 1.00}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
-%\definecolor{LinkGray}{rgb}{0.33, 0.10, 0.10}
 \definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
 \definecolor{DarkGray}{rgb}{0.40, 0.40, 0.40}
 \newmdenv[
@@ -66,9 +66,9 @@
 ]{siderules}
 
 
-\newcommand{\oddcell}{\cellcolor{LightGray}}
-\newcommand{\oddrow}{\rowcolor{LightGray}}
-\newcommand{\evenrow}{\rowcolor{White}}
+\newcommand{\oddcell}{\cellcolor{OddRowColor}}
+\newcommand{\oddrow}{\rowcolor{OddRowColor}}
+\newcommand{\evenrow}{\rowcolor{EvenRowColor}}
 \newcommand{\headrow}{\rowcolor{Gray}}
 
 % Allow loading of graphics in the document.
