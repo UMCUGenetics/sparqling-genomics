@@ -94,4 +94,9 @@ void initialize_StructuralVariant (StructuralVariant *v);
 void reset_Variant (Variant *v);
 void reset_StructuralVariant (StructuralVariant *v);
 
+/* The following functions have an exact equivalent in the parent. */
+#define reset_SNPVariant(v)      reset_Variant(v)
+#define initialize_SNPVariant(v) initialize_Variant(v)
+#define print_SNPVariant(v, h)   print_Variant(v, h)
+
 #endif  /* VARIANT_H */

@@ -30,6 +30,12 @@
 #include "Variant.h"
 #include "Sample.h"
 
+#ifdef __GNUC__
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
 extern RuntimeConfiguration program_config;
 extern int hts_verbose;
 
@@ -48,6 +54,11 @@ show_help (void)
                                    "output.\n"
         "  --keep=ARG,         -k  Omit calls without FILTER=ARG from the "
                                    "output.\n"
+        "  --graph-location,   -g  Location of the graph.\n"
+        "  --use-faldo,            Add triples from the Feature Annotation\n"
+        "                          Location Description Ontology (FALDO).\n"
+        "  --reference-genome  -r  The reference genome the variant positions "
+                                  "refer to.\n"
 	"  --version,          -v  Show versioning information.\n"
 	"  --help,             -h  Show this message.\n");
 }
@@ -92,25 +103,80 @@ print_file_format_error ()
  '----------------------------------------------------------------------------*/
 
 void
-handle_REF_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_REF_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 {
   puts ("# REF records have not been implemented (yet).");
 }
 
 void
-handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
+                   GenomePosition *position, Sample *sample)
 {
-  puts ("# SNP records have not been implemented (yet).");
+  /* Do not process it when it isn't a SNP.
+   * ------------------------------------------------------------------------ */
+  bool is_snp = bcf_is_snp (buffer);
+  if (!is_snp)
+    {
+      printf ("# 'handle_SNP_record' processed a non-SNP variant.");
+      return;
+    }
+
+  /* Set the confidence interval.
+   * ------------------------------------------------------------------------ */
+  bcf_get_info_int32 (vcf_header, buffer, "CIPOS",
+                      &(position->cipos),
+                      &(position->cipos_len));
+
+  /* Set the chromosome and position.
+   * ------------------------------------------------------------------------ */
+  position->chromosome = (char *)bcf_seqname (vcf_header, buffer);
+  position->chromosome_len = strlen (position->chromosome);
+  position->position = buffer->pos;
+  position->reference = program_config.reference;
+
+  /* Output the position.
+   * ------------------------------------------------------------------------ */
+  print_GenomePosition (position);
+
+  /* Handle the variant information.
+   * ------------------------------------------------------------------------ */
+  SNPVariant v;
+  initialize_SNPVariant (&v);
+
+  v.sample = sample;
+  v._obj_type = SNP_VARIANT;
+  v.position1 = position;
+
+  /* Set the 'quality' field.
+   * ------------------------------------------------------------------------ */
+  v.quality = buffer->qual;
+
+  /* Make sure the FILTER field is available.
+   * ------------------------------------------------------------------------ */
+  if (!(buffer->unpacked & BCF_UN_FLT))
+    bcf_unpack(buffer, BCF_UN_FLT);
+
+  v.filters_len = buffer->d.n_flt;
+  v.filters = buffer->d.flt;
+
+  /* Output the Variant.
+   * ------------------------------------------------------------------------ */
+  print_SNPVariant ((Variant *)&v, vcf_header);
+
+  /* Clean up the memory.
+  * ------------------------------------------------------------------------- */
+  reset_GenomePosition (position);
+  reset_SNPVariant (&v);
 }
 
 void
-handle_MNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_MNP_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 {
   puts ("# MNP records have not been implemented (yet).");
 }
 
 void
-handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_INDEL_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 {
   puts ("# INDEL records have not been implemented (yet).");
 }
@@ -151,6 +217,7 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
   p1->chromosome = (char *)bcf_seqname (vcf_header, buffer);
   p1->chromosome_len = strlen (p1->chromosome);
   p1->position = buffer->pos;
+  p1->reference = program_config.reference;
 
   print_GenomePosition (p1);
 
@@ -196,6 +263,7 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
           p2->position = 0;
           p2->cipos = calloc (2, sizeof (int32_t));
           p2->cipos_len = 2;
+          p2->reference = program_config.reference;
 
           print_GenomePosition (p2);
           free (p2->cipos);
@@ -258,7 +326,7 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 }
 
 void
-handle_BND_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
+handle_BND_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 {
   puts ("# BND records have not been implemented (yet).");
 }
@@ -273,7 +341,9 @@ main (int argc, char **argv)
   program_config.filter = NULL;
   program_config.keep = NULL;
   program_config.input_file = NULL;
+  program_config.use_faldo = false;
   program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
+  program_config.reference = "unknown";
 
   /*--------------------------------------------------------------------------.
    | PROCESS COMMAND-LINE OPTIONS                                             |
@@ -292,6 +362,8 @@ main (int argc, char **argv)
           { "filter",            required_argument, 0, 'f' },
           { "keep",              required_argument, 0, 'k' },
           { "graph-location",    required_argument, 0, 'g' },
+          { "use-faldo",         no_argument,       0, 'z' },
+          { "reference-genome",  required_argument, 0, 'r' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
@@ -300,13 +372,15 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:f:g:k:vh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:g:k:r:zvh", options, &index);
           switch (arg)
             {
             case 'i': program_config.input_file = optarg;            break;
             case 'f': program_config.filter = optarg;                break;
             case 'k': program_config.keep = optarg;                  break;
             case 'g': program_config.graph_location = optarg;        break;
+            case 'z': program_config.use_faldo = true;               break;
+            case 'r': program_config.reference = optarg;             break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
             }
@@ -369,7 +443,12 @@ main (int argc, char **argv)
       printf ("@prefix : <%s> .\n", program_config.graph_location);
       printf ("@prefix v: <%sVariant/> .\n", program_config.graph_location);
       printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
-      printf ("@prefix s: <%sSample/> .\n\n", program_config.graph_location);
+      printf ("@prefix s: <%sSample/> .\n", program_config.graph_location);
+
+      if (program_config.use_faldo)
+        printf ("@prefix faldo: <http://biohackathon.org/resource/faldo#> .\n");
+
+      puts ("");
 
       /* Add sample to database.
        * -------------------------------------------------------------------- */
@@ -426,6 +505,8 @@ main (int argc, char **argv)
             case VCF_REF:    handle_REF_record (vcf_header, buffer);    break;
             case VCF_MNP:    handle_MNP_record (vcf_header, buffer);    break;
             case VCF_SNP:
+              handle_SNP_record (vcf_header, buffer, &p1, &s);
+              break;
             case VCF_BND:
             case VCF_INDEL:
             case VCF_OTHER:

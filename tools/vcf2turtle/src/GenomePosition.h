@@ -32,6 +32,7 @@ typedef struct
   int32_t cipos_len;
   int32_t *cipos;
 
+  char *reference;
 } GenomePosition;
 
 char *hash_GenomePosition (GenomePosition *g, bool use_cache);

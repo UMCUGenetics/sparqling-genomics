@@ -81,6 +81,7 @@ print_GenomePosition (GenomePosition *g)
 
   printf ("p:%s a :GenomePosition ;\n", hash_GenomePosition (g, true));
   printf ("  :position %d ;\n", g->position);
+  printf ("  :reference \"%s\" ;\n", g->reference);
 
   if (g->cipos_len > 0)
     {
@@ -89,6 +90,15 @@ print_GenomePosition (GenomePosition *g)
     }
 
   printf ("  :chromosome \"%s\" .\n\n", g->chromosome);
+
+  if (program_config.use_faldo)
+    {
+      printf ("p:%s a faldo:ExactPosition ;\n", hash_GenomePosition (g, true));
+      printf ("  faldo:position %d ;\n", g->position);
+
+      /* FIXME: We need a better way to describe the reference genome/contig. */
+      printf ("  faldo:reference \"%s\" .\n\n", g->reference);
+    }
 }
 
 void
@@ -102,13 +112,14 @@ initialize_GenomePosition (GenomePosition *g)
   memset (g->hash, '\0', 65);
   g->cipos_len = 0;
   g->cipos = NULL;
+  g->reference = NULL;
 }
 
 void
 reset_GenomePosition (GenomePosition *g)
 {
   if (g == NULL) return;
+  if (g->cipos) free (g->cipos);
 
-  free (g->cipos);
   initialize_GenomePosition (g);
 }

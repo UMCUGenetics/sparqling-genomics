@@ -34,6 +34,8 @@ typedef struct
   char *keep;
   char *input_file;
   char *graph_location;
+  char *reference;
+  bool use_faldo;
 } RuntimeConfiguration;
 
 
