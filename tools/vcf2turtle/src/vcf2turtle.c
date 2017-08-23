@@ -21,12 +21,14 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <math.h>
+#include <unistd.h>
 
 #include <htslib/vcf.h>
 
 #include "RuntimeConfiguration.h"
 #include "GenomePosition.h"
 #include "Variant.h"
+#include "Sample.h"
 
 extern RuntimeConfiguration program_config;
 extern int hts_verbose;
@@ -115,7 +117,8 @@ handle_INDEL_record (bcf_hdr_t *vcf_header, bcf1_t *buffer)
 
 void
 handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
-                     GenomePosition *p1, GenomePosition *p2)
+                     GenomePosition *p1, GenomePosition *p2,
+                     Sample *s)
 {
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
@@ -153,33 +156,51 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 
   /* Handle the second genome position.
    * ------------------------------------------------------------------------ */
-  bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
-  bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
-  bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
-
-  if (end_info != NULL && chr2_info != NULL)
+  if (is_sv)
     {
-      p2->chromosome = calloc (1, chr2_info->len + 1);
-      p2->chromosome_len = chr2_info->len;
+      bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
+      bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
+      bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
 
-      if (p2->chromosome == NULL)
+      if (end_info != NULL && chr2_info != NULL)
         {
-          printf ("# ERROR allocating memory.\n");
-          return;
+          p2->chromosome = calloc (1, chr2_info->len + 1);
+          p2->chromosome_len = chr2_info->len;
+
+          if (p2->chromosome == NULL)
+            {
+              printf ("# ERROR allocating memory.\n");
+              return;
+            }
+
+          memcpy (p2->chromosome, chr2_info->vptr, chr2_info->len);
+
+          p2->position = end_info->v1.i;
+          print_GenomePosition (p2);
+
+          /* The hash has been generated, and the data has been printed.  So, we
+           * no longer need to have this data allocated.  Warning:  If you ever
+           * implement a feature that does not use the cache of GenomePositions,
+           * then remove this code and handle the free()'ing of this string in
+           * the appropriate place. */
+          free (p2->chromosome);
+          p2->chromosome_len = 0;
         }
+      else
+        {
+          /* This indicates we are missing data.  If it is an SV, we expect to
+           * have a second position for the breakpoint.  If we haven't found it,
+           * we need to look better (in the future). */
+          p2->chromosome = "unknown";
+          p2->chromosome_len = 7;
+          p2->position = 0;
+          p2->cipos = calloc (2, sizeof (int32_t));
+          p2->cipos_len = 2;
 
-      memcpy (p2->chromosome, chr2_info->vptr, chr2_info->len);
-
-      p2->position = end_info->v1.i;
-      print_GenomePosition (p2);
-
-      /* The hash has been generated, and the data has been printed.  So, we
-       * no longer need to have this data allocated.  Warning:  If you ever
-       * implement a feature that does not use the cache of GenomePositions,
-       * then remove this code and handle the free()'ing of this string in
-       * the appropriate place. */
-      free (p2->chromosome);
-      p2->chromosome_len = 0;
+          print_GenomePosition (p2);
+          free (p2->cipos);
+          p2->cipos_len = 0;
+        }
     }
 
 
@@ -190,7 +211,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
    * to allocate memory. */
   StructuralVariant v;
   initialize_StructuralVariant (&v);
-  
+
+  v.sample = s;
+
   if (is_sv)
     {
       v._obj_type = STRUCTURAL_VARIANT;
@@ -348,6 +371,46 @@ main (int argc, char **argv)
       printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
       printf ("@prefix s: <%sSample/> .\n\n", program_config.graph_location);
 
+      /* Add sample to database.
+       * -------------------------------------------------------------------- */
+      Sample s;
+      initialize_Sample (&s);
+
+      if (program_config.input_file[0] == '/')
+        set_Sample_filename (&s, program_config.input_file);
+      else
+        {
+          char *cwd = getcwd (NULL, 0);
+
+          /* Degrade to a relative filename if we cannot allocate the memory
+           * for an absolute path, because it's better than nothing. */
+          if (cwd == NULL)
+            set_Sample_filename (&s, program_config.input_file);
+          else
+            {
+              int32_t full_path_len = strlen (cwd) + strlen (program_config.input_file) + 1;
+              char full_path[full_path_len + 1];
+              memset (full_path, 0, full_path_len);
+
+              if (snprintf (full_path, full_path_len, "%s/%s",
+                            cwd, program_config.input_file) == full_path_len)
+                set_Sample_filename (&s, full_path);
+              else
+                /* Degrade to a relative filename if we cannot allocate the
+                 * memory for an absolute path, because it's better than
+                 * nothing. */
+                set_Sample_filename (&s, program_config.input_file);
+
+              free (cwd);
+              cwd = NULL;
+            }
+        }
+
+      print_Sample (&s);
+      free (s.filename);
+      s.filename = NULL;
+      s.filename_len = 0;
+
       GenomePosition p1;
       initialize_GenomePosition (&p1);
       GenomePosition p2;
@@ -366,7 +429,7 @@ main (int argc, char **argv)
             case VCF_BND:
             case VCF_INDEL:
             case VCF_OTHER:
-              handle_OTHER_record (vcf_header, buffer, &p1, &p2);
+              handle_OTHER_record (vcf_header, buffer, &p1, &p2, &s);
               break;
             default:
               puts ("# Encountered an unknown variant call type.");

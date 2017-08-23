@@ -10,6 +10,7 @@ bin_PROGRAMS            = vcf2turtle
 vcf2turtle_SOURCES      = src/vcf2turtle.c src/RuntimeConfiguration.h   \
                           src/GenomePosition.c src/GenomePosition.h     \
                           src/Variant.c src/Variant.h                   \
+                          src/Sample.c src/Sample.h                     \
                           src/helper.c src/helper.h
 
 vcf2turtle_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS)
