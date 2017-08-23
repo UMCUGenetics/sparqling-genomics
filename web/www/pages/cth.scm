@@ -20,7 +20,9 @@
     ("/cth/position"                  . "Position")
     ("/cth/chromosome"                . "Chromosome")
     ("/cth/confidence_interval_start" . "Confidence interval start")
-    ("/cth/confidence_interval_end"   . "Confidence interval end")))
+    ("/cth/confidence_interval_end"   . "Confidence interval end")
+    ("/cth/filename"                  . "File name")
+    ("/cth/sample"                    . "Sample")))
 
 (define (without-hostname input)
   (string-drop input (string-length %www-sparql-hostname)))
