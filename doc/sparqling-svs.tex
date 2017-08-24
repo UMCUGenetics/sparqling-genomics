@@ -221,11 +221,16 @@ guile -l web/web-interface.scm -e '(begin
   discuss in chapter \ref{chap:programming}
   {\color{LinkGray}`\nameref{chap:programming}'}.
 
-\section{Example SPARQL queries}
-
-  The queries in the remainder of this section can be readily copy/pasted into
-  the query editor in the web interface (see chapter \ref{chap:web-interface}
+  The queries in the remainder of this chapter can be readily copy/pasted into
+  the query editor of the web interface (see chapter \ref{chap:web-interface}
   {\color{LinkGray}`\nameref{chap:web-interface}'}).
+
+\section{Local querying}
+
+  The promise from ``linked data'' is to make data available in such a way that
+  one query can retrieve information from multiple SPARQL endpoints.  We call
+  querying over multiple SPARQL endpoints \emph{federated querying}.  But before
+  we do that, let's look at simple queries that only look at our own data.
 
 \subsection{Retrieving all structural variants}
 \begin{siderules}
@@ -386,6 +391,58 @@ WHERE {
     ?p :confidence_interval_end ?ciend .
   }
 }
+\end{verbatim}
+\end{siderules}
+
+\section{Federated querying}
+
+  Now that we've seen local queries, there's only one more construct we need to
+  know about to combine this with remote SPARQL endpoints: the \texttt{SERVICE}
+  construct.
+  
+\subsection{Get an overview of Biomodels (from ENSEMBL)}
+\begin{siderules}
+\begin{verbatim}
+PREFIX sbmlrdf: <http://identifiers.org/biomodels.vocabulary#>
+PREFIX sbmldb: <http://identifiers.org/biomodels.db/>
+
+SELECT ?speciesId ?name {
+  SERVICE <http://www.ebi.ac.uk/rdf/services/sparql/> {
+    sbmldb:BIOMD0000000001 sbmlrdf:species ?speciesId .
+    ?speciesId sbmlrdf:name ?name
+  }
+}
+\end{verbatim}
+\end{siderules}
+
+\subsection{Get all genes in a region (from ENSEMBL)}
+\begin{siderules}
+\begin{verbatim}
+PREFIX grch38: <http://rdf.ebi.ac.uk/resource/ensembl/89/homo_sapiens/GRCh38/>
+PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?gene ?ensemblGeneId ?geneType 
+                ?location ?begin ?beginPosition 
+                ?end ?endPosition {
+  SERVICE <http://www.ebi.ac.uk/rdf/services/sparql> {
+    ?location faldo:reference grch38:10 .
+    ?location faldo:begin ?begin .
+    ?location faldo:end ?end .
+    ?begin faldo:position ?beginPosition .
+    ?end faldo:position ?endPosition .
+    ?ensemblGeneId a ?type ;
+          rdfs:label ?label ;
+          dc:description ?desc ;
+          dc:identifier ?id ;
+          faldo:location ?location .
+    ?type rdfs:label ?geneType .
+    ?ensemblGeneId rdfs:label ?gene .
+    #FILTER (?beginPosition >= 3172841 && ?endPosition <= 3137728)
+  }
+}
+LIMIT 10
 \end{verbatim}
 \end{siderules}
 
