@@ -36,6 +36,8 @@ typedef struct
   char *graph_location;
   char *reference;
   bool use_faldo;
+  int32_t threads;
+  int32_t jobs_per_thread;
 } RuntimeConfiguration;
 
 

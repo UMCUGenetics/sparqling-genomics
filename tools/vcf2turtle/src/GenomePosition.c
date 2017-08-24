@@ -119,7 +119,6 @@ void
 reset_GenomePosition (GenomePosition *g)
 {
   if (g == NULL) return;
-  if (g->cipos) free (g->cipos);
 
   initialize_GenomePosition (g);
 }

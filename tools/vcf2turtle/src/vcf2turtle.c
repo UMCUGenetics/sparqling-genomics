@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include <htslib/vcf.h>
+#include <pthread.h>
 
 #include "RuntimeConfiguration.h"
 #include "GenomePosition.h"
@@ -40,6 +41,7 @@ extern RuntimeConfiguration program_config;
 extern int hts_verbose;
 
 const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/TestGraph/";
+static pthread_mutex_t output_mutex;
 
 /*----------------------------------------------------------------------------.
  | USER INTERFACE HELPERS                                                     |
@@ -59,6 +61,7 @@ show_help (void)
         "                          Location Description Ontology (FALDO).\n"
         "  --reference-genome  -r  The reference genome the variant positions "
                                   "refer to.\n"
+	"  --threads,          -t  Number of threads to use.\n"
 	"  --version,          -v  Show versioning information.\n"
 	"  --help,             -h  Show this message.\n");
 }
@@ -136,7 +139,9 @@ handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 
   /* Output the position.
    * ------------------------------------------------------------------------ */
+  pthread_mutex_lock (&output_mutex);
   print_GenomePosition (position);
+  pthread_mutex_unlock (&output_mutex);
 
   /* Handle the variant information.
    * ------------------------------------------------------------------------ */
@@ -161,7 +166,9 @@ handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 
   /* Output the Variant.
    * ------------------------------------------------------------------------ */
+  pthread_mutex_lock (&output_mutex);
   print_SNPVariant ((Variant *)&v, vcf_header);
+  pthread_mutex_unlock (&output_mutex);
 
   /* Clean up the memory.
   * ------------------------------------------------------------------------- */
@@ -219,7 +226,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
   p1->position = buffer->pos;
   p1->reference = program_config.reference;
 
+  pthread_mutex_lock (&output_mutex);
   print_GenomePosition (p1);
+  pthread_mutex_unlock (&output_mutex);
 
   /* Handle the second genome position.
    * ------------------------------------------------------------------------ */
@@ -243,7 +252,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
           memcpy (p2->chromosome, chr2_info->vptr, chr2_info->len);
 
           p2->position = end_info->v1.i;
+          pthread_mutex_lock (&output_mutex);
           print_GenomePosition (p2);
+          pthread_mutex_unlock (&output_mutex);
 
           /* The hash has been generated, and the data has been printed.  So, we
            * no longer need to have this data allocated.  Warning:  If you ever
@@ -265,7 +276,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
           p2->cipos_len = 2;
           p2->reference = program_config.reference;
 
+          pthread_mutex_lock (&output_mutex);
           print_GenomePosition (p2);
+          pthread_mutex_unlock (&output_mutex);
           free (p2->cipos);
           p2->cipos_len = 0;
         }
@@ -316,7 +329,9 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
 
   /* Print the Variant.
    * ------------------------------------------------------------------------ */
+  pthread_mutex_lock (&output_mutex);
   print_Variant ((Variant *)&v, vcf_header);
+  pthread_mutex_unlock (&output_mutex);
 
   /* Clean up the memory.
   * ------------------------------------------------------------------------- */
@@ -329,6 +344,62 @@ void
 handle_BND_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 {
   puts ("# BND records have not been implemented (yet).");
+}
+
+typedef struct
+{
+  htsFile *vcf_stream;
+  bcf_hdr_t *vcf_header;
+  bcf1_t **buffers;
+  Sample *sample;
+  int32_t thread_number;
+  int32_t jobs_to_run;
+} htslib_data_t;
+
+void *
+run_jobs_in_thread (void *data)
+{
+  htslib_data_t *pack = (htslib_data_t *)data;
+  if (pack == NULL) return NULL;
+
+  bcf_hdr_t *vcf_header = pack->vcf_header;
+  Sample *sample = pack->sample;
+
+  /* Process the records. */
+  int32_t i = 0;
+  int variant_type = 0;
+
+  for (; i < pack->jobs_to_run; i++)
+    {
+      GenomePosition p1;
+      initialize_GenomePosition (&p1);
+      GenomePosition p2;
+      initialize_GenomePosition (&p2);
+
+      /* A VCF file can contain all kinds of data.  Each is represented
+       * a little different in the graph model. */
+      bcf1_t *buffer = pack->buffers[i + (pack->thread_number * pack->jobs_to_run)];
+
+      variant_type = bcf_get_variant_types (buffer);
+      switch (variant_type)
+        {
+        case VCF_REF:    handle_REF_record (vcf_header, buffer); break;
+        case VCF_MNP:    handle_MNP_record (vcf_header, buffer); break;
+        case VCF_SNP:
+          handle_SNP_record (vcf_header, buffer, &p1, sample);
+          break;
+        case VCF_BND:
+        case VCF_INDEL:
+        case VCF_OTHER:
+          handle_OTHER_record (vcf_header, buffer, &p1, &p2, sample);
+          break;
+        default:
+          puts ("# Encountered an unknown variant call type.");
+          break;
+        }
+    }
+
+  return NULL;
 }
 
 /*----------------------------------------------------------------------------.
@@ -344,6 +415,10 @@ main (int argc, char **argv)
   program_config.use_faldo = false;
   program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
   program_config.reference = "unknown";
+  program_config.threads = 2;
+  program_config.jobs_per_thread = 250;
+
+  pthread_mutex_init(&output_mutex, NULL);
 
   /*--------------------------------------------------------------------------.
    | PROCESS COMMAND-LINE OPTIONS                                             |
@@ -362,8 +437,10 @@ main (int argc, char **argv)
           { "filter",            required_argument, 0, 'f' },
           { "keep",              required_argument, 0, 'k' },
           { "graph-location",    required_argument, 0, 'g' },
+          { "threads",           required_argument, 0, 't' },
           { "use-faldo",         no_argument,       0, 'z' },
           { "reference-genome",  required_argument, 0, 'r' },
+          { "threads",           required_argument, 0, 't' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
@@ -372,7 +449,7 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:f:g:k:r:zvh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:g:k:r:t:zvh", options, &index);
           switch (arg)
             {
             case 'i': program_config.input_file = optarg;            break;
@@ -381,6 +458,7 @@ main (int argc, char **argv)
             case 'g': program_config.graph_location = optarg;        break;
             case 'z': program_config.use_faldo = true;               break;
             case 'r': program_config.reference = optarg;             break;
+            case 't': program_config.threads = atoi(optarg);         break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
             }
@@ -416,7 +494,6 @@ main (int argc, char **argv)
 
       /* Prepare the buffers needed to read the VCF file.
        * -------------------------------------------------------------------- */
-      bcf1_t *buffer = NULL;
       bcf_hdr_t *vcf_header = NULL;
       htsFile *vcf_stream = NULL;
 
@@ -434,9 +511,6 @@ main (int argc, char **argv)
           hts_close (vcf_stream);
           return print_vcf_header_error (program_config.input_file);
         }
-
-      buffer = bcf_init ();
-      if (buffer == NULL) return print_memory_error (program_config.input_file);
 
       /* Write the prefix of the Turtle output.
        * -------------------------------------------------------------------- */
@@ -490,39 +564,74 @@ main (int argc, char **argv)
       s.filename = NULL;
       s.filename_len = 0;
 
-      GenomePosition p1;
-      initialize_GenomePosition (&p1);
-      GenomePosition p2;
-      initialize_GenomePosition (&p2);
+      /* Set up threads and per-thread storage.
+       * -------------------------------------------------------------------- */
+      pthread_t threads[program_config.threads];
+      memset (threads, 0, sizeof (pthread_t) * program_config.threads);
 
-      while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
+      int32_t tbuffers_len = program_config.threads * program_config.jobs_per_thread;
+      bcf1_t *tbuffers[tbuffers_len];
+
+      int32_t j = 0;
+      for (; j < tbuffers_len; j++)
         {
-          /* A VCF file can contain all kinds of data.  Each is represented
-           * a little different in the graph model. */
-          int variant_type = bcf_get_variant_types (buffer);
-          switch (variant_type)
-            {
-            case VCF_REF:    handle_REF_record (vcf_header, buffer);    break;
-            case VCF_MNP:    handle_MNP_record (vcf_header, buffer);    break;
-            case VCF_SNP:
-              handle_SNP_record (vcf_header, buffer, &p1, &s);
-              break;
-            case VCF_BND:
-            case VCF_INDEL:
-            case VCF_OTHER:
-              handle_OTHER_record (vcf_header, buffer, &p1, &p2, &s);
-              break;
-            default:
-              puts ("# Encountered an unknown variant call type.");
-              break;
-            }
-
-          /* Avoid reallocation of the buffer, and instead clear the contents
-           * of the variables inside the buffer. */
-          bcf_clear (buffer);
+          tbuffers[j] = bcf_init ();
+          if (tbuffers[j] == NULL)
+            return print_memory_error (program_config.input_file);
         }
 
-      bcf_destroy (buffer);
+      /* Divide the work over the threads.
+       * -------------------------------------------------------------------- */
+      int32_t queue = 0;
+      while (bcf_read (vcf_stream, vcf_header, tbuffers[queue]) == 0)
+        {
+          if (queue >= (program_config.jobs_per_thread * program_config.threads - 2))
+            {
+              htslib_data_t pack[j];
+              /* Spawn the threads. */
+              for (j = 0; j < program_config.threads; j++)
+                {
+                  pack[j].vcf_header = vcf_header;
+                  pack[j].vcf_stream = vcf_stream;
+                  pack[j].buffers = tbuffers;
+                  pack[j].thread_number = j;
+                  pack[j].jobs_to_run = program_config.jobs_per_thread;
+                  pack[j].sample = &s;
+
+                  pthread_create (&(threads[j]), NULL, run_jobs_in_thread, (void *)&(pack[j]));
+                }
+
+              /* Wait for all to complete. */
+              for (j = 0; j < program_config.threads; j++)
+                pthread_join (threads[j], NULL);
+
+              /* Reset the queue */
+              queue = 0;
+            }
+          else
+            queue++;
+        }
+
+      if (queue > 0)
+        {
+          for (j = 0; j < queue; j++)
+            {
+              htslib_data_t pack;
+              pack.vcf_header = vcf_header;
+              pack.vcf_stream = vcf_stream;
+              pack.buffers = tbuffers;
+              pack.thread_number = 0;
+              pack.jobs_to_run = 1;
+              pack.sample = &s;
+
+              /* Run them in a single thread. */
+              run_jobs_in_thread (&pack);
+            }
+        }
+
+      for (j = 0; j < tbuffers_len; j++)
+        bcf_destroy (tbuffers[j]);
+
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
     }

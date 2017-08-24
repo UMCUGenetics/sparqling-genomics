@@ -13,4 +13,5 @@ vcf2turtle_SOURCES      = src/vcf2turtle.c src/RuntimeConfiguration.h   \
                           src/Sample.c src/Sample.h                     \
                           src/helper.c src/helper.h
 
+vcf2turtle_LDFLAGS      = -pthread
 vcf2turtle_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS)
