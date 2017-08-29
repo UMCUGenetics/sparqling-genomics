@@ -110,7 +110,7 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
             hash_Variant (v, vcf_header, true));
 
   if (v->origin)
-    printf ("  :origin s:%s ;\n", hash_Origin (v->origin, true));
+    printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
 
   printf ("  :genome_position p:%s ;\n",
           hash_GenomePosition (v->position1, true));

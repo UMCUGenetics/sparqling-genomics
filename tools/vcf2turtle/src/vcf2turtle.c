@@ -583,6 +583,7 @@ main (int argc, char **argv)
       printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
       printf ("@prefix s: <%sSample/> .\n", program_config.graph_location);
       printf ("@prefix h: <%sVcfHeader/> .\n", program_config.graph_location);
+      printf ("@prefix o: <%sOrigin/> .\n", program_config.graph_location);
 
       if (program_config.use_faldo)
         printf ("@prefix faldo: <http://biohackathon.org/resource/faldo#> .\n");
