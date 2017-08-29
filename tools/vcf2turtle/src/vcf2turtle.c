@@ -29,7 +29,9 @@
 #include "RuntimeConfiguration.h"
 #include "GenomePosition.h"
 #include "Variant.h"
+#include "Origin.h"
 #include "Sample.h"
+#include "VcfHeader.h"
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((__unused__))
@@ -113,7 +115,7 @@ handle_REF_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 
 void
 handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
-                   GenomePosition *position, Sample *sample)
+                   GenomePosition *position, Origin *origin)
 {
   /* Do not process it when it isn't a SNP.
    * ------------------------------------------------------------------------ */
@@ -148,7 +150,7 @@ handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
   SNPVariant v;
   initialize_SNPVariant (&v);
 
-  v.sample = sample;
+  v.origin = origin;
   v._obj_type = SNP_VARIANT;
   v.position1 = position;
 
@@ -191,7 +193,7 @@ handle_INDEL_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
 void
 handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
                      GenomePosition *p1, GenomePosition *p2,
-                     Sample *s)
+                     Origin *o)
 {
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
@@ -215,7 +217,6 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
    * ------------------------------------------------------------------------ */
   bcf_info_t *svtype_info = bcf_get_info (vcf_header, buffer, "SVTYPE");
   bool is_sv = (svtype_info != NULL);
-  bool is_snp = bcf_is_snp (buffer);
 
   /* Handle the first genome position.
    * ------------------------------------------------------------------------ */
@@ -230,16 +231,20 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
   print_GenomePosition (p1);
   pthread_mutex_unlock (&output_mutex);
 
+  free (p1->cipos);
+  p1->cipos = NULL;
+  p1->cipos_len = 0;
+  
   /* Handle the second genome position.
    * ------------------------------------------------------------------------ */
   if (is_sv)
     {
       bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
       bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
-      bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
 
       if (end_info != NULL && chr2_info != NULL)
         {
+          bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
           p2->chromosome = calloc (1, chr2_info->len + 1);
           p2->chromosome_len = chr2_info->len;
 
@@ -279,9 +284,11 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
           pthread_mutex_lock (&output_mutex);
           print_GenomePosition (p2);
           pthread_mutex_unlock (&output_mutex);
-          free (p2->cipos);
-          p2->cipos_len = 0;
         }
+
+      free (p2->cipos);
+      p2->cipos = NULL;
+      p2->cipos_len = 0;
     }
 
 
@@ -293,15 +300,13 @@ handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
   StructuralVariant v;
   initialize_StructuralVariant (&v);
 
-  v.sample = s;
+  v.origin = o;
 
   if (is_sv)
     {
       v._obj_type = STRUCTURAL_VARIANT;
       v.position2 = p2;
     }
-  else if (is_snp)
-    v._obj_type = SNP_VARIANT;
   else
     v._obj_type = VARIANT;
 
@@ -351,7 +356,7 @@ typedef struct
   htsFile *vcf_stream;
   bcf_hdr_t *vcf_header;
   bcf1_t **buffers;
-  Sample *sample;
+  Origin *origin;
   int32_t thread_number;
   int32_t jobs_to_run;
 } htslib_data_t;
@@ -363,7 +368,7 @@ run_jobs_in_thread (void *data)
   if (pack == NULL) return NULL;
 
   bcf_hdr_t *vcf_header = pack->vcf_header;
-  Sample *sample = pack->sample;
+  Origin *origin = pack->origin;
 
   /* Process the records. */
   int32_t i = 0;
@@ -386,12 +391,12 @@ run_jobs_in_thread (void *data)
         case VCF_REF:    handle_REF_record (vcf_header, buffer); break;
         case VCF_MNP:    handle_MNP_record (vcf_header, buffer); break;
         case VCF_SNP:
-          handle_SNP_record (vcf_header, buffer, &p1, sample);
+          handle_SNP_record (vcf_header, buffer, &p1, origin);
           break;
         case VCF_BND:
         case VCF_INDEL:
         case VCF_OTHER:
-          handle_OTHER_record (vcf_header, buffer, &p1, &p2, sample);
+          handle_OTHER_record (vcf_header, buffer, &p1, &p2, origin);
           break;
         default:
           puts ("# Encountered an unknown variant call type.");
@@ -400,6 +405,53 @@ run_jobs_in_thread (void *data)
     }
 
   return NULL;
+}
+
+
+/*----------------------------------------------------------------------------.
+ | HANDLE THE HEADER FIELDS                                                   |
+ '----------------------------------------------------------------------------*/
+
+void
+handle_header (bcf_hdr_t *vcf_header, Origin *origin)
+{
+  if (vcf_header == NULL)
+    return;
+
+  VcfHeader h;
+  initialize_VcfHeader (&h);
+
+  int32_t i;
+  for (i = 0; i < vcf_header->nhrec; i++)
+    {
+      int32_t j;
+      h.type = vcf_header->hrec[i]->key;
+      if (vcf_header->hrec[i]->value)
+        {
+          h.key = vcf_header->hrec[i]->key;
+          h.key_len = strlen (vcf_header->hrec[i]->key);
+          h.value = vcf_header->hrec[i]->value;
+          h.value_len = strlen (vcf_header->hrec[i]->value);
+          h.type = "generic";
+          h.origin = origin;
+
+          print_VcfHeader (&h);
+          h.type = NULL;
+        }
+
+      /* for (j = 0; j < vcf_header->hrec->nkeys; j++) */
+      /*   { */
+      /*     if (!strcasecmp(key,hrec->keys[i])) return i; */
+      /*   } */
+    }
+
+  /* int bcf_hrec_find_key(bcf_hrec_t *hrec, const char *key) */
+  /* { */
+  /*   int i; */
+  /*   for (i=0; i<hrec->nkeys; i++) */
+  /*     if ( !strcasecmp(key,hrec->keys[i]) ) return i; */
+  /*   return -1; */
+  /* } */
 }
 
 /*----------------------------------------------------------------------------.
@@ -482,14 +534,22 @@ main (int argc, char **argv)
       int32_t input_file_len = strlen (program_config.input_file);
       bool is_vcf = false;
       bool is_gzip_vcf = false;
+      bool is_bcf = false;
+      bool is_gzip_bcf = false;
 
       if (input_file_len > 3)
         is_vcf = !strcmp (program_config.input_file + input_file_len - 3, "vcf");
 
-      if (!is_vcf && input_file_len > 6)
+      if (input_file_len > 3)
+        is_bcf = !strcmp (program_config.input_file + input_file_len - 3, "bcf");
+
+      if (!is_vcf && !is_bcf && input_file_len > 6)
         is_gzip_vcf = !strcmp (program_config.input_file + input_file_len - 6, "vcf.gz");
 
-      if (!(is_vcf || is_gzip_vcf))
+      if (!is_vcf && !is_bcf && input_file_len > 6)
+        is_gzip_bcf = !strcmp (program_config.input_file + input_file_len - 6, "bcf.gz");
+
+      if (!(is_bcf || is_gzip_bcf || is_vcf || is_gzip_vcf))
         return print_file_format_error ();
 
       /* Prepare the buffers needed to read the VCF file.
@@ -501,6 +561,10 @@ main (int argc, char **argv)
         vcf_stream = hts_open (program_config.input_file, "r");
       else if (is_gzip_vcf)
         vcf_stream = hts_open (program_config.input_file, "rz");
+      else if (is_bcf)
+        vcf_stream = hts_open (program_config.input_file, "rbu");
+      else if (is_gzip_bcf)
+        vcf_stream = hts_open (program_config.input_file, "rb");
 
       if (vcf_stream == NULL)
         return print_vcf_file_error (program_config.input_file);
@@ -518,19 +582,20 @@ main (int argc, char **argv)
       printf ("@prefix v: <%sVariant/> .\n", program_config.graph_location);
       printf ("@prefix p: <%sPosition/> .\n", program_config.graph_location);
       printf ("@prefix s: <%sSample/> .\n", program_config.graph_location);
+      printf ("@prefix h: <%sVcfHeader/> .\n", program_config.graph_location);
 
       if (program_config.use_faldo)
         printf ("@prefix faldo: <http://biohackathon.org/resource/faldo#> .\n");
 
       puts ("");
 
-      /* Add sample to database.
+      /* Add origin to database.
        * -------------------------------------------------------------------- */
-      Sample s;
-      initialize_Sample (&s);
+      Origin o;
+      initialize_Origin (&o);
 
       if (program_config.input_file[0] == '/')
-        set_Sample_filename (&s, program_config.input_file);
+        set_Origin_filename (&o, program_config.input_file);
       else
         {
           char *cwd = getcwd (NULL, 0);
@@ -538,7 +603,7 @@ main (int argc, char **argv)
           /* Degrade to a relative filename if we cannot allocate the memory
            * for an absolute path, because it's better than nothing. */
           if (cwd == NULL)
-            set_Sample_filename (&s, program_config.input_file);
+            set_Origin_filename (&o, program_config.input_file);
           else
             {
               int32_t full_path_len = strlen (cwd) + strlen (program_config.input_file) + 1;
@@ -547,23 +612,27 @@ main (int argc, char **argv)
 
               if (snprintf (full_path, full_path_len, "%s/%s",
                             cwd, program_config.input_file) == full_path_len)
-                set_Sample_filename (&s, full_path);
+                set_Origin_filename (&o, full_path);
               else
                 /* Degrade to a relative filename if we cannot allocate the
                  * memory for an absolute path, because it's better than
                  * nothing. */
-                set_Sample_filename (&s, program_config.input_file);
+                set_Origin_filename (&o, program_config.input_file);
 
               free (cwd);
               cwd = NULL;
             }
         }
 
-      print_Sample (&s);
-      free (s.filename);
-      s.filename = NULL;
-      s.filename_len = 0;
+      print_Origin (&o);
+      free (o.filename);
+      o.filename = NULL;
+      o.filename_len = 0;
 
+      /* Add header lines to database.
+       * -------------------------------------------------------------------- */
+      handle_header (vcf_header, &o);
+      
       /* Set up threads and per-thread storage.
        * -------------------------------------------------------------------- */
       pthread_t threads[program_config.threads];
@@ -596,7 +665,7 @@ main (int argc, char **argv)
                   pack[j].buffers = tbuffers;
                   pack[j].thread_number = j;
                   pack[j].jobs_to_run = program_config.jobs_per_thread;
-                  pack[j].sample = &s;
+                  pack[j].origin = &o;
 
                   pthread_create (&(threads[j]), NULL, run_jobs_in_thread, (void *)&(pack[j]));
                 }
@@ -622,7 +691,7 @@ main (int argc, char **argv)
               pack.buffers = tbuffers;
               pack.thread_number = 0;
               pack.jobs_to_run = 1;
-              pack.sample = &s;
+              pack.origin = &o;
 
               /* Run them in a single thread. */
               run_jobs_in_thread (&pack);

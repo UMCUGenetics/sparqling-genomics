@@ -18,7 +18,7 @@
 #ifndef VARIANT_H
 #define VARIANT_H
 
-#include "Sample.h"
+#include "Origin.h"
 #include "GenomePosition.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -36,7 +36,7 @@ typedef enum {
 typedef struct
 {
   VariantType _obj_type;        /* For internal use only. */
-  Sample *sample;
+  Origin *origin;
   GenomePosition *position1;
   float quality;
   char *filter;
@@ -58,7 +58,7 @@ typedef struct
   /* Inherit the properties of a regular Variant.
    * ----------------------------------------------------------------------- */
   VariantType _obj_type;
-  Sample *sample;
+  Origin *origin;
   GenomePosition *position1;
   float quality;
   char *filter;

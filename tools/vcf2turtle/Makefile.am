@@ -11,6 +11,8 @@ vcf2turtle_SOURCES      = src/vcf2turtle.c src/RuntimeConfiguration.h   \
                           src/GenomePosition.c src/GenomePosition.h     \
                           src/Variant.c src/Variant.h                   \
                           src/Sample.c src/Sample.h                     \
+                          src/Origin.c src/Origin.h                     \
+                          src/VcfHeader.c src/VcfHeader.h               \
                           src/helper.c src/helper.h
 
 vcf2turtle_LDFLAGS      = -pthread

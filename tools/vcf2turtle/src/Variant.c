@@ -16,6 +16,7 @@
  */
 
 #include "Variant.h"
+#include "Origin.h"
 #include "helper.h"
 #include "RuntimeConfiguration.h"
 
@@ -108,8 +109,8 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
     printf ("v:%s a :Variant ;\n",
             hash_Variant (v, vcf_header, true));
 
-  if (v->sample)
-    printf ("  :sample s:%s ;\n", hash_Sample (v->sample, true));
+  if (v->origin)
+    printf ("  :origin s:%s ;\n", hash_Origin (v->origin, true));
 
   printf ("  :genome_position p:%s ;\n",
           hash_GenomePosition (v->position1, true));
@@ -143,7 +144,7 @@ void
 initialize_Variant (Variant *v)
 {
   if (v == NULL) return;
-  v->sample = NULL;
+  v->origin = NULL;
   v->position1 = NULL;
   v->quality = 0.0;
   v->filter = NULL;
