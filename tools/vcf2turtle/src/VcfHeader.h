@@ -24,24 +24,74 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum {
+  HEADER_TYPE_UNKNOWN,
+  HEADER_TYPE_GENERIC,
+  HEADER_TYPE_INFO,
+  HEADER_TYPE_FILTER,
+  HEADER_TYPE_FORMAT,
+  HEADER_TYPE_CONTIG
+} HeaderType;
+
 typedef struct
 {
-  char *type;
-  int32_t type_len;
+  HeaderType _type;
+  char hash[65];
+  Origin *origin;
 
   char *key;
   int32_t key_len;
-
   char *value;
   int32_t value_len;
-
-  Origin *origin;
-  char hash[65];
 } VcfHeader;
+
+typedef struct
+{
+  HeaderType _type;
+  char hash[65];
+  Origin *origin;
+
+  char *id;
+  int32_t id_len;
+  char *number;
+  int32_t number_len;
+  char *type;
+  int32_t type_len;
+  char *description;
+  int32_t description_len;
+} VcfInfoField;
+
+typedef struct
+{
+  HeaderType _type;
+  char hash[65];
+  Origin *origin;
+
+  char *id;
+  int32_t id_len;
+  char *description;
+  int32_t description_len;
+} VcfFilterField;
+
+typedef struct
+{
+  HeaderType _type;
+  char hash[65];
+  Origin *origin;
+
+  char *id;
+  int32_t id_len;
+  int32_t length;
+  char *assembly;
+  int32_t assembly_len;
+} VcfContigField;
+
+/* A INFO field contains the same elements as a FORMAT field. */
+#define VcfFormatField VcfInfoField
 
 char *hash_VcfHeader (VcfHeader *g, bool use_cache);
 void print_VcfHeader (VcfHeader *g);
-void initialize_VcfHeader (VcfHeader *g);
+void initialize_VcfHeader (VcfHeader *h, HeaderType type);
 void reset_VcfHeader (VcfHeader *g);
 
 #endif  /* VCFHEADER_H */

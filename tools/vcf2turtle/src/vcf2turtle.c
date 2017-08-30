@@ -418,40 +418,118 @@ handle_header (bcf_hdr_t *vcf_header, Origin *origin)
   if (vcf_header == NULL)
     return;
 
-  VcfHeader h;
-  initialize_VcfHeader (&h);
-
   int32_t i;
   for (i = 0; i < vcf_header->nhrec; i++)
     {
-      int32_t j;
-      h.type = vcf_header->hrec[i]->key;
+      /* Handle simple key-value fields.
+       * ------------------------------------------------------------------- */
       if (vcf_header->hrec[i]->value)
         {
+          VcfHeader h;
+          initialize_VcfHeader (&h, HEADER_TYPE_GENERIC);
+          h.origin = origin;
           h.key = vcf_header->hrec[i]->key;
           h.key_len = strlen (vcf_header->hrec[i]->key);
           h.value = vcf_header->hrec[i]->value;
           h.value_len = strlen (vcf_header->hrec[i]->value);
-          h.type = "generic";
           h.origin = origin;
 
           print_VcfHeader (&h);
-          h.type = NULL;
         }
 
-      /* for (j = 0; j < vcf_header->hrec->nkeys; j++) */
-      /*   { */
-      /*     if (!strcasecmp(key,hrec->keys[i])) return i; */
-      /*   } */
-    }
+      /* Handle INFO fields.
+       * ------------------------------------------------------------------- */
+      else if (!strcmp (vcf_header->hrec[i]->key, "INFO"))
+        {
+          int32_t j;
+          VcfInfoField info_field;
+          initialize_VcfHeader ((VcfHeader *)&info_field, HEADER_TYPE_INFO);
+          info_field.origin = origin;
 
-  /* int bcf_hrec_find_key(bcf_hrec_t *hrec, const char *key) */
-  /* { */
-  /*   int i; */
-  /*   for (i=0; i<hrec->nkeys; i++) */
-  /*     if ( !strcasecmp(key,hrec->keys[i]) ) return i; */
-  /*   return -1; */
-  /* } */
+          for (j = 0; j < vcf_header->hrec[i]->nkeys; j++)
+            {
+              if (!strcmp (vcf_header->hrec[i]->keys[j], "ID"))
+                info_field.id = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Number"))
+                info_field.number = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Type"))
+                info_field.type = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Description"))
+                info_field.description = vcf_header->hrec[i]->vals[j];
+            }
+
+          print_VcfHeader ((VcfHeader *)&info_field);
+        }
+
+      /* Handle FILTER fields.
+       * ------------------------------------------------------------------- */
+      else if (!strcmp (vcf_header->hrec[i]->key, "FILTER"))
+        {
+          int32_t j;
+          VcfFilterField filter_field;
+          initialize_VcfHeader ((VcfHeader *)&filter_field, HEADER_TYPE_FILTER);
+          filter_field.origin = origin;
+
+          for (j = 0; j < vcf_header->hrec[i]->nkeys; j++)
+            {
+              if (!strcmp (vcf_header->hrec[i]->keys[j], "ID"))
+                filter_field.id = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Description"))
+                filter_field.description = vcf_header->hrec[i]->vals[j];
+            }
+
+          print_VcfHeader ((VcfHeader *)&filter_field);
+        }
+
+      /* Handle FORMAT fields.
+       * ------------------------------------------------------------------- */
+      else if (!strcmp (vcf_header->hrec[i]->key, "FORMAT"))
+        {
+          int32_t j;
+          VcfFormatField format_field;
+          initialize_VcfHeader ((VcfHeader *)&format_field, HEADER_TYPE_FORMAT);
+          format_field.origin = origin;
+
+          for (j = 0; j < vcf_header->hrec[i]->nkeys; j++)
+            {
+              if (!strcmp (vcf_header->hrec[i]->keys[j], "ID"))
+                format_field.id = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Number"))
+                format_field.number = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Type"))
+                format_field.type = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Description"))
+                format_field.description = vcf_header->hrec[i]->vals[j];
+            }
+
+          print_VcfHeader ((VcfHeader *)&format_field);
+        }
+
+      /* Handle 'contig' fields.
+       * ------------------------------------------------------------------- */
+      else if (!strcmp (vcf_header->hrec[i]->key, "contig"))
+        {
+          int32_t j;
+          VcfContigField contig_field;
+          initialize_VcfHeader ((VcfHeader *)&contig_field, HEADER_TYPE_CONTIG);
+          contig_field.origin = origin;
+
+          for (j = 0; j < vcf_header->hrec[i]->nkeys; j++)
+            {
+              if (!strcmp (vcf_header->hrec[i]->keys[j], "ID"))
+                contig_field.id = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "length"))
+                contig_field.length = atoi (vcf_header->hrec[i]->vals[j]);
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "assembly"))
+                contig_field.assembly = vcf_header->hrec[i]->vals[j];
+            }
+
+          print_VcfHeader ((VcfHeader *)&contig_field);
+        }
+      else
+        fprintf (stderr, "Error: Encountered an unknown header item '%s'.",
+                 vcf_header->hrec[i]->key);
+    }
 }
 
 /*----------------------------------------------------------------------------.
