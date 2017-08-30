@@ -26,11 +26,12 @@
 
 typedef enum {
   HEADER_TYPE_UNKNOWN,
-  HEADER_TYPE_GENERIC,
-  HEADER_TYPE_INFO,
+  HEADER_TYPE_ALT,
+  HEADER_TYPE_CONTIG,
   HEADER_TYPE_FILTER,
   HEADER_TYPE_FORMAT,
-  HEADER_TYPE_CONTIG
+  HEADER_TYPE_GENERIC,
+  HEADER_TYPE_INFO
 } HeaderType;
 
 typedef struct
@@ -88,6 +89,9 @@ typedef struct
 
 /* A INFO field contains the same elements as a FORMAT field. */
 #define VcfFormatField VcfInfoField
+
+/* A ALT field contains the same elements as a FILTER field. */
+#define VcfAltField VcfFilterField
 
 char *hash_VcfHeader (VcfHeader *g, bool use_cache);
 void print_VcfHeader (VcfHeader *g);

@@ -481,6 +481,26 @@ handle_header (bcf_hdr_t *vcf_header, Origin *origin)
           print_VcfHeader ((VcfHeader *)&filter_field);
         }
 
+      /* Handle ALT fields.
+       * ------------------------------------------------------------------- */
+      else if (!strcmp (vcf_header->hrec[i]->key, "ALT"))
+        {
+          int32_t j;
+          VcfAltField alt_field;
+          initialize_VcfHeader ((VcfHeader *)&alt_field, HEADER_TYPE_ALT);
+          alt_field.origin = origin;
+
+          for (j = 0; j < vcf_header->hrec[i]->nkeys; j++)
+            {
+              if (!strcmp (vcf_header->hrec[i]->keys[j], "ID"))
+                alt_field.id = vcf_header->hrec[i]->vals[j];
+              else if (!strcmp (vcf_header->hrec[i]->keys[j], "Description"))
+                alt_field.description = vcf_header->hrec[i]->vals[j];
+            }
+
+          print_VcfHeader ((VcfHeader *)&alt_field);
+        }
+
       /* Handle FORMAT fields.
        * ------------------------------------------------------------------- */
       else if (!strcmp (vcf_header->hrec[i]->key, "FORMAT"))
@@ -527,7 +547,7 @@ handle_header (bcf_hdr_t *vcf_header, Origin *origin)
           print_VcfHeader ((VcfHeader *)&contig_field);
         }
       else
-        fprintf (stderr, "Error: Encountered an unknown header item '%s'.",
+        fprintf (stderr, "Error: Encountered an unknown header item '%s'.\n",
                  vcf_header->hrec[i]->key);
     }
 }

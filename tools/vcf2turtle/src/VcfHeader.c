@@ -59,6 +59,13 @@ hash_VcfHeader (VcfHeader *v, bool use_cache)
       gcry_md_write (handler, f->id, f->id_len);
       gcry_md_write (handler, f->description, f->description_len);
     }
+  else if (v->_type == HEADER_TYPE_ALT)
+    {
+      VcfAltField *f = (VcfAltField *)v;
+      gcry_md_write (handler, "ALT", 3);
+      gcry_md_write (handler, f->id, f->id_len);
+      gcry_md_write (handler, f->description, f->description_len);
+    }
   else if (v->_type == HEADER_TYPE_INFO)
     {
       VcfInfoField *i = (VcfInfoField *)v;
@@ -124,6 +131,14 @@ print_VcfHeader (VcfHeader *v)
       printf ("  :id \"%s\" ;\n", f->id);
       printf ("  :description %s ;\n", f->description);
     }
+  else if (v->_type == HEADER_TYPE_ALT)
+    {
+      VcfAltField *f = (VcfAltField *)v;
+      printf ("h:%s a :VcfAltHeader ;\n", hash_VcfHeader (v, true));
+      printf ("  :type \"ALT\" ;\n");
+      printf ("  :id \"%s\" ;\n", f->id);
+      printf ("  :description %s ;\n", f->description);
+    }
   else if (v->_type == HEADER_TYPE_INFO)
     {
       VcfInfoField *i = (VcfInfoField *)v;
@@ -163,6 +178,8 @@ initialize_VcfHeader (VcfHeader *v, HeaderType type)
     memset (v, 0, sizeof (*v));
   else if (type == HEADER_TYPE_FILTER)
     memset (v, 0, sizeof (VcfFilterField));
+  else if (type == HEADER_TYPE_ALT)
+    memset (v, 0, sizeof (VcfAltField));
   else if (type == HEADER_TYPE_INFO)
     memset (v, 0, sizeof (VcfInfoField));
   else if (type == HEADER_TYPE_FORMAT)
