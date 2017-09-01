@@ -22,7 +22,10 @@
     ("/cth/confidence_interval_start" . "Confidence interval start")
     ("/cth/confidence_interval_end"   . "Confidence interval end")
     ("/cth/filename"                  . "File name")
-    ("/cth/sample"                    . "Sample")))
+    ("/cth/sample"                    . "Sample")
+    ("/cth/sha256_digest"             . "SHA256 digest")
+    ("/cth/origin"                    . "Originated from")
+    ("/cth/reference"                 . "Reference")))
 
 (define (without-hostname input)
   (string-drop input (string-length %www-sparql-hostname)))
