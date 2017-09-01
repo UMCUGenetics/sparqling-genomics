@@ -44,7 +44,7 @@
   (format #f
    "PREFIX : <~a~a/>
 
-SELECT ?predicate ?object
+SELECT DISTINCT ?predicate ?object
 WHERE {
   :~a ?predicate ?object .
 }"
