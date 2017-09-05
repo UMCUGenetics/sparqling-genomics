@@ -47,6 +47,7 @@ AC_CONFIG_FILES([
   tools/turtle2remote/Makefile
   tools/vcf2turtle/Makefile
   web/Makefile
+  web/run.sh
 ])
 
 PKG_PROG_PKG_CONFIG

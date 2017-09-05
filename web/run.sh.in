@@ -1,0 +1,15 @@
+#!/bin/sh
+
+GUILE_LOAD_PATH=@abs_top_srcdir@/web:$GUILE_LOAD_PATH
+if test "@abs_top_srcdir@" != "@abs_top_builddir@"; then
+    GUILE_LOAD_PATH=@abs_top_builddir@/web:$GUILE_LOAD_PATH
+fi
+GUILE_LOAD_COMPILED_PATH=@abs_top_builddir@/web:$GUILE_LOAD_PATH
+PATH=@abs_top_builddir@/bin:$PATH
+
+export GUILE_LOAD_PATH
+export GUILE_LOAD_COMPILED_PATH
+export PATH
+
+guile -l @abs_top_builddir@/web/web-interface.scm \
+      -e '(begin (use-modules (web-interface)) (run-web-interface))'
