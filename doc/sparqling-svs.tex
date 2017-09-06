@@ -13,7 +13,7 @@
     \Huge SPARQLing structural variation
     \rule{\textwidth}{1.0pt}
     \Large Roel Janssen~\\~\\
-    \large August 2017
+    \large September 2017
     % Put it a little bit above the center of the page.
     ~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\
   \end{center}
@@ -158,7 +158,7 @@ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
 
 \subsection{Run-time properties}
 
-  The program typically uses less than one megabyte of memory, because it
+  The program typically uses less than eight megabytes of memory, because it
   processes the variant calls one-by-one.  It reads through the file from top
   to bottom, so its running time is dependent on the input file size.  The
   throughput of this program is around $20$ to $60$ megabytes per second,
@@ -198,14 +198,17 @@ turtle2remote --input-file=/path/to/my/variants.ttl        \
 
 \section{Running the web interface}
 
-The web interface can be started using the following command:
+  The web interface can be started using the following command:
+
 \begin{siderules}
 \begin{verbatim}
-guile -l web/web-interface.scm -e '(begin
-  (use-modules (web-interface))
-  (run-web-interface))'
+/bin/sh web/run.sh
 \end{verbatim}
 \end{siderules}
+
+  By default, it will be available on \url{http://localhost:5000}.
+
+\section{Prototyping SPARQL queries}
 
 \chapter{Information retrieval with SPARQL}
 
@@ -426,7 +429,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT ?gene ?ensemblGeneId ?geneType 
                 ?location ?begin ?beginPosition 
                 ?end ?endPosition {
-  SERVICE <http://www.ebi.ac.uk/rdf/services/sparql> {
     ?location faldo:reference grch38:10 .
     ?location faldo:begin ?begin .
     ?location faldo:end ?end .
@@ -439,8 +441,6 @@ SELECT DISTINCT ?gene ?ensemblGeneId ?geneType
           faldo:location ?location .
     ?type rdfs:label ?geneType .
     ?ensemblGeneId rdfs:label ?gene .
-    #FILTER (?beginPosition >= 3172841 && ?endPosition <= 3137728)
-  }
 }
 LIMIT 10
 \end{verbatim}
@@ -493,5 +493,63 @@ LIMIT 10
 \chapter{Programming in Python, Perl, R, Scheme, C, and/or C++}
 \label{chap:programming}
 
+\section{Using SPARQL with R}
+\label{sec:sparql-with-r}
+
+  Before we can start, we need to install the \texttt{SPARQL} package from
+  \href{https://cran.r-project.org/web/packages/SPARQL/index.html}{CRAN}.
+
+\begin{siderules}
+\begin{verbatim}
+install.packages('SPARQL')
+\end{verbatim}
+\end{siderules}
+
+  Once we're set up, we can query like so:
+
+\begin{siderules}
+\begin{verbatim}
+# Load the library
+library('SPARQL')
+
+# Define the endpoint to query.
+endpoint <- "http://localhost:8890/sparql"
+
+# Define the actual query to run.
+query <- "PREFIX : <http://localhost:5000/cth/>
+PREFIX ref: <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/>
+PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?variant ?svtype ?geneName ?ensemblGeneId ?location {
+    ?variant       rdf:type            :StructuralVariant ;
+                   :genome_position    ?p ;
+                   :filter             ?filter ;
+                   :type               ?svtype .
+    ?p             :chromosome         ?chromosome ;
+                   :position           ?position .
+    ?location      faldo:reference     ref:1 ;
+                   faldo:begin         ?begin ;
+                   faldo:end           ?end .
+    ?begin         faldo:position      ?beginPosition .
+    ?end           faldo:position      ?endPosition .
+    ?ensemblGeneId rdf:type            ?type ;
+                   faldo:location      ?location ;
+                   rdfs:label          ?geneName .
+    FILTER (?chromosome = \"1\")
+    FILTER (?position > (?beginPosition) && ?position < (?endPosition))
+}
+LIMIT 10";
+
+# Run the query
+query_data <- SPARQL (endpoint, query)
+
+# Put the results (a data frame) in a separate variable.
+query_results <- query_data$results
+\end{verbatim}
+\end{siderules}
+
+Additional examples can be found in the \texttt{tools/SVPlot/R} directory.
 
 \end{document}
