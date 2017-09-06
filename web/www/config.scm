@@ -19,8 +19,10 @@
             %www-max-file-size
             %www-listen-port
             %www-static-root
-            %www-sparql-hostname))
+            %www-sparql-hostname
+            %www-name))
 
+(define %www-name "SPARQLing SV database")
 (define %www-root (dirname (search-path %load-path "web-interface.scm")))
 (define %www-static-root (string-append %www-root "/static"))
 (define %www-max-file-size 250000000)

@@ -34,8 +34,7 @@ body,html {
     font-family: 'Roboto', sans-serif;
     font-size: 11pt;
     color: #000000;
-    background: url('/static/images/bedge_grunge.png');
-    background-repeat: repeat;
+    background-color: #93a7ac;
 }
 
 #wrapper {
@@ -197,6 +196,7 @@ div.action-button:hover {
 #editor {
     width: 100%;
     min-height: 250pt;
+    height: 450pt;
     top: 0;
     bottom: 0;
     left: 0;

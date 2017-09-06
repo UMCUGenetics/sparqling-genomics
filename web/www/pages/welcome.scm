@@ -12,10 +12,10 @@
              plot-file)
     (page-root-template "sparqling-svs" request-path
      `((h2 "Overview")
-       (p "Welcome to SPARQling-SVs.  The plots below reflect the current "
+       (p "Welcome to " ,%www-name ".  The plots below reflect the current "
           "state of the database.  Therefore, it might've taken a few moments "
           "to load.")
-       (h3 "Number of mutations per type")
+       (h3 "Number of variants per type")
        (p "Each caller specifies which type a variant is.  Please be aware of "
           "the " (a (@ (href "#")) "problem with variant types."))
        (img (@ (src ,external)

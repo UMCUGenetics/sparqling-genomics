@@ -46,15 +46,6 @@ $(document).ready(function(){
   session.setMode('ace/mode/sparql');
   session.setTabSize(2);
 
-  /* Set the editor to the maximum height within the content area. */
-  //var page_height = $(document).height();
-  //var content_pos = $('#content').position();
-  //var editor_pos = $('#editor').position();
-  //var editor_height = page_height - 85 - editor_pos.top;
-  //$('#wrapper').height(page_height);
-  //$('#content').height(page_height - content_pos.top - 100);
-  //$('#editor').height(editor_height);
-
   /* Add keybindings for copying the text and for running the query. */
   editor.commands.addCommand({
     name: 'copyCommand',

@@ -16,9 +16,10 @@
 
 (define-module (www pages)
   #:use-module (srfi srfi-1)
+  #:use-module (www config)
   #:export (page-root-template))
 
-(define page-title-prefix "genomics-db | ")
+(define page-title-prefix (string-append %www-name " | "))
 
 (define pages
   '(("/" "Overview")
@@ -78,7 +79,7 @@
       (div (@ (id "wrapper"))
            (div (@ (id "header"))
                 (div (@ (class "title"))
-                     (h1 "Database interface"))
+                     (h1 ,%www-name))
                 (div (@ (class "menu"))
                      ,(page-partial-main-menu request-path)))
            (div (@ (id "content"))
