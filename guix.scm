@@ -22,7 +22,8 @@
              (gnu packages curl)
              (gnu packages gnupg)
              (gnu packages guile)
-             (gnu packages pkg-config))
+             (gnu packages pkg-config)
+             (gnu packages statistics))
 
 (define vcf2turtle
   (package
@@ -59,6 +60,22 @@ outputs it in Turtle-format.")
 submits it to a specified SPARQL endpoint.")
    (license license:gpl3+)))
 
+(define svplot
+  (package
+   (name "svplot")
+   (version "0.0.1")
+   (source #f)
+   (build-system gnu-build-system)
+   (inputs
+    `(("r" ,r)))
+   (propagated-inputs
+    `(("r-ggplot2" ,r-ggplot2)
+      ("r-sparql" ,r-sparql)))
+   (home-page "")
+   (synopsis "Plotting package for this project.")
+   (description "Plotting package for this project.")
+   (license license:gpl3+)))
+
 (define sparqling-svs-web
   (package
    (name "sparqling-svs-web")
@@ -92,7 +109,9 @@ submits it to a specified SPARQL endpoint.")
       ("xz" ,xz)
       ,@(package-inputs vcf2turtle)
       ,@(package-inputs turtle2remote)
-      ,@(package-inputs sparqling-svs-web)))
+      ,@(package-inputs sparqling-svs-web)
+      ,@(package-inputs svplot)
+      ,@(package-propagated-inputs svplot)))
    (home-page "")
    (synopsis "")
    (description "")
