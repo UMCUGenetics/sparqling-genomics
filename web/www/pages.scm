@@ -21,7 +21,8 @@
 (define page-title-prefix "genomics-db | ")
 
 (define pages
-  '(("/" "Query")
+  '(("/" "Overview")
+    ("/query" "Query")
     ("/load-data" "Load data")
     ("/getting-started" "Getting started")
     ("/about" "About")
@@ -36,11 +37,11 @@
          ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
           `(li (@ (class "active")) ,(cadr item)))
          ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
-               (string= (car item) "/"))
-          `(li (@ (class "active")) (a (@ (href "/")) "← New query")))
+               (string= (car item) "/query"))
+          `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
          ((and (string= "cth" (car (string-split (substring request-path 1) #\/)))
-               (string= (car item) "/"))
-          `(li (@ (class "active")) (a (@ (href "/")
+               (string= (car item) "/query"))
+          `(li (@ (class "active")) (a (@ (href "/query")
                      (onclick "history.go(-1); return false;")) "← Go back")))
          (else
           `(li (a (@ (href ,(car item))) ,(cadr item))))))
