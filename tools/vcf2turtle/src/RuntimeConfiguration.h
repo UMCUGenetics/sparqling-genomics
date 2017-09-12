@@ -35,6 +35,7 @@ typedef struct
   char *input_file;
   char *graph_location;
   char *reference;
+  char *caller;
   bool use_faldo;
   int32_t threads;
   int32_t jobs_per_thread;

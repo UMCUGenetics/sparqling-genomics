@@ -68,6 +68,9 @@ print_Origin (Origin *o)
   printf ("o:%s a :Origin ;\n", hash_Origin (o, true));
   printf ("  :filename \"%s\" ;\n", o->filename);
   printf ("  :sha256_digest \"%s\" .\n\n", o->sha256_digest);
+
+  if (program_config.caller)
+    printf ("  :caller \"%s\"\n", program_config.caller);
 }
 
 void

@@ -63,6 +63,7 @@ show_help (void)
         "                          Location Description Ontology (FALDO).\n"
         "  --reference-genome  -r  The reference genome the variant positions "
                                   "refer to.\n"
+        "  --caller            -c  The caller used to produce the VCF file.\n"
 	"  --threads,          -t  Number of threads to use.\n"
 	"  --version,          -v  Show versioning information.\n"
 	"  --help,             -h  Show this message.\n");
@@ -590,6 +591,7 @@ main (int argc, char **argv)
           { "threads",           required_argument, 0, 't' },
           { "use-faldo",         no_argument,       0, 'z' },
           { "reference-genome",  required_argument, 0, 'r' },
+          { "caller",            required_argument, 0, 'c' },
           { "threads",           required_argument, 0, 't' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
@@ -599,7 +601,7 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:f:g:k:r:t:zvh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:g:k:r:c:t:zvh", options, &index);
           switch (arg)
             {
             case 'i': program_config.input_file = optarg;            break;
@@ -608,6 +610,7 @@ main (int argc, char **argv)
             case 'g': program_config.graph_location = optarg;        break;
             case 'z': program_config.use_faldo = true;               break;
             case 'r': program_config.reference = optarg;             break;
+            case 'c': program_config.caller = optarg;                break;
             case 't': program_config.threads = atoi(optarg);         break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
@@ -623,6 +626,16 @@ main (int argc, char **argv)
 
   if (program_config.input_file)
     {
+      if (program_config.reference == NULL)
+        fputs ("Warning: No --reference has been specified.  "
+               "This may lead to incomplete and/or ambiguous information "
+               "in the database.\n", stderr);
+
+      if (program_config.caller == NULL)
+        fputs ("Warning: No --caller has been specified.  "
+               "This may lead to incomplete and/or ambiguous information "
+               "in the database.", stderr);
+
       /* Disable the output messages from HTSLib.
        * -------------------------------------------------------------------- */
       hts_verbose = 0;
