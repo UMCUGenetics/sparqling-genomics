@@ -24,7 +24,6 @@
 (define pages
   '(("/" "Overview")
     ("/query" "Query")
-    ("/load-data" "Load data")
     ("/getting-started" "Getting started")
     ("/about" "About")
     ("/ontologies" "Ontologies")
