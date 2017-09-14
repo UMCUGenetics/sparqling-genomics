@@ -20,6 +20,7 @@
 
 #include "Origin.h"
 #include "GenomePosition.h"
+#include "VcfHeader.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <htslib/vcf.h>
@@ -29,6 +30,26 @@ typedef enum {
   STRUCTURAL_VARIANT,
   SNP_VARIANT
 } VariantType;
+
+typedef enum {
+  DATA_TYPE_INT,
+  DATA_TYPE_FLOAT,
+  DATA_TYPE_STRING
+} DataType;
+
+typedef struct {
+  VcfInfoField *info_field;
+  void *value;
+  DataType value_type;
+  int32_t value_len;            /* In case of the string type. */
+} VariantInfoField;
+
+typedef struct {
+  VcfFormatField *format_field;
+  void *value;
+  DataType value_type;
+  int32_t value_len;
+} VariantFormatField;
 
 /*----------------------------------------------------------------------------.
  | VARIANT OBJECT STATE DESCRIPTION                                           |

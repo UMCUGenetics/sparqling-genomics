@@ -25,6 +25,17 @@
 extern RuntimeConfiguration program_config;
 
 char *
+reference_name (char *reference, char *prefix)
+{
+  if (reference == NULL || prefix == NULL)
+    return NULL;
+
+  if (!strcmp (reference, "1"))
+    {}
+  if (!strcmp (reference, "2"))
+}
+
+char *
 hash_GenomePosition (GenomePosition *g, bool use_cache)
 {
   if (g == NULL) return NULL;
@@ -79,9 +90,9 @@ print_GenomePosition (GenomePosition *g)
 {
   if (g == NULL) return;
 
-  printf ("p:%s a :GenomePosition ;\n", hash_GenomePosition (g, true));
-  printf ("  :position %d ;\n", g->position);
-  printf ("  :reference \"%s\" ;\n", g->reference);
+  printf ("p:%s rdf:type faldo:ExactPosition ;\n", hash_GenomePosition (g, true));
+  printf ("  faldo:position %d ;\n", g->position);
+  printf ("  faldo:reference \"%s\" ;\n", g->reference);
 
   if (g->cipos_len > 0)
     {

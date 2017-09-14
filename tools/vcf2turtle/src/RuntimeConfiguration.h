@@ -18,8 +18,6 @@
 #ifndef RUNTIMECONFIGURATION_H
 #define RUNTIMECONFIGURATION_H
 
-#include <stdbool.h>
-
 /* Note: The HASH_LENGTH will be 32, but a pretty-printed hexadecimal version
  * of it will need 64 bytes of space. */
 #define HASH_ALGORITHM GCRY_MD_SHA256
@@ -33,10 +31,8 @@ typedef struct
   char *filter;
   char *keep;
   char *input_file;
-  char *graph_location;
   char *reference;
   char *caller;
-  bool use_faldo;
   int32_t threads;
   int32_t jobs_per_thread;
 } RuntimeConfiguration;

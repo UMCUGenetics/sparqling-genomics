@@ -118,7 +118,7 @@ print_VcfHeader (VcfHeader *v)
 
   if (v->_type == HEADER_TYPE_GENERIC)
     {
-      printf ("h:%s a :VcfGenericHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfGenericHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"GENERIC\" ;\n");
       printf ("  :key \"%s\" ;\n", v->key);
       printf ("  :value \"%s\" ;\n", v->value);
@@ -126,7 +126,7 @@ print_VcfHeader (VcfHeader *v)
   else if (v->_type == HEADER_TYPE_FILTER)
     {
       VcfFilterField *f = (VcfFilterField *)v;
-      printf ("h:%s a :VcfInfoHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfInfoHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"FILTER\" ;\n");
       printf ("  :id \"%s\" ;\n", f->id);
       printf ("  :description %s ;\n", f->description);
@@ -134,7 +134,7 @@ print_VcfHeader (VcfHeader *v)
   else if (v->_type == HEADER_TYPE_ALT)
     {
       VcfAltField *f = (VcfAltField *)v;
-      printf ("h:%s a :VcfAltHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfAltHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"ALT\" ;\n");
       printf ("  :id \"%s\" ;\n", f->id);
       printf ("  :description %s ;\n", f->description);
@@ -142,7 +142,7 @@ print_VcfHeader (VcfHeader *v)
   else if (v->_type == HEADER_TYPE_INFO)
     {
       VcfInfoField *i = (VcfInfoField *)v;
-      printf ("h:%s a :VcfInfoHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfInfoHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"INFO\" ;\n");
       printf ("  :id \"%s\" ;\n", i->id);
       printf ("  :number \"%s\" ;\n", i->number);
@@ -151,7 +151,7 @@ print_VcfHeader (VcfHeader *v)
   else if (v->_type == HEADER_TYPE_FORMAT)
     {
       VcfFormatField *i = (VcfFormatField *)v;
-      printf ("h:%s a :VcfFormatHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfFormatHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"FORMAT\" ;\n");
       printf ("  :id \"%s\" ;\n", i->id);
       printf ("  :number \"%s\" ;\n", i->number);
@@ -160,7 +160,7 @@ print_VcfHeader (VcfHeader *v)
   else if (v->_type == HEADER_TYPE_CONTIG)
     {
       VcfContigField *i = (VcfContigField *)v;
-      printf ("h:%s a :VcfContigHeader ;\n", hash_VcfHeader (v, true));
+      printf ("h:%s a vcf:VcfContigHeader ;\n", hash_VcfHeader (v, true));
       printf ("  :type \"contig\" ;\n");
       printf ("  :id \"%s\" ;\n", i->id);
       printf ("  :length %d ;\n", i->length);

@@ -22,6 +22,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum
+{
+  DIRECTION_UNKNOWN,
+  DIRECTION_3_TO_5,
+  DIRECTION_5_TO_3
+} DirectionType;
+
 typedef struct
 {
   char *chromosome;
@@ -33,6 +40,7 @@ typedef struct
   int32_t *cipos;
 
   char *reference;
+  DirectionType direction;
 } GenomePosition;
 
 char *hash_GenomePosition (GenomePosition *g, bool use_cache);
