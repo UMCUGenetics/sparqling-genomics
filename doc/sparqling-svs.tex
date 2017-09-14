@@ -148,6 +148,21 @@ make && make install
     \item Structural variant type specified in the \texttt{SVTYPE} field.
   \end{itemize}
 
+\subsection{How \texttt{vcf2turtle} describes variants}
+
+  The program uses the \emph{Sequence Manipulation Ontology} (SMO)\cite{unknown},
+  and the \emph{Feature Annotation Location Description Ontology} (FALDO)%
+  \cite{unknown}.  We will use the sequence from figure \ref{fig:sequence} as
+  an example to explain how variants are described by \texttt{vcf2turtle}.
+
+\begin{figure}[H]
+  \begin{center}
+    \includegraphics[height=4cm]{figures/sequence.pdf}
+    \caption{\small Figure for demonstrating variant types.}
+    \label{fig:sequence}
+  \end{center}
+\end{figure}
+
 \subsection{Example usage}
 
 \begin{siderules}
@@ -551,5 +566,19 @@ query_results <- query_data$results
 \end{siderules}
 
 Additional examples can be found in the \texttt{tools/SVPlot/R} directory.
+
+\chapter{Performance tuning}
+
+  During the development and testing of this project, we found that tuning the
+  triple stores improves query times significantly.  Therefore, we address
+  performance enhancements in this chapter.
+
+\section{Hardware}
+
+
+\section{Virtuoso}
+
+\subsection{Run-time parameters}
+\subsection{Indexing}
 
 \end{document}
