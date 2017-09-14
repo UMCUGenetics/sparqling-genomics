@@ -1,19 +1,17 @@
 @prefix : <http://semweb.op.umcutrecht.nl/smo/> .
-
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix edam: <http://edamontology.org/> .
-
 
 ## Ontology metadata
 ## ----------------------------------------------------------------------------
 <http://semweb.op.umcutrecht.nl/smo/> rdf:type owl:Ontology ;
+  dc:creator "Roel Janssen" ;
+  dc:title "Ontology for describing sequence manipulation." ;
   owl:versionIRI <http://semweb.op.umcutrecht.nl/1.0.0/smo/> ;
-  <http://purl.org/dc/elements/1.1/creator> "Roel Janssen" ;
-  <http://purl.org/dc/elements/1.1/title> "Ontology for describing sequence manipulation." .
-
+  owl:versionInfo "Created at 2017-09-13 at UMC Utrecht."^^xsd:string .
 
 ## Classes
 ## ----------------------------------------------------------------------------
@@ -22,13 +20,25 @@
     rdfs:comment "Single nucleotide polymorphism"^^xsd:string ;
     rdfs:label "SNP"^^xsd:string .
 
+:MNP
+    rdf:type owl:Class ;
+    rdfs:comment "Multiple nucleotide polymorphism"^^xsd:string ;
+    rdfs:label "MNP"^^xsd:string .
+
+:INDEL
+    rdfs:type owl:Class ;
+    rdfs:comment "Superclass for insertions and deletions."^^xsd:string ;
+    rdfs:label "INDEL"^^xsd:string .
+
 :Insertion
     rdf:type owl:Class ;
-    rdfs:label "Insertion"^^xsd:string .
+    rdfs:label "Insertion"^^xsd:string ;
+    rdfs:subClassOf :INDEL .
 
 :Deletion
     rdf:type owl:Class ;
-    rdfs:label "Deletion"^^xsd:string .
+    rdfs:label "Deletion"^^xsd:string ;
+    rdfs:subClassOf :INDEL .
 
 :Inversion
     rdf:type owl:Class ;
@@ -58,7 +68,7 @@
     rdfs:label "Adjacency"^^xsd:string .
 
 
-## Data types
+## Data types and object properties
 ## ----------------------------------------------------------------------------
 
 :sequence
@@ -72,7 +82,7 @@
     rdf:type owl:DatatypeProperty ;
     rdfs:comment ""^^xsd:string ;
     rdfs:label "length"^^xsd:string ;
-    rdfs:domain :Insertion ;
+    rdfs:domain :INDEL ;
     rdfs:range [ rdf:type rdfs:Datatype ; owl:onDatatype xsd:integer ; ] .
 
 :hasMate
