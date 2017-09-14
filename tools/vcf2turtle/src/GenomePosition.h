@@ -20,7 +20,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 typedef enum
 {
@@ -29,23 +28,64 @@ typedef enum
   DIRECTION_5_TO_3
 } DirectionType;
 
+typedef enum
+{
+  FALDO_UNKNOWN,
+  FALDO_IN_BETWEEN_POSITION,
+  FALDO_EXACT_POSITION,
+  FALDO_RANGE
+} FaldoType;
+
 typedef struct
 {
-  char *chromosome;
-  uint32_t chromosome_len;
+  FaldoType _type;
+} FaldoBaseType;
+
+typedef struct
+{
+  FaldoType _type;
+  char *name;
+  size_t name_len;
+
   uint32_t position;
-  char hash[65];
-
-  int32_t cipos_len;
-  int32_t *cipos;
-
   char *reference;
-  DirectionType direction;
-} GenomePosition;
+  size_t reference_len;
 
-char *hash_GenomePosition (GenomePosition *g, bool use_cache);
-void print_GenomePosition (GenomePosition *g);
-void initialize_GenomePosition (GenomePosition *g);
-void reset_GenomePosition (GenomePosition *g);
+} FaldoExactPosition;
+
+typedef struct
+{
+  FaldoType _type;
+  char *name;
+  size_t name_len;
+
+  FaldoExactPosition *before;
+  FaldoExactPosition *after;
+
+} FaldoInBetweenPosition;
+
+typedef struct
+{
+  FaldoType _type;
+  char *name;
+  size_t name_len;
+
+  FaldoExactPosition *start;
+  FaldoExactPosition *end;
+} FaldoRange;
+
+/* Identifier generators. */
+char *faldo_in_between_position_name (FaldoInBetweenPosition *range);
+char *faldo_exact_position_name (FaldoExactPosition *range);
+char *faldo_range_name (FaldoRange *range);
+char *faldo_position_name (FaldoBaseType *position);
+
+/* Display functions */
+char *faldo_in_between_position_print (FaldoInBetweenPosition *range);
+char *faldo_exact_position_print (FaldoExactPosition *range);
+char *faldo_range_print (FaldoRange *range);
+char *faldo_position_print (FaldoBaseType *position);
+
+void faldo_init_position (FaldoBaseType type);
 
 #endif  /* GENOMEPOSITION_H */

@@ -20,116 +20,185 @@
 #include "helper.h"
 
 #include <stdio.h>
-#include <gcrypt.h>
+#include <string.h>
 
 extern RuntimeConfiguration program_config;
 
+
 char *
-reference_name (char *reference, char *prefix)
+faldo_in_between_position_name (FaldoInBetweenPosition *range)
 {
-  if (reference == NULL || prefix == NULL)
+  if (range == NULL || range->before == NULL || range->after == NULL)
     return NULL;
 
-  if (!strcmp (reference, "1"))
-    {}
-  if (!strcmp (reference, "2"))
+  if (range->name != NULL) return range->name;
+
+  range->name_len = 22 + strlen (range->start->reference);
+  range->name = calloc (range->name_len + 1, sizeof (char));
+  if (range->name == NULL)
+    {
+      range->name_len = 0;
+      return NULL;
+    }
+
+  /* FIXME: In theory, the before->reference and after->reference could
+   * be different.  We need to address this issue. */
+  snprintf (range->name, range->name_len, "%s:%u-%u",
+            range->before->reference,
+            range->before->position,
+            range->after->position);
+
+  return range->name;
 }
 
 char *
-hash_GenomePosition (GenomePosition *g, bool use_cache)
+faldo_exact_position_name (FaldoExactPosition *position)
 {
-  if (g == NULL) return NULL;
+  if (position == NULL)
+    return NULL;
 
-  /* Cache the hash generation. */
-  if (g->hash[0] != '\0' && use_cache) return g->hash;
+  if (position->name != NULL) return position->name;
 
-  gcry_error_t error;
-  gcry_md_hd_t handler = NULL;
-
-  error = gcry_md_open (&handler, GCRY_MD_SHA256, 0);
-  if (error)
+  position->name_len = 22 + strlen (position->reference);
+  position->name = calloc (range->name_len + 1, sizeof (char));
+  if (position->name == NULL)
     {
-      fprintf (stderr, "ERROR: %s/%s\n",
-               gcry_strsource (error),
-               gcry_strerror (error));
+      position->name_len = 0;
       return NULL;
     }
 
-  unsigned char *binary_hash = NULL;
+  snprintf (range->name, range->name_len, "%s:%u-%u",
+            range->start->reference,
+            range->start->position,
+            range->end->position);
 
-  int32_t position_strlen = 0;
-  char position_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  position_strlen = sprintf (position_str, "%d", g->position);
+  return range->name;
+}
 
-  gcry_md_write (handler, g->chromosome, g->chromosome_len);
-  gcry_md_write (handler, position_str, position_strlen);
+char *
+faldo_range_name (FaldoRange *range)
+{
+  if (range == NULL || range->start == NULL || range->end == NULL)
+    return NULL;
 
-  if (g->cipos_len > 0)
+  if (range->name != NULL) return range->name;
+
+  range->name_len = 22 + strlen (range->start->reference);
+  range->name = calloc (range->name_len + 1, sizeof (char));
+  if (range->name == NULL)
     {
-      int32_t cipos_str_len = 0;
-      char cipos_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-      cipos_str_len = sprintf (cipos_str, "%d%d", g->cipos[0], g->cipos[1]);
-      gcry_md_write (handler, cipos_str, cipos_str_len);
-    }
-
-  binary_hash = gcry_md_read (handler, 0);
-  if (!get_pretty_hash (binary_hash, HASH_LENGTH, g->hash))
-    {
-      fprintf (stderr, "ERROR: Couldn't print a hash.\n");
+      range->name_len = 0;
       return NULL;
     }
 
-  gcry_md_close (handler);
-  return g->hash;
+  /* FIXME: In theory, the start->reference and end->reference could
+   * be different.  We need to address this theoretical issue. */
+  snprintf (range->name, range->name_len, "%s:%u-%u",
+            range->start->reference,
+            range->start->position,
+            range->end->position);
+
+  return range->name;
 }
 
-void
-print_GenomePosition (GenomePosition *g)
+char *
+faldo_position_name (FaldoBaseType *position)
 {
-  if (g == NULL) return;
-
-  printf ("p:%s rdf:type faldo:ExactPosition ;\n", hash_GenomePosition (g, true));
-  printf ("  faldo:position %d ;\n", g->position);
-  printf ("  faldo:reference \"%s\" ;\n", g->reference);
-
-  if (g->cipos_len > 0)
+  if (position == NULL) return NULL;
+  switch (position->_type)
     {
-      printf ("  :confidence_interval_start %d ;\n", g->cipos[0]);
-      printf ("  :confidence_interval_end %d ;\n", g->cipos[1]);
-    }
-
-  printf ("  :chromosome \"%s\" .\n\n", g->chromosome);
-
-  if (program_config.use_faldo)
-    {
-      printf ("p:%s a faldo:ExactPosition ;\n", hash_GenomePosition (g, true));
-      printf ("  faldo:position %d ;\n", g->position);
-
-      /* FIXME: We need a better way to describe the reference genome/contig. */
-      printf ("  faldo:reference \"%s\" .\n\n", g->reference);
+    case FALDO_IN_BETWEEN_POSITION:
+      return faldo_in_between_position_name ((FaldoInBetweenPosition *)position);
+    case FALDO_EXACT_POSITION:
+      return faldo_exact_position_name ((FaldoExactPosition *)position);
+    case FALDO_RANGE:
+      return faldo_range_name ((FaldoRange *)position);
+    case FALDO_UNKNOWN:
+      return NULL;
     }
 }
 
 void
-initialize_GenomePosition (GenomePosition *g)
+faldo_init_position (FaldoBaseType *position, FaldoBaseType type)
 {
-  if (g == NULL) return;
+  if (position == NULL)
+    return;
 
-  g->chromosome = NULL;
-  g->chromosome_len = 0;
-  g->position = 0;
-  memset (g->hash, '\0', 65);
-  g->cipos_len = 0;
-  g->cipos = NULL;
-  g->reference = NULL;
+  position->_type = type;
+  switch (type)
+    {
+    case FALDO_IN_BETWEEN_POSITION:
+      {
+        FaldoInBetweenPosition *p = ((FaldoInBetweenPosition *)position);
+        p->name = NULL;
+        p->name_len = 0;
+        p->before = NULL;
+        p->after = NULL;
+      }
+      break;
+    case FALDO_EXACT_POSITION:
+      {
+        FaldoExactPosition *p = ((FaldoExactPosition *)position);
+        p->name = NULL;
+        p->name_len = 0;
+        p->position = 0;
+      }
+      break;
+    case FALDO_RANGE:
+      {
+        FaldoRange *p = ((FaldoRange *)position);
+        p->name = NULL;
+        p->name_len = 0;
+        p->start = NULL;
+        p->end = NULL;
+      }
+      break;
+    case FALDO_UNKNOWN:
+      return;
+    }
 }
 
 void
-reset_GenomePosition (GenomePosition *g)
+faldo_in_between_position_print (FaldoInBetweenPosition *range)
 {
-  if (g == NULL) return;
+  if (range == NULL) return;
 
-  initialize_GenomePosition (g);
 }
+
+void
+faldo_exact_position_print (FaldoExactPosition *position)
+{
+  if (position == NULL) return;
+
+  printf (buffer, 4096,
+          "ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
+          "faldo:reference %s .\n",
+          faldo_exact_position_name ((FaldoExactPosition *)position),
+          ((FaldoExactPosition *)position)->position
+          ((FaldoExactPosition *)position)->reference);
+
+}
+
+void
+faldo_range_print (FaldoRange *range)
+{
+  if (range == NULL) return;
+}
+
+void
+faldo_position_print (FaldoBaseType *position)
+{
+  if (position == NULL) return;
+}
+
+/* void */
+/* print_GenomePosition (GenomePosition *g) */
+/* { */
+/*   if (g == NULL) return; */
+
+/*   if (g->cipos_len > 0) */
+/*     { */
+/*       printf ("  :confidence_interval_start %d ;\n", g->cipos[0]); */
+/*       printf ("  :confidence_interval_end %d ;\n", g->cipos[1]); */
+/*     } */
+/* } */
