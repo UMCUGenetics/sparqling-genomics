@@ -7,7 +7,7 @@ AUTOMAKE_OPTIONS 	= subdir-objects
 SUBDIRS                 = . 
 AM_CFLAGS 		= $(LIBGCRYPT_CFLAGS) $(htslib_CFLAGS)
 bin_PROGRAMS            = vcf2turtle
-vcf2turtle_SOURCES      = src/vcf2turtle.c src/RuntimeConfiguration.h   \
+vcf2turtle_SOURCES      = src/main.c src/RuntimeConfiguration.h         \
                           src/GenomePosition.c src/GenomePosition.h     \
                           src/Variant.c src/Variant.h                   \
                           src/Sample.c src/Sample.h                     \

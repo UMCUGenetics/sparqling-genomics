@@ -31,6 +31,7 @@ show_help (void)
         "                          Location Description Ontology (FALDO).\n"
         "  --reference-genome  -r  The reference genome the variant positions "
                                   "refer to.\n"
+        "                          Valid values are: 'GRCh37', GRCh38'.\n"
         "  --caller            -c  The caller used to produce the VCF file.\n"
 	"  --threads,          -t  Number of threads to use.\n"
 	"  --version,          -v  Show versioning information.\n"
