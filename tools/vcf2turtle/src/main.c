@@ -32,6 +32,7 @@
 #include "Origin.h"
 #include "Sample.h"
 #include "VcfHeader.h"
+#include "ui.h"
 
 #ifdef __GNUC__
 #define UNUSED __attribute__((__unused__))
@@ -43,252 +44,164 @@ extern RuntimeConfiguration program_config;
 extern int hts_verbose;
 static pthread_mutex_t output_mutex;
 
+typedef struct
+{
+  bool is_reversed;
+  bool is_left_of_ref;
+  char *chromosome;
+  int32_t position;
+} BndProperties;
+
+bool
+parse_properties (BndProperties *properties,
+                  const char *ref, int32_t ref_len,
+                  const char *alt, int32_t alt_len)
+{
+  if (properties == NULL || ref == NULL || alt == NULL) return false;
+
+  char bracket;
+
+  /* Determine direction and inner-position.
+   * ------------------------------------------------------------------------ */
+  if (alt[0] == ']')
+    {
+      properties->is_reversed = false;
+      properties->is_left_of_ref = true;
+      bracket = ']';
+    }
+  else if (alt[0] == '[')
+    {
+      properties->is_reversed = true;
+      properties->is_left_of_ref = true;
+      bracket = '[';
+    }
+  else if (alt[alt_len - 1] == '[')
+    {
+      properties->is_reversed = false;
+      properties->is_left_of_ref = false;
+      bracket = '[';
+    }
+  else if (alt[alt_len - 1] == ']')
+    {
+      properties->is_reversed = true;
+      properties->is_left_of_ref = false;
+      bracket = ']';
+    }
+
+  /* Determine second chromosome and position.
+   * ------------------------------------------------------------------------ */
+  char *first_bracket = strchr (alt, bracket);
+  char *last_bracket = strchr (first_bracket + 1, bracket);
+  char *separator = strchr (alt, ':');
+
+  if (first_bracket == NULL || last_bracket == NULL || separator == NULL)
+    return false;
+
+  properties->chromosome_len = separator - first_bracket - 1;
+  int32_t position_len = last_bracket - separator - 1;
+
+  properties->chromosome = calloc (sizeof (char), position->chromosome_len+1);
+
+  if (properties->chromosome == NULL)
+    return false;
+
+  char pos[sizeof (char) * position_len + 1];
+  memset (pos, 0, position_len + 1);
+
+  memcpy (properties->chromosome, first_bracket+1, properties->chromosome_len);
+  memcpy (pos, separator + 1, position_len);
+
+  properties->position = atoi (pos);
+  return properties;
+}
+
 /*----------------------------------------------------------------------------.
  | HANDLERS FOR SPECIFIC VCF RECORD TYPES                                     |
  '----------------------------------------------------------------------------*/
 
 void
-handle_REF_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
+handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
-  puts ("# REF records have not been implemented (yet).");
-}
+  variant_type = bcf_get_variant_types (buffer);
 
-void
-handle_SNP_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
-                   GenomePosition *position, Origin *origin)
-{
-  /* Do not process it when it isn't a SNP.
-   * ------------------------------------------------------------------------ */
-  bool is_snp = bcf_is_snp (buffer);
-  if (!is_snp)
-    {
-      printf ("# 'handle_SNP_record' processed a non-SNP variant.");
-      return;
-    }
-
-  /* Set the confidence interval.
-   * ------------------------------------------------------------------------ */
-  bcf_get_info_int32 (vcf_header, buffer, "CIPOS",
-                      &(position->cipos),
-                      &(position->cipos_len));
-
-  /* Set the chromosome and position.
-   * ------------------------------------------------------------------------ */
-  position->chromosome = (char *)bcf_seqname (vcf_header, buffer);
-  position->chromosome_len = strlen (position->chromosome);
-  position->position = buffer->pos;
-  position->reference = program_config.reference;
-
-  /* Output the position.
-   * ------------------------------------------------------------------------ */
-  pthread_mutex_lock (&output_mutex);
-  print_GenomePosition (position);
-  pthread_mutex_unlock (&output_mutex);
-
-  /* Handle the variant information.
-   * ------------------------------------------------------------------------ */
-  SNPVariant v;
-  initialize_SNPVariant (&v);
-
-  v.origin = origin;
-  v._obj_type = SNP_VARIANT;
-  v.position1 = position;
-
-  /* Set the 'quality' field.
-   * ------------------------------------------------------------------------ */
-  v.quality = buffer->qual;
-
-  /* Make sure the FILTER field is available.
-   * ------------------------------------------------------------------------ */
-  if (!(buffer->unpacked & BCF_UN_FLT))
-    bcf_unpack(buffer, BCF_UN_FLT);
-
-  v.filters_len = buffer->d.n_flt;
-  v.filters = buffer->d.flt;
-
-  /* Output the Variant.
-   * ------------------------------------------------------------------------ */
-  pthread_mutex_lock (&output_mutex);
-  print_SNPVariant ((Variant *)&v, vcf_header);
-  pthread_mutex_unlock (&output_mutex);
-
-  /* Clean up the memory.
-  * ------------------------------------------------------------------------- */
-  reset_GenomePosition (position);
-  reset_SNPVariant (&v);
-}
-
-void
-handle_MNP_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
-{
-  puts ("# MNP records have not been implemented (yet).");
-}
-
-void
-handle_INDEL_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
-{
-  puts ("# INDEL records have not been implemented (yet).");
-}
-
-void
-handle_OTHER_record (bcf_hdr_t *vcf_header, bcf1_t *buffer,
-                     GenomePosition *p1, GenomePosition *p2,
-                     Origin *o)
-{
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (program_config.filter &&
       bcf_has_filter (vcf_header, buffer, program_config.filter) == 1)
     {
-      printf ("# Skipping record because of %s filter,\n",
-              program_config.filter);
+      printf ("# Skipping %s record,\n", program_config.filter);
       return;
     }
 
   if (program_config.keep &&
       bcf_has_filter (vcf_header, buffer, program_config.keep) != 1)
     {
-      printf ("# Skipping record without %s filter.\n",
-              program_config.keep);
+      printf ("# Skipping record without %s.\n", program_config.keep);
       return;
     }
 
-  /* Check for the SVTYPE property.
-   * ------------------------------------------------------------------------ */
-  bcf_info_t *svtype_info = bcf_get_info (vcf_header, buffer, "SVTYPE");
-  bool is_sv = (svtype_info != NULL);
+  /* Unpack up and including the ALT field. */
+  bcf_unpack (buffer, BCF_UN_STR);
+
+  char *ref = buffer->d.allele[0];
+  int32_t ref_len = buffer->rlen;
+
+  /* TODO: Only the first alternative allele is considered.  When multiple
+   * alleles are specified, we need to provide variants for each allele. */
+  char *alt = buffer->d.allele[1];
+  int32_t alt_len = strlen (alt);
+
+  char *svtype = bcf_get_info (vcf_header, buffer, "SVTYPE");
 
   /* Handle the first genome position.
    * ------------------------------------------------------------------------ */
   bcf_get_info_int32 (vcf_header, buffer, "CIPOS", &(p1->cipos), &(p1->cipos_len));
 
-  p1->chromosome = (char *)bcf_seqname (vcf_header, buffer);
-  p1->chromosome_len = strlen (p1->chromosome);
-  p1->position = buffer->pos;
-  p1->reference = program_config.reference;
+  FaldoExactPosition start_position;
+  faldo_init_position ((FaldoBaseType *)&start_position, FALDO_EXACT_POSITION);
+  start_position->position = buffer->pos;
+  start_position->chromosome = (char *)bcf_seqname (vcf_header, buffer);
+  start_position->chromosome_len = strlen (chromosome);
 
-  pthread_mutex_lock (&output_mutex);
-  print_GenomePosition (p1);
-  pthread_mutex_unlock (&output_mutex);
-
-  free (p1->cipos);
-  p1->cipos = NULL;
-  p1->cipos_len = 0;
-  
-  /* Handle the second genome position.
+  /* Complex rearrangements
    * ------------------------------------------------------------------------ */
-  if (is_sv)
+  if (svtype != NULL && !strcmp (svtype "BND"))
     {
-      bcf_info_t *end_info = bcf_get_info (vcf_header, buffer, "END");
-      bcf_info_t *chr2_info = bcf_get_info (vcf_header, buffer, "CHR2");
+      BndProperties properties;
+      bnd_and_properties_init (&properties);
 
-      if (end_info != NULL && chr2_info != NULL)
-        {
-          bcf_get_info_int32 (vcf_header, buffer, "CIEND", &(p2->cipos), &(p2->cipos_len));
-          p2->chromosome = calloc (1, chr2_info->len + 1);
-          p2->chromosome_len = chr2_info->len;
-
-          if (p2->chromosome == NULL)
-            {
-              printf ("# ERROR allocating memory.\n");
-              return;
-            }
-
-          memcpy (p2->chromosome, chr2_info->vptr, chr2_info->len);
-
-          p2->position = end_info->v1.i;
-          pthread_mutex_lock (&output_mutex);
-          print_GenomePosition (p2);
-          pthread_mutex_unlock (&output_mutex);
-
-          /* The hash has been generated, and the data has been printed.  So, we
-           * no longer need to have this data allocated.  Warning:  If you ever
-           * implement a feature that does not use the cache of GenomePositions,
-           * then remove this code and handle the free()'ing of this string in
-           * the appropriate place. */
-          free (p2->chromosome);
-          p2->chromosome_len = 0;
-        }
+      if (!parse_properties (&properties, ref, alt))
+        puts ("# WARNING: Failed to parse complex rearrangement.");
       else
         {
-          /* This indicates we are missing data.  If it is an SV, we expect to
-           * have a second position for the breakpoint.  If we haven't found it,
-           * we need to look better (in the future). */
-          p2->chromosome = "unknown";
-          p2->chromosome_len = 7;
-          p2->position = 0;
-          p2->cipos = calloc (2, sizeof (int32_t));
-          p2->cipos_len = 2;
-          p2->reference = program_config.reference;
-
           pthread_mutex_lock (&output_mutex);
-          print_GenomePosition (p2);
+
+          printf ("position:%s :hasDirection %s ; :atBreakPointPosition %s.\n",
+                  faldo_exact_position_name (start_position)
+                  (properties.is_reversed) ? ":ReverseComplement" : ":Same"
+                  (properties.is_left_of_ref) ? ":Left" : ":Right");
+
           pthread_mutex_unlock (&output_mutex);
         }
-
-      free (p2->cipos);
-      p2->cipos = NULL;
-      p2->cipos_len = 0;
     }
 
-
-  /* Handle the variant information.
+  /* Deletion events
    * ------------------------------------------------------------------------ */
-
-  /* So, a StructuralVariant has all possible fields, so we use that
-   * to allocate memory. */
-  StructuralVariant v;
-  initialize_StructuralVariant (&v);
-
-  v.origin = o;
-
-  if (is_sv)
+  else if (ref_len > alt_len)
     {
-      v._obj_type = STRUCTURAL_VARIANT;
-      v.position2 = p2;
+
     }
-  else
-    v._obj_type = VARIANT;
 
-  v.position1 = p1;
-
-  /* Set the 'quality' field.
+  /* Insertion/duplication events
    * ------------------------------------------------------------------------ */
-  v.quality = buffer->qual;
-
-  /* Make sure the FILTER field is available.
-   * ------------------------------------------------------------------------ */
-  if (!(buffer->unpacked & BCF_UN_FLT))
-    bcf_unpack(buffer, BCF_UN_FLT);
-
-  v.filters_len = buffer->d.n_flt;
-  v.filters = buffer->d.flt;
-
-  /* Set the 'type' field.
-   * ------------------------------------------------------------------------ */
-  if (svtype_info)
+  else if (ref_len < alt_len)
     {
-      v.type = svtype_info->vptr;
-      v.type_len = svtype_info->len;
+
     }
 
-  /* Print the Variant.
-   * ------------------------------------------------------------------------ */
   pthread_mutex_lock (&output_mutex);
-  print_Variant ((Variant *)&v, vcf_header);
+  faldo_exact_position_print (start_position);
   pthread_mutex_unlock (&output_mutex);
-
-  /* Clean up the memory.
-  * ------------------------------------------------------------------------- */
-  reset_GenomePosition (p1);
-  reset_GenomePosition (p2);
-  reset_StructuralVariant (&v);
-}
-
-void
-handle_BND_record (UNUSED bcf_hdr_t *vcf_header, UNUSED bcf1_t *buffer)
-{
-  puts ("# BND records have not been implemented (yet).");
 }
 
 typedef struct
@@ -316,32 +229,8 @@ run_jobs_in_thread (void *data)
 
   for (; i < pack->jobs_to_run; i++)
     {
-      GenomePosition p1;
-      initialize_GenomePosition (&p1);
-      GenomePosition p2;
-      initialize_GenomePosition (&p2);
-
-      /* A VCF file can contain all kinds of data.  Each is represented
-       * a little different in the graph model. */
       bcf1_t *buffer = pack->buffers[i + (pack->thread_number * pack->jobs_to_run)];
-
-      variant_type = bcf_get_variant_types (buffer);
-      switch (variant_type)
-        {
-        case VCF_REF:    handle_REF_record (vcf_header, buffer); break;
-        case VCF_MNP:    handle_MNP_record (vcf_header, buffer); break;
-        case VCF_SNP:
-          handle_SNP_record (vcf_header, buffer, &p1, origin);
-          break;
-        case VCF_BND:
-        case VCF_INDEL:
-        case VCF_OTHER:
-          handle_OTHER_record (vcf_header, buffer, &p1, &p2, origin);
-          break;
-        default:
-          puts ("# Encountered an unknown variant call type.");
-          break;
-        }
+      handle_record (origin, vcf_header, buffer);
     }
 
   return NULL;

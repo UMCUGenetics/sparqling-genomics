@@ -48,8 +48,8 @@ typedef struct
   size_t name_len;
 
   uint32_t position;
-  char *reference;
-  size_t reference_len;
+  char *chromosome;
+  size_t chromosome_len;
 
 } FaldoExactPosition;
 
@@ -85,7 +85,5 @@ char *faldo_in_between_position_print (FaldoInBetweenPosition *range);
 char *faldo_exact_position_print (FaldoExactPosition *range);
 char *faldo_range_print (FaldoRange *range);
 char *faldo_position_print (FaldoBaseType *position);
-
-void faldo_init_position (FaldoBaseType type);
 
 #endif  /* GENOMEPOSITION_H */
