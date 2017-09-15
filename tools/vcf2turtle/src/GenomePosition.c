@@ -24,7 +24,6 @@
 
 extern RuntimeConfiguration program_config;
 
-
 char *
 faldo_in_between_position_name (FaldoInBetweenPosition *range)
 {
@@ -163,6 +162,14 @@ faldo_in_between_position_print (FaldoInBetweenPosition *range)
 {
   if (range == NULL) return;
 
+  FaldoInBetweenPosition *p = (FaldoInBetweenPosition *)position;
+
+  printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:before ep:%s ; "
+          "faldo:after ep:%s ; faldo:reference %s .\n",
+          faldo_in_between_position_name (p),
+          faldo_exact_position_name (p->before),
+          faldo_exact_position_name (p->after),
+          p->reference);
 }
 
 void
@@ -170,25 +177,43 @@ faldo_exact_position_print (FaldoExactPosition *position)
 {
   if (position == NULL) return;
 
-  printf (buffer, 4096,
-          "ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
-          "faldo:reference %s .\n",
-          faldo_exact_position_name ((FaldoExactPosition *)position),
-          ((FaldoExactPosition *)position)->position
-          ((FaldoExactPosition *)position)->reference);
+  FaldoExactPosition *p = (FaldoExactPosition *)position;
 
+  printf ("ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
+          "faldo:reference %s .\n",
+          faldo_exact_position_name (p), p->position p->reference);
 }
 
 void
 faldo_range_print (FaldoRange *range)
 {
   if (range == NULL) return;
+
+  FaldoInBetweenPosition *p = (FaldoInBetweenPosition *)position;
+
+  printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:begin ep:%s ; "
+          "faldo:end ep:%s ; faldo:reference %s .\n",
+          faldo_range_name (p),
+          faldo_exact_position_name (p->begin),
+          faldo_exact_position_name (p->end),
+          p->reference);
 }
 
 void
 faldo_position_print (FaldoBaseType *position)
 {
   if (position == NULL) return;
+  switch (position->_type)
+    {
+    case FALDO_IN_BETWEEN_POSITION:
+      return faldo_in_between_position_print ((FaldoInBetweenPosition *)position);
+    case FALDO_EXACT_POSITION:
+      return faldo_exact_position_print ((FaldoExactPosition *)position);
+    case FALDO_RANGE:
+      return faldo_range_print ((FaldoRange *)position);
+    case FALDO_UNKNOWN:
+      return NULL;
+    }
 }
 
 /* void */
