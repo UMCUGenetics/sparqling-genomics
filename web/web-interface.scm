@@ -163,7 +163,6 @@ creates a HTML page that is sent back to the user."
 ;; ----------------------------------------------------------------------------
 (define (request-handler request request-body)
   (let ((request-path (uri-path (request-uri request))))
-    (format #t "~a ~a~%" (request-method request) request-path)
     (cond
      ((and (> (string-length request-path) 7)
            (string= (string-take request-path 8) "/static/"))
@@ -186,6 +185,8 @@ creates a HTML page that is sent back to the user."
 ;; This code runs the web server.
 
 (define (run-web-interface)
+  (format #t "SPARQLing-SVs web service is running at http://127.0.0.1:~a~%"
+          %www-listen-port)
   (run-server request-handler 'http
               `(#:port ,%www-listen-port
                 #:addr ,INADDR_ANY)))
