@@ -51,14 +51,30 @@
                                    tokens))))))))))
 
 (define* (page-query-response request-path #:key (post-data ""))
+
+  (define (respond-with-error port)
+    `(div (@ (class "query-error"))
+          (div (@ (class "title")) "Error")
+          (div (@ (class "content"))
+               ,(read-line port))))
+
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
-      (let ((result (receive (header port)
-                        (sparql-query post-data #:type "text/csv")
-                      (if (= (response-code header) 200)
-                          (response->sxml port)
-                          `(div (@ (class "query-error"))
-                                (div (@ (class "title")) "Error")
-                                (div (@ (class "content"))
-                                     ,(read-line port)))))))
+      (let ((result
+             (catch 'system-error
+               (lambda _
+                 (receive (header port) (sparql-query post-data #:type "text/csv")
+                   (if (= (response-code header) 200)
+                       (response->sxml port)
+                       (respond-with-error port))))
+               (lambda (key . args)
+                 (if (find (lambda (item)
+                             (string= (if (list? item) (car item) item)
+                                      "connect"))
+                           args)
+                     (call-with-input-string "Failed to connect to the database."
+                       respond-with-error)
+                     (call-with-input-string
+                         (format #f "An error occurred with details:~%~a~%" args)
+                       respond-with-error))))))
         result)))
