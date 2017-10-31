@@ -25,10 +25,16 @@
 #include <stdbool.h>
 #include <htslib/vcf.h>
 
+/* Reflect the types specified by htslib.
+ * Please do not hardcode these values. */
 typedef enum {
-  VARIANT,
-  STRUCTURAL_VARIANT,
-  SNP_VARIANT
+  VARIANT_TYPE_UNKNOWN = 99,
+  VARIANT_TYPE_REF     = VCF_REF,
+  VARIANT_TYPE_SNP     = VCF_SNP,
+  VARIANT_TYPE_MNP     = VCF_MNP,
+  VARIANT_TYPE_INDEL   = VCF_INDEL,
+  VARIANT_TYPE_OTHER   = VCF_OTHER,
+  VARIANT_TYPE_BND     = VCF_BND
 } VariantType;
 
 typedef enum {
@@ -58,66 +64,22 @@ typedef struct
 {
   VariantType _obj_type;        /* For internal use only. */
   Origin *origin;
-  GenomePosition *position1;
+  FaldoBaseType *position;
   float quality;
   char *filter;
   unsigned char *type;
   uint32_t type_len;
-  char hash[65];
+  char *name;
+  uint32_t name_len;
 
   /* These mirror the internal HTSLib record's information. */
   int filters_len;
   int *filters;
 } Variant;
 
-
-/*----------------------------------------------------------------------------.
- | STRUCTURALVARIANT OBJECT STATE DESCRIPTION                                 |
- '----------------------------------------------------------------------------*/
-typedef struct
-{
-  /* Inherit the properties of a regular Variant.
-   * ----------------------------------------------------------------------- */
-  VariantType _obj_type;
-  Origin *origin;
-  GenomePosition *position1;
-  float quality;
-  char *filter;
-  unsigned char *type;
-  uint32_t type_len;
-  char hash[65];
-
-  /* These mirror the internal HTSLib record's information. */
-  int filters_len;
-  int *filters;
-
-  /* Add properties specific to a StructuralVariant.
-   * ----------------------------------------------------------------------- */
-  GenomePosition *position2;
-
-} StructuralVariant;
-
-/* The SNPVariant has no additional properties in comparison to a Variant. */
-typedef Variant SNPVariant;
-
-/*
- * Even though these functions request a pointer to a Variant, we can also
- * pass a pointer to a StructuralVariant, because it has the same fields,
- * in the same order.
- *
- * The implementation of these functions will handle the type correctly, as
- * long as v->type has been set properly.
- */
-char *hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache);
-void print_Variant (Variant *v, bcf_hdr_t *vcf_header);
-void initialize_Variant (Variant *v);
-void initialize_StructuralVariant (StructuralVariant *v);
-void reset_Variant (Variant *v);
-void reset_StructuralVariant (StructuralVariant *v);
-
-/* The following functions have an exact equivalent in the parent. */
-#define reset_SNPVariant(v)      reset_Variant(v)
-#define initialize_SNPVariant(v) initialize_Variant(v)
-#define print_SNPVariant(v, h)   print_Variant(v, h)
+char *variant_name (Variant *v, bcf_hdr_t *vcf_header);
+void variant_print (Variant *v, bcf_hdr_t *vcf_header);
+void variant_initialize (Variant *v, VariantType type);
+void variant_reset (Variant *v);
 
 #endif  /* VARIANT_H */

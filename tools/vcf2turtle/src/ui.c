@@ -16,6 +16,8 @@
  */
 
 #include "ui.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void
 show_help (void)
@@ -27,8 +29,6 @@ show_help (void)
         "  --keep=ARG,         -k  Omit calls without FILTER=ARG from the "
                                    "output.\n"
         "  --graph-location,   -g  Location of the graph.\n"
-        "  --use-faldo,            Add triples from the Feature Annotation\n"
-        "                          Location Description Ontology (FALDO).\n"
         "  --reference-genome  -r  The reference genome the variant positions "
                                   "refer to.\n"
         "                          Valid values are: 'GRCh37', GRCh38'.\n"

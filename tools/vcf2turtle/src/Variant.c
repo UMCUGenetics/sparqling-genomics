@@ -27,15 +27,10 @@
 extern RuntimeConfiguration program_config;
 
 char *
-hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
+variant_name (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return NULL;
-  if (v->position1 == NULL) return NULL;
-  if (v->_obj_type == STRUCTURAL_VARIANT &&
-      ((StructuralVariant *)v)->position2 == NULL) return NULL;
-
-  /* Cache the hash generation. */
-  if (v->hash[0] != '\0' && use_cache) return v->hash;
+  if (v->name != NULL) return v->name;
 
   if (!isfinite (v->quality))
     v->quality = -1;
@@ -58,17 +53,12 @@ hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
   quality_strlen = sprintf (quality_str, "%04.4f", v->quality);
 
   unsigned char *binary_hash = NULL;
+  char *position_name = faldo_position_name (v->position);
 
   /* Provide input for the hash. */
   gcry_md_write (handler,
-                 hash_GenomePosition (v->position1, true),
-                 HASH_LENGTH);
-
-  /* Only StructuralVariant has a second position. */
-  if (v->_obj_type == STRUCTURAL_VARIANT)
-    gcry_md_write (handler,
-                   hash_GenomePosition (((StructuralVariant *)v)->position2, true),
-                   HASH_LENGTH);
+                 position_name,
+                 v->position->name_len);
 
   /* Concatenate each filter tag for the hash input. */
   int i = 0;
@@ -84,40 +74,28 @@ hash_Variant (Variant *v, bcf_hdr_t *vcf_header, bool use_cache)
     gcry_md_write (handler, v->type, v->type_len);
 
   binary_hash = gcry_md_read (handler, 0);
-  if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->hash))
+  if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->name))
     {
       fprintf (stderr, "ERROR: Couldn't print a hash.\n");
       return NULL;
     }
 
   gcry_md_close (handler);
-  return v->hash;
+  return v->name;
 }
 
 void
-print_Variant (Variant *v, bcf_hdr_t *vcf_header)
+variant_print (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return;
 
-  if (v->_obj_type == STRUCTURAL_VARIANT)
-    printf ("v:%s a :StructuralVariant ;\n",
-            hash_Variant (v, vcf_header, true));
-  else if (v->_obj_type == SNP_VARIANT)
-    printf ("v:%s a :SNPVariant ;\n",
-            hash_Variant (v, vcf_header, true));
-  else
-    printf ("v:%s a :Variant ;\n",
-            hash_Variant (v, vcf_header, true));
+  printf ("v:%s a :Variant ;\n", variant_name (v, vcf_header));
 
   if (v->origin)
     printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
 
-  printf ("  :genome_position p:%s ;\n",
-          hash_GenomePosition (v->position1, true));
-
-  if (v->_obj_type == STRUCTURAL_VARIANT)
-    printf ("  :genome_position2 p:%s ;\n",
-            hash_GenomePosition (((StructuralVariant *)v)->position2, true));
+  printf ("  :position p:%s ;\n",
+          faldo_position_name (v->position));
 
   int i = 0;
   for (; i < v->filters_len; i++)
@@ -141,39 +119,25 @@ print_Variant (Variant *v, bcf_hdr_t *vcf_header)
 }
 
 void
-initialize_Variant (Variant *v)
+variant_initialize (Variant *v, VariantType type)
 {
   if (v == NULL) return;
+  v->_obj_type = type,
   v->origin = NULL;
-  v->position1 = NULL;
+  v->position = NULL;
   v->quality = 0.0;
   v->filter = NULL;
   v->type = NULL;
   v->type_len = 0;
-  memset (v->hash, '\0', 65);
+  v->name = 0;
+  v->name_len = 0;
   v->filters_len = 0;
   v->filters = NULL;
 }
 
 void
-initialize_StructuralVariant (StructuralVariant *v)
+variant_reset (Variant *v)
 {
   if (v == NULL) return;
-
-  initialize_Variant ((Variant *)v);
-  v->position2 = NULL;
-}
-
-void
-reset_Variant (Variant *v)
-{
-  if (v == NULL) return;
-  initialize_Variant (v);
-}
-
-void
-reset_StructuralVariant (StructuralVariant *v)
-{
-  if (v == NULL) return;
-  initialize_StructuralVariant (v);
+  variant_initialize (v, v->_obj_type);
 }

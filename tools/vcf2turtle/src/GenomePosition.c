@@ -20,6 +20,7 @@
 #include "helper.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern RuntimeConfiguration program_config;
@@ -32,7 +33,7 @@ faldo_in_between_position_name (FaldoInBetweenPosition *range)
 
   if (range->name != NULL) return range->name;
 
-  range->name_len = 22 + strlen (range->start->reference);
+  range->name_len = 22 + strlen (range->before->name);
   range->name = calloc (range->name_len + 1, sizeof (char));
   if (range->name == NULL)
     {
@@ -40,10 +41,10 @@ faldo_in_between_position_name (FaldoInBetweenPosition *range)
       return NULL;
     }
 
-  /* FIXME: In theory, the before->reference and after->reference could
+  /* FIXME: In theory, the before->name and after->name could
    * be different.  We need to address this issue. */
   snprintf (range->name, range->name_len, "%s:%u-%u",
-            range->before->reference,
+            range->before->name,
             range->before->position,
             range->after->position);
 
@@ -58,20 +59,19 @@ faldo_exact_position_name (FaldoExactPosition *position)
 
   if (position->name != NULL) return position->name;
 
-  position->name_len = 22 + strlen (position->reference);
-  position->name = calloc (range->name_len + 1, sizeof (char));
+  position->name_len = 22 + strlen (position->chromosome);
+  position->name = calloc (position->name_len + 1, sizeof (char));
   if (position->name == NULL)
     {
       position->name_len = 0;
       return NULL;
     }
 
-  snprintf (range->name, range->name_len, "%s:%u-%u",
-            range->start->reference,
-            range->start->position,
-            range->end->position);
+  snprintf (position->name, position->name_len, "%s:%u",
+            position->chromosome,
+            position->position);
 
-  return range->name;
+  return position->name;
 }
 
 char *
@@ -82,7 +82,7 @@ faldo_range_name (FaldoRange *range)
 
   if (range->name != NULL) return range->name;
 
-  range->name_len = 22 + strlen (range->start->reference);
+  range->name_len = 22 + strlen (range->start->name);
   range->name = calloc (range->name_len + 1, sizeof (char));
   if (range->name == NULL)
     {
@@ -90,10 +90,10 @@ faldo_range_name (FaldoRange *range)
       return NULL;
     }
 
-  /* FIXME: In theory, the start->reference and end->reference could
+  /* FIXME: In theory, the start->name and end->name could
    * be different.  We need to address this theoretical issue. */
   snprintf (range->name, range->name_len, "%s:%u-%u",
-            range->start->reference,
+            range->start->name,
             range->start->position,
             range->end->position);
 
@@ -118,51 +118,11 @@ faldo_position_name (FaldoBaseType *position)
 }
 
 void
-faldo_init_position (FaldoBaseType *position, FaldoBaseType type)
-{
-  if (position == NULL)
-    return;
-
-  position->_type = type;
-  switch (type)
-    {
-    case FALDO_IN_BETWEEN_POSITION:
-      {
-        FaldoInBetweenPosition *p = ((FaldoInBetweenPosition *)position);
-        p->name = NULL;
-        p->name_len = 0;
-        p->before = NULL;
-        p->after = NULL;
-      }
-      break;
-    case FALDO_EXACT_POSITION:
-      {
-        FaldoExactPosition *p = ((FaldoExactPosition *)position);
-        p->name = NULL;
-        p->name_len = 0;
-        p->position = 0;
-      }
-      break;
-    case FALDO_RANGE:
-      {
-        FaldoRange *p = ((FaldoRange *)position);
-        p->name = NULL;
-        p->name_len = 0;
-        p->start = NULL;
-        p->end = NULL;
-      }
-      break;
-    case FALDO_UNKNOWN:
-      return;
-    }
-}
-
-void
 faldo_in_between_position_print (FaldoInBetweenPosition *range)
 {
   if (range == NULL) return;
 
-  FaldoInBetweenPosition *p = (FaldoInBetweenPosition *)position;
+  FaldoInBetweenPosition *p = (FaldoInBetweenPosition *)range;
 
   printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:before ep:%s ; "
           "faldo:after ep:%s .\n",
@@ -181,7 +141,7 @@ faldo_exact_position_print (FaldoExactPosition *position)
   printf ("ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
           "faldo:reference %s:%s .\n",
           faldo_exact_position_name (p), p->position,
-          program_config.reference, p->reference, p->chromosome);
+          program_config.reference, p->name, p->chromosome);
 }
 
 void
@@ -189,12 +149,12 @@ faldo_range_print (FaldoRange *range)
 {
   if (range == NULL) return;
 
-  FaldoInBetweenPosition *p = (FaldoInBetweenPosition *)position;
+  FaldoRange *p = (FaldoRange *)range;
 
   printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:begin ep:%s ; "
           "faldo:end ep:%s .\n",
           faldo_range_name (p),
-          faldo_exact_position_name (p->begin),
+          faldo_exact_position_name (p->start),
           faldo_exact_position_name (p->end));
 }
 
@@ -211,6 +171,62 @@ faldo_position_print (FaldoBaseType *position)
     case FALDO_RANGE:
       return faldo_range_print ((FaldoRange *)position);
     case FALDO_UNKNOWN:
-      return NULL;
+      return;
+    }
+}
+
+void
+faldo_in_between_position_initialize (FaldoInBetweenPosition *range)
+{
+  if (range == NULL) return;
+
+  range->_type = FALDO_IN_BETWEEN_POSITION;
+  range->name = NULL;
+  range->name_len = 0;
+  range->before = NULL;
+  range->after = NULL;
+}
+
+void
+faldo_exact_position_initialize (FaldoExactPosition *position)
+{
+  if (position == NULL) return;
+
+  position->_type = FALDO_EXACT_POSITION;
+  position->name = NULL;
+  position->name_len = 0;
+  position->chromosome = NULL;
+  position->chromosome_len = 0;
+}
+
+void
+faldo_range_initialize (FaldoRange *range)
+{
+  if (range == NULL) return;
+
+  range->_type = FALDO_RANGE;
+  range->name = NULL;
+  range->name_len = 0;
+  range->start = NULL;
+  range->end = NULL;
+}
+
+void
+faldo_position_initialize (FaldoBaseType *position, FaldoType type)
+{
+  switch (type)
+    {
+    case FALDO_IN_BETWEEN_POSITION:
+      faldo_in_between_position_initialize ((FaldoInBetweenPosition *)position);
+      break;
+    case FALDO_EXACT_POSITION:
+      faldo_exact_position_initialize ((FaldoExactPosition *)position);
+      break;
+    case FALDO_RANGE:
+      faldo_range_initialize ((FaldoRange *)position);
+      break;
+    default:
+      position->_type = FALDO_UNKNOWN;
+      break;
     }
 }

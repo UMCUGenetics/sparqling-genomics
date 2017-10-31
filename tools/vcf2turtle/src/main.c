@@ -49,8 +49,21 @@ typedef struct
   bool is_reversed;
   bool is_left_of_ref;
   char *chromosome;
+  int32_t chromosome_len;
   int32_t position;
 } BndProperties;
+
+void
+bnd_properties_init (BndProperties *properties)
+{
+  if (properties == NULL) return;
+
+  properties->is_reversed = false;
+  properties->is_left_of_ref = false;
+  properties->chromosome = NULL;
+  properties->chromosome_len = 0;
+  properties->position = 0;
+}
 
 bool
 parse_properties (BndProperties *properties,
@@ -100,7 +113,7 @@ parse_properties (BndProperties *properties,
   properties->chromosome_len = separator - first_bracket - 1;
   int32_t position_len = last_bracket - separator - 1;
 
-  properties->chromosome = calloc (sizeof (char), position->chromosome_len+1);
+  properties->chromosome = calloc (sizeof (char), properties->chromosome_len+1);
 
   if (properties->chromosome == NULL)
     return false;
@@ -122,19 +135,21 @@ parse_properties (BndProperties *properties,
 void
 handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
-  variant_type = bcf_get_variant_types (buffer);
-
+  /* One of: VCF_REF, VCF_SNP, VCF_MNP, VCF_INDEL, VCF_OTHER, VCF_BND. */
+  int variant_type = bcf_get_variant_types (buffer);
+  fprintf (stderr, "Variant type: %d\n", variant_type);
+  
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (program_config.filter &&
-      bcf_has_filter (vcf_header, buffer, program_config.filter) == 1)
+      bcf_has_filter (header, buffer, program_config.filter) == 1)
     {
       printf ("# Skipping %s record,\n", program_config.filter);
       return;
     }
 
   if (program_config.keep &&
-      bcf_has_filter (vcf_header, buffer, program_config.keep) != 1)
+      bcf_has_filter (header, buffer, program_config.keep) != 1)
     {
       printf ("# Skipping record without %s.\n", program_config.keep);
       return;
@@ -151,34 +166,61 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   char *alt = buffer->d.allele[1];
   int32_t alt_len = strlen (alt);
 
-  char *svtype = bcf_get_info (vcf_header, buffer, "SVTYPE");
+  bcf_info_t *svtype_info = bcf_get_info (header, buffer, "SVTYPE");
+  char *svtype = NULL;
+  if (svtype_info != NULL)
+    {
+      char *svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
+      fprintf (stderr, "# SVTYPE: %s\n", svtype);
+    }
 
   /* Handle the first genome position.
    * ------------------------------------------------------------------------ */
-  bcf_get_info_int32 (vcf_header, buffer, "CIPOS", &(p1->cipos), &(p1->cipos_len));
+  int32_t *cipos = NULL;
+  int32_t cipos_len = 0;
+  bcf_get_info_int32 (header, buffer, "CIPOS", &cipos, &cipos_len);
 
   FaldoExactPosition start_position;
-  faldo_init_position ((FaldoBaseType *)&start_position, FALDO_EXACT_POSITION);
-  start_position->position = buffer->pos;
-  start_position->chromosome = (char *)bcf_seqname (vcf_header, buffer);
-  start_position->chromosome_len = strlen (chromosome);
+  faldo_position_initialize ((FaldoBaseType *)&start_position, FALDO_EXACT_POSITION);
+  start_position.position = buffer->pos;
+  start_position.chromosome = (char *)bcf_seqname (header, buffer);
+  start_position.chromosome_len = strlen (start_position.chromosome);
+
+  if (cipos_len > 0)
+    {
+      FaldoExactPosition ci_start_position = start_position;
+      FaldoExactPosition ci_end_position = start_position;
+      FaldoInBetweenPosition confidence_position;
+
+      ci_start_position.position -= cipos[0];
+      ci_end_position.position += cipos[1];
+      faldo_position_initialize ((FaldoBaseType *)&confidence_position,
+                                 FALDO_IN_BETWEEN_POSITION);
+
+      confidence_position.before = &ci_start_position;
+      confidence_position.after = &ci_end_position;
+
+      pthread_mutex_lock (&output_mutex);
+      faldo_position_print ((FaldoBaseType *)&confidence_position);
+      pthread_mutex_unlock (&output_mutex);
+    }
 
   /* Complex rearrangements
    * ------------------------------------------------------------------------ */
-  if (svtype != NULL && !strcmp (svtype "BND"))
+  if (svtype != NULL && !strcmp (svtype, "BND"))
     {
       BndProperties properties;
-      bnd_and_properties_init (&properties);
+      bnd_properties_init (&properties);
 
-      if (!parse_properties (&properties, ref, alt))
+      if (!parse_properties (&properties, ref, ref_len, alt, alt_len))
         puts ("# WARNING: Failed to parse complex rearrangement.");
       else
         {
           pthread_mutex_lock (&output_mutex);
 
           printf ("position:%s :hasDirection %s ; :atBreakPointPosition %s.\n",
-                  faldo_exact_position_name (start_position)
-                  (properties.is_reversed) ? ":ReverseComplement" : ":Same"
+                  faldo_exact_position_name (&start_position),
+                  (properties.is_reversed) ? ":ReverseComplement" : ":Same",
                   (properties.is_left_of_ref) ? ":Left" : ":Right");
 
           pthread_mutex_unlock (&output_mutex);
@@ -200,8 +242,11 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
     }
 
   pthread_mutex_lock (&output_mutex);
-  faldo_exact_position_print (start_position);
+  faldo_exact_position_print (&start_position);
   pthread_mutex_unlock (&output_mutex);
+
+  Variant variant;
+  variant_initialize (&variant, variant_type);
 }
 
 typedef struct
@@ -414,7 +459,6 @@ main (int argc, char **argv)
           { "filter",            required_argument, 0, 'f' },
           { "keep",              required_argument, 0, 'k' },
           { "graph-location",    required_argument, 0, 'g' },
-          { "threads",           required_argument, 0, 't' },
           { "reference-genome",  required_argument, 0, 'r' },
           { "caller",            required_argument, 0, 'c' },
           { "threads",           required_argument, 0, 't' },

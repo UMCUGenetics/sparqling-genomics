@@ -39,6 +39,9 @@ typedef enum
 typedef struct
 {
   FaldoType _type;
+  char *name;
+  size_t name_len;
+
 } FaldoBaseType;
 
 typedef struct
@@ -74,16 +77,22 @@ typedef struct
   FaldoExactPosition *end;
 } FaldoRange;
 
+/* Initialization functions. */
+void faldo_in_between_position_initialize (FaldoInBetweenPosition *range);
+void faldo_exact_position_initialize (FaldoExactPosition *position);
+void faldo_range_initialize (FaldoRange *range);
+void faldo_position_initialize (FaldoBaseType *position, FaldoType type);
+
 /* Identifier generators. */
 char *faldo_in_between_position_name (FaldoInBetweenPosition *range);
-char *faldo_exact_position_name (FaldoExactPosition *range);
+char *faldo_exact_position_name (FaldoExactPosition *position);
 char *faldo_range_name (FaldoRange *range);
 char *faldo_position_name (FaldoBaseType *position);
 
 /* Display functions */
-char *faldo_in_between_position_print (FaldoInBetweenPosition *range);
-char *faldo_exact_position_print (FaldoExactPosition *range);
-char *faldo_range_print (FaldoRange *range);
-char *faldo_position_print (FaldoBaseType *position);
+void faldo_in_between_position_print (FaldoInBetweenPosition *range);
+void faldo_exact_position_print (FaldoExactPosition *position);
+void faldo_range_print (FaldoRange *range);
+void faldo_position_print (FaldoBaseType *position);
 
 #endif  /* GENOMEPOSITION_H */
