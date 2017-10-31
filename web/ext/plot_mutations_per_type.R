@@ -22,7 +22,22 @@ SELECT ?type COUNT(?type) as ?count {
 GROUP BY ?type"
 
     # Perform the query.
-    query_data <- SPARQL (endpoint, query)
+    query_data <- NULL
+    query_data <- tryCatch(SPARQL (endpoint, query),
+                           error = function(e) { return (NULL) })
+
+    # Handle errors
+    if (is.null (query_data))
+    {
+        types             <- c("DEL", "DUP", "INS", "INV", "TRA")
+        counts            <- c(0, 0, 0, 0, 0)
+        data              <- as.data.frame(list(types, counts))
+        colnames(data)    <- c("type", "count")
+
+        query_data        <- c()
+        query_data[[1]]   <- data
+        names(query_data) <- c("results")
+    }
 
     # Create the plot.
     qty_plot <- ggplot (data=query_data$results, aes(x=type, y=count)) +
