@@ -26,8 +26,8 @@ GROUP BY ?type"
     query_data <- tryCatch(SPARQL (endpoint, query),
                            error = function(e) { return (NULL) })
 
-    # Handle errors
-    if (is.null (query_data))
+    # Handle connection errors and empty result sets.
+    if (is.null (query_data) || nrow (query_data$results) == 0)
     {
         types             <- c("DEL", "DUP", "INS", "INV", "TRA")
         counts            <- c(0, 0, 0, 0, 0)
