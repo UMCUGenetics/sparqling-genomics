@@ -30,7 +30,7 @@ char *
 variant_name (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return NULL;
-  if (v->name != NULL) return v->name;
+  if (v->name[0] != '\0') return v->name;
 
   if (!isfinite (v->quality))
     v->quality = -1;
@@ -77,6 +77,7 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
   if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->name))
     {
       fprintf (stderr, "ERROR: Couldn't print a hash.\n");
+      gcry_md_close (handler);
       return NULL;
     }
 
@@ -94,8 +95,11 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
   if (v->origin)
     printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
 
-  printf ("  :position p:%s ;\n",
-          faldo_position_name (v->position));
+  printf ("  :position p:%s ;\n  :reference \"%s\" ;\n"
+          "  :alternative \"%s\" ;\n",
+          faldo_position_name (v->position),
+          v->reference,
+          v->alternative);
 
   int i = 0;
   for (; i < v->filters_len; i++)
@@ -126,11 +130,12 @@ variant_initialize (Variant *v, VariantType type)
   v->origin = NULL;
   v->position = NULL;
   v->quality = 0.0;
+  v->reference = NULL;
+  v->alternative = NULL;
   v->filter = NULL;
   v->type = NULL;
   v->type_len = 0;
-  v->name = 0;
-  v->name_len = 0;
+  memset (v->name, 0, 65);
   v->filters_len = 0;
   v->filters = NULL;
 }

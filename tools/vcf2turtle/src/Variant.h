@@ -66,11 +66,12 @@ typedef struct
   Origin *origin;
   FaldoBaseType *position;
   float quality;
+  char *reference;
+  char *alternative;
   char *filter;
   unsigned char *type;
   uint32_t type_len;
-  char *name;
-  uint32_t name_len;
+  char name[65];
 
   /* These mirror the internal HTSLib record's information. */
   int filters_len;

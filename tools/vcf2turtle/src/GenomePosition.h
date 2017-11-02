@@ -83,6 +83,12 @@ void faldo_exact_position_initialize (FaldoExactPosition *position);
 void faldo_range_initialize (FaldoRange *range);
 void faldo_position_initialize (FaldoBaseType *position, FaldoType type);
 
+/* Destructor functions. */
+void faldo_in_between_position_reset (FaldoInBetweenPosition *range);
+void faldo_exact_position_reset (FaldoExactPosition *position);
+void faldo_range_reset (FaldoRange *range);
+void faldo_position_reset (FaldoBaseType *position, FaldoType type);
+
 /* Identifier generators. */
 char *faldo_in_between_position_name (FaldoInBetweenPosition *range);
 char *faldo_exact_position_name (FaldoExactPosition *position);

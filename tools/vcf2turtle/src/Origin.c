@@ -67,10 +67,12 @@ print_Origin (Origin *o)
 
   printf ("o:%s a :Origin ;\n", hash_Origin (o, true));
   printf ("  :filename \"%s\" ;\n", o->filename);
-  printf ("  :sha256_digest \"%s\" .\n\n", o->sha256_digest);
+  printf ("  :sha256_digest \"%s\"", o->sha256_digest);
 
   if (program_config.caller)
-    printf ("  :caller \"%s\"\n", program_config.caller);
+    printf (" ;\n  :caller \"%s\"", program_config.caller);
+
+  printf (" .\n\n");
 }
 
 void
@@ -117,7 +119,6 @@ set_Origin_filename (Origin *o, const char *filename)
       return NULL;
     }
 
-  
   /* Open the file.
    * ------------------------------------------------------------------------ */
   FILE *file = fopen (o->filename, "rb");
@@ -127,6 +128,7 @@ set_Origin_filename (Origin *o, const char *filename)
   if (file == NULL)
     {
       fprintf (stderr, "ERROR: Could not open '%s'.\n", o->filename);
+      gcry_md_close (handler);
       return false;
     }
 
@@ -139,6 +141,7 @@ set_Origin_filename (Origin *o, const char *filename)
   if (buffer == NULL)
     {
       fprintf (stderr, "ERROR: Cannot allocate enough memory.\n");
+      gcry_md_close (handler);
       return false;
     }
 
@@ -163,6 +166,7 @@ set_Origin_filename (Origin *o, const char *filename)
   if (!get_pretty_hash (binary_digest, HASH_LENGTH, o->sha256_digest))
     {
       fprintf (stderr, "ERROR: Couldn't print a hash.\n");
+      gcry_md_close (handler);
       return false;
     }
 

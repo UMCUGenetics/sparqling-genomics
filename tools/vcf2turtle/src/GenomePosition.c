@@ -59,7 +59,7 @@ faldo_exact_position_name (FaldoExactPosition *position)
 
   if (position->name != NULL) return position->name;
 
-  position->name_len = 22 + strlen (position->chromosome);
+  position->name_len = 22 + position->chromosome_len;
   position->name = calloc (position->name_len + 1, sizeof (char));
   if (position->name == NULL)
     {
@@ -224,6 +224,50 @@ faldo_position_initialize (FaldoBaseType *position, FaldoType type)
       break;
     case FALDO_RANGE:
       faldo_range_initialize ((FaldoRange *)position);
+      break;
+    default:
+      position->_type = FALDO_UNKNOWN;
+      break;
+    }
+}
+
+void
+faldo_in_between_position_reset (FaldoInBetweenPosition *range)
+{
+  if (range == NULL) return;
+  if (range->name) free (range->name);
+  faldo_in_between_position_initialize (range);
+}
+
+void
+faldo_exact_position_reset (FaldoExactPosition *position)
+{
+  if (position == NULL) return;
+  if (position->name) free (position->name);
+  faldo_exact_position_initialize (position);
+}
+
+void
+faldo_range_reset (FaldoRange *range)
+{
+  if (range == NULL) return;
+  if (range->name) free (range->name);
+  faldo_range_initialize (range);
+}
+
+void
+faldo_position_reset (FaldoBaseType *position, FaldoType type)
+{
+  switch (type)
+    {
+    case FALDO_IN_BETWEEN_POSITION:
+      faldo_in_between_position_reset ((FaldoInBetweenPosition *)position);
+      break;
+    case FALDO_EXACT_POSITION:
+      faldo_exact_position_reset ((FaldoExactPosition *)position);
+      break;
+    case FALDO_RANGE:
+      faldo_range_reset ((FaldoRange *)position);
       break;
     default:
       position->_type = FALDO_UNKNOWN;

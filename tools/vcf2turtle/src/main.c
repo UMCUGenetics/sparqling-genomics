@@ -137,26 +137,39 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
   /* One of: VCF_REF, VCF_SNP, VCF_MNP, VCF_INDEL, VCF_OTHER, VCF_BND. */
   int variant_type = bcf_get_variant_types (buffer);
-  fprintf (stderr, "Variant type: %d\n", variant_type);
   
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (program_config.filter &&
       bcf_has_filter (header, buffer, program_config.filter) == 1)
     {
+      pthread_mutex_lock (&output_mutex);
       printf ("# Skipping %s record,\n", program_config.filter);
+      pthread_mutex_unlock (&output_mutex);
       return;
     }
 
   if (program_config.keep &&
       bcf_has_filter (header, buffer, program_config.keep) != 1)
     {
+      pthread_mutex_lock (&output_mutex);
       printf ("# Skipping record without %s.\n", program_config.keep);
+      pthread_mutex_unlock (&output_mutex);
       return;
     }
 
   /* Unpack up and including the ALT field. */
   bcf_unpack (buffer, BCF_UN_STR);
+
+  /* If the allele information is still missing after unpacking the buffer,
+   * we will end up without REF information.  So, let's skip such records. */
+  if (buffer->d.allele == NULL)
+    {
+      pthread_mutex_lock (&output_mutex);
+      printf ("# Skipping record because of missing allele information.\n");
+      pthread_mutex_unlock (&output_mutex);
+      return;
+    }
 
   char *ref = buffer->d.allele[0];
   int32_t ref_len = buffer->rlen;
@@ -171,7 +184,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   if (svtype_info != NULL)
     {
       char *svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
+      pthread_mutex_lock (&output_mutex);
       fprintf (stderr, "# SVTYPE: %s\n", svtype);
+      pthread_mutex_unlock (&output_mutex);
     }
 
   /* Handle the first genome position.
@@ -201,6 +216,8 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       confidence_position.after = &ci_end_position;
 
       pthread_mutex_lock (&output_mutex);
+      faldo_position_print ((FaldoBaseType *)&ci_start_position);
+      faldo_position_print ((FaldoBaseType *)&ci_end_position);
       faldo_position_print ((FaldoBaseType *)&confidence_position);
       pthread_mutex_unlock (&output_mutex);
     }
@@ -247,6 +264,19 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 
   Variant variant;
   variant_initialize (&variant, variant_type);
+  variant.origin = origin;
+  variant.position = (FaldoBaseType *)&start_position;
+  variant.reference = buffer->d.allele[0];
+  variant.alternative = buffer->d.allele[1];
+  variant.quality = buffer->qual;
+  variant.filters_len = buffer->d.n_flt;
+  variant.filters = buffer->d.flt;
+
+  pthread_mutex_lock (&output_mutex);
+  variant_print (&variant, header);
+  pthread_mutex_unlock (&output_mutex);
+
+  faldo_exact_position_reset (&start_position);
 }
 
 typedef struct
@@ -562,7 +592,7 @@ main (int argc, char **argv)
             "@prefix smo:     <http://semweb.op.umcutrecht.nl/smo/> .\n"
             "@prefix faldo:   <http://biohackathon.org/resource/faldo#> .\n"
             "@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-            "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .");
+            "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .\n");
 
       /* Add origin to database.
        * -------------------------------------------------------------------- */
