@@ -182,12 +182,7 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   bcf_info_t *svtype_info = bcf_get_info (header, buffer, "SVTYPE");
   char *svtype = NULL;
   if (svtype_info != NULL)
-    {
-      char *svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
-      pthread_mutex_lock (&output_mutex);
-      fprintf (stderr, "# SVTYPE: %s\n", svtype);
-      pthread_mutex_unlock (&output_mutex);
-    }
+    svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
 
   /* Handle the first genome position.
    * ------------------------------------------------------------------------ */
@@ -201,16 +196,17 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   start_position.chromosome = (char *)bcf_seqname (header, buffer);
   start_position.chromosome_len = strlen (start_position.chromosome);
 
+  FaldoInBetweenPosition confidence_position;
+  faldo_position_initialize ((FaldoBaseType *)&confidence_position,
+                             FALDO_IN_BETWEEN_POSITION);
+
   if (cipos_len > 0)
     {
       FaldoExactPosition ci_start_position = start_position;
       FaldoExactPosition ci_end_position = start_position;
-      FaldoInBetweenPosition confidence_position;
 
       ci_start_position.position -= cipos[0];
       ci_end_position.position += cipos[1];
-      faldo_position_initialize ((FaldoBaseType *)&confidence_position,
-                                 FALDO_IN_BETWEEN_POSITION);
 
       confidence_position.before = &ci_start_position;
       confidence_position.after = &ci_end_position;
@@ -266,6 +262,7 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   variant_initialize (&variant, variant_type);
   variant.origin = origin;
   variant.position = (FaldoBaseType *)&start_position;
+  variant.confidence_interval = (FaldoBaseType *)&confidence_position;
   variant.reference = buffer->d.allele[0];
   variant.alternative = buffer->d.allele[1];
   variant.quality = buffer->qual;

@@ -100,5 +100,6 @@ void faldo_in_between_position_print (FaldoInBetweenPosition *range);
 void faldo_exact_position_print (FaldoExactPosition *position);
 void faldo_range_print (FaldoRange *range);
 void faldo_position_print (FaldoBaseType *position);
+char *faldo_position_prefix (FaldoBaseType *position);
 
 #endif  /* GENOMEPOSITION_H */

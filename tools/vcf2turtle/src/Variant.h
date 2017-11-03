@@ -65,6 +65,7 @@ typedef struct
   VariantType _obj_type;        /* For internal use only. */
   Origin *origin;
   FaldoBaseType *position;
+  FaldoBaseType *confidence_interval;
   float quality;
   char *reference;
   char *alternative;

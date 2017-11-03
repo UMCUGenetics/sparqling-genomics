@@ -95,9 +95,13 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
   if (v->origin)
     printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
 
-  printf ("  :position p:%s ;\n  :reference \"%s\" ;\n"
+  printf ("  :position %s:%s ;\n  :confidence_interval %s:%s ;\n"
+          "  :reference \"%s\" ;\n"
           "  :alternative \"%s\" ;\n",
+          faldo_position_prefix (v->position),
           faldo_position_name (v->position),
+          faldo_position_prefix (v->confidence_interval),
+          faldo_position_name (v->confidence_interval),
           v->reference,
           v->alternative);
 
@@ -129,6 +133,7 @@ variant_initialize (Variant *v, VariantType type)
   v->_obj_type = type,
   v->origin = NULL;
   v->position = NULL;
+  v->confidence_interval = NULL;
   v->quality = 0.0;
   v->reference = NULL;
   v->alternative = NULL;

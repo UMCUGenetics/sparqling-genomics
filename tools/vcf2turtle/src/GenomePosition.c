@@ -67,7 +67,7 @@ faldo_exact_position_name (FaldoExactPosition *position)
       return NULL;
     }
 
-  snprintf (position->name, position->name_len, "%s:%u",
+  snprintf (position->name, position->name_len, "%s-%u",
             position->chromosome,
             position->position);
 
@@ -141,7 +141,7 @@ faldo_exact_position_print (FaldoExactPosition *position)
   printf ("ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
           "faldo:reference %s:%s .\n",
           faldo_exact_position_name (p), p->position,
-          program_config.reference, p->name, p->chromosome);
+          program_config.reference, p->chromosome, p->chromosome);
 }
 
 void
@@ -151,7 +151,7 @@ faldo_range_print (FaldoRange *range)
 
   FaldoRange *p = (FaldoRange *)range;
 
-  printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:begin ep:%s ; "
+  printf ("rp:%s rdf:type faldo:InBetweenPosition ; faldo:begin ep:%s ; "
           "faldo:end ep:%s .\n",
           faldo_range_name (p),
           faldo_exact_position_name (p->start),
@@ -273,4 +273,17 @@ faldo_position_reset (FaldoBaseType *position, FaldoType type)
       position->_type = FALDO_UNKNOWN;
       break;
     }
+}
+
+char*
+faldo_position_prefix (FaldoBaseType *position)
+{
+  if (position == NULL || position->_type == FALDO_UNKNOWN)
+    return "unknown";
+
+  return (position->_type == FALDO_IN_BETWEEN_POSITION)
+         ? "ip"
+         : (position->_type == FALDO_EXACT_POSITION)
+           ? "ep"
+           : "rp";
 }
