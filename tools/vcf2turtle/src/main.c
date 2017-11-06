@@ -221,6 +221,12 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       faldo_exact_position_reset (&ci_end_position);
     }
 
+  if (cipos)
+    {
+      free (cipos);
+      cipos = NULL;
+    }
+
   /* Complex rearrangements
    * ------------------------------------------------------------------------ */
   if (svtype != NULL && !strcmp (svtype, "BND"))
