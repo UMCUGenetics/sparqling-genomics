@@ -32,6 +32,7 @@ typedef struct
   char *keep;
   char *input_file;
   char *reference;
+  char *graph_location;
   char *caller;
   int32_t threads;
   int32_t jobs_per_thread;

@@ -43,6 +43,7 @@
 extern RuntimeConfiguration program_config;
 extern int hts_verbose;
 static pthread_mutex_t output_mutex;
+const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/";
 
 typedef struct
 {
@@ -474,6 +475,7 @@ main (int argc, char **argv)
   program_config.keep = NULL;
   program_config.input_file = NULL;
   program_config.reference = "unknown";
+  program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
   program_config.threads = 2;
   program_config.jobs_per_thread = 500;
 
@@ -495,8 +497,8 @@ main (int argc, char **argv)
           { "input-file",        required_argument, 0, 'i' },
           { "filter",            required_argument, 0, 'f' },
           { "keep",              required_argument, 0, 'k' },
-          { "graph-location",    required_argument, 0, 'g' },
-          { "reference-genome",  required_argument, 0, 'r' },
+          { "publish-to",        required_argument, 0, 'p' },
+          { "reference",         required_argument, 0, 'r' },
           { "caller",            required_argument, 0, 'c' },
           { "threads",           required_argument, 0, 't' },
 	  { "help",              no_argument,       0, 'h' },
@@ -507,14 +509,15 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:f:g:k:r:c:t:vh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:p:k:r:c:t:vh", options, &index);
           switch (arg)
             {
-            case 'i': program_config.input_file = optarg;            break;
+            case 'c': program_config.caller = optarg;                break;
             case 'f': program_config.filter = optarg;                break;
+            case 'p': program_config.graph_location = optarg;        break;
+            case 'i': program_config.input_file = optarg;            break;
             case 'k': program_config.keep = optarg;                  break;
             case 'r': program_config.reference = optarg;             break;
-            case 'c': program_config.caller = optarg;                break;
             case 't': program_config.threads = atoi(optarg);         break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
@@ -599,7 +602,35 @@ main (int argc, char **argv)
             "@prefix smo:     <http://semweb.op.umcutrecht.nl/smo/> .\n"
             "@prefix faldo:   <http://biohackathon.org/resource/faldo#> .\n"
             "@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-            "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .\n");
+            "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .");
+
+      printf ("@prefix : <%s> .\n",                     program_config.graph_location);
+      printf ("@prefix v: <%sVariant/> .\n",            program_config.graph_location);
+      printf ("@prefix p: <%sPosition/> .\n",           program_config.graph_location);
+      printf ("@prefix ep: <%sExactPosition/> .\n",     program_config.graph_location);
+      printf ("@prefix ip: <%sInBetweenPosition/> .\n", program_config.graph_location);
+      printf ("@prefix rp: <%sRangedPosition/> .\n",    program_config.graph_location);
+      printf ("@prefix s: <%sSample/> .\n",             program_config.graph_location);
+      printf ("@prefix h: <%sVcfHeader/> .\n",          program_config.graph_location);
+      printf ("@prefix o: <%sOrigin/> .\n",           program_config.graph_location);
+
+      /* There seem to be slight differences between the way URIs for GRCh38
+       * and GRCh37.  Also, the GRCh37 is only available for download from their FTP
+       * server.  So it cannot be queried by their own web-based ontology browser. */
+      if (!strcmp (program_config.reference, "GRCh37") ||
+          !strcmp (program_config.reference, "grch37"))
+        {
+          program_config.reference = "grch37";
+          puts ("@prefix grch37: <http://rdf.ebi.ac.uk/resource/ensembl/83/chromosome:GRCh37:> .");
+        }
+      else if (!strcmp (program_config.reference, "GRCh38") ||
+               !strcmp (program_config.reference, "grch38"))
+        {
+          program_config.reference = "grch38";
+          puts ("@prefix grch38: <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/> .");
+        }
+
+      puts ("");
 
       /* Add origin to database.
        * -------------------------------------------------------------------- */
@@ -618,7 +649,7 @@ main (int argc, char **argv)
             set_Origin_filename (&o, program_config.input_file);
           else
             {
-              int32_t full_path_len = strlen (cwd) + strlen (program_config.input_file) + 1;
+              int32_t full_path_len = strlen (cwd) + strlen (program_config.input_file) + 2;
               char full_path[full_path_len + 1];
               memset (full_path, 0, full_path_len);
 
