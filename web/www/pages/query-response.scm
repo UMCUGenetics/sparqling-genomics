@@ -9,6 +9,25 @@
 
   #:export (page-query-response))
 
+(define (csv-split-line line delimiter)
+  "Splits LINE where DELIMITER is the separator, properly handling quotes."
+
+  (define (iterator line length token-begin position in-quote tokens)
+    (cond
+     ((= position length)
+      (reverse (cons (string-drop line token-begin) tokens)))
+     ((eq? (string-ref line position) delimiter)
+      (if in-quote
+          (iterator line length token-begin (1+ position) in-quote tokens)
+          (iterator line length (1+ position) (1+ position) in-quote
+                    (cons (substring line token-begin position)
+                          tokens))))
+     ((eq? (string-ref line position) #\")
+      (iterator line length token-begin (1+ position) (not in-quote) tokens))
+     (else (iterator line length token-begin (1+ position) in-quote tokens))))
+
+  (iterator line (string-length line) 0 0 #f '()))
+
 (define (suffix-iri input)
   (if input
       (string-trim-both
@@ -29,7 +48,7 @@
         `(table (@ (id "query-output"))
                 ,(cons 'thead header)
                 ,(cons 'tbody (reverse body)))
-        (let ((tokens (string-split line #\,)))
+        (let ((tokens (csv-split-line line #\,)))
           ;; The first line in the output is the table header.
           (if read-header?
               (response->sxml port #f
