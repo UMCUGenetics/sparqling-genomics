@@ -216,6 +216,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       faldo_position_print ((FaldoBaseType *)&ci_end_position);
       faldo_position_print ((FaldoBaseType *)&confidence_position);
       pthread_mutex_unlock (&output_mutex);
+
+      faldo_exact_position_reset (&ci_start_position);
+      faldo_exact_position_reset (&ci_end_position);
     }
 
   /* Complex rearrangements
@@ -274,6 +277,7 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   pthread_mutex_unlock (&output_mutex);
 
   faldo_exact_position_reset (&start_position);
+  faldo_in_between_position_reset (&confidence_position);
 }
 
 typedef struct
