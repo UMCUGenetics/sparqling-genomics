@@ -28,12 +28,13 @@ show_help (void)
                                    "output.\n"
         "  --keep=ARG,         -k  Omit calls without FILTER=ARG from the "
                                    "output.\n"
-        "  --publish-to=ARG,   -g  Location of the graph.\n"
+        "  --publish-to=ARG,   -g  Location of the graph.  This does not upload "
+                                  "data.\n"
         "  --reference=ARG,    -r  The reference genome the variant positions "
                                   "refer to.\n"
-        "                          Valid values are: 'GRCh37', GRCh38'.\n"
-        "  --caller            -c  The caller used to produce the VCF file.\n"
-	"  --threads,          -t  Number of threads to use.\n"
+        "                          Valid values are: 'GRCh37', 'GRCh38'.\n"
+        "  --caller=ARG,       -c  The caller used to produce the VCF file.\n"
+	"  --threads=ARG,      -t  Number of threads to use.\n"
 	"  --version,          -v  Show versioning information.\n"
 	"  --help,             -h  Show this message.\n");
 }
@@ -41,7 +42,8 @@ show_help (void)
 void
 show_version (void)
 {
-  puts ("Version: 0.0.1\n");
+  /* The VERSION variable is defined by the build system. */
+  puts ("Version: " VERSION "\n");
 }
 
 int32_t
