@@ -70,6 +70,7 @@ typedef struct
   char *reference;
   char *alternative;
   char *filter;
+  char *id;
   unsigned char *type;
   uint32_t type_len;
   char name[65];
@@ -83,5 +84,6 @@ char *variant_name (Variant *v, bcf_hdr_t *vcf_header);
 void variant_print (Variant *v, bcf_hdr_t *vcf_header);
 void variant_initialize (Variant *v, VariantType type);
 void variant_reset (Variant *v);
+bool variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer);
 
 #endif  /* VARIANT_H */

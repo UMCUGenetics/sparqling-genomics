@@ -232,6 +232,10 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
    * ------------------------------------------------------------------------ */
   if (svtype != NULL && !strcmp (svtype, "BND"))
     {
+      /* Complex rearrangements are described with multiple records.  Each
+       * record describes one path of a breakpoint.  In addition to the position
+       * information, the direction and strand is important for characterizing
+       * a complex rearrangement. */
       BndProperties properties;
       bnd_properties_init (&properties);
 
@@ -254,14 +258,14 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
    * ------------------------------------------------------------------------ */
   else if (ref_len > alt_len)
     {
-
+      /* There's nothing special to do with deletion events. */
     }
 
   /* Insertion/duplication events
    * ------------------------------------------------------------------------ */
   else if (ref_len < alt_len)
     {
-
+      /* There's nothing special to do with insertion/duplication events. */
     }
 
   pthread_mutex_lock (&output_mutex);
@@ -273,11 +277,10 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   variant.origin = origin;
   variant.position = (FaldoBaseType *)&start_position;
   variant.confidence_interval = (FaldoBaseType *)&confidence_position;
-  variant.reference = buffer->d.allele[0];
-  variant.alternative = buffer->d.allele[1];
-  variant.quality = buffer->qual;
-  variant.filters_len = buffer->d.n_flt;
-  variant.filters = buffer->d.flt;
+  if (!variant_gather_data (&variant, header, buffer))
+    {
+      fprintf (stderr, "# Couldn't gather variant data.\n");
+    }
 
   pthread_mutex_lock (&output_mutex);
   variant_print (&variant, header);

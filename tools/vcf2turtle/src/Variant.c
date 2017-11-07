@@ -21,6 +21,7 @@
 #include "RuntimeConfiguration.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <math.h>
 #include <gcrypt.h>
 
@@ -73,6 +74,9 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
   if (v->type != NULL)
     gcry_md_write (handler, v->type, v->type_len);
 
+  if (v->id != NULL)
+    gcry_md_write (handler, v->id, strlen (v->id));
+
   binary_hash = gcry_md_read (handler, 0);
   if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->name))
     {
@@ -97,13 +101,15 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
 
   printf ("  :position %s:%s ;\n  :confidence_interval %s:%s ;\n"
           "  :reference \"%s\" ;\n"
-          "  :alternative \"%s\" ;\n",
+          "  :alternative \"%s\" ;\n"
+          "  :id \"%s\" ;\n",
           faldo_position_prefix (v->position),
           faldo_position_name (v->position),
           faldo_position_prefix (v->confidence_interval),
           faldo_position_name (v->confidence_interval),
           v->reference,
-          v->alternative);
+          v->alternative,
+          v->id);
 
   int i = 0;
   for (; i < v->filters_len; i++)
@@ -137,6 +143,7 @@ variant_initialize (Variant *v, VariantType type)
   v->quality = 0.0;
   v->reference = NULL;
   v->alternative = NULL;
+  v->id = NULL;
   v->filter = NULL;
   v->type = NULL;
   v->type_len = 0;
@@ -150,4 +157,21 @@ variant_reset (Variant *v)
 {
   if (v == NULL) return;
   variant_initialize (v, v->_obj_type);
+}
+
+bool
+variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
+{
+  if (variant == NULL || header == NULL || buffer == NULL ||
+      buffer->d.allele == NULL)
+    return false;
+
+  variant->reference = buffer->d.allele[0];
+  variant->alternative = buffer->d.allele[1];
+  variant->id = buffer->d.id;
+  variant->quality = buffer->qual;
+  variant->filters_len = buffer->d.n_flt;
+  variant->filters = buffer->d.flt;
+
+  return true;
 }
