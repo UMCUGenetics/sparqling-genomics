@@ -64,8 +64,8 @@ typedef struct
 {
   VariantType _obj_type;        /* For internal use only. */
   Origin *origin;
-  FaldoBaseType *position;
-  FaldoBaseType *confidence_interval;
+  FaldoExactPosition *start_position;
+  FaldoExactPosition *end_position;
   float quality;
   char *reference;
   char *alternative;
@@ -74,6 +74,27 @@ typedef struct
   unsigned char *type;
   uint32_t type_len;
   char name[65];
+  double length;
+
+  /* DELLY-specific properties. */
+  int32_t mapq;
+  int32_t paired_end_support;
+  int32_t split_read_support;
+  float split_read_consensus_alignment_quality;
+  int32_t read_count;
+  int32_t hq_reference_pairs;
+  int32_t hq_variant_pairs;
+  int32_t hq_ref_junction_reads;
+  int32_t hq_var_junction_reads;
+
+  /* Direction information. */
+  bool is_complex_rearrangement;
+  bool is_reversed;
+  bool is_left_of_ref;
+
+  /* Confidence interval positions. */
+  FaldoInBetweenPosition *cipos;
+  FaldoInBetweenPosition *ciend;
 
   /* These mirror the internal HTSLib record's information. */
   int filters_len;

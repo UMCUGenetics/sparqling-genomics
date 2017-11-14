@@ -33,7 +33,9 @@ faldo_in_between_position_name (FaldoInBetweenPosition *range)
 
   if (range->name != NULL) return range->name;
 
-  range->name_len = 22 + strlen (range->before->name);
+  range->name_len = 22 + strlen (range->before->name) +
+                    strlen (program_config.reference);
+
   range->name = calloc (range->name_len + 1, sizeof (char));
   if (range->name == NULL)
     {
@@ -43,7 +45,8 @@ faldo_in_between_position_name (FaldoInBetweenPosition *range)
 
   /* FIXME: In theory, the before->name and after->name could
    * be different.  We need to address this issue. */
-  snprintf (range->name, range->name_len, "%s:%u-%u",
+  snprintf (range->name, range->name_len, "%s:%s-%u-%u",
+            program_config.reference,
             range->before->name,
             range->before->position,
             range->after->position);
@@ -59,7 +62,9 @@ faldo_exact_position_name (FaldoExactPosition *position)
 
   if (position->name != NULL) return position->name;
 
-  position->name_len = 22 + position->chromosome_len;
+  position->name_len = 22 + position->chromosome_len +
+                       strlen (program_config.reference);
+
   position->name = calloc (position->name_len + 1, sizeof (char));
   if (position->name == NULL)
     {
@@ -67,7 +72,8 @@ faldo_exact_position_name (FaldoExactPosition *position)
       return NULL;
     }
 
-  snprintf (position->name, position->name_len, "%s-%u",
+  snprintf (position->name, position->name_len, "%s-%s-%u",
+            program_config.reference,
             position->chromosome,
             position->position);
 
@@ -82,7 +88,9 @@ faldo_range_name (FaldoRange *range)
 
   if (range->name != NULL) return range->name;
 
-  range->name_len = 22 + strlen (range->start->name);
+  range->name_len = 22 + strlen (range->start->name) +
+                    strlen (program_config.reference);
+
   range->name = calloc (range->name_len + 1, sizeof (char));
   if (range->name == NULL)
     {
@@ -92,7 +100,8 @@ faldo_range_name (FaldoRange *range)
 
   /* FIXME: In theory, the start->name and end->name could
    * be different.  We need to address this theoretical issue. */
-  snprintf (range->name, range->name_len, "%s:%u-%u",
+  snprintf (range->name, range->name_len, "%s:%s-%u-%u",
+            program_config.reference,
             range->start->name,
             range->start->position,
             range->end->position);

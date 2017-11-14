@@ -120,6 +120,13 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
 
   printf ("  :quality %4.2f ", v->quality);
 
+  if (v->is_complex_rearrangement)
+    {
+      printf ("\n  :hasDirection %s ; :atBreakPointPosition %s .\n",
+              (v->is_reversed) ? ":ReverseComplement" : ":Same",
+              (v->is_left_of_ref) ? ":Left" : ":Right");
+    }
+
   if (v->type_len > 0 && v->type)
     {
       char type[v->type_len + 1];
@@ -147,6 +154,19 @@ variant_initialize (Variant *v, VariantType type)
   v->filter = NULL;
   v->type = NULL;
   v->type_len = 0;
+  v->length = 0;
+  v->mapq = 0;
+  v->paired_end_support = 0;
+  v->split_read_support = 0;
+  v->_read_consensus_alignment_quality = 0;
+  v->read_count = 0;
+  v->hq_reference_pairs = 0;
+  v->hq_variant_pairs = 0;
+  v->hq_ref_junction_reads = 0;
+  v->hq_var_junction_reads = 0;
+  v->is_complex_rearrangement = FALSE;
+  v->is_reversed = FALSE;
+  v->is_left_of_ref = FALSE;
   memset (v->name, 0, 65);
   v->filters_len = 0;
   v->filters = NULL;
@@ -161,6 +181,23 @@ variant_reset (Variant *v)
 
 bool
 variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
+{
+  if (variant == NULL || header == NULL || buffer == NULL ||
+      buffer->d.allele == NULL)
+    return false;
+
+  variant->reference = buffer->d.allele[0];
+  variant->alternative = buffer->d.allele[1];
+  variant->id = buffer->d.id;
+  variant->quality = buffer->qual;
+  variant->filters_len = buffer->d.n_flt;
+  variant->filters = buffer->d.flt;
+
+  return true;
+}
+
+bool
+variant_gather_filter (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
 {
   if (variant == NULL || header == NULL || buffer == NULL ||
       buffer->d.allele == NULL)

@@ -129,6 +129,36 @@ parse_properties (BndProperties *properties,
   return properties;
 }
 
+bool
+determine_confidence_interval (FaldoExactPosition *base,
+                               const char *property,
+                               FaldoExactPosition *begin,
+                               FaldoExactPosition *end)
+{
+  int32_t *cipos = NULL;
+  int32_t cipos_len = 0;
+  bcf_get_info_int32 (header, buffer, property, &cipos, &cipos_len);
+
+  if (cipos_len > 0 && cipos)
+    {
+      begin->position -= cipos[0];
+      end->position   += cipos[1];
+    }
+  else
+    return false;
+
+  if (cipos)
+    {
+      free (cipos);
+      cipos = NULL;
+    }
+
+  base->before = begin;
+  base->after = end;
+
+  return true;
+}
+
 /*----------------------------------------------------------------------------.
  | HANDLERS FOR SPECIFIC VCF RECORD TYPES                                     |
  '----------------------------------------------------------------------------*/
@@ -138,7 +168,7 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
   /* One of: VCF_REF, VCF_SNP, VCF_MNP, VCF_INDEL, VCF_OTHER, VCF_BND. */
   int variant_type = bcf_get_variant_types (buffer);
-  
+
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (program_config.filter &&
@@ -158,6 +188,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       pthread_mutex_unlock (&output_mutex);
       return;
     }
+
+  Variant variant;
+  variant_initialize (&variant, variant_type);
 
   /* Unpack up and including the ALT field. */
   bcf_unpack (buffer, BCF_UN_STR);
@@ -185,57 +218,24 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   if (svtype_info != NULL)
     svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
 
-  /* Handle the first genome position.
+  /* Gather the positions.
    * ------------------------------------------------------------------------ */
-  int32_t *cipos = NULL;
-  int32_t cipos_len = 0;
-  bcf_get_info_int32 (header, buffer, "CIPOS", &cipos, &cipos_len);
-
-  FaldoExactPosition start_position;
+  FaldoExactPosition start_position, end_position;
   faldo_position_initialize ((FaldoBaseType *)&start_position, FALDO_EXACT_POSITION);
+  faldo_position_initialize ((FaldoBaseType *)&end_position, FALDO_EXACT_POSITION);
+
+  variant.start_position = &start_position;
+  variant.end_position = &end_position;
+
   start_position.position = buffer->pos;
   start_position.chromosome = (char *)bcf_seqname (header, buffer);
   start_position.chromosome_len = strlen (start_position.chromosome);
 
-  FaldoInBetweenPosition confidence_position;
-  faldo_position_initialize ((FaldoBaseType *)&confidence_position,
-                             FALDO_IN_BETWEEN_POSITION);
+  variant.length = end - buffer->pos;
 
-  if (cipos_len > 0)
-    {
-      FaldoExactPosition ci_start_position = start_position;
-      FaldoExactPosition ci_end_position = start_position;
-
-      ci_start_position.position -= cipos[0];
-      ci_end_position.position += cipos[1];
-
-      confidence_position.before = &ci_start_position;
-      confidence_position.after = &ci_end_position;
-
-      pthread_mutex_lock (&output_mutex);
-      faldo_position_print ((FaldoBaseType *)&ci_start_position);
-      faldo_position_print ((FaldoBaseType *)&ci_end_position);
-      faldo_position_print ((FaldoBaseType *)&confidence_position);
-      pthread_mutex_unlock (&output_mutex);
-
-      faldo_exact_position_reset (&ci_start_position);
-      faldo_exact_position_reset (&ci_end_position);
-    }
-
-  if (cipos)
-    {
-      free (cipos);
-      cipos = NULL;
-    }
-
-  /* Complex rearrangements
-   * ------------------------------------------------------------------------ */
+  /* For BND, the chromosome for the end position can be different. */
   if (svtype != NULL && !strcmp (svtype, "BND"))
     {
-      /* Complex rearrangements are described with multiple records.  Each
-       * record describes one path of a breakpoint.  In addition to the position
-       * information, the direction and strand is important for characterizing
-       * a complex rearrangement. */
       BndProperties properties;
       bnd_properties_init (&properties);
 
@@ -243,44 +243,113 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
         puts ("# WARNING: Failed to parse complex rearrangement.");
       else
         {
-          pthread_mutex_lock (&output_mutex);
+          variant.is_complex_rearrangement = TRUE;
+          variant.is_reversed = properties.is_reversed;
+          variant.is_left_of_ref = properties.is_left_of_ref;
 
-          printf ("position:%s :hasDirection %s ; :atBreakPointPosition %s.\n",
-                  faldo_exact_position_name (&start_position),
-                  (properties.is_reversed) ? ":ReverseComplement" : ":Same",
-                  (properties.is_left_of_ref) ? ":Left" : ":Right");
-
-          pthread_mutex_unlock (&output_mutex);
+          end_position.chromosome = properties.chromosome;
+          end_position.position = properties.position;
         }
     }
-
-  /* Deletion events
-   * ------------------------------------------------------------------------ */
-  else if (ref_len > alt_len)
+  else
     {
-      /* There's nothing special to do with deletion events. */
+      /* For anything other than complex rearrangements, we can assume the
+       * chromosome of the start position is the same as the chromosome for the
+       * end position. */
+      end_position.chromosome = start_position.chromosome;
+
+      /* Usually, an END info-field is provided. */
+      if (bcf_get_info_int32 (header, buffer, "END", &buf, &buf_len) > 0)
+        end_position.position = ((int32_t *)buf)[0];
+      /* One possible fallback is to infer it from the SVLEN property. */
+      else if (bcf_get_info_int32 (header, buffer, "SVLEN", &buf, &buf_len) > 0)
+        end_position.position = start_position.position + ((int32_t *)buf)[0];
     }
 
-  /* Insertion/duplication events
+  /* When the positions are not on the same chromosome, our length indication
+   * does not make any sense.  What also doesn't make sense is a length of 0. */
+  if (strcmp (end_position.chromosome, start_position.chromosome))
+    variant.length = 0;
+
+  FaldoExactPosition end_position;
+  faldo_position_initialize ((FaldoBaseType *)&end_position, FALDO_EXACT_POSITION);
+  end_position.position = end;
+  end_position.chromosome = chr2;
+  end_position.chromosome_len = strlen (chr2);
+
+  FaldoInBetweenPosition confidence_position;
+  faldo_position_initialize ((FaldoBaseType *)&confidence_position,
+                             FALDO_IN_BETWEEN_POSITION);
+
+  /* Handle the confidence interval for the start position.
    * ------------------------------------------------------------------------ */
-  else if (ref_len < alt_len)
-    {
-      /* There's nothing special to do with insertion/duplication events. */
-    }
+  determine_confidence_interval (variant.start_position,
+                                 "CIPOS",
+                                 variant.cipos->before,
+                                 variant.cipos->after);
+
+  determine_confidence_interval (variant.end_position,
+                                 "CIEND",
+                                 variant.ciend->before,
+                                 variant.ciend->after);
 
   pthread_mutex_lock (&output_mutex);
-  faldo_exact_position_print (&start_position);
+  faldo_position_print ((FaldoBaseType *)&variant.cipos);
+  faldo_position_print ((FaldoBaseType *)&variant.ciend);
+  //faldo_position_print ((FaldoBaseType *)&confidence_position);
+  faldo_exact_position_print (variant.start_position);
+  faldo_exact_position_print (variant.end_position);
   pthread_mutex_unlock (&output_mutex);
 
-  Variant variant;
-  variant_initialize (&variant, variant_type);
+  faldo_exact_position_reset (&ci_start_position);
+  faldo_exact_position_reset (&ci_end_position);
+
+  /* Probe for more fields/information.
+   * ------------------------------------------------------------------------ */
+  void *buf = NULL;
+  int32_t buf_len = 0;
+
+  int32_t mapq = 0;
+  if (bcf_get_info_int32 (header, buffer, "MAPQ", &buf, &buf_len) > 0)
+    mapq = ((int32_t *)buf)[0];
+
+  int32_t paired_end_support = 0;
+  if (bcf_get_info_int32 (header, buffer, "PE", &buf, &buf_len) > 0)
+    paired_end_support = ((int32_t *)buf)[0];
+
+  int32_t split_read_support = 0;
+  if (bcf_get_info_int32 (header, buffer, "SR", &buf, &buf_len) > 0)
+    split_read_support = ((int32_t *)buf)[0];
+
+  float split_read_consensus_alignment_quality = 0;
+  if (bcf_get_info_float (header, buffer, "SRQ", &buf, &buf_len) > 0)
+    split_read_consensus_alignment_quality = ((float *)buf)[0];
+
+  int32_t read_count = 0;
+  if (bcf_get_format_int32 (header, buffer, "RC", &buf, &buf_len) > 0)
+    read_count = ((int32_t *)buf)[0];
+
+  int32_t hq_reference_pairs = 0;
+  if (bcf_get_format_int32 (header, buffer, "DR", &buf, &buf_len) > 0)
+    hq_reference_pairs = ((int32_t *)buf)[0];
+
+  int32_t hq_variant_pairs = 0;
+  if (bcf_get_format_int32 (header, buffer, "DV", &buf, &buf_len) > 0)
+    hq_variant_pairs = ((int32_t *)buf)[0];
+
+  int32_t hq_ref_junction_reads = 0;
+  if (bcf_get_format_int32 (header, buffer, "RR", &buf, &buf_len) > 0)
+    hq_ref_junction_reads = ((int32_t *)buf)[0];
+
+  int32_t hq_var_junction_reads = 0;
+  if (bcf_get_format_int32 (header, buffer, "RV", &buf, &buf_len) > 0)
+    hq_var_junction_reads = ((int32_t *)buf)[0];
+  
   variant.origin = origin;
   variant.position = (FaldoBaseType *)&start_position;
   variant.confidence_interval = (FaldoBaseType *)&confidence_position;
   if (!variant_gather_data (&variant, header, buffer))
-    {
-      fprintf (stderr, "# Couldn't gather variant data.\n");
-    }
+    fprintf (stderr, "# Couldn't gather variant data.\n");
 
   pthread_mutex_lock (&output_mutex);
   variant_print (&variant, header);
