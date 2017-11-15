@@ -23,6 +23,8 @@
 #define HASH_ALGORITHM GCRY_MD_SHA256
 #define HASH_LENGTH    gcry_md_get_algo_dlen (HASH_ALGORITHM)
 
+#include <stdbool.h>
+
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
  * to these values, other than in the option parser inside main(). */
@@ -36,6 +38,7 @@ typedef struct
   char *caller;
   int32_t threads;
   int32_t jobs_per_thread;
+  bool no_header;
 } RuntimeConfiguration;
 
 

@@ -35,6 +35,7 @@ show_help (void)
         "                          Valid values are: 'GRCh37', 'GRCh38'.\n"
         "  --caller=ARG,       -c  The caller used to produce the VCF file.\n"
 	"  --threads=ARG,      -t  Number of threads to use.\n"
+	"  --no-header,        -n  Do not output the Turtle header.\n"
 	"  --version,          -v  Show versioning information.\n"
 	"  --help,             -h  Show this message.\n");
 }

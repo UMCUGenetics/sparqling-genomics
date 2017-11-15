@@ -27,6 +27,23 @@
 
 extern RuntimeConfiguration program_config;
 
+void
+gcry_md_write_int32_t (gcry_md_hd_t handler, int32_t number)
+{
+  char int_str[] = { 0,0,0,0,0,0,0,0,0,0,0 };
+  int32_t int_str_len = sprintf (int_str, "%d", number);
+  gcry_md_write (handler, int_str, int_str_len);
+}
+
+void
+gcry_md_write_float (gcry_md_hd_t handler, float number)
+{
+  int32_t float_str_len = 0;
+  char float_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  float_str_len = sprintf (float_str, "%04.4f", number);
+  gcry_md_write (handler, float_str, float_str_len);
+}
+
 char *
 variant_name (Variant *v, bcf_hdr_t *vcf_header)
 {
@@ -48,18 +65,64 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
       return NULL;
     }
 
-  /* Avoid dynamic allocation for a speed-up. */
-  int32_t quality_strlen = 0;
-  char quality_str[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  quality_strlen = sprintf (quality_str, "%04.4f", v->quality);
+  gcry_md_write_float (handler, v->quality);
 
+  char *start_position_name = faldo_position_name ((FaldoBaseType *)(v->start_position));
+  char *end_position_name = faldo_position_name ((FaldoBaseType *)(v->end_position));
+  char *cipos_name = faldo_position_name ((FaldoBaseType *)(v->cipos));
+  char *ciend_name = faldo_position_name ((FaldoBaseType *)(v->ciend));
+  
   unsigned char *binary_hash = NULL;
-  char *position_name = faldo_position_name (v->position);
 
   /* Provide input for the hash. */
-  gcry_md_write (handler,
-                 position_name,
-                 v->position->name_len);
+  gcry_md_write (handler, v->reference, strlen (v->reference));
+  gcry_md_write (handler, v->alternative, strlen (v->alternative));
+  gcry_md_write (handler, start_position_name, v->start_position->name_len);
+  gcry_md_write (handler, end_position_name, v->end_position->name_len);
+  gcry_md_write (handler, cipos_name, v->cipos->name_len);
+  gcry_md_write (handler, ciend_name, v->ciend->name_len);
+
+  if (v->type != NULL)
+    gcry_md_write (handler, v->type, v->type_len);
+
+  if (v->id != NULL)
+    gcry_md_write (handler, v->id, strlen (v->id));
+
+  if (v->length != 0)
+    gcry_md_write_int32_t (handler, v->length);
+
+  if (v->mapq != 0)
+    gcry_md_write_int32_t (handler, v->mapq);
+
+  if (v->paired_end_support != 0)
+    gcry_md_write_int32_t (handler, v->paired_end_support);
+
+  if (v->split_read_support != 0)
+    gcry_md_write_int32_t (handler, v->split_read_support);
+
+  if (v->split_read_consensus_alignment_quality != 0)
+    gcry_md_write_float (handler, v->split_read_consensus_alignment_quality);
+
+  if (v->read_count != 0)
+    gcry_md_write_int32_t (handler, v->read_count);
+
+  if (v->hq_reference_pairs != 0)
+    gcry_md_write_int32_t (handler, v->hq_reference_pairs);
+
+  if (v->hq_variant_pairs != 0)
+    gcry_md_write_int32_t (handler, v->hq_variant_pairs);
+
+  if (v->hq_ref_junction_reads != 0)
+    gcry_md_write_int32_t (handler, v->hq_ref_junction_reads);
+
+  if (v->hq_var_junction_reads != 0)
+    gcry_md_write_int32_t (handler, v->hq_var_junction_reads);
+
+  if (v->is_complex_rearrangement)
+    {
+      gcry_md_write (handler, (v->is_reversed) ? "T" : "F", 1);
+      gcry_md_write (handler, (v->is_left_of_ref) ? "T" : "F", 1);
+    }
 
   /* Concatenate each filter tag for the hash input. */
   int i = 0;
@@ -68,14 +131,6 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
       char *name = (char *)vcf_header->id[BCF_DT_ID][v->filters[i]].key;
       gcry_md_write (handler, name, strlen (name));
     }
-
-  gcry_md_write (handler, quality_str, quality_strlen);
-
-  if (v->type != NULL)
-    gcry_md_write (handler, v->type, v->type_len);
-
-  if (v->id != NULL)
-    gcry_md_write (handler, v->id, strlen (v->id));
 
   binary_hash = gcry_md_read (handler, 0);
   if (!get_pretty_hash (binary_hash, HASH_LENGTH, v->name))
@@ -99,33 +154,73 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
   if (v->origin)
     printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
 
-  printf ("  :position %s:%s ;\n  :confidence_interval %s:%s ;\n"
+  printf ("  :start_position %s:%s ;\n"
+          "  :end_position %s:%s ;\n"
+          "  :confidence_interval_start_position %s:%s ;\n"
+          "  :confidence_interval_end_position %s:%s ;\n"
           "  :reference \"%s\" ;\n"
           "  :alternative \"%s\" ;\n"
-          "  :id \"%s\" ;\n",
-          faldo_position_prefix (v->position),
-          faldo_position_name (v->position),
-          faldo_position_prefix (v->confidence_interval),
-          faldo_position_name (v->confidence_interval),
+          "  :id \"%s\" ;\n"
+          "  :quality %4.2f ",
+          faldo_position_prefix ((FaldoBaseType *)(v->start_position)),
+          faldo_position_name ((FaldoBaseType *)(v->start_position)),
+          faldo_position_prefix ((FaldoBaseType *)(v->end_position)),
+          faldo_position_name ((FaldoBaseType *)(v->end_position)),
+          faldo_position_prefix ((FaldoBaseType *)(v->cipos)),
+          faldo_position_name ((FaldoBaseType *)(v->cipos)),
+          faldo_position_prefix ((FaldoBaseType *)(v->ciend)),
+          faldo_position_name ((FaldoBaseType *)(v->ciend)),
           v->reference,
           v->alternative,
-          v->id);
+          v->id,
+          v->quality);
+
+  if (v->length != 0)
+    printf (";\n  :length %d ", v->length);
 
   int i = 0;
   for (; i < v->filters_len; i++)
     {
       char *name = (char *)vcf_header->id[BCF_DT_ID][v->filters[i]].key;
-      printf ("  :filter \"%s\" ;\n", name);
+      printf (";\n  :filter \"%s\" ", name);
     }
-
-  printf ("  :quality %4.2f ", v->quality);
 
   if (v->is_complex_rearrangement)
     {
-      printf ("\n  :hasDirection %s ; :atBreakPointPosition %s .\n",
+      printf (";\n  :hasDirection %s ; :atBreakPointPosition %s ",
               (v->is_reversed) ? ":ReverseComplement" : ":Same",
               (v->is_left_of_ref) ? ":Left" : ":Right");
     }
+
+  if (v->mapq != 0)
+    printf (";\n  :mapping_quality %d ", v->mapq);
+
+  if (v->paired_end_support != 0)
+    printf (";\n  :paired_end_support %d ", v->paired_end_support);
+
+  if (v->split_read_support != 0)
+    printf (";\n  :split_read_support %d ", v->split_read_support);
+
+  if (v->split_read_consensus_alignment_quality != 0)
+    printf (";\n  :split_read_consensus_alignment_quality  %4.2f ",
+            v->split_read_consensus_alignment_quality);
+
+  if (v->read_count != 0)
+    printf (";\n  :read_count %d ", v->read_count);
+
+  if (v->hq_reference_pairs != 0)
+    printf (";\n  :high_quality_reference_pairs %d ", v->hq_reference_pairs);
+
+  if (v->hq_variant_pairs != 0)
+    printf (";\n  :high_quality_variant_pairs %d ", v->hq_variant_pairs);
+
+  if (v->hq_ref_junction_reads != 0)
+    printf (";\n  :high_quality_reference_junction_reads %d ",
+            v->hq_ref_junction_reads);
+
+  if (v->hq_var_junction_reads != 0)
+    printf (";\n  :high_quality_variant_junction_reads  %d ",
+            v->hq_var_junction_reads);
 
   if (v->type_len > 0 && v->type)
     {
@@ -145,8 +240,10 @@ variant_initialize (Variant *v, VariantType type)
   if (v == NULL) return;
   v->_obj_type = type,
   v->origin = NULL;
-  v->position = NULL;
-  v->confidence_interval = NULL;
+  v->start_position = NULL;
+  v->end_position = NULL;
+  v->cipos = NULL;
+  v->ciend = NULL;
   v->quality = 0.0;
   v->reference = NULL;
   v->alternative = NULL;
@@ -158,15 +255,15 @@ variant_initialize (Variant *v, VariantType type)
   v->mapq = 0;
   v->paired_end_support = 0;
   v->split_read_support = 0;
-  v->_read_consensus_alignment_quality = 0;
+  v->split_read_consensus_alignment_quality = 0;
   v->read_count = 0;
   v->hq_reference_pairs = 0;
   v->hq_variant_pairs = 0;
   v->hq_ref_junction_reads = 0;
   v->hq_var_junction_reads = 0;
-  v->is_complex_rearrangement = FALSE;
-  v->is_reversed = FALSE;
-  v->is_left_of_ref = FALSE;
+  v->is_complex_rearrangement = false;
+  v->is_reversed = false;
+  v->is_left_of_ref = false;
   memset (v->name, 0, 65);
   v->filters_len = 0;
   v->filters = NULL;

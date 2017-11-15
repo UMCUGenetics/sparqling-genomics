@@ -18,9 +18,38 @@
 #ifndef HELPER_H
 #define HELPER_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <htslib/vcf.h>
+
+#include "GenomePosition.h"
 
 bool get_pretty_hash (unsigned char *hash, uint32_t length, char *output);
+
+
+typedef struct
+{
+  bool is_reversed;
+  bool is_left_of_ref;
+  char *chromosome;
+  int32_t chromosome_len;
+  int32_t position;
+} BndProperties;
+
+void bnd_properties_init (BndProperties *properties);
+
+bool parse_properties (BndProperties *properties,
+                       const char *ref, int32_t ref_len,
+                       const char *alt, int32_t alt_len);
+
+bool determine_confidence_interval (FaldoExactPosition *base,
+                                    const char *property,
+                                    FaldoExactPosition *begin,
+                                    FaldoExactPosition *end,
+                                    bcf_hdr_t *header,
+                                    bcf1_t *buffer);
 
 #endif  /* HELPER_H */

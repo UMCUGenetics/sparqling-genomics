@@ -164,7 +164,8 @@ print_VcfHeader (VcfHeader *v)
       printf ("  :type \"contig\" ;\n");
       printf ("  :id \"%s\" ;\n", i->id);
       printf ("  :length %d ;\n", i->length);
-      printf ("  :assembly %s ;\n", i->assembly);
+      if (i->assembly != NULL)
+        printf ("  :assembly %s ;\n", i->assembly);
     }
 
   printf ("  :origin o:%s .\n\n", hash_Origin (v->origin, true));

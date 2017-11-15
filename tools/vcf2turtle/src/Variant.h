@@ -74,7 +74,7 @@ typedef struct
   unsigned char *type;
   uint32_t type_len;
   char name[65];
-  double length;
+  int32_t length;
 
   /* DELLY-specific properties. */
   int32_t mapq;

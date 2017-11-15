@@ -32,6 +32,7 @@
 #include "Origin.h"
 #include "Sample.h"
 #include "VcfHeader.h"
+#include "helper.h"
 #include "ui.h"
 
 #ifdef __GNUC__
@@ -45,120 +46,6 @@ extern int hts_verbose;
 static pthread_mutex_t output_mutex;
 const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/";
 
-typedef struct
-{
-  bool is_reversed;
-  bool is_left_of_ref;
-  char *chromosome;
-  int32_t chromosome_len;
-  int32_t position;
-} BndProperties;
-
-void
-bnd_properties_init (BndProperties *properties)
-{
-  if (properties == NULL) return;
-
-  properties->is_reversed = false;
-  properties->is_left_of_ref = false;
-  properties->chromosome = NULL;
-  properties->chromosome_len = 0;
-  properties->position = 0;
-}
-
-bool
-parse_properties (BndProperties *properties,
-                  const char *ref, int32_t ref_len,
-                  const char *alt, int32_t alt_len)
-{
-  if (properties == NULL || ref == NULL || alt == NULL) return false;
-
-  char bracket;
-
-  /* Determine direction and inner-position.
-   * ------------------------------------------------------------------------ */
-  if (alt[0] == ']')
-    {
-      properties->is_reversed = false;
-      properties->is_left_of_ref = true;
-      bracket = ']';
-    }
-  else if (alt[0] == '[')
-    {
-      properties->is_reversed = true;
-      properties->is_left_of_ref = true;
-      bracket = '[';
-    }
-  else if (alt[alt_len - 1] == '[')
-    {
-      properties->is_reversed = false;
-      properties->is_left_of_ref = false;
-      bracket = '[';
-    }
-  else if (alt[alt_len - 1] == ']')
-    {
-      properties->is_reversed = true;
-      properties->is_left_of_ref = false;
-      bracket = ']';
-    }
-
-  /* Determine second chromosome and position.
-   * ------------------------------------------------------------------------ */
-  char *first_bracket = strchr (alt, bracket);
-  char *last_bracket = strchr (first_bracket + 1, bracket);
-  char *separator = strchr (alt, ':');
-
-  if (first_bracket == NULL || last_bracket == NULL || separator == NULL)
-    return false;
-
-  properties->chromosome_len = separator - first_bracket - 1;
-  int32_t position_len = last_bracket - separator - 1;
-
-  properties->chromosome = calloc (sizeof (char), properties->chromosome_len+1);
-
-  if (properties->chromosome == NULL)
-    return false;
-
-  char pos[sizeof (char) * position_len + 1];
-  memset (pos, 0, position_len + 1);
-
-  memcpy (properties->chromosome, first_bracket+1, properties->chromosome_len);
-  memcpy (pos, separator + 1, position_len);
-
-  properties->position = atoi (pos);
-  return properties;
-}
-
-bool
-determine_confidence_interval (FaldoExactPosition *base,
-                               const char *property,
-                               FaldoExactPosition *begin,
-                               FaldoExactPosition *end)
-{
-  int32_t *cipos = NULL;
-  int32_t cipos_len = 0;
-  bcf_get_info_int32 (header, buffer, property, &cipos, &cipos_len);
-
-  if (cipos_len > 0 && cipos)
-    {
-      begin->position -= cipos[0];
-      end->position   += cipos[1];
-    }
-  else
-    return false;
-
-  if (cipos)
-    {
-      free (cipos);
-      cipos = NULL;
-    }
-
-  base->before = begin;
-  base->after = end;
-
-  return true;
-}
-
 /*----------------------------------------------------------------------------.
  | HANDLERS FOR SPECIFIC VCF RECORD TYPES                                     |
  '----------------------------------------------------------------------------*/
@@ -166,34 +53,25 @@ determine_confidence_interval (FaldoExactPosition *base,
 void
 handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
-  /* One of: VCF_REF, VCF_SNP, VCF_MNP, VCF_INDEL, VCF_OTHER, VCF_BND. */
-  int variant_type = bcf_get_variant_types (buffer);
-
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (program_config.filter &&
       bcf_has_filter (header, buffer, program_config.filter) == 1)
-    {
-      pthread_mutex_lock (&output_mutex);
-      printf ("# Skipping %s record,\n", program_config.filter);
-      pthread_mutex_unlock (&output_mutex);
-      return;
-    }
+    return;
 
   if (program_config.keep &&
       bcf_has_filter (header, buffer, program_config.keep) != 1)
-    {
-      pthread_mutex_lock (&output_mutex);
-      printf ("# Skipping record without %s.\n", program_config.keep);
-      pthread_mutex_unlock (&output_mutex);
-      return;
-    }
+    return;
 
   Variant variant;
-  variant_initialize (&variant, variant_type);
+  variant_initialize (&variant, bcf_get_variant_types (buffer));
+  variant.origin = origin;
 
   /* Unpack up and including the ALT field. */
   bcf_unpack (buffer, BCF_UN_STR);
+
+  void *buf = NULL;
+  int32_t buf_len = 0;
 
   /* If the allele information is still missing after unpacking the buffer,
    * we will end up without REF information.  So, let's skip such records. */
@@ -221,17 +99,15 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   /* Gather the positions.
    * ------------------------------------------------------------------------ */
   FaldoExactPosition start_position, end_position;
-  faldo_position_initialize ((FaldoBaseType *)&start_position, FALDO_EXACT_POSITION);
-  faldo_position_initialize ((FaldoBaseType *)&end_position, FALDO_EXACT_POSITION);
-
+  faldo_exact_position_initialize (&start_position);
   variant.start_position = &start_position;
+
+  faldo_exact_position_initialize (&end_position);
   variant.end_position = &end_position;
 
   start_position.position = buffer->pos;
   start_position.chromosome = (char *)bcf_seqname (header, buffer);
   start_position.chromosome_len = strlen (start_position.chromosome);
-
-  variant.length = end - buffer->pos;
 
   /* For BND, the chromosome for the end position can be different. */
   if (svtype != NULL && !strcmp (svtype, "BND"))
@@ -243,7 +119,7 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
         puts ("# WARNING: Failed to parse complex rearrangement.");
       else
         {
-          variant.is_complex_rearrangement = TRUE;
+          variant.is_complex_rearrangement = true;
           variant.is_reversed = properties.is_reversed;
           variant.is_left_of_ref = properties.is_left_of_ref;
 
@@ -264,99 +140,130 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       /* One possible fallback is to infer it from the SVLEN property. */
       else if (bcf_get_info_int32 (header, buffer, "SVLEN", &buf, &buf_len) > 0)
         end_position.position = start_position.position + ((int32_t *)buf)[0];
+
+      free (buf);
+      buf = NULL;
+      buf_len = 0;
     }
+
+  if (end_position.chromosome != NULL)
+    end_position.chromosome_len = strlen (end_position.chromosome);
 
   /* When the positions are not on the same chromosome, our length indication
    * does not make any sense.  What also doesn't make sense is a length of 0. */
   if (strcmp (end_position.chromosome, start_position.chromosome))
     variant.length = 0;
+  else if (end_position.position != 0 && start_position.position != 0)
+    variant.length = abs(end_position.position - start_position.position);
 
-  FaldoExactPosition end_position;
-  faldo_position_initialize ((FaldoBaseType *)&end_position, FALDO_EXACT_POSITION);
-  end_position.position = end;
-  end_position.chromosome = chr2;
-  end_position.chromosome_len = strlen (chr2);
-
-  FaldoInBetweenPosition confidence_position;
-  faldo_position_initialize ((FaldoBaseType *)&confidence_position,
-                             FALDO_IN_BETWEEN_POSITION);
-
-  /* Handle the confidence interval for the start position.
+  /* Handle the confidence intervals.
    * ------------------------------------------------------------------------ */
-  determine_confidence_interval (variant.start_position,
-                                 "CIPOS",
-                                 variant.cipos->before,
-                                 variant.cipos->after);
+  FaldoExactPosition cipos_before, cipos_after, ciend_before, ciend_after;
+  faldo_exact_position_initialize (&cipos_before);
+  faldo_exact_position_initialize (&cipos_after);
+  faldo_exact_position_initialize (&ciend_before);
+  faldo_exact_position_initialize (&ciend_after);
 
-  determine_confidence_interval (variant.end_position,
-                                 "CIEND",
-                                 variant.ciend->before,
-                                 variant.ciend->after);
+  FaldoInBetweenPosition cipos, ciend;
+  faldo_in_between_position_initialize (&cipos);
+  faldo_in_between_position_initialize (&ciend);
 
-  pthread_mutex_lock (&output_mutex);
-  faldo_position_print ((FaldoBaseType *)&variant.cipos);
-  faldo_position_print ((FaldoBaseType *)&variant.ciend);
-  //faldo_position_print ((FaldoBaseType *)&confidence_position);
-  faldo_exact_position_print (variant.start_position);
-  faldo_exact_position_print (variant.end_position);
-  pthread_mutex_unlock (&output_mutex);
+  determine_confidence_interval (variant.start_position, "CIPOS", &cipos_before, &cipos_after, header, buffer);
+  determine_confidence_interval (variant.end_position, "CIEND", &ciend_before, &ciend_after, header, buffer);
 
-  faldo_exact_position_reset (&ci_start_position);
-  faldo_exact_position_reset (&ci_end_position);
+  cipos.before = &cipos_before;
+  cipos.after = &cipos_after;
+  ciend.before = &cipos_before;
+  ciend.after = &cipos_after;
+
+  variant.cipos = &cipos;
+  variant.ciend = &ciend;
 
   /* Probe for more fields/information.
+   *
+   * Please note that these properties may not be available in the VCF.  So
+   * write your code in a way that allows for these values to be missing.
    * ------------------------------------------------------------------------ */
-  void *buf = NULL;
-  int32_t buf_len = 0;
-
-  int32_t mapq = 0;
   if (bcf_get_info_int32 (header, buffer, "MAPQ", &buf, &buf_len) > 0)
-    mapq = ((int32_t *)buf)[0];
+    {
+      variant.mapq = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t paired_end_support = 0;
   if (bcf_get_info_int32 (header, buffer, "PE", &buf, &buf_len) > 0)
-    paired_end_support = ((int32_t *)buf)[0];
+    {
+      variant.paired_end_support = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t split_read_support = 0;
   if (bcf_get_info_int32 (header, buffer, "SR", &buf, &buf_len) > 0)
-    split_read_support = ((int32_t *)buf)[0];
+    {
+      variant.split_read_support = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  float split_read_consensus_alignment_quality = 0;
   if (bcf_get_info_float (header, buffer, "SRQ", &buf, &buf_len) > 0)
-    split_read_consensus_alignment_quality = ((float *)buf)[0];
+    {
+      variant.split_read_consensus_alignment_quality = ((float *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t read_count = 0;
   if (bcf_get_format_int32 (header, buffer, "RC", &buf, &buf_len) > 0)
-    read_count = ((int32_t *)buf)[0];
+    {
+      variant.read_count = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t hq_reference_pairs = 0;
   if (bcf_get_format_int32 (header, buffer, "DR", &buf, &buf_len) > 0)
-    hq_reference_pairs = ((int32_t *)buf)[0];
+    {
+      variant.hq_reference_pairs = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t hq_variant_pairs = 0;
   if (bcf_get_format_int32 (header, buffer, "DV", &buf, &buf_len) > 0)
-    hq_variant_pairs = ((int32_t *)buf)[0];
+    {
+      variant.hq_variant_pairs = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t hq_ref_junction_reads = 0;
   if (bcf_get_format_int32 (header, buffer, "RR", &buf, &buf_len) > 0)
-    hq_ref_junction_reads = ((int32_t *)buf)[0];
+    {
+      variant.hq_ref_junction_reads = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
 
-  int32_t hq_var_junction_reads = 0;
   if (bcf_get_format_int32 (header, buffer, "RV", &buf, &buf_len) > 0)
-    hq_var_junction_reads = ((int32_t *)buf)[0];
-  
-  variant.origin = origin;
-  variant.position = (FaldoBaseType *)&start_position;
-  variant.confidence_interval = (FaldoBaseType *)&confidence_position;
+    {
+      variant.hq_var_junction_reads = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
+
   if (!variant_gather_data (&variant, header, buffer))
     fprintf (stderr, "# Couldn't gather variant data.\n");
 
+  /* Output the gathered information.
+   * ------------------------------------------------------------------------ */
   pthread_mutex_lock (&output_mutex);
+  faldo_position_print ((FaldoBaseType *)(variant.cipos->before));
+  faldo_position_print ((FaldoBaseType *)(variant.cipos->after));
+  faldo_position_print ((FaldoBaseType *)(variant.cipos));
+  faldo_position_print ((FaldoBaseType *)(variant.ciend->before));
+  faldo_position_print ((FaldoBaseType *)(variant.ciend->after));
+  faldo_position_print ((FaldoBaseType *)(variant.ciend));
+  faldo_position_print ((FaldoBaseType *)(variant.start_position));
+  faldo_position_print ((FaldoBaseType *)(variant.end_position));
   variant_print (&variant, header);
   pthread_mutex_unlock (&output_mutex);
 
-  faldo_exact_position_reset (&start_position);
-  faldo_in_between_position_reset (&confidence_position);
+  faldo_position_reset ((FaldoBaseType *)(variant.cipos->before), FALDO_EXACT_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.cipos->after), FALDO_EXACT_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.cipos), FALDO_IN_BETWEEN_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.ciend->before), FALDO_EXACT_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.ciend->after), FALDO_EXACT_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.ciend), FALDO_IN_BETWEEN_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.start_position), FALDO_EXACT_POSITION);
+  faldo_position_reset ((FaldoBaseType *)(variant.end_position), FALDO_EXACT_POSITION);
+  variant_reset (&variant);
 }
 
 typedef struct
@@ -380,7 +287,6 @@ run_jobs_in_thread (void *data)
 
   /* Process the records. */
   int32_t i = 0;
-  int variant_type = 0;
 
   for (; i < pack->jobs_to_run; i++)
     {
@@ -550,6 +456,7 @@ main (int argc, char **argv)
   program_config.graph_location = (char *)DEFAULT_GRAPH_LOCATION;
   program_config.threads = 2;
   program_config.jobs_per_thread = 500;
+  program_config.no_header = false;
 
   pthread_mutex_init(&output_mutex, NULL);
 
@@ -573,6 +480,7 @@ main (int argc, char **argv)
           { "reference",         required_argument, 0, 'r' },
           { "caller",            required_argument, 0, 'c' },
           { "threads",           required_argument, 0, 't' },
+          { "no-header",         no_argument,       0, 'n' },
 	  { "help",              no_argument,       0, 'h' },
 	  { "version",           no_argument,       0, 'v' },
 	  { 0,                   0,                 0, 0   }
@@ -581,7 +489,7 @@ main (int argc, char **argv)
       while ( arg != -1 )
 	{
 	  /* Make sure to list all short options in the string below. */
-	  arg = getopt_long (argc, argv, "i:f:p:k:r:c:t:vh", options, &index);
+	  arg = getopt_long (argc, argv, "i:f:p:k:r:c:t:nvh", options, &index);
           switch (arg)
             {
             case 'c': program_config.caller = optarg;                break;
@@ -591,6 +499,7 @@ main (int argc, char **argv)
             case 'k': program_config.keep = optarg;                  break;
             case 'r': program_config.reference = optarg;             break;
             case 't': program_config.threads = atoi(optarg);         break;
+            case 'n': program_config.no_header = true;               break;
             case 'h': show_help ();                                  break;
             case 'v': show_version ();                               break;
             }
@@ -607,7 +516,7 @@ main (int argc, char **argv)
     {
       /* Show warnings for missing options that lead to missing data.
        * -------------------------------------------------------------------- */
-      if (program_config.reference == NULL)
+      if (!strcmp (program_config.reference, "unknown"))
         fputs ("Warning: No --reference has been specified.  "
                "This may lead to incomplete and/or ambiguous information "
                "in the database.\n", stderr);
@@ -670,39 +579,42 @@ main (int argc, char **argv)
 
       /* Write the prefix of the Turtle output.
        * -------------------------------------------------------------------- */
-      puts ("@prefix vcf:     <http://semweb.op.umcutrecht.nl/vcf/> .\n"
-            "@prefix smo:     <http://semweb.op.umcutrecht.nl/smo/> .\n"
-            "@prefix faldo:   <http://biohackathon.org/resource/faldo#> .\n"
-            "@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-            "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .");
-
-      printf ("@prefix : <%s> .\n",                     program_config.graph_location);
-      printf ("@prefix v: <%sVariant/> .\n",            program_config.graph_location);
-      printf ("@prefix p: <%sPosition/> .\n",           program_config.graph_location);
-      printf ("@prefix ep: <%sExactPosition/> .\n",     program_config.graph_location);
-      printf ("@prefix ip: <%sInBetweenPosition/> .\n", program_config.graph_location);
-      printf ("@prefix rp: <%sRangedPosition/> .\n",    program_config.graph_location);
-      printf ("@prefix s: <%sSample/> .\n",             program_config.graph_location);
-      printf ("@prefix h: <%sVcfHeader/> .\n",          program_config.graph_location);
-      printf ("@prefix o: <%sOrigin/> .\n",           program_config.graph_location);
-
-      /* There seem to be slight differences between the way URIs for GRCh38
-       * and GRCh37.  Also, the GRCh37 is only available for download from their FTP
-       * server.  So it cannot be queried by their own web-based ontology browser. */
-      if (!strcmp (program_config.reference, "GRCh37") ||
-          !strcmp (program_config.reference, "grch37"))
+      if (! program_config.no_header)
         {
-          program_config.reference = "grch37";
-          puts ("@prefix grch37: <http://rdf.ebi.ac.uk/resource/ensembl/83/chromosome:GRCh37:> .");
-        }
-      else if (!strcmp (program_config.reference, "GRCh38") ||
-               !strcmp (program_config.reference, "grch38"))
-        {
-          program_config.reference = "grch38";
-          puts ("@prefix grch38: <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/> .");
-        }
+          puts ("@prefix vcf:     <http://semweb.op.umcutrecht.nl/vcf/> .\n"
+                "@prefix smo:     <http://semweb.op.umcutrecht.nl/smo/> .\n"
+                "@prefix faldo:   <http://biohackathon.org/resource/faldo#> .\n"
+                "@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+                "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .");
 
-      puts ("");
+          printf ("@prefix :        <%s> .\n",                   program_config.graph_location);
+          printf ("@prefix v:       <%sVariant/> .\n",           program_config.graph_location);
+          printf ("@prefix p:       <%sPosition/> .\n",          program_config.graph_location);
+          printf ("@prefix ep:      <%sExactPosition/> .\n",     program_config.graph_location);
+          printf ("@prefix ip:      <%sInBetweenPosition/> .\n", program_config.graph_location);
+          printf ("@prefix rp:      <%sRangedPosition/> .\n",    program_config.graph_location);
+          printf ("@prefix s:       <%sSample/> .\n",            program_config.graph_location);
+          printf ("@prefix h:       <%sVcfHeader/> .\n",         program_config.graph_location);
+          printf ("@prefix o:       <%sOrigin/> .\n",            program_config.graph_location);
+
+          /* There seem to be slight differences between the way URIs for GRCh38
+           * and GRCh37.  Also, the GRCh37 is only available for download from their FTP
+           * server.  So it cannot be queried by their own web-based ontology browser. */
+          if (!strcmp (program_config.reference, "GRCh37") ||
+              !strcmp (program_config.reference, "grch37"))
+            {
+              program_config.reference = "grch37";
+              puts ("@prefix grch37:  <http://rdf.ebi.ac.uk/resource/ensembl/83/chromosome:GRCh37:> .");
+            }
+          else if (!strcmp (program_config.reference, "GRCh38") ||
+                   !strcmp (program_config.reference, "grch38"))
+            {
+              program_config.reference = "grch38";
+              puts ("@prefix grch38:  <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/> .");
+            }
+
+          puts ("");
+        }
 
       /* Add origin to database.
        * -------------------------------------------------------------------- */

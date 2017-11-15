@@ -60,3 +60,111 @@ get_pretty_hash (unsigned char *hash, uint32_t length, char *output)
 
   return true;
 }
+
+void
+bnd_properties_init (BndProperties *properties)
+{
+  if (properties == NULL) return;
+
+  properties->is_reversed = false;
+  properties->is_left_of_ref = false;
+  properties->chromosome = NULL;
+  properties->chromosome_len = 0;
+  properties->position = 0;
+}
+
+bool
+parse_properties (BndProperties *properties,
+                  const char *ref, int32_t ref_len,
+                  const char *alt, int32_t alt_len)
+{
+  if (properties == NULL || ref == NULL || alt == NULL) return false;
+
+  char bracket;
+
+  /* Determine direction and inner-position.
+   * ------------------------------------------------------------------------ */
+  if (alt[0] == ']')
+    {
+      properties->is_reversed = false;
+      properties->is_left_of_ref = true;
+      bracket = ']';
+    }
+  else if (alt[0] == '[')
+    {
+      properties->is_reversed = true;
+      properties->is_left_of_ref = true;
+      bracket = '[';
+    }
+  else if (alt[alt_len - 1] == '[')
+    {
+      properties->is_reversed = false;
+      properties->is_left_of_ref = false;
+      bracket = '[';
+    }
+  else if (alt[alt_len - 1] == ']')
+    {
+      properties->is_reversed = true;
+      properties->is_left_of_ref = false;
+      bracket = ']';
+    }
+
+  /* Determine second chromosome and position.
+   * ------------------------------------------------------------------------ */
+  char *first_bracket = strchr (alt, bracket);
+  char *last_bracket = strchr (first_bracket + 1, bracket);
+  char *separator = strchr (alt, ':');
+
+  if (first_bracket == NULL || last_bracket == NULL || separator == NULL)
+    return false;
+
+  properties->chromosome_len = separator - first_bracket - 1;
+  int32_t position_len = last_bracket - separator - 1;
+
+  properties->chromosome = calloc (sizeof (char), properties->chromosome_len+1);
+
+  if (properties->chromosome == NULL)
+    return false;
+
+  char pos[sizeof (char) * position_len + 1];
+  memset (pos, 0, position_len + 1);
+
+  memcpy (properties->chromosome, first_bracket+1, properties->chromosome_len);
+  memcpy (pos, separator + 1, position_len);
+
+  properties->position = atoi (pos);
+  return properties;
+}
+
+bool
+determine_confidence_interval (FaldoExactPosition *base,
+                               const char *property,
+                               FaldoExactPosition *begin,
+                               FaldoExactPosition *end,
+                               bcf_hdr_t *header,
+                               bcf1_t *buffer)
+{
+  int32_t *cipos = NULL;
+  int32_t cipos_len = 0;
+  bcf_get_info_int32 (header, buffer, property, &cipos, &cipos_len);
+
+  if (cipos_len > 0 && cipos)
+    {
+      begin->position       -= cipos[0];
+      end->position         += cipos[1];
+      begin->chromosome      = base->chromosome;
+      end->chromosome        = base->chromosome;
+      begin->chromosome_len  = base->chromosome_len;
+      end->chromosome_len    = base->chromosome_len;
+    }
+  else
+    return false;
+
+  if (cipos)
+    {
+      free (cipos);
+      cipos = NULL;
+    }
+
+  return true;
+}
