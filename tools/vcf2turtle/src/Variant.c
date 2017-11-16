@@ -292,20 +292,3 @@ variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
 
   return true;
 }
-
-bool
-variant_gather_filter (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
-{
-  if (variant == NULL || header == NULL || buffer == NULL ||
-      buffer->d.allele == NULL)
-    return false;
-
-  variant->reference = buffer->d.allele[0];
-  variant->alternative = buffer->d.allele[1];
-  variant->id = buffer->d.id;
-  variant->quality = buffer->qual;
-  variant->filters_len = buffer->d.n_flt;
-  variant->filters = buffer->d.flt;
-
-  return true;
-}
