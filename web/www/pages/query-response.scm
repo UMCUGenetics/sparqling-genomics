@@ -1,5 +1,22 @@
+;;; Copyright © 2016, 2017  Roel Janssen <roel@gnu.org>
+;;;
+;;; This program is free software: you can redistribute it and/or
+;;; modify it under the terms of the GNU Affero General Public License
+;;; as published by the Free Software Foundation, either version 3 of
+;;; the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Affero General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Affero General Public
+;;; License along with this program.  If not, see
+;;; <http://www.gnu.org/licenses/>.
+
 (define-module (www pages query-response)
   #:use-module (www pages)
+  #:use-module (www util)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
@@ -8,32 +25,6 @@
   #:use-module (sxml simple)
 
   #:export (page-query-response))
-
-(define (csv-split-line line delimiter)
-  "Splits LINE where DELIMITER is the separator, properly handling quotes."
-
-  (define (iterator line length token-begin position in-quote tokens)
-    (cond
-     ((= position length)
-      (reverse (cons (string-drop line token-begin) tokens)))
-     ((eq? (string-ref line position) delimiter)
-      (if in-quote
-          (iterator line length token-begin (1+ position) in-quote tokens)
-          (iterator line length (1+ position) (1+ position) in-quote
-                    (cons (substring line token-begin position)
-                          tokens))))
-     ((eq? (string-ref line position) #\")
-      (iterator line length token-begin (1+ position) (not in-quote) tokens))
-     (else (iterator line length token-begin (1+ position) in-quote tokens))))
-
-  (iterator line (string-length line) 0 0 #f '()))
-
-(define (suffix-iri input)
-  (if input
-      (string-trim-both
-       (string-drop input
-                    (1+ (string-rindex input #\/))) #\")
-      "unknown"))
 
 (define* (response->sxml port
                          #:optional (read-header? #t)

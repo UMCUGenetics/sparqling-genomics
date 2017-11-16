@@ -17,9 +17,17 @@
 (define-module (www pages error)
   #:use-module (www pages)
   #:use-module (www config)
+  #:use-module (www util)
+  #:use-module (sparql driver)
+  #:use-module (web response)
+  #:use-module (ice-9 receive)
+  #:use-module (ice-9 rdelim)
+  #:use-module (srfi srfi-1)
+  #:use-module (sxml simple)
   #:export (page-error-404
             page-error-filesize
-            page-error))
+            page-error
+            page-ontology-or-error-404))
 
 (define (page-error-404 request-path)
   (page-root-template "Oops!" request-path
@@ -30,4 +38,24 @@
    `(p ,(format #f "The maximum file size has been set to ~a megabytes."
                 (/ %www-max-file-size 1000000)))))
 
-(define page-error page-error-404)
+(define page-error
+    page-error-404)
+
+(define (page-ontology-or-error-404 request-path)
+  (let ((result (receive (header port)
+                    (sparql-query (build-exploration-query request-path) #:type "text/csv")
+                  (if (= (response-code header) 200)
+                      port
+                      #f))))
+    (if result
+        (begin
+          ;; The first line in the output is the table header. Skip it.
+          (read-line result)
+          (receive (response type)
+            (sparql-response->sxml result)
+            (if (null? response)
+                (page-error-404 request-path)
+                (page-root-template "sparqling-svs" request-path
+                 `((h2 "Properties of " ,(suffix-iri type))
+                   ,response)))))
+        (page-error-404 request-path))))

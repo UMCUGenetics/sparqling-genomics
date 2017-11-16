@@ -144,7 +144,8 @@ creates a HTML page that is sent back to the user."
                                           (utf8->string
                                            request-body)) port)
                               (sxml->xml (display-function request-path) port)))
-                        (sxml->xml (page-error-404 request-path) port))))))))
+                        (sxml->xml (page-ontology-or-error-404 request-path)
+                                   port))))))))
 
 
 ;; ----------------------------------------------------------------------------

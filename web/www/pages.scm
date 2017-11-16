@@ -17,9 +17,27 @@
 (define-module (www pages)
   #:use-module (srfi srfi-1)
   #:use-module (www config)
+  #:use-module (www util)
+  #:use-module (sparql driver)
+  #:use-module (web response)
+  #:use-module (ice-9 receive)
+  #:use-module (ice-9 rdelim)
   #:export (page-root-template))
 
 (define page-title-prefix (string-append %www-name " | "))
+
+(define (page-is-ontology? request-path)
+  (receive (header port)
+    (sparql-query (build-existence-query request-path) #:type "text/csv")
+    (if (= (response-code header) 200)
+        (begin
+          ;; The first line is the header.
+          (read-line port)
+          ;; The second line contains a single number.
+          (let ((result (string->number (read-line port))))
+            (close port)
+            (> result 0)))
+        #f)))
 
 (define pages
   '(("/" "Overview")
@@ -30,22 +48,23 @@
     ("/help" "Help")))
 
 (define (page-partial-main-menu request-path)
-  `(ul
-    ,(map
-      (lambda (item)
-        (cond
-         ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
-          `(li (@ (class "active")) ,(cadr item)))
-         ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
-               (string= (car item) "/query"))
-          `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
-         ((and (string= "cth" (car (string-split (substring request-path 1) #\/)))
-               (string= (car item) "/query"))
-          `(li (@ (class "active")) (a (@ (href "/query")
-                     (onclick "history.go(-1); return false;")) "← Go back")))
-         (else
-          `(li (a (@ (href ,(car item))) ,(cadr item))))))
-      pages)))
+  (let ((page-is-ontology (page-is-ontology? request-path)))
+    `(ul
+      ,(map
+        (lambda (item)
+          (cond
+           ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
+            `(li (@ (class "active")) ,(cadr item)))
+           ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
+                 (string= (car item) "/query"))
+            `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
+           ((and page-is-ontology
+                 (string= (car item) "/query"))
+            `(li (@ (class "active")) (a (@ (href "/query")
+                                            (onclick "history.go(-1); return false;")) "← Go back")))
+           (else
+            `(li (a (@ (href ,(car item))) ,(cadr item))))))
+        pages))))
 
 (define* (page-root-template title request-path content-tree #:key (dependencies '(test)))
   `((html (@ (lang "en"))
