@@ -77,14 +77,12 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
    * we will end up without REF information.  So, let's skip such records. */
   if (buffer->d.allele == NULL)
     {
-      pthread_mutex_lock (&output_mutex);
-      printf ("# Skipping record because of missing allele information.\n");
-      pthread_mutex_unlock (&output_mutex);
+      fprintf (stderr, "# Skipping record because of missing allele information.\n");
       return;
     }
 
   char *ref = buffer->d.allele[0];
-  int32_t ref_len = buffer->rlen;
+  int32_t ref_len = strlen (ref);
 
   /* TODO: Only the first alternative allele is considered.  When multiple
    * alleles are specified, we need to provide variants for each allele. */

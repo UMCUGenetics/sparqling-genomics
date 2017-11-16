@@ -146,11 +146,20 @@ faldo_in_between_position_print (FaldoInBetweenPosition *range)
 {
   if (range == NULL) return;
 
+  char *range_name = faldo_in_between_position_name (range);
+  if (range_name == NULL)
+    fprintf (stderr, "faldo_in_between_position_print: Unexpected range == NULL.\n");
+
+  char *before_name = faldo_exact_position_name (range->before);
+  if (before_name == NULL)
+    fprintf (stderr, "faldo_in_between_position_print: Unexpected before == NULL.\n");
+
+  char *after_name = faldo_exact_position_name (range->after);
+  if (after_name == NULL)
+    fprintf (stderr, "faldo_in_between_position_print: Unexpected after == NULL.\n");
+
   printf ("ip:%s rdf:type faldo:InBetweenPosition ; faldo:before ep:%s ; "
-          "faldo:after ep:%s .\n",
-          faldo_in_between_position_name (range),
-          faldo_exact_position_name (range->before),
-          faldo_exact_position_name (range->after));
+          "faldo:after ep:%s .\n", range_name, before_name, after_name);
 }
 
 void
@@ -158,12 +167,14 @@ faldo_exact_position_print (FaldoExactPosition *position)
 {
   if (position == NULL || program_config.reference == NULL) return;
 
-  FaldoExactPosition *p = (FaldoExactPosition *)position;
+  char *position_name = faldo_exact_position_name (position);
+  if (position_name == NULL)
+    fprintf (stderr, "faldo_exact_position_name: Unexpected position == NULL.\n");
 
   printf ("ep:%s rdf:type faldo:ExactPosition ; faldo:position %u ; "
           "faldo:reference %s:%s .\n",
-          faldo_exact_position_name (p), p->position,
-          program_config.reference, p->chromosome);
+          position_name, position->position,
+          program_config.reference, position->chromosome);
 }
 
 void
@@ -171,11 +182,20 @@ faldo_range_print (FaldoRange *range)
 {
   if (range == NULL) return;
 
+  char *range_name = faldo_range_name (range);
+  if (range_name == NULL)
+    fprintf (stderr, "Unexpected range_name == NULL.\n");
+
+  char *start_name = faldo_exact_position_name (range->start);
+  if (start_name == NULL)
+    fprintf (stderr, "Unexpected start_name == NULL.\n");
+
+  char *end_name = faldo_exact_position_name (range->end);
+  if (end_name == NULL)
+    fprintf (stderr, "Unexpected end_name == NULL.\n");
+
   printf ("rp:%s rdf:type faldo:RangePosition ; faldo:begin ep:%s ; "
-          "faldo:end ep:%s .\n",
-          faldo_range_name (range),
-          faldo_exact_position_name (range->start),
-          faldo_exact_position_name (range->end));
+          "faldo:end ep:%s .\n", range_name, start_name, end_name);
 }
 
 void
