@@ -73,9 +73,6 @@ faldo_exact_position_name (FaldoExactPosition *position)
   if (position->chromosome == NULL)
     return NULL;
 
-  if (position->position == 0)
-    return NULL;
-
   position->name_len = 22 + position->chromosome_len +
                        strlen (program_config.reference);
 

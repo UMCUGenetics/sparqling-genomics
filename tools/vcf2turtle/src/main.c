@@ -89,10 +89,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   char *alt = buffer->d.allele[1];
   int32_t alt_len = strlen (alt);
 
-  bcf_info_t *svtype_info = bcf_get_info (header, buffer, "SVTYPE");
   char *svtype = NULL;
-  if (svtype_info != NULL)
-    svtype = (char *)header->id[BCF_DT_ID][svtype_info->key].key;
+  int32_t svtype_len = 0;
+  bcf_get_info_string (header, buffer, "SVTYPE", &svtype, &svtype_len);
 
   /* Gather the positions.
    * ------------------------------------------------------------------------ */
@@ -108,9 +107,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   start_position.chromosome_len = strlen (start_position.chromosome);
 
   /* For BND, the chromosome for the end position can be different. */
+  BndProperties properties;
   if (svtype != NULL && !strcmp (svtype, "BND"))
     {
-      BndProperties properties;
       bnd_properties_init (&properties);
 
       if (!parse_properties (&properties, ref, ref_len, alt, alt_len))
@@ -142,6 +141,13 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       free (buf);
       buf = NULL;
       buf_len = 0;
+    }
+
+  /* In case SVTYPE was allocated, clean it up here. */
+  if (svtype != NULL)
+    {
+      free (svtype);
+      svtype = NULL;
     }
 
   if (end_position.chromosome != NULL)
@@ -252,6 +258,12 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   faldo_position_print ((FaldoBaseType *)(variant.end_position));
   variant_print (&variant, header);
   pthread_mutex_unlock (&output_mutex);
+
+  if (properties.chromosome != NULL)
+    {
+      free (properties.chromosome);
+      properties.chromosome = NULL;
+    }
 
   faldo_position_reset ((FaldoBaseType *)(variant.cipos->before), FALDO_EXACT_POSITION);
   faldo_position_reset ((FaldoBaseType *)(variant.cipos->after), FALDO_EXACT_POSITION);
@@ -679,7 +691,7 @@ main (int argc, char **argv)
       int32_t queue = 0;
       while (bcf_read (vcf_stream, vcf_header, tbuffers[queue]) == 0)
         {
-          if (queue >= (program_config.jobs_per_thread * program_config.threads - 2))
+          if (queue >= (program_config.jobs_per_thread * program_config.threads - 1))
             {
               htslib_data_t pack[j];
               /* Spawn the threads. */
