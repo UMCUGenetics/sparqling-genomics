@@ -133,19 +133,12 @@ make && make install
 
   The triples \texttt{vcf2turtle} extracts are:
   \begin{itemize}
-    \item Chromosome and position from the \texttt{CHROM} and \texttt{POS}
-      columns;
-    \item Filter names from the \texttt{FILTER} column;
-    \item Quality from the \texttt{QUAL} column;
-  \end{itemize}
-
-  For structural variants, the following extra triples are extracted:
-  \begin{itemize}
-    \item Chromosome and position of the second location specified in the
-      \texttt{CHR2} and \texttt{END} fields.
-    \item Confidence interval using the \texttt{CIPOS} and \texttt{CIEND}
-      fields.
-    \item Structural variant type specified in the \texttt{SVTYPE} field.
+    \item The base fields: \texttt{CHROM}, \texttt{POS}, \texttt{ID},
+      \texttt{ALT}, \texttt{REF}, \texttt{QUAL}, and \texttt{FILTER}.
+    \item Optionally, when present: \texttt{SVTYPE}, \texttt{END},
+      \texttt{SVLEN}, \texttt{CIPOS}, \texttt{CIEND}, \texttt{MAPQ},
+      \texttt{PE}, \texttt{SR}, \texttt{SRQ}, \texttt{RC}, \texttt{DR},
+      \texttt{DV}, \texttt{RR}, \texttt{RV}.
   \end{itemize}
 
 \subsection{How \texttt{vcf2turtle} describes variants}
