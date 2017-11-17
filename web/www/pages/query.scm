@@ -12,30 +12,8 @@ PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX : <http://localhost:5000/cth/>
+PREFIX : <http://localhost:5000/MyData/>
 
-SELECT DISTINCT ?variant ?svtype ?geneName ?ensemblGeneId ?location {
-    ?variant a :StructuralVariant .
-    ?variant :genome_position ?p .
-    ?variant :filter ?filter .
-    ?variant :type ?svtype .
-    ?p :chromosome ?chromosome .
-    ?p :position ?position .
-    ?location faldo:reference grch38:1 .
-    ?location faldo:begin ?begin .
-    ?location faldo:end ?end .
-    ?begin faldo:position ?beginPosition .
-    ?end faldo:position ?endPosition .
-    ?ensemblGeneId a ?type ;
-          rdfs:label ?label ;
-          dc:description ?desc ;
-          dc:identifier ?id ;
-          faldo:location ?location .
-      ?ensemblGeneId rdfs:label ?geneName .
-    FILTER (?chromosome = \"1\")
-    FILTER (?position > (?beginPosition) && ?position < (?endPosition))
-}
-LIMIT 10
 ")
      (script "
 $(document).ready(function(){
@@ -43,6 +21,8 @@ $(document).ready(function(){
   var session = editor.getSession();
   editor.setTheme('ace/theme/github');
   editor.setShowPrintMargin(false);
+  editor.setAutoScrollEditorIntoView(true);
+  editor.setOptions({ maxLines: 120, minLines: 2 });
   session.setMode('ace/mode/sparql');
   session.setTabSize(2);
 

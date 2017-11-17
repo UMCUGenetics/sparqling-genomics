@@ -23,7 +23,7 @@
     font-family: 'FiraMono';
     src: url('/static/fonts/FiraMono-Regular.ttf') format('truetype');
     font-weight: normal;
-    font-style: bold;
+    font-style: normal;
 }
 
 body,html {
@@ -34,7 +34,7 @@ body,html {
     font-family: 'Roboto', sans-serif;
     font-size: 11pt;
     color: #000000;
-    background-color: #93a7ac;
+    background-color: #6f917c;
 }
 
 #wrapper {
@@ -83,13 +83,15 @@ a:hover { color: #555555; }
 #content {
     padding: 10pt;
     background-color: #ffffff;
-    /*background: linear-gradient(#ffffff, #eeeeee);*/
     line-height: 1.5;
     text-align: justify;
     text-justify: inter-word;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
+    -moz-box-shadow: 0 0 30px -20px #000000;
+    -webkit-box-shadow: 0 0 30px -20px #000000;
+    box-shadow: 0 0 30px -20px #000000;
 }
 #content .search-field {
     border: solid 1px #999;
@@ -195,8 +197,6 @@ div.action-button:hover {
 
 #editor {
     width: 100%;
-    min-height: 250pt;
-    height: 450pt;
     top: 0;
     bottom: 0;
     left: 0;
