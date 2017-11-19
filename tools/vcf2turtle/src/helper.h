@@ -42,7 +42,6 @@ typedef struct
 void bnd_properties_init (BndProperties *properties);
 
 bool parse_properties (BndProperties *properties,
-                       const char *ref, int32_t ref_len,
                        const char *alt, int32_t alt_len);
 
 bool determine_confidence_interval (FaldoExactPosition *base,

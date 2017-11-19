@@ -50,6 +50,19 @@ const char DEFAULT_GRAPH_LOCATION[] = "http://localhost:8890/";
  | HANDLERS FOR SPECIFIC VCF RECORD TYPES                                     |
  '----------------------------------------------------------------------------*/
 
+void get_info_value_int32_t (bcf_hdr_t *header, bcf1_t *buffer,
+                             const char *field, int32_t *destination)
+{
+  void *buf = NULL;
+  int32_t buf_len = 0;
+
+  if (bcf_get_info_int32 (header, buffer, field, &buf, &buf_len) > 0)
+    {
+      *destination = ((int32_t *)buf)[0];
+      free (buf); buf = NULL; buf_len = 0;
+    }
+}
+
 void
 handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
 {
@@ -70,28 +83,15 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   /* Unpack up and including the ALT field. */
   bcf_unpack (buffer, BCF_UN_STR);
 
-  void *buf = NULL;
-  int32_t buf_len = 0;
-
-  /* If the allele information is still missing after unpacking the buffer,
-   * we will end up without REF information.  So, let's skip such records. */
-  if (buffer->d.allele == NULL)
-    {
-      fprintf (stderr, "# Skipping record because of missing allele information.\n");
-      return;
-    }
-
-  char *ref = buffer->d.allele[0];
-  int32_t ref_len = strlen (ref);
-
-  /* TODO: Only the first alternative allele is considered.  When multiple
-   * alleles are specified, we need to provide variants for each allele. */
-  char *alt = buffer->d.allele[1];
-  int32_t alt_len = strlen (alt);
+  if (!variant_gather_data (&variant, header, buffer))
+    fprintf (stderr, "# Couldn't gather variant data.\n");
 
   char *svtype = NULL;
   int32_t svtype_len = 0;
   bcf_get_info_string (header, buffer, "SVTYPE", &svtype, &svtype_len);
+
+  void *buf = NULL;
+  int32_t buf_len = 0;
 
   /* Gather the positions.
    * ------------------------------------------------------------------------ */
@@ -102,17 +102,20 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   faldo_exact_position_initialize (&end_position);
   variant.end_position = &end_position;
 
-  start_position.position = buffer->pos;
+  /* HTSlib uses 0-based positions, while in the VCF 1-based position are used.
+   * Therefore we need to add one to the position here. */
+  start_position.position = buffer->pos + 1;
   start_position.chromosome = (char *)bcf_seqname (header, buffer);
   start_position.chromosome_len = strlen (start_position.chromosome);
 
   /* For BND, the chromosome for the end position can be different. */
   BndProperties properties;
+  bnd_properties_init (&properties);
+
   if (svtype != NULL && !strcmp (svtype, "BND"))
     {
-      bnd_properties_init (&properties);
-
-      if (!parse_properties (&properties, ref, ref_len, alt, alt_len))
+      if (!parse_properties (&properties, variant.alternative,
+                             strlen (variant.alternative)))
         puts ("# WARNING: Failed to parse complex rearrangement.");
       else
         {
@@ -172,8 +175,10 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   faldo_in_between_position_initialize (&cipos);
   faldo_in_between_position_initialize (&ciend);
 
-  determine_confidence_interval (variant.start_position, "CIPOS", &cipos_before, &cipos_after, header, buffer);
-  determine_confidence_interval (variant.end_position, "CIEND", &ciend_before, &ciend_after, header, buffer);
+  determine_confidence_interval (variant.start_position, "CIPOS", &cipos_before,
+                                 &cipos_after, header, buffer);
+  determine_confidence_interval (variant.end_position, "CIEND", &ciend_before,
+                                 &ciend_after, header, buffer);
 
   cipos.before = &cipos_before;
   cipos.after = &cipos_after;
@@ -188,23 +193,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
    * Please note that these properties may not be available in the VCF.  So
    * write your code in a way that allows for these values to be missing.
    * ------------------------------------------------------------------------ */
-  if (bcf_get_info_int32 (header, buffer, "MAPQ", &buf, &buf_len) > 0)
-    {
-      variant.mapq = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_info_int32 (header, buffer, "PE", &buf, &buf_len) > 0)
-    {
-      variant.paired_end_support = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_info_int32 (header, buffer, "SR", &buf, &buf_len) > 0)
-    {
-      variant.split_read_support = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
+  get_info_value_int32_t (header, buffer, "MAPQ", &(variant.mapq));
+  get_info_value_int32_t (header, buffer, "PE", &(variant.paired_end_support));
+  get_info_value_int32_t (header, buffer, "SR", &(variant.split_read_support));
 
   if (bcf_get_info_float (header, buffer, "SRQ", &buf, &buf_len) > 0)
     {
@@ -212,38 +203,11 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       free (buf); buf = NULL; buf_len = 0;
     }
 
-  if (bcf_get_format_int32 (header, buffer, "RC", &buf, &buf_len) > 0)
-    {
-      variant.read_count = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_format_int32 (header, buffer, "DR", &buf, &buf_len) > 0)
-    {
-      variant.hq_reference_pairs = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_format_int32 (header, buffer, "DV", &buf, &buf_len) > 0)
-    {
-      variant.hq_variant_pairs = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_format_int32 (header, buffer, "RR", &buf, &buf_len) > 0)
-    {
-      variant.hq_ref_junction_reads = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (bcf_get_format_int32 (header, buffer, "RV", &buf, &buf_len) > 0)
-    {
-      variant.hq_var_junction_reads = ((int32_t *)buf)[0];
-      free (buf); buf = NULL; buf_len = 0;
-    }
-
-  if (!variant_gather_data (&variant, header, buffer))
-    fprintf (stderr, "# Couldn't gather variant data.\n");
+  get_info_value_int32_t (header, buffer, "RC", &(variant.read_count));
+  get_info_value_int32_t (header, buffer, "DR", &(variant.hq_reference_pairs));
+  get_info_value_int32_t (header, buffer, "DV", &(variant.hq_variant_pairs));
+  get_info_value_int32_t (header, buffer, "RR", &(variant.hq_ref_junction_reads));
+  get_info_value_int32_t (header, buffer, "RV", &(variant.hq_var_junction_reads));
 
   /* Output the gathered information.
    * ------------------------------------------------------------------------ */
@@ -719,21 +683,8 @@ main (int argc, char **argv)
         }
 
       if (queue > 0)
-        {
-          for (j = 0; j < queue; j++)
-            {
-              htslib_data_t pack;
-              pack.vcf_header = vcf_header;
-              pack.vcf_stream = vcf_stream;
-              pack.buffers = tbuffers;
-              pack.thread_number = 0;
-              pack.jobs_to_run = 1;
-              pack.origin = &o;
-
-              /* Run them in a single thread. */
-              run_jobs_in_thread (&pack);
-            }
-        }
+        for (j = 0; j < queue; j++)
+          handle_record (&o, vcf_header, tbuffers[j]);
 
       for (j = 0; j < tbuffers_len; j++)
         bcf_destroy (tbuffers[j]);

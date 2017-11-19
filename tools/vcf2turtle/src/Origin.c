@@ -123,7 +123,6 @@ set_Origin_filename (Origin *o, const char *filename)
    * ------------------------------------------------------------------------ */
   FILE *file = fopen (o->filename, "rb");
   char *buffer = NULL;
-  long file_size;
 
   if (file == NULL)
     {
@@ -131,10 +130,6 @@ set_Origin_filename (Origin *o, const char *filename)
       gcry_md_close (handler);
       return false;
     }
-
-  fseek (file, 0L, SEEK_END);
-  file_size = ftell (file);
-  rewind (file);
 
   buffer = calloc (sizeof (char), READ_BUFFER_MAX_LENGTH);
 

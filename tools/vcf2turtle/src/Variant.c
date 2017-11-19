@@ -283,6 +283,16 @@ variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
       buffer->d.allele == NULL)
     return false;
 
+  /* If the allele information is still missing after unpacking the buffer,
+   * we will end up without REF information.  So, let's skip such records. */
+  if (buffer->d.allele == NULL)
+    {
+      fprintf (stderr, "# Skipping record because of missing allele information.\n");
+      return false;
+    }
+
+  /* TODO: Only the first alternative allele is considered.  When multiple
+   * alleles are specified, we need to provide variants for each allele. */
   variant->reference = buffer->d.allele[0];
   variant->alternative = buffer->d.allele[1];
   variant->id = buffer->d.id;

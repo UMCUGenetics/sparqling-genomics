@@ -75,10 +75,9 @@ bnd_properties_init (BndProperties *properties)
 
 bool
 parse_properties (BndProperties *properties,
-                  const char *ref, int32_t ref_len,
                   const char *alt, int32_t alt_len)
 {
-  if (properties == NULL || ref == NULL || alt == NULL) return false;
+  if (properties == NULL || alt == NULL) return false;
 
   char bracket;
 
@@ -132,7 +131,9 @@ parse_properties (BndProperties *properties,
   memcpy (properties->chromosome, first_bracket+1, properties->chromosome_len);
   memcpy (pos, separator + 1, position_len);
 
-  properties->position = atoi (pos);
+  /* HTSlib uses 0-based positions, while in the VCF 1-based position are used.
+   * Therefore we need to add one to the position here. */
+  properties->position = atoi (pos) + 1;
   return properties;
 }
 

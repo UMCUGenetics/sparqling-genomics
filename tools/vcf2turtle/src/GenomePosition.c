@@ -136,6 +136,8 @@ faldo_position_name (FaldoBaseType *position)
     case FALDO_UNKNOWN:
       return NULL;
     }
+
+  return NULL;
 }
 
 void
