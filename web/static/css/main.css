@@ -69,12 +69,13 @@ body,html {
     border-radius: 4pt 4pt 0pt 0pt;
     text-transform: uppercase;
     text-decoration: none;
-    font-size: small;
+    font-size: 0.9em;
 }
 
 #header .menu li.active {
     background: #ffffff;
     padding: 5pt 5pt 2pt 5pt;
+    background: linear-gradient(#dddddd, #ffffff);
 }
 
 a { color: #000000; }
