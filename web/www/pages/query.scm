@@ -48,7 +48,7 @@ $(document).ready(function(){
       $('#editor').after(function(){ return '"
       (div (@ (class "query-data-loader"))
            (div (@ (class "title")) "Loading data ...")
-           (div (@ (class "content")) "Please wait until the results appears."))
+           (div (@ (class "content")) "Please wait for the results to appear."))
       "' });
 
         /* Remove the previous query results. */
