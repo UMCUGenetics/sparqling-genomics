@@ -297,6 +297,8 @@ variant_gather_data (Variant *variant, bcf_hdr_t *header, bcf1_t *buffer)
   variant->alternative = buffer->d.allele[1];
   variant->id = buffer->d.id;
   variant->quality = buffer->qual;
+
+  bcf_unpack (buffer, BCF_UN_FLT);
   variant->filters_len = buffer->d.n_flt;
   variant->filters = buffer->d.flt;
 
