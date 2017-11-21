@@ -32,7 +32,6 @@
   #:use-module (www pages)
   #:use-module (www pages error)
   #:use-module (www pages welcome)
-  #:use-module (www pages cth)
 
   #:export (run-web-interface))
 
@@ -48,12 +47,6 @@
 ;;
 ;; In this section, the different handlers are implemented.
 ;;
-
-(define (request-cth-handler request-path)
-  (values '((content-type . (text/html)))
-          (call-with-output-string
-            (lambda (port)
-              (sxml->xml (page-cth request-path) port)))))
 
 (define (request-markdown-handler request-path)
  "This handler takes Markdown-formatted data from a file and
@@ -172,9 +165,6 @@ creates a HTML page that is sent back to the user."
            (access? (string-append %www-root "/www/pages/"
                                    request-path ".md") F_OK))
       (request-markdown-handler request-path))
-     ((and (> (string-length request-path) 4)
-           (string= (string-take request-path 5) "/cth/"))
-      (request-cth-handler request-path))
      (else
       (request-scheme-page-handler request request-body request-path)))))
 
