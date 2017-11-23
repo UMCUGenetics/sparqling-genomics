@@ -50,9 +50,6 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
   if (v == NULL) return NULL;
   if (v->name[0] != '\0') return v->name;
 
-  if (!isfinite (v->quality))
-    v->quality = -1;
-
   gcry_error_t error;
   gcry_md_hd_t handler = NULL;
 
@@ -65,7 +62,8 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
       return NULL;
     }
 
-  gcry_md_write_float (handler, v->quality);
+  if (isfinite (v->quality))
+    gcry_md_write_float (handler, v->quality);
 
   char *start_position_name = faldo_position_name ((FaldoBaseType *)(v->start_position));
   char *end_position_name = faldo_position_name ((FaldoBaseType *)(v->end_position));
@@ -173,16 +171,17 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
           "  :end_position %s:%s ;\n"
           "  :reference \"%s\" ;\n"
           "  :alternative \"%s\" ;\n"
-          "  :id \"%s\" ;\n"
-          "  :quality %4.2f ",
+          "  :id \"%s\" ",
           faldo_position_prefix ((FaldoBaseType *)(v->start_position)),
           faldo_position_name ((FaldoBaseType *)(v->start_position)),
           faldo_position_prefix ((FaldoBaseType *)(v->end_position)),
           faldo_position_name ((FaldoBaseType *)(v->end_position)),
           v->reference,
           v->alternative,
-          v->id,
-          v->quality);
+          v->id);
+
+  if (isfinite (v->quality))
+    printf (";\n  :quality %4.3f ", v->quality);
 
   if (v->cipos && v->cipos->before->position != 0)
     printf (";\n  :confidence_interval_start_position %s:%s",
@@ -278,7 +277,7 @@ variant_initialize (Variant *v, VariantType type)
   v->end_position = NULL;
   v->cipos = NULL;
   v->ciend = NULL;
-  v->quality = 0.0;
+  v->quality = INFINITY;
   v->reference = NULL;
   v->alternative = NULL;
   v->id = NULL;
