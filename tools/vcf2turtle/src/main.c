@@ -223,6 +223,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   get_info_value_int32_t (header, buffer, "RR", &(variant.hq_ref_junction_reads));
   get_info_value_int32_t (header, buffer, "RV", &(variant.hq_var_junction_reads));
 
+  bcf_get_info_string (header, buffer, "CIGAR", &(variant.cigar), &(variant.cigar_len));
+  get_info_value_int32_t (header, buffer, "PAIR_COUNT", &(variant.pair_count));
+
   /* Output the gathered information.
    * ------------------------------------------------------------------------ */
   pthread_mutex_lock (&output_mutex);

@@ -118,6 +118,21 @@ variant_name (Variant *v, bcf_hdr_t *vcf_header)
   if (v->hq_var_junction_reads != 0)
     gcry_md_write_int32_t (handler, v->hq_var_junction_reads);
 
+  if (v->cigar != NULL && v->cigar_len > 0)
+    gcry_md_write (handler, v->cigar, v->cigar_len);
+
+  if (v->pair_count != 0)
+    gcry_md_write_int32_t (handler, v->pair_count);
+
+  if (v->bnd_pair_count != 0)
+    gcry_md_write_int32_t (handler, v->bnd_pair_count);
+
+  if (v->upstream_pair_count != 0)
+    gcry_md_write_int32_t (handler, v->upstream_pair_count);
+
+  if (v->downstream_pair_count != 0)
+    gcry_md_write_int32_t (handler, v->downstream_pair_count);
+
   if (v->is_complex_rearrangement)
     {
       gcry_md_write (handler, (v->is_reversed) ? "T" : "F", 1);
@@ -226,6 +241,21 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
     printf (";\n  :high_quality_variant_junction_reads  %d ",
             v->hq_var_junction_reads);
 
+  if (v->cigar != NULL && v->cigar_len > 0)
+    printf (";\n  :cigar \"%s\" ", v->cigar);
+
+  if (v->pair_count != 0)
+    printf (";\n  :pair_count %d ", v->pair_count);
+
+  if (v->bnd_pair_count != 0)
+    printf (";\n  :bnd_pair_count %d", v->bnd_pair_count);
+
+  if (v->upstream_pair_count != 0)
+    printf (";\n  :upstream_pair_count %d ", v->upstream_pair_count);
+
+  if (v->downstream_pair_count != 0)
+    printf (";\n  :downstream_pair_count %d ", v->downstream_pair_count);
+
   if (v->type_len > 0 && v->type)
     {
       char type[v->type_len + 1];
@@ -265,6 +295,12 @@ variant_initialize (Variant *v, VariantType type)
   v->hq_variant_pairs = 0;
   v->hq_ref_junction_reads = 0;
   v->hq_var_junction_reads = 0;
+  v->cigar = NULL;
+  v->cigar_len = 0;
+  v->pair_count = 0;
+  v->bnd_pair_count = 0;
+  v->upstream_pair_count = 0;
+  v->downstream_pair_count = 0;
   v->is_complex_rearrangement = false;
   v->is_reversed = false;
   v->is_left_of_ref = false;

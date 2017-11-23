@@ -87,6 +87,14 @@ typedef struct
   int32_t hq_ref_junction_reads;
   int32_t hq_var_junction_reads;
 
+  /* Manta-specific properties. */
+  char *cigar;
+  int32_t cigar_len;
+  int32_t pair_count;
+  int32_t bnd_pair_count;
+  int32_t upstream_pair_count;
+  int32_t downstream_pair_count;
+
   /* Direction information. */
   bool is_complex_rearrangement;
   bool is_reversed;
