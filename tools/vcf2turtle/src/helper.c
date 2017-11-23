@@ -151,8 +151,8 @@ determine_confidence_interval (FaldoExactPosition *base,
 
   if (cipos_len > 0 && cipos)
     {
-      begin->position       -= cipos[0];
-      end->position         += cipos[1];
+      begin->position       = base->position - cipos[0];
+      end->position         = base->position + cipos[1];
       begin->chromosome      = base->chromosome;
       end->chromosome        = base->chromosome;
       begin->chromosome_len  = base->chromosome_len;
