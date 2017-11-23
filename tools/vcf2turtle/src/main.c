@@ -137,9 +137,9 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
       /* Usually, an END info-field is provided. */
       if (bcf_get_info_int32 (header, buffer, "END", &buf, &buf_len) > 0)
         end_position.position = ((int32_t *)buf)[0];
-      /* One possible fallback is to infer it from the SVLEN property. */
-      else if (bcf_get_info_int32 (header, buffer, "SVLEN", &buf, &buf_len) > 0)
-        end_position.position = start_position.position + ((int32_t *)buf)[0];
+      /* Without the END info-field, we cannot know where the SV ends. */
+      else
+        end_position.position = -1;
 
       free (buf);
       buf = NULL;
@@ -161,7 +161,16 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   if (strcmp (end_position.chromosome, start_position.chromosome))
     variant.length = 0;
   else if (end_position.position != 0 && start_position.position != 0)
-    variant.length = abs(end_position.position - start_position.position);
+    {
+      /* In the case of insertions in Manta, the END property indicates the
+       * end position of the reference genome, while the SVLEN property
+       * indicates the end of the insertion. So the length of the insertion
+       * is SVLEN - POSITION, rather than END - POSITION. */
+      if (bcf_get_info_int32 (header, buffer, "SVLEN", &buf, &buf_len) > 0)
+        variant.length = start_position.position + ((int32_t *)buf)[0];
+      else
+        variant.length = abs(end_position.position - start_position.position);
+    }
 
   /* Handle the confidence intervals.
    * ------------------------------------------------------------------------ */
@@ -175,10 +184,15 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   faldo_in_between_position_initialize (&cipos);
   faldo_in_between_position_initialize (&ciend);
 
-  determine_confidence_interval (variant.start_position, "CIPOS", &cipos_before,
-                                 &cipos_after, header, buffer);
-  determine_confidence_interval (variant.end_position, "CIEND", &ciend_before,
-                                 &ciend_after, header, buffer);
+  bool has_cipos;
+  has_cipos = determine_confidence_interval (variant.start_position, "CIPOS",
+                                             &cipos_before, &cipos_after,
+                                             header, buffer);
+
+  bool has_ciend;
+  has_ciend = determine_confidence_interval (variant.end_position, "CIEND",
+                                             &ciend_before, &ciend_after,
+                                             header, buffer);
 
   cipos.before = &cipos_before;
   cipos.after = &cipos_after;
@@ -212,12 +226,18 @@ handle_record (Origin *origin, bcf_hdr_t *header, bcf1_t *buffer)
   /* Output the gathered information.
    * ------------------------------------------------------------------------ */
   pthread_mutex_lock (&output_mutex);
-  faldo_position_print ((FaldoBaseType *)(variant.cipos->before));
-  faldo_position_print ((FaldoBaseType *)(variant.cipos->after));
-  faldo_position_print ((FaldoBaseType *)(variant.cipos));
-  faldo_position_print ((FaldoBaseType *)(variant.ciend->before));
-  faldo_position_print ((FaldoBaseType *)(variant.ciend->after));
-  faldo_position_print ((FaldoBaseType *)(variant.ciend));
+  if (has_cipos)
+    {
+      faldo_position_print ((FaldoBaseType *)(variant.cipos->before));
+      faldo_position_print ((FaldoBaseType *)(variant.cipos->after));
+      faldo_position_print ((FaldoBaseType *)(variant.cipos));
+    }
+  if (has_ciend)
+    {
+      faldo_position_print ((FaldoBaseType *)(variant.ciend->before));
+      faldo_position_print ((FaldoBaseType *)(variant.ciend->after));
+      faldo_position_print ((FaldoBaseType *)(variant.ciend));
+    }
   faldo_position_print ((FaldoBaseType *)(variant.start_position));
   faldo_position_print ((FaldoBaseType *)(variant.end_position));
   variant_print (&variant, header);

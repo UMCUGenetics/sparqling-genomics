@@ -156,8 +156,6 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
 
   printf ("  :start_position %s:%s ;\n"
           "  :end_position %s:%s ;\n"
-          "  :confidence_interval_start_position %s:%s ;\n"
-          "  :confidence_interval_end_position %s:%s ;\n"
           "  :reference \"%s\" ;\n"
           "  :alternative \"%s\" ;\n"
           "  :id \"%s\" ;\n"
@@ -166,14 +164,20 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
           faldo_position_name ((FaldoBaseType *)(v->start_position)),
           faldo_position_prefix ((FaldoBaseType *)(v->end_position)),
           faldo_position_name ((FaldoBaseType *)(v->end_position)),
-          faldo_position_prefix ((FaldoBaseType *)(v->cipos)),
-          faldo_position_name ((FaldoBaseType *)(v->cipos)),
-          faldo_position_prefix ((FaldoBaseType *)(v->ciend)),
-          faldo_position_name ((FaldoBaseType *)(v->ciend)),
           v->reference,
           v->alternative,
           v->id,
           v->quality);
+
+  if (v->cipos && v->cipos->before->position != 0)
+    printf (";\n  :confidence_interval_start_position %s:%s",
+            faldo_position_prefix ((FaldoBaseType *)(v->cipos)),
+            faldo_position_name ((FaldoBaseType *)(v->cipos)));
+
+  if (v->ciend && v->ciend->before->position != 0)
+    printf (";\n  :confidence_interval_end_position %s:%s",
+            faldo_position_prefix ((FaldoBaseType *)(v->ciend)),
+            faldo_position_name ((FaldoBaseType *)(v->ciend)));
 
   if (v->length != 0)
     printf (";\n  :length %d ", v->length);
