@@ -1,12 +1,21 @@
 # SPARQLing structural variation
 
-Extended documentation is available in the `doc/` directory.
+More documentation is available in the `doc/` directory.
 
-## Installation and development environment
+## Dependencies
 
-Create a development environment.  The following command creates
-an environment wherein all required tools to construct the project's
-programs are available:
+The programs in this repository require:
+- GNU Autoconf, GNU Automake, pkg-config and GNU Make
+- HTSlib
+- Libgcrypt
+- Libcurl
+- GNU Guile, guile-commonmark, and guile-json
+- R, ggplot2, and r-sparql
+
+## Installation and development environment with GNU Guix
+
+The following command creates an environment wherein all required
+tools to construct the project's programs are available:
 ```
 $ guix environment -l guix.scm
 ```
@@ -25,7 +34,7 @@ Or change the last step to build individual components, like `vcf2turtle`:
 
 ## Starting the web interface
 
-To start the web interface, do:
+To start the web interface, run:
 ```
 [env]$ sh web/run.sh
 ```
