@@ -582,7 +582,8 @@ main (int argc, char **argv)
                 "@prefix smo:     <http://semweb.op.umcutrecht.nl/smo/> .\n"
                 "@prefix faldo:   <http://biohackathon.org/resource/faldo#> .\n"
                 "@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-                "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .");
+                "@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .\n"
+                "@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .");
 
           printf ("@prefix :        <%s> .\n",                   program_config.graph_location);
           printf ("@prefix v:       <%sVariant/> .\n",           program_config.graph_location);

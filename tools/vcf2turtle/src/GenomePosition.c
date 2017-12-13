@@ -54,7 +54,7 @@ faldo_in_between_position_name (FaldoInBetweenPosition *range)
 
   /* FIXME: In theory, the before->name and after->name could
    * be different.  We need to address this issue. */
-  snprintf (range->name, range->name_len, "%s...%s",
+  snprintf (range->name, range->name_len, "%s-%s",
             range_before_name,
             range_after_name);
 
