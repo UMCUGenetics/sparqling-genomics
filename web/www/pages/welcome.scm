@@ -10,8 +10,8 @@
   #:export (page-welcome))
 
 (define %db-statistics-query
-  "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX : <http://localhost:5000/StructuralVariants/>
+  (format #f "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX : <~a/StructuralVariants/>
 
 SELECT COUNT(DISTINCT ?filename) AS ?numberOfFiles, COUNT(DISTINCT ?variant) AS ?numberOfVariants
 {
@@ -19,11 +19,11 @@ SELECT COUNT(DISTINCT ?filename) AS ?numberOfFiles, COUNT(DISTINCT ?variant) AS 
   ?origin :filename ?filename .
   ?variant a :Variant .
   ?variant :origin ?origin .
-}")
+}" %www-sparql-hostname))
 
 (define %db-count-query
-  "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX : <http://localhost:5000/StructuralVariants/>
+  (format #f "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX : <~a/StructuralVariants/>
 
 SELECT ?filename, COUNT(DISTINCT ?variant) AS ?numberOfVariants
 {
@@ -31,7 +31,7 @@ SELECT ?filename, COUNT(DISTINCT ?variant) AS ?numberOfVariants
   ?origin :filename ?filename .
   ?variant a :Variant .
   ?variant :origin ?origin .
-}")
+}" %www-sparql-hostname))
 
 (define (database-statistics)
   (catch 'system-error
