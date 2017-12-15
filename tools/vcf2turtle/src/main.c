@@ -22,7 +22,7 @@
 #include <getopt.h>
 #include <math.h>
 #include <unistd.h>
-
+#include <limits.h>
 #include <htslib/vcf.h>
 #include <pthread.h>
 
@@ -623,30 +623,14 @@ main (int argc, char **argv)
         set_Origin_filename (&o, program_config.input_file);
       else
         {
-          char *cwd = getcwd (NULL, 0);
+          char path[PATH_MAX + 1];
 
           /* Degrade to a relative filename if we cannot allocate the memory
            * for an absolute path, because it's better than nothing. */
-          if (cwd == NULL)
+          if (realpath (program_config.input_file, path) == NULL)
             set_Origin_filename (&o, program_config.input_file);
           else
-            {
-              int32_t full_path_len = strlen (cwd) + strlen (program_config.input_file) + 2;
-              char full_path[full_path_len + 1];
-              memset (full_path, 0, full_path_len);
-
-              if (snprintf (full_path, full_path_len, "%s/%s",
-                            cwd, program_config.input_file) == full_path_len)
-                set_Origin_filename (&o, full_path);
-              else
-                /* Degrade to a relative filename if we cannot allocate the
-                 * memory for an absolute path, because it's better than
-                 * nothing. */
-                set_Origin_filename (&o, program_config.input_file);
-
-              free (cwd);
-              cwd = NULL;
-            }
+            set_Origin_filename (&o, path);
         }
 
       print_Origin (&o);
