@@ -149,7 +149,7 @@ determine_confidence_interval (FaldoExactPosition *base,
   int32_t cipos_len = 0;
   bcf_get_info_int32 (header, buffer, property, &cipos, &cipos_len);
 
-  if (cipos_len > 0 && cipos)
+  if (cipos_len > 0 && cipos && (cipos[0] != 0 || cipos[1] != 0))
     {
       begin->position       = base->position - cipos[0];
       end->position         = base->position + cipos[1];
