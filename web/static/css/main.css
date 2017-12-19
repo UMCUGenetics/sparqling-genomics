@@ -34,11 +34,11 @@ body,html {
     font-family: 'Roboto', sans-serif;
     font-size: 11pt;
     color: #000000;
-    background-color: #6f917c;
+    background-color: #b7c8c4 /*#8dd35f*/ /*#6f917c*/;
 }
 
 #wrapper {
-    max-width: 950pt;
+    width: 100%;
     margin: auto;
     padding: 0pt;
     margin: 0pt auto auto auto;
@@ -87,12 +87,9 @@ a:hover { color: #555555; }
     line-height: 1.5;
     text-align: justify;
     text-justify: inter-word;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    -moz-box-shadow: 0 0 30px -20px #000000;
-    -webkit-box-shadow: 0 0 30px -20px #000000;
-    box-shadow: 0 0 30px -20px #000000;
+    -moz-box-shadow: 0 0 50px -30px #000000;
+    -webkit-box-shadow: 0 0 50px -30px #000000;
+    box-shadow: 0 0 50px -30px #000000;
 }
 #content .search-field {
     border: solid 1px #999;
