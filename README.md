@@ -17,7 +17,7 @@ The programs in this repository require:
 The following command creates an environment wherein all required
 tools to construct the project's programs are available:
 ```
-$ guix environment -l guix.scm
+$ guix environment -l environment.scm
 ```
 
 Do the usual autotools dance to build everything:
@@ -43,6 +43,6 @@ To start the web interface, run:
 
 Please read the manual in the `doc/` directory.  A PDF can be built using:
 ```
-$ guix environment -l guix.scm --ad-hoc texlive
+$ guix environment -l environment.scm --ad-hoc texlive
 [env]$ make doc
 ```
