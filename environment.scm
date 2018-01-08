@@ -1,4 +1,4 @@
-;; Copyright (C) 2017  Roel Janssen
+;; Copyright (C) 2017, 2018  Roel Janssen
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -110,8 +110,9 @@ submits it to a specified SPARQL endpoint.")
       ,@(package-inputs vcf2turtle)
       ,@(package-inputs turtle2remote)
       ,@(package-inputs sparqling-svs-web)
-      ,@(package-inputs svplot)
-      ,@(package-propagated-inputs svplot)))
+      ,@(package-inputs svplot)))
+   (propagated-inputs
+    `(,@(package-propagated-inputs svplot)))
    (home-page "")
    (synopsis "")
    (description "")
