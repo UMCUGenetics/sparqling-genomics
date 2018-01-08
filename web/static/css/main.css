@@ -34,7 +34,9 @@ body,html {
     font-family: 'Roboto', sans-serif;
     font-size: 11pt;
     color: #000000;
-    background-color: #b7c8c4 /*#8dd35f*/ /*#6f917c*/;
+    background-color: #6f917c /* #2ca05a */ /* #b7c8c4 */ /*#8dd35f*/ /*#6f917c*/;
+    /* background: url('/static/images/background.png'); */
+    /* background-repeat: repeat; */
 }
 
 #wrapper {
@@ -204,7 +206,7 @@ div.action-button:hover {
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    border: solid 1px #cccccc;
+    border: solid 2px #cccccc;
 }
 
 #query-output {
@@ -287,4 +289,15 @@ div.action-button:hover {
     -moz-border-radius: 4pt;
     border-radius: 4pt;
     background: #ccc;
+}
+
+input {
+    width: 100%;
+    height: 20pt;
+    font-family: 'FiraMono', monospace;
+    font-size: 12pt;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    border: solid 2px #cccccc;
 }
