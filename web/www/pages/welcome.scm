@@ -36,7 +36,10 @@ SELECT ?filename, COUNT(DISTINCT ?variant) AS ?numberOfVariants
 (define (database-statistics)
   (catch 'system-error
     (lambda _
-      (receive (header port) (sparql-query %db-statistics-query #:type "text/csv")
+      (receive (header port) (sparql-query %db-statistics-query
+                                           #:host %sparql-endpoint-host
+                                           #:port %sparql-endpoint-port
+                                           #:type "text/csv")
         (if (= (response-code header) 200)
             (begin
               ;; The first line is the header.

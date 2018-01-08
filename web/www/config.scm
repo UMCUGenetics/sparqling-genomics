@@ -20,7 +20,9 @@
             %www-listen-port
             %www-static-root
             %www-sparql-hostname
-            %www-name))
+            %www-name
+            %sparql-endpoint-host
+            %sparql-endpoint-port))
 
 (define %www-name "SPARQLing SV database")
 (define %www-root (dirname (search-path %load-path "web-interface.scm")))
@@ -28,3 +30,5 @@
 (define %www-max-file-size 250000000)
 (define %www-listen-port 5000)
 (define %www-sparql-hostname "http://localhost:5000")
+(define %sparql-endpoint-host "127.0.0.1")
+(define %sparql-endpoint-port 8890)

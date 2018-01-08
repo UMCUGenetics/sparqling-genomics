@@ -17,11 +17,13 @@
 (define-module (www pages query-response)
   #:use-module (www pages)
   #:use-module (www util)
+  #:use-module (www config)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
+  #:use-module (json)
   #:use-module (sxml simple)
 
   #:export (page-query-response))
@@ -50,15 +52,17 @@
                 body)
               (response->sxml port #f header
                 (cons body
-                      `((tr ,(map (lambda (token)
-                                    (let* ((td-object-raw (string-trim-both token #\"))
-                                           (td-object
-                                            (if (and (> (string-length td-object-raw) 6)
-                                                     (string= "http://" (string-take td-object-raw 7)))
-                                                `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
-                                                td-object-raw)))
-                                     `(td ,td-object)))
-                                   tokens))))))))))
+                 `((tr ,(map
+                         (lambda (token)
+                           (let* ((td-object-raw (string-trim-both token #\"))
+                                  (td-object
+                                   (if (and (> (string-length td-object-raw) 7)
+                                            ;; Detect both HTTP and HTTPS URLs.
+                                            (string= "http" (string-take td-object-raw 4)))
+                                       `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
+                                       td-object-raw)))
+                             `(td ,td-object)))
+                         tokens))))))))))
 
 (define* (page-query-response request-path #:key (post-data ""))
 
@@ -70,10 +74,27 @@
 
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
-      (let ((result
+      (let* ((parsed-data (json-string->scm post-data))
+             (token (hash-ref parsed-data "token"))
+             (query (hash-ref parsed-data "query"))
+             (result
              (catch 'system-error
                (lambda _
-                 (receive (header port) (sparql-query post-data #:type "text/csv")
+                 (receive (header port)
+                     (sparql-query query
+                                   ;; We need a better way to determine which
+                                   ;; back-end is used.
+                                   #:store-backend
+                                   (if (eq? %sparql-endpoint-port 8890)
+                                       'virtuoso
+                                       '4store)
+                                   #:type "text/csv"
+                                   #:host %sparql-endpoint-host
+                                   #:port %sparql-endpoint-port
+                                   #:token
+                                   (if (and (string? token)
+                                            (not (string= "" token)))
+                                       token #f))
                    (if (= (response-code header) 200)
                        (response->sxml port)
                        (respond-with-error port))))

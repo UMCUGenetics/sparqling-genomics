@@ -7,14 +7,20 @@
    `((h2 "Query the database")
      (h3 "Query editor")
      (p "Use " (strong "Ctrl + Enter") " to execute the query.")
-     (div (@ (id "editor")) "PREFIX grch38: <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/>
-PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+     (div (@ (id "editor"))
+          "PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX : <http://localhost:5000/MyData/>
 
 ")
+     (h4 "Authentication token")
+     (p "Paste your authentication token below (if applicable).")
+     (input (@ (id "oauth_token")
+               (type "text")
+               (name "token")
+               (value "")))
      (script "
 $(document).ready(function(){
   var editor = ace.edit('editor');
@@ -45,7 +51,7 @@ $(document).ready(function(){
     name: 'executeQueryCommand',
     bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
     exec: function(editor) {
-      $('#editor').after(function(){ return '"
+      $('#oauth_token').after(function(){ return '"
       (div (@ (class "query-data-loader"))
            (div (@ (class "title")) "Loading data ...")
            (div (@ (class "content")) "Please wait for the results to appear."))
@@ -57,15 +63,16 @@ $(document).ready(function(){
       $('#query-output').remove();
       $('#query-output_wrapper').remove();
 
-      $.post('/query-response', editor.getValue(), function (data){
+      post_data = { query: editor.getValue(), token: oauth_token.value };
+      $.post('/query-response', JSON.stringify(post_data), function (data){
 
         /*  Insert the results HTML table into the page. */
-        $('#editor').after(data);
+        $('#oauth_token').after(data);
         $('.query-data-loader').remove();
 
         /* Detect an error response. */
         if ($('.query-error').length == 0) {
-          $('#editor').after(function(){ return '" (h3 (@ (id "query-results")) "Query results") "' });
+          $('#oauth_token').after(function(){ return '" (h3 (@ (id "query-results")) "Query results") "' });
 
           /* Initialize DataTables. */
           $('#query-output').addClass('display');
