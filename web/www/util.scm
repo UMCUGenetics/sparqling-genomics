@@ -16,18 +16,22 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www util)
-  #:use-module (srfi srfi-1)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 receive)
+  #:use-module (sparql driver)
+  #:use-module (srfi srfi-1)
+  #:use-module (web response)
   #:use-module (www config)
-  #:export (file-extension
-            string-replace-occurrence
+  #:export (build-existence-query
+            build-exploration-query
             csv-split-line
+            file-extension
+            predicate-label
+            sparql-response->sxml
+            string-replace-occurrence
             suffix-iri
             without-hostname
-            without-prefix-iri
-            build-existence-query
-            build-exploration-query
-            sparql-response->sxml))
+            without-prefix-iri))
 
 (define (file-extension file-name)
   (last (string-split file-name #\.)))
@@ -92,18 +96,35 @@ WHERE {
    (string-take path (string-rindex path #\/))
    (string-drop path (1+ (string-rindex path #\/)))))
 
-(define* (sparql-response->sxml port #:optional (body '()) (type #f))
+(define (predicate-label pred)
+  "Returns the rdf:label of PRED, or PRED if rdf:label is unavailable."
+  (catch 'system-error
+    (lambda _
+      (receive (header port)
+          (sparql-query
+           (format #f "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
+                        #:type "text/csv")
+        (if (= (response-code header) 200)
+            (begin
+              ;; The first line is the header.
+              (read-line port)
+              (let ((line (read-line port)))
+                (if (or (eof-object? line)
+                        (string= line ""))
+                    pred
+                    (string-trim-both line #\"))))
+            pred)))
+    (lambda (key . args) pred)))
+
+(define* (sparql-response->sxml port #:optional (body '())
+                                                (type #f)
+                                                (use-labels? #t))
   "Read the query response from PORT and turn it into a SXML table."
 
   (define (rdf:type? predicate)
     (string= (string-trim-both predicate #\") 
              "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
-    
-  ;; (define (prettified predicate)
-  ;;   (let* ((hostname-length (string-length %www-sparql-hostname))
-  ;;          (pretty (assoc-ref prettify-table
-  ;;                             (without-hostname (string-trim-both predicate #\")))))
-  ;;     (if pretty pretty predicate)))
 
   (let ((line (read-line port)))
     (if (eof-object? line)
@@ -127,7 +148,9 @@ WHERE {
                               td-object-raw)))
           (if (rdf:type? predicate)
               (sparql-response->sxml port body object)
-              (sparql-response->sxml port (cons body
-                                                `((tr (td ,td-predicate)
-                                                      (td ,td-object))))
-                                     type))))))
+              (sparql-response->sxml
+               port (cons body `((tr (td ,(if use-labels?
+                                              (predicate-label td-predicate)
+                                              td-predicate))
+                                     (td ,td-object))))
+               type))))))
