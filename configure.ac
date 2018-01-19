@@ -41,13 +41,13 @@ if test "x${LIBGCRYPT_LIBS}" = "x"; then
 fi
 
 AC_CONFIG_FILES([env], [chmod +x env])
+AC_CONFIG_FILES([web/run.sh], [chmod +x web/run.sh])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   tools/turtle2remote/Makefile
   tools/vcf2turtle/Makefile
   web/Makefile
-  web/run.sh
 ])
 
 PKG_PROG_PKG_CONFIG
