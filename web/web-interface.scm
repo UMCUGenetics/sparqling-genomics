@@ -24,7 +24,6 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
-  #:use-module (commonmark)
   #:use-module (sxml simple)
   #:use-module (json)
   #:use-module (www util)
@@ -47,25 +46,6 @@
 ;;
 ;; In this section, the different handlers are implemented.
 ;;
-
-(define (request-markdown-handler request-path)
- "This handler takes Markdown-formatted data from a file and
-creates a HTML page that is sent back to the user."
- (let* ((request-file (if (string= request-path "/") "/welcome" request-path))
-        (file (string-append %www-root "/www/pages/" request-file ".md")))
-    (values
-     '((content-type . (text/html)))
-     (call-with-output-string
-       (lambda (port)
-         (set-port-encoding! port "utf8")
-         (format port "<!DOCTYPE html>~%")
-         (sxml->xml (page-root-template
-                     (string-capitalize
-                      (substring
-                       (string-replace-occurrence request-file #\- #\ ) 1))
-                     request-path
-                     (call-with-input-file file
-                       (lambda (fport) (commonmark->sxml fport)))) port))))))
 
 (define (request-file-handler path)
   "This handler takes data from a file and sends that as a response."
@@ -161,13 +141,8 @@ creates a HTML page that is sent back to the user."
      ((and (> (string-length request-path) 7)
            (string= (string-take request-path 8) "/static/"))
       (request-file-handler request-path))
-     ((and (not (string= request-path "/"))
-           (access? (string-append %www-root "/www/pages/"
-                                   request-path ".md") F_OK))
-      (request-markdown-handler request-path))
      (else
       (request-scheme-page-handler request request-body request-path)))))
-
 
 ;; ----------------------------------------------------------------------------
 ;; RUNNER

@@ -22,11 +22,14 @@ godir=$(libdir)/guile/2.2/ccache
 SOURCES =                                               \
   web-interface.scm                                     \
   www/config.scm                                        \
-  www/util.scm                                          \
   www/pages.scm                                         \
+  www/pages/error.scm                                   \
+  www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
+  www/pages/query-response.scm                          \
+  www/pages/query.scm                                   \
   www/pages/welcome.scm                                 \
-  www/pages/query-response.scm
+  www/util.scm
 
 WWW_STATIC_RESOURCES =                                  \
   static/css/main.css                                   \
