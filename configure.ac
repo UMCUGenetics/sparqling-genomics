@@ -24,8 +24,14 @@ AM_PROG_CC_C_O
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h stdio.h])
 
-
+GUILE_PKG([2.2 2.0])
 GUILE_PROGS
+
+dnl Installation directories for .scm and .go files.
+moddir="${prefix}/share/guile/site/$GUILE_EFFECTIVE_VERSION"
+godir="${libdir}/guile/$GUILE_EFFECTIVE_VERSION/site-ccache"
+AC_SUBST([moddir])
+AC_SUBST([godir])
 
 if $GUILE_TOOLS | grep -q compile; then
    true
@@ -41,7 +47,8 @@ if test "x${LIBGCRYPT_LIBS}" = "x"; then
 fi
 
 AC_CONFIG_FILES([env], [chmod +x env])
-AC_CONFIG_FILES([web/run.sh], [chmod +x web/run.sh])
+AC_CONFIG_FILES([tools/splink/splink], [chmod +x tools/splink/splink])
+AC_CONFIG_FILES([web/run], [chmod +x web/run])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile

@@ -23,7 +23,6 @@
   \thispagestyle{empty}
 \end{titlepage}
 
-
 \setcounter{page}{1}
 \pagenumbering{roman}
 \hypersetup{linkcolor=black}
@@ -33,77 +32,7 @@
 \setcounter{page}{1}
 \pagenumbering{arabic}
 
-\chapter{Introduction}
-
-\section{Prerequisites}
-\label{sec:prerequisites}
-
-  The tools provided by this project do not include a triple store.  There are
-  great triple stores out there like \href{https://virtuoso.openlinksw.com/}
-  {Virtuoso}, \href{https://github.com/4store/4store}{4store}, and
-  \href{https://www.blazegraph.com/}{BlazeGraph}.
-
-  Before we can use the programs provided by this project, we need to build
-  them first.
-
-  The build system needs \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
-  \href{https://www.gnu.org/software/automake}{GNU Automake},
-  \href{https://www.gnu.org/software/make}{GNU Make} and
-  \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config}.
-  Additionally, for building the documentation, a working \LaTeX{} distribution is
-  required including the \texttt{pdflatex} program.  Because \LaTeX{} distributions
-  are rather large, this is optional.
-
-  Each component in the repository has its own dependencies.  Table
-  \ref{table:dependencies} provides an overview for each tool.
-
-  \hypersetup{urlcolor=black}
-  \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ X X X }
-      \headrow
-      \textbf{vcf2turtle} & \textbf{turtle2remote} & \textbf{Web interface}\\
-      \evenrow
-      \href{https://gcc.gnu.org/}{GNU C compiler}
-      & \href{https://gcc.gnu.org/}{GNU C compiler}
-      & \href{https://www.gnu.org/software/guile}{GNU Guile}\\
-      \oddrow
-      \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      & \href{https://curl.haxx.se/}{cURL}
-      & \href{https://github.com/OrangeShark/guile-commonmark}{Guile-Commonmark}\\
-      \evenrow
-      \href{http://www.htslib.org/}{HTSLib}
-      &
-      & \href{http://savannah.nongnu.org/projects/guile-json/}{Guile-JSON}\\
-    \end{tabularx}
-    \caption{\small External tools required to build and run the programs this
-      project provides.}
-    \label{table:dependencies}
-  \end{table}
-  \hypersetup{urlcolor=LinkGray}
-
-\section{Setting up a build environment with GNU Guix}
-
-  If \href{https://www.gnu.org/software/guix}{GNU Guix} is available on your
-  system, An environment that contains all external tools required to build
-  the programs in this project can be obtained running the following command
-  from the project's repository root:
-
-\begin{siderules}
-\begin{verbatim}
-guix environment -l guix.scm
-\end{verbatim}
-\end{siderules}
-
-\section{Installation instructions}
-
-After installing the required tools (see section \ref{sec:prerequisites}), the
-entire project can be built using the Autotools build system commands:
-\begin{siderules}
-\begin{verbatim}
-autoreconf -vfi && ./configure
-make && make install
-\end{verbatim}
-\end{siderules}
+\input{introduction}
 
 \chapter{Command-line programs}
 
@@ -125,9 +54,9 @@ make && make install
 
   The \texttt{vcf2turtle} program does exactly this, by converting a VCF file
   into the \emph{Terse RDF Triple Language} (Turtle) format.  In section
-  \ref{sec:turtle2remote} {\color{LinkGray}`\nameref{sec:turtle2remote}%
-  '} we describe how to import the data produced by
-  \texttt{vcf2turtle} in the database.
+  \ref{sec:curl} {\color{LinkGray}`\nameref{sec:curl}%
+  '} we describe how to import the data produced by \texttt{vcf2turtle} in the
+  database.
 
 \subsection{Data extracted by \texttt{vcf2turtle}}
 
@@ -172,11 +101,11 @@ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
   throughput of this program is around $20$ to $60$ megabytes per second,
   depending on your computer.
 
-\section{Importing data with \texttt{turtle2remote}}
-\label{sec:turtle2remote}
+\section{Importing data with \texttt{curl}}
+\label{sec:curl}
 
   To import data in the \emph{Terse RDF Triple Language} (Turtle) format in
-  a triple store (our database), we can use the \texttt{turtle2remote} program.
+  a triple store (our database), we can use \texttt{curl}.
 
   The triple stores typically store data in \emph{graphs}.  One triple store
   can host multiple graphs, so we must tell the triple store which graph we
@@ -186,9 +115,12 @@ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
 
 \begin{siderules}
 \begin{verbatim}
-turtle2remote --input-file=/path/to/my/variants.ttl        \
-              --remote-url=http://localhost:8890           \
-              --graph-iri=http://localhost:8890/MyVariants
+curl -X POST                                                 \
+     -H Content-Type:text/turtle                             \
+     -T /path/to/variants.ttl                                \
+     -G <endpoint URL>                                       \
+     --digest -u <username>:<password>                       \
+     --data-urlencode graph=http://destination:8890/Example/
 \end{verbatim}
 \end{siderules}
 
@@ -199,9 +131,10 @@ turtle2remote --input-file=/path/to/my/variants.ttl        \
   interface for prototyping queries, and quick data reporting.  With the
   web interface you can:
   \begin{itemize}
-  \item Write and execute your own SPARQL queries;
+  \item Write and execute SPARQL queries;
   \item Import and export data;
-  \item Get a general idea about what your data looks like.
+  \item Visualize triple patterns;
+  \item View database statistics.
   \end{itemize}
 
 \section{Running the web interface}
@@ -210,7 +143,7 @@ turtle2remote --input-file=/path/to/my/variants.ttl        \
 
 \begin{siderules}
 \begin{verbatim}
-/bin/sh web/run.sh
+web/run
 \end{verbatim}
 \end{siderules}
 
@@ -218,13 +151,15 @@ turtle2remote --input-file=/path/to/my/variants.ttl        \
 
 \section{Prototyping SPARQL queries}
 
+\section{Accessing non-local graphs}
+
 \chapter{Information retrieval with SPARQL}
 
   In section \ref{sec:vcf2turtle} {\color{LinkGray}`%
   \nameref{sec:vcf2turtle}'} we discussed how to extract
-  triples from common data formats.  In section \ref{sec:turtle2remote}
-  {\color{LinkGray}`\nameref{sec:turtle2remote}'}
-  we discussed how we could insert those triples into a SPARQL endpoint.
+  triples from common data formats.  In section \ref{sec:curl}
+  {\color{LinkGray}`\nameref{sec:curl}'} we discussed how we could insert
+  those triples into a SPARQL endpoint.
 
   In this section, we will start exploring the inserted data by using the
   query language called \emph{SPARQL}.  Understanding SPARQL will be crucial
@@ -560,18 +495,6 @@ query_results <- query_data$results
 
 Additional examples can be found in the \texttt{tools/SVPlot/R} directory.
 
-\chapter{Performance tuning}
-
-  During the development and testing of this project, we found that tuning the
-  triple stores improves query times significantly.  Therefore, we address
-  performance enhancements in this chapter.
-
-\section{Hardware}
-
-
-\section{Virtuoso}
-
-\subsection{Run-time parameters}
-\subsection{Indexing}
+\input{performance-tuning}
 
 \end{document}

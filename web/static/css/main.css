@@ -34,9 +34,9 @@ body,html {
     font-family: 'Roboto', sans-serif;
     font-size: 11pt;
     color: #000000;
-    background-color: #6f917c /* #2ca05a */ /* #b7c8c4 */ /*#8dd35f*/ /*#6f917c*/;
-    /* background: url('/static/images/background.png'); */
-    /* background-repeat: repeat; */
+    background: url('/static/images/background.png');
+    background-repeat: repeat-x;
+    background-color: #6f917c;
 }
 
 #wrapper {
@@ -50,7 +50,7 @@ body,html {
 }
 
 #header .logo { vertical-align: bottom; }
-#header .title { padding: 5pt; }
+#header .title { padding: 25pt 5pt 5pt 5pt; }
 #header .title h1 { padding: 0pt; margin: 0pt; }
 #header .title-text { margin-left: -20px; }
 #header img {
@@ -72,12 +72,14 @@ body,html {
     text-transform: uppercase;
     text-decoration: none;
     font-size: 0.9em;
+    color: #000000;
 }
+
+#header .menu li a { color: #000000; }
 
 #header .menu li.active {
     background: #ffffff;
     padding: 5pt 5pt 2pt 5pt;
-    background: linear-gradient(#dddddd, #ffffff);
 }
 
 a { color: #000000; }
@@ -124,7 +126,8 @@ a:hover { color: #555555; }
     border-radius: 4pt;
 }
 #stand-by p { padding: 5pt }
-#footer { width: 100% font-size: small; text-align: center; }
+#footer { width: 100% font-size: small; text-align: center; color: #000000 }
+#footer a { color: #000000 }
 
 #packages-table {
     width: 100%;
@@ -301,3 +304,8 @@ input {
     border-radius: 4pt;
     border: solid 2px #cccccc;
 }
+
+table {
+    width: 100%;
+}
+

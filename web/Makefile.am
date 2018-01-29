@@ -16,10 +16,11 @@
 
 include guile.am
 
-moddir=$(prefix)/share/guile/site/2.2
-godir=$(libdir)/guile/2.2/ccache
-
 SOURCES =                                               \
+  json.scm                                              \
+  json/builder.scm                                      \
+  json/parser.scm                                       \
+  json/syntax.scm                                       \
   web-interface.scm                                     \
   www/config.scm                                        \
   www/pages.scm                                         \
@@ -37,21 +38,18 @@ WWW_STATIC_RESOURCES =                                  \
   static/fonts/Roboto-Bold.ttf                          \
   static/fonts/Roboto-LightItalic.ttf                   \
   static/fonts/Roboto-Light.ttf                         \
+  static/images/background.png                          \
+  static/images/bedge_grunge.png                        \
   static/images/g16.png                                 \
+  static/images/logo.png                                \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \
   static/images/sort_desc.png                           \
-  static/images/bedge_grunge.png                        \
   static/highlight/highlight.pack.js                    \
   static/highlight/styles/androidstudio.css             \
   static/highlight/styles/github.css                    \
   static/datatables.min.css                             \
   static/jquery.dataTables.min.js
 
-MARKDOWN_PAGES =                                        \
-  www/pages/about.md                                    \
-  www/pages/getting-started.md                          \
-  www/pages/ontologies.md
-
-EXTRA_DIST += $(WWW_STATIC_RESOURCES) $(MARKDOWN_PAGES)
+EXTRA_DIST += $(WWW_STATIC_RESOURCES)

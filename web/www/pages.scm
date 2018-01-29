@@ -98,8 +98,10 @@
      (body
       (div (@ (id "wrapper"))
            (div (@ (id "header"))
-                (div (@ (class "title"))
-                     (h1 ,%www-name))
+                (div (@ (class "title")
+                        (style "text-align: center"))
+                     (img (@ (src "/static/images/logo.png")
+                             (alt ,%www-name))))
                 (div (@ (class "menu"))
                      ,(page-partial-main-menu request-path)))
            (div (@ (id "content"))
