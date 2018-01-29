@@ -40,7 +40,7 @@ else
 fi
 
 
-AM_PATH_LIBGCRYPT(1.5.6)
+AM_PATH_LIBGCRYPT(1.5.3)
 
 if test "x${LIBGCRYPT_LIBS}" = "x"; then
 	AC_MSG_ERROR([unable to find libgcrypt])
