@@ -34,7 +34,11 @@ typedef enum {
   VARIANT_TYPE_MNP     = VCF_MNP,
   VARIANT_TYPE_INDEL   = VCF_INDEL,
   VARIANT_TYPE_OTHER   = VCF_OTHER,
+#ifdef VCF_BND
   VARIANT_TYPE_BND     = VCF_BND
+#else
+  VARIANT_TYPE_BND     = 16 /* Unavailable in HTSlib < 1.5. */
+#endif
 } VariantType;
 
 typedef enum {
