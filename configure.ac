@@ -58,7 +58,6 @@ AC_CONFIG_FILES([
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
-PKG_CHECK_MODULES([curl], [libcurl])
 
 dnl Check for presence of 'pdflatex'
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
