@@ -23,6 +23,7 @@
 
 \subsubsection{Column-wise storage}
 
+\begin{siderules}
 \begin{verbatim}
 CREATE TABLE DB.DBA.RDF_QUAD (
   G IRI_ID_8,
@@ -53,3 +54,4 @@ CREATE DISTINCT NO PRIMARY KEY REF COLUMN INDEX RDF_QUAD_OP
 CREATE BITMAP INDEX RDF_QUAD_PGOS ON DB.DBA.RDF_QUAD (G, P, O, S)
 PARTITION (O VARCHAR (-1, 0hexffff));
 \end{verbatim}
+\end{siderules}

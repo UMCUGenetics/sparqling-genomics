@@ -60,7 +60,7 @@
 \begin{siderules}
 \begin{verbatim}
 apt-get install autoconf automake gcc make pkg-config libgcrypt-dev \
-                libhts-dev guile texlive curl
+                zlib-dev guile-2.0 guile-2.0-dev texlive curl
 \end{verbatim}
 \end{siderules}
 
@@ -68,18 +68,20 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt-dev \
 
 \subsection{CentOS}
 
+  CentOS 7 does not include \texttt{htslib}.  All other dependencies can
+  be installed using the following command:
+
 \begin{siderules}
 \begin{verbatim}
-yum install autoconf automake gcc make pkg-config libgcrypt-devel \
-            libhts-devel guile texlive curl
+yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
+            guile guile-devel texlive curl
 \end{verbatim}
 \end{siderules}
-
 
 \subsection{GNU Guix}
 
   If \href{https://www.gnu.org/software/guix}{GNU Guix} is available on your
-  system, An environment that contains all external tools required to build
+  system, an environment that contains all external tools required to build
   the programs in this project can be obtained running the following command
   from the project's repository root:
 
@@ -91,8 +93,8 @@ guix environment -l guix.scm
 
 \section{Installation instructions}
 
-After installing the required tools (see section \ref{sec:prerequisites}), the
-entire project can be built using the Autotools build system commands:
+After installing the required tools (see section \ref{sec:prerequisites}),
+building involves running the following commands:
 \begin{siderules}
 \begin{verbatim}
 autoreconf -vfi && ./configure
@@ -102,7 +104,7 @@ make && make install
 
 Alternatively, the individual components can be built by replacing
 \texttt{make \&\& make install} with \texttt{make -C <component-directory>}.
-So, to only build \texttt{vcf2turtle}, the following command can be used:
+So, to only build \texttt{vcf2turtle}, the following command could be used:
 \begin{siderules}
 \begin{verbatim}
 make -C tools/vcf2turtle
