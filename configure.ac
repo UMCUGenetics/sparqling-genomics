@@ -51,7 +51,6 @@ AC_CONFIG_FILES([web/run], [chmod +x web/run])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
-  tools/turtle2remote/Makefile
   tools/vcf2turtle/Makefile
   web/Makefile
 ])
