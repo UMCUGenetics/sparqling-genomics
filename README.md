@@ -8,9 +8,7 @@ The programs in this repository require:
 - GNU Autoconf, GNU Automake, pkg-config and GNU Make
 - HTSlib
 - Libgcrypt
-- Libcurl
-- GNU Guile, guile-commonmark, and guile-json
-- R, ggplot2, and r-sparql
+- GNU Guile
 
 ## Installation and development environment with GNU Guix
 
