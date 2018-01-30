@@ -84,41 +84,70 @@
 
   (define (module-path prefix elements)
     "Returns the module path so it can be loaded."
-    (if (> (length elements) 1)
-        (module-path
-         (append prefix (list (string->symbol (car elements))))
-         (cdr elements))
-        (append prefix (list (string->symbol (car elements))))))
-  (values '((content-type . (text/html)))
-          (call-with-output-string
-            (lambda (port)
-              (set-port-encoding! port "utf8")
-              (format port "<!DOCTYPE html>~%")
-              (if (< (string-length request-path) 2)
-                  (sxml->xml (page-welcome "/") port)
-                  (let* ((function-symbol (string->symbol
-                                           (string-map
-                                            (lambda (x)
-                                              (if (eq? x #\/) #\- x))
-                                            (substring request-path 1))))
-                         (module (resolve-module
-                                  (module-path
-                                   '(www pages)
-                                   (string-split (substring request-path 1) #\/))
-                                  #:ensure #f))
-                         (page-symbol (symbol-append 'page- function-symbol)))
-                    (if module
-                        (let ((display-function
-                               (module-ref module page-symbol)))
-                          (if (eq? (request-method request) 'POST)
-                              (sxml->xml (display-function
-                                          request-path
-                                          #:post-data
-                                          (utf8->string
-                                           request-body)) port)
-                              (sxml->xml (display-function request-path) port)))
-                        (sxml->xml (page-ontology-or-error-404 request-path)
-                                   port))))))))
+    (append prefix (map string->symbol elements)))
+
+  (define (resolve-module-function request-path)
+    "Return FUNCTION from MODULE."
+    (let* ((module (resolve-module (module-path '(www pages)
+                     (string-split request-path #\/)) #:ensure #f))
+           (page-symbol (symbol-append 'page-
+                         (string->symbol
+                          (string-replace-occurrence request-path #\/ #\-)))))
+      ;; Return #f unless the 'page-symbol' exists in 'module',
+      ;; in which case we return that.
+      (if module
+          (catch #t
+            (lambda _ (module-ref module page-symbol))
+            (lambda (key . args) #f))
+          #f)))
+
+  ;; Return-type handlers.
+  ;; --------------------------------------------------------------------------
+  (cond
+   ;; The “/” page is special, because we re-route it to “welcome”.
+   [(< (string-length request-path) 2)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (page-welcome "/") port))))]
+
+   ;; When the “file extension” of the request indicates JSON, treat the
+   ;; returned format as ‘application/javascript’.
+   [(and (> (string-length request-path) 5)
+         (string= (string-take-right request-path 5) ".json"))
+    (values '((content-type . (application/javascript)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (let* ((request-path (basename request-path ".json"))
+                       (page-function (resolve-module-function request-path)))
+                  (if page-function
+                      (if (eq? (request-method request) 'POST)
+                          (display (page-function request-path
+                                    #:post-data (utf8->string request-body))
+                                   port)
+                          (display (page-function request-path) port))
+                      (display "{}" port))))))]
+
+   ;; All other requests can be handles as HTML responses.
+   [#t
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (let* ((path (substring request-path 1))
+                       (page-function (resolve-module-function path)))
+                  (if page-function
+                      (if (eq? (request-method request) 'POST)
+                          (sxml->xml (page-function request-path
+                                      #:post-data (utf8->string request-body))
+                                     port)
+                          (sxml->xml (page-function request-path) port))
+                      (sxml->xml (page-ontology-or-error-404 request-path)
+                                 port))))))]))
 
 
 ;; ----------------------------------------------------------------------------
@@ -134,7 +163,7 @@
 ;;
 ;; Feel free to add your own handler whenever that is necessary.
 ;;
-;; ----------------------------------------------------------------------------
+
 (define (request-handler request request-body)
   (let ((request-path (uri-path (request-uri request))))
     (cond
@@ -149,10 +178,17 @@
 ;; ----------------------------------------------------------------------------
 ;;
 ;; This code runs the web server.
+;;
 
 (define (run-web-interface)
-  (format #t "SPARQLing-SVs web service is running at http://127.0.0.1:~a~%"
-          %www-listen-port)
-  (run-server request-handler 'http
-              `(#:port ,%www-listen-port
-                #:addr ,INADDR_ANY)))
+  (let ((pid (primitive-fork)))
+    (if (eq? pid 0)
+        (begin
+          (format #t "SPARQLing-SVs web service is running at http://127.0.0.1:~a~%"
+                  %www-listen-port)
+          (with-output-to-file "web.log"
+            (lambda _
+              (run-server request-handler 'http
+                          `(#:port ,%www-listen-port
+                            #:addr ,INADDR_ANY)))))
+        (primitive-exit))))

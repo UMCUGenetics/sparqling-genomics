@@ -27,7 +27,7 @@
 (define page-title-prefix (string-append %www-name " | "))
 
 (define (page-is-ontology? request-path)
-  (catch 'system-error
+  (catch #t
     (lambda _
       (receive (header port)
           (sparql-query (build-existence-query request-path) #:type "text/csv")
