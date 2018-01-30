@@ -43,23 +43,6 @@
 outputs it in Turtle-format.")
    (license license:gpl3+)))
 
-(define turtle2remote
-  (package
-   (name "turtle2remote")
-   (version "0.0.1")
-   (source #f)
-   (build-system gnu-build-system)
-   (native-inputs
-    `(("autoconf" ,autoconf)
-      ("automake" ,automake)))
-   (inputs
-    `(("curl" ,curl)))
-   (home-page "")
-   (synopsis "Turtle data uploader to a SPARQL endpoint")
-   (description "The turtle2remote program takes Turtle-formatted input and
-submits it to a specified SPARQL endpoint.")
-   (license license:gpl3+)))
-
 (define svplot
   (package
    (name "svplot")
@@ -86,9 +69,7 @@ submits it to a specified SPARQL endpoint.")
     `(("autoconf" ,autoconf)
       ("automake" ,automake)))
    (inputs
-    `(("guile" ,guile-2.2)
-      ("guile-commonmark" ,guile-commonmark)
-      ("guile-json" ,guile-json)))
+    `(("guile" ,guile-2.2)))
    (home-page "")
    (synopsis "")
    (description "")
@@ -108,11 +89,7 @@ submits it to a specified SPARQL endpoint.")
       ("zlib" ,zlib)
       ("xz" ,xz)
       ,@(package-inputs vcf2turtle)
-      ,@(package-inputs turtle2remote)
-      ,@(package-inputs sparqling-svs-web)
-      ,@(package-inputs svplot)))
-   (propagated-inputs
-    `(,@(package-propagated-inputs svplot)))
+      ,@(package-inputs sparqling-svs-web)))
    (home-page "")
    (synopsis "")
    (description "")

@@ -11,5 +11,6 @@ export GUILE_LOAD_PATH
 export GUILE_LOAD_COMPILED_PATH
 export PATH
 
-guile -l @abs_top_builddir@/web/web-interface.scm \
+guile --no-auto-compile --no-debug \
+      -l @abs_top_builddir@/web/web-interface.scm \
       -e '(begin (use-modules (web-interface)) (run-web-interface))'

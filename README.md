@@ -34,7 +34,7 @@ Or change the last step to build individual components, like `vcf2turtle`:
 
 To start the web interface, run:
 ```
-[env]$ sh web/run.sh
+[env]$ sh web/run
 ```
 
 ## Further reading
