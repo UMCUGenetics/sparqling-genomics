@@ -226,7 +226,7 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
        * ------------------------------------------------------------------- */
       else if (!strcmp (vcf_header->hrec[index]->key, "contig"))
         {
-          add_triplet (copy (self), copy (rdf_type), copy (header_format_type));
+          add_triplet (copy (self), copy (rdf_type), copy (header_contig_type));
 
           int32_t j;
           for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
@@ -241,7 +241,7 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 
               else if (!strcmp (key, "length"))
                 add_literal (copy (self), copy (length), value,
-                             config.types[TYPE_STRING]);
+                             config.types[TYPE_INTEGER]);
 
               else if (!strcmp (key, "assembly")) 
                 add_literal (copy (self), copy (assembly), value,
