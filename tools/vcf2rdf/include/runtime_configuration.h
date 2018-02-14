@@ -57,8 +57,10 @@
 /* In addition to URIs, nodes can contain literal values.
  * These have a type, which is often described in the xsd namespace. */
 #define TYPE_STRING        0
+#define TYPE_INTEGER       1
+#define TYPE_FLOAT         2
 
-#define NUMBER_OF_TYPES    (TYPE_STRING + 1)
+#define NUMBER_OF_TYPES    (TYPE_FLOAT + 1)
 
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write

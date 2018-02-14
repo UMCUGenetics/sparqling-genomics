@@ -89,9 +89,15 @@ runtime_configuration_redland_init (void)
   if (uri_index < URI_VCF_VARIANT)
     return (ui_print_redland_error () == 0);
 
-  config.types[TYPE_STRING] = new_uri ("http://www.w3.org/2001/XMLSchema#string");
-  if (! (config.types[0]))
+  config.types[TYPE_STRING]  = new_uri ("http://www.w3.org/2001/XMLSchema#string");
+  config.types[TYPE_INTEGER] = new_uri ("http://www.w3.org/2001/XMLSchema#integer");
+  config.types[TYPE_FLOAT]   = new_uri ("http://www.w3.org/2001/XMLSchema#float");
+  if (! (config.types[TYPE_STRING]
+         && config.types[TYPE_INTEGER]
+         && config.types[TYPE_FLOAT]))
     return (ui_print_redland_error () == 0);
+
+  config.types[TYPE_STRING] = new_uri ("http://www.w3.org/2001/XMLSchema#string");
 
   config.rdf_serializer = librdf_new_serializer (config.rdf_world,
                                                  NULL, "text/turtle", NULL);
