@@ -1,4 +1,4 @@
-dnl Copyright © 2017 Roel Janssen <roel@gnu.org>
+dnl Copyright © 2017, 2018 Roel Janssen <roel@gnu.org>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -52,11 +52,15 @@ AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   tools/vcf2turtle/Makefile
+  tools/vcf2rdf/Makefile
   web/Makefile
 ])
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
+PKG_CHECK_MODULES([redland], [redland])
+PKG_CHECK_MODULES([raptor2], [raptor2])
+PKG_CHECK_MODULES([rasqal], [rasqal])
 
 dnl Check for presence of 'pdflatex'
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)

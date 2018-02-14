@@ -23,7 +23,8 @@
              (gnu packages gnupg)
              (gnu packages guile)
              (gnu packages pkg-config)
-             (gnu packages statistics))
+             (gnu packages statistics)
+             (gnu packages rdf))
 
 (define vcf2turtle
   (package
@@ -69,7 +70,10 @@ outputs it in Turtle-format.")
     `(("autoconf" ,autoconf)
       ("automake" ,automake)))
    (inputs
-    `(("guile" ,guile-2.2)))
+    `(("guile" ,guile-2.2)
+      ("raptor2" ,raptor2)
+      ("redland" ,redland)
+      ("rasqal" ,rasqal)))
    (home-page "")
    (synopsis "")
    (description "")

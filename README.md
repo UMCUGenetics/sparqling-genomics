@@ -4,10 +4,11 @@ More documentation is available in the `doc/` directory.
 
 ## Dependencies
 
-The programs in this repository require:
+To build the programs in this repository, the following tools are required:
 - GNU Autoconf, GNU Automake, pkg-config and GNU Make
 - HTSlib
 - Libgcrypt
+- Redland (librdf, raptor2, rasqal)
 - GNU Guile
 
 ## Installation and development environment with GNU Guix
