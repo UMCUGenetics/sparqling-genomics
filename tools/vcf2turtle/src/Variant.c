@@ -162,15 +162,15 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
 {
   if (v == NULL) return;
 
-  printf ("v:%s a :Variant ;\n", variant_name (v, vcf_header));
+  printf ("v:%s a :Variant ; ", variant_name (v, vcf_header));
 
   if (v->origin)
-    printf ("  :origin o:%s ;\n", hash_Origin (v->origin, true));
+    printf ("  :origin o:%s ; ", hash_Origin (v->origin, true));
 
-  printf ("  :start_position %s:%s ;\n"
-          "  :end_position %s:%s ;\n"
-          "  :reference \"%s\" ;\n"
-          "  :alternative \"%s\" ;\n"
+  printf ("  :start_position %s:%s ; "
+          "  :end_position %s:%s ; "
+          "  :reference \"%s\" ; "
+          "  :alternative \"%s\" ; "
           "  :id \"%s\" ",
           faldo_position_prefix ((FaldoBaseType *)(v->start_position)),
           faldo_position_name ((FaldoBaseType *)(v->start_position)),
@@ -181,79 +181,79 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
           v->id);
 
   if (isfinite (v->quality))
-    printf (";\n  :quality \"%4.3f\"^^xsd:float ", v->quality);
+    printf (";  :quality \"%4.3f\"^^xsd:float ", v->quality);
 
   if (v->cipos && v->cipos->before->position != 0)
-    printf (";\n  :confidence_interval_start_position %s:%s",
+    printf (";  :confidence_interval_start_position %s:%s",
             faldo_position_prefix ((FaldoBaseType *)(v->cipos)),
             faldo_position_name ((FaldoBaseType *)(v->cipos)));
 
   if (v->ciend && v->ciend->before->position != 0)
-    printf (";\n  :confidence_interval_end_position %s:%s",
+    printf (";  :confidence_interval_end_position %s:%s",
             faldo_position_prefix ((FaldoBaseType *)(v->ciend)),
             faldo_position_name ((FaldoBaseType *)(v->ciend)));
 
   if (v->length != 0)
-    printf (";\n  :length \"%d\"^^xsd:integer ", v->length);
+    printf (";  :length \"%d\"^^xsd:integer ", v->length);
 
   int i = 0;
   for (; i < v->filters_len; i++)
     {
       char *name = (char *)vcf_header->id[BCF_DT_ID][v->filters[i]].key;
-      printf (";\n  :filter \"%s\" ", name);
+      printf (";  :filter \"%s\" ", name);
     }
 
   if (v->is_complex_rearrangement)
     {
-      printf (";\n  :hasDirection %s ; :atBreakPointPosition %s ",
+      printf (";  :hasDirection %s ; :atBreakPointPosition %s ",
               (v->is_reversed) ? ":ReverseComplement" : ":Same",
               (v->is_left_of_ref) ? ":Left" : ":Right");
     }
 
   if (v->mapq != 0)
-    printf (";\n  :mapping_quality \"%d\"^^xsd:integer ", v->mapq);
+    printf (";  :mapping_quality \"%d\"^^xsd:integer ", v->mapq);
 
   if (v->paired_end_support != 0)
-    printf (";\n  :paired_end_support \"%d\"^^xsd:integer ", v->paired_end_support);
+    printf (";  :paired_end_support \"%d\"^^xsd:integer ", v->paired_end_support);
 
   if (v->split_read_support != 0)
-    printf (";\n  :split_read_support \"%d\"^^xsd:integer ", v->split_read_support);
+    printf (";  :split_read_support \"%d\"^^xsd:integer ", v->split_read_support);
 
   if (v->split_read_consensus_alignment_quality != 0)
-    printf (";\n  :split_read_consensus_alignment_quality  \"%4.2f\"^^xsd:float ",
+    printf (";  :split_read_consensus_alignment_quality  \"%4.2f\"^^xsd:float ",
             v->split_read_consensus_alignment_quality);
 
   if (v->read_count != 0)
-    printf (";\n  :read_count \"%d\"^^xsd:integer ", v->read_count);
+    printf (";  :read_count \"%d\"^^xsd:integer ", v->read_count);
 
   if (v->hq_reference_pairs != 0)
-    printf (";\n  :high_quality_reference_pairs \"%d\"^^xsd:integer ", v->hq_reference_pairs);
+    printf (";  :high_quality_reference_pairs \"%d\"^^xsd:integer ", v->hq_reference_pairs);
 
   if (v->hq_variant_pairs != 0)
-    printf (";\n  :high_quality_variant_pairs \"%d\"^^xsd:integer ", v->hq_variant_pairs);
+    printf (";  :high_quality_variant_pairs \"%d\"^^xsd:integer ", v->hq_variant_pairs);
 
   if (v->hq_ref_junction_reads != 0)
-    printf (";\n  :high_quality_reference_junction_reads \"%d\"^^xsd:integer ",
+    printf (";  :high_quality_reference_junction_reads \"%d\"^^xsd:integer ",
             v->hq_ref_junction_reads);
 
   if (v->hq_var_junction_reads != 0)
-    printf (";\n  :high_quality_variant_junction_reads  \"%d\"^^xsd:integer ",
+    printf (";  :high_quality_variant_junction_reads  \"%d\"^^xsd:integer ",
             v->hq_var_junction_reads);
 
   if (v->cigar != NULL && v->cigar_len > 0)
-    printf (";\n  :cigar \"%s\" ", v->cigar);
+    printf (";  :cigar \"%s\" ", v->cigar);
 
   if (v->pair_count != 0)
-    printf (";\n  :pair_count \"%d\"^^xsd:integer ", v->pair_count);
+    printf (";  :pair_count \"%d\"^^xsd:integer ", v->pair_count);
 
   if (v->bnd_pair_count != 0)
-    printf (";\n  :bnd_pair_count \"%d\"^^xsd:integer", v->bnd_pair_count);
+    printf (";  :bnd_pair_count \"%d\"^^xsd:integer", v->bnd_pair_count);
 
   if (v->upstream_pair_count != 0)
-    printf (";\n  :upstream_pair_count \"%d\"^^xsd:integer ", v->upstream_pair_count);
+    printf (";  :upstream_pair_count \"%d\"^^xsd:integer ", v->upstream_pair_count);
 
   if (v->downstream_pair_count != 0)
-    printf (";\n  :downstream_pair_count \"%d\"^^xsd:integer ", v->downstream_pair_count);
+    printf (";  :downstream_pair_count \"%d\"^^xsd:integer ", v->downstream_pair_count);
 
   if (v->type_len > 0 && v->type)
     {
@@ -261,10 +261,10 @@ variant_print (Variant *v, bcf_hdr_t *vcf_header)
       memset (type, '\0', v->type_len + 1);
       memcpy (type, v->type, v->type_len);
 
-      printf (";\n  :type \"%s\" .\n\n", type);
+      printf (";  :type \"%s\" ", type);
     }
-  else
-    printf (".\n\n");
+
+  printf (".\n");
 }
 
 void
