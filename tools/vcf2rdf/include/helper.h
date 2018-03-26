@@ -21,8 +21,11 @@
 #include <stdbool.h>
 #include "runtime_configuration.h"
 
-bool get_pretty_hash (unsigned char *hash, uint32_t length, char *output);
-char *helper_get_hash_from_file (const char *filename);
+bool get_pretty_hash (unsigned char *hash,
+                      uint32_t length,
+                      unsigned char *output);
+
+unsigned char *helper_get_hash_from_file (const char *filename);
 
 /*----------------------------------------------------------------------------.
  | CONVENIENCE MACROS                                                         |
@@ -35,24 +38,21 @@ char *helper_get_hash_from_file (const char *filename);
  '----------------------------------------------------------------------------*/
 
 #define new_node(uri, value)                                                \
-  librdf_new_node_from_uri_local_name (config.rdf_world, uri, value)
+  librdf_new_node_from_uri_local_name (config.rdf_world, uri,               \
+                                       (unsigned char *)value)
 
 #define new_node_from_uri(index)                                            \
   librdf_new_node_from_uri (config.rdf_world, index)
 
 #define copy(node) librdf_new_node_from_node (node)
-
-#define new_uri(uri)                                                        \
-  librdf_new_uri (config.rdf_world, uri)
-
+#define new_uri(uri) librdf_new_uri (config.rdf_world, (unsigned char*)uri)
 #define rdf_serialize(model)                                                \
   librdf_serializer_serialize_model_to_file_handle                          \
   (config.rdf_serializer, stdout, config.uris[URI_GRAPH_LOCATION], model)
 
-#define add_triplet(s, p, o) librdf_model_add (config.rdf_model, s, p, o);
-
+#define add_triplet(s, p, o) librdf_model_add (config.rdf_model, s, p, o)
 #define add_literal(s, p, value, data_type)                                 \
   librdf_model_add_typed_literal_statement                                  \
-  (config.rdf_model, s, p, value, NULL, data_type)
+  (config.rdf_model, s, p, (unsigned char*)value, NULL, data_type)
 
 #endif /* HELPER_H */

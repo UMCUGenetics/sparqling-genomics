@@ -27,7 +27,7 @@
 
 void ui_show_help (void);
 void ui_show_version (void);
-bool ui_process_command_line (int argc, char **argv);
+void ui_process_command_line (int argc, char **argv);
 
 /*----------------------------------------------------------------------------.
  | ERROR HANDLING                                                             |

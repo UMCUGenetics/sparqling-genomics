@@ -47,11 +47,13 @@
 #define URI_VCF_HEADER_CONTIG    13
 #define URI_VCF_SAMPLE           14
 #define URI_VCF_VARIANT          15
+#define URI_VCF_VARIANT_CALL     16
 
-/* The following integer is used to determine the size of the enum.
- * Please adjust accordingly when you change the first or the last field
- * in the enum. */
-#define NUMBER_OF_URIS     (URI_VCF_VARIANT + 1)
+/* The following integer is used to determine the size of the contants.
+ * Please adjust accordingly when you change the first or the last
+ * constant.
+ */
+#define NUMBER_OF_URIS     (URI_VCF_VARIANT_CALL + 1)
 
 
 /* In addition to URIs, nodes can contain literal values.
@@ -73,7 +75,6 @@ typedef struct
   char              *keep;
   char              *input_file;
   char              *reference;
-  char              *graph_location;
   char              *caller;
   int32_t           threads;
   int32_t           jobs_per_thread;

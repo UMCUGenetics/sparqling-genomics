@@ -33,8 +33,6 @@ ui_show_help (void)
                                  "output.\n"
         "  --keep=ARG,        -k  Omit calls without FILTER=ARG from the "
                                  "output.\n"
-        "  --uri=ARG,         -u  Location of the graph.  This does not upload "
-                                 "data.\n"
         "  --reference=ARG,   -r  The reference genome the variant positions "
                                  "refer to.\n"
         "                         Valid values are: 'GRCh37', 'GRCh38'.\n"
@@ -51,7 +49,7 @@ ui_show_version (void)
   puts ("Version: " VERSION "\n");
 }
 
-bool
+void
 ui_process_command_line (int argc, char **argv)
 {
   int arg = 0;
@@ -67,7 +65,6 @@ ui_process_command_line (int argc, char **argv)
       { "keep",              required_argument, 0, 'k' },
       { "reference",         required_argument, 0, 'r' },
       { "threads",           required_argument, 0, 't' },
-      { "uri",               required_argument, 0, 'u' },
       { "help",              no_argument,       0, 'h' },
       { "version",           no_argument,       0, 'v' },
       { 0,                   0,                 0, 0   }
@@ -76,7 +73,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:t:u:hv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:t:hv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -85,7 +82,6 @@ ui_process_command_line (int argc, char **argv)
         case 'k': config.keep = optarg;                          break;
         case 'r': config.reference = optarg;                     break;
         case 't': config.threads = atoi(optarg);                 break;
-        case 'u': config.graph_location = optarg;                break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }

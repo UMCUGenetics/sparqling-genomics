@@ -26,6 +26,7 @@
 #include "helper.h"
 #include "runtime_configuration.h"
 #include "vcf_header.h"
+#include "vcf_variants.h"
 
 int
 main (int argc, char **argv)
@@ -97,7 +98,7 @@ main (int argc, char **argv)
           return ui_print_vcf_header_error (config.input_file);
         }
 
-      char *file_hash = helper_get_hash_from_file (config.input_file);
+      unsigned char *file_hash = helper_get_hash_from_file (config.input_file);
       if (!file_hash) return 1;
 
       librdf_node *node_filename;
@@ -105,18 +106,24 @@ main (int argc, char **argv)
       librdf_node *node_origin;
 
       node_filename = new_node (config.uris[URI_GRAPH_LOCATION], file_hash);
-      node_rdf_type = new_node (config.uris[URI_RDF], "type");
-      node_origin   = new_node (config.uris[URI_VCF], "Origin");
+      node_rdf_type = new_node (config.uris[URI_RDF], (const unsigned char *)"type");
+      node_origin   = new_node (config.uris[URI_VCF], (const unsigned char *)"Origin");
       add_triplet (node_filename, node_rdf_type, node_origin);
       free (file_hash);
 
       /* Process the header. */
       process_header (vcf_header, node_filename);
 
+      /* Process variant calls. */
+      bcf1_t *buffer = bcf_init ();
+      while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
+        process_variant (vcf_header, buffer, node_filename);
+
       /* Return output. */
       rdf_serialize (config.rdf_model);
 
       /* Clean up. */
+      bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
     }

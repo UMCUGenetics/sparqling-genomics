@@ -12,7 +12,8 @@ vcf2rdf_SOURCES      = src/helper.c include/helper.h                          \
                        src/main.c include/runtime_configuration.h             \
                        src/runtime_configuration.c                            \
                        src/ui.c include/ui.h                                  \
-                       src/vcf_header.c include/vcf_header.h
+                       src/vcf_header.c include/vcf_header.h                  \
+                       src/vcf_variants.c include/vcf_variants.h
 
 vcf2rdf_LDFLAGS      = # -pthread
 vcf2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS) $(redland_LIBS)       \

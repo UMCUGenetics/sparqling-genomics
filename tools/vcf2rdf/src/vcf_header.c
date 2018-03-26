@@ -54,9 +54,9 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   librdf_node *header_alt_type;
   librdf_node *header_format_type;
   librdf_node *header_contig_type;
-  
+
   vcf_header_item     = new_node_from_uri (config.uris[URI_VCF_HEADER]);
-  rdf_type            = new_node (config.uris[URI_RDF], "type");
+  rdf_type            = new_node (config.uris[URI_RDF], (unsigned char*)"type");
   origin_type         = new_node_from_uri (config.uris[URI_VCF_ORIGIN]);
   header_generic_type = new_node_from_uri (config.uris[URI_VCF_HEADER_GENERIC]);
   header_info_type    = new_node_from_uri (config.uris[URI_VCF_HEADER_INFO]);
@@ -65,25 +65,14 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   header_format_type  = new_node_from_uri (config.uris[URI_VCF_HEADER_FORMAT]);
   header_contig_type  = new_node_from_uri (config.uris[URI_VCF_HEADER_CONTIG]);
 
-  librdf_node *self, *key_type, *value_type;
-  self       = NULL;
-  key_type   = new_node (config.uris[URI_VCF_HEADER], "GenericKey");
-  value_type = new_node (config.uris[URI_VCF_HEADER], "GenericValue");
-
-  librdf_node *id, *number, *type, *description, *length, *assembly;
-  id          = new_node (config.uris[URI_VCF_HEADER], "Identifier");
-  number      = new_node (config.uris[URI_VCF_HEADER], "Number");
-  type        = new_node (config.uris[URI_VCF_HEADER], "Type");
-  description = new_node (config.uris[URI_VCF_HEADER], "Description");
-  length      = new_node (config.uris[URI_VCF_HEADER], "Length");
-  assembly    = new_node (config.uris[URI_VCF_HEADER], "Assembly");
+  librdf_node *self = NULL;
 
   int32_t index = 0;
   char index_str[64];
   for (; index < vcf_header->nhrec; index++)
     {
-      memset (index_str, 64, '\0');
-      int32_t index_str_len = snprintf (index_str, 64, "h%d", index);
+      memset (index_str, '\0', 64);
+      int32_t index_str_len = snprintf (index_str, 64, "%d", index);
       if (index_str_len < 0 || index_str_len > 64)
         {
           ui_print_memory_error (config.input_file);
@@ -108,156 +97,46 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
       if (vcf_header->hrec[index]->value)
         {
           add_triplet (copy (self), copy (rdf_type), copy (header_generic_type));
-          add_literal (copy (self), copy (key_type),
-                       vcf_header->hrec[index]->key,
-                       config.types[TYPE_STRING]);
-          add_literal (copy (self), copy (value_type),
+          add_literal (copy (self),
+                       new_node (config.uris[URI_VCF_HEADER_GENERIC],
+                                 vcf_header->hrec[index]->key),
                        vcf_header->hrec[index]->value,
                        config.types[TYPE_STRING]);
         }
 
-      /* Handle INFO fields.
+      /* Handle other fields.
        * ------------------------------------------------------------------- */
-      else if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
+      int32_t j;
+      for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
         {
-          add_triplet (copy (self), copy (rdf_type), copy (header_info_type));
+          char *key = vcf_header->hrec[index]->keys[j];
+          char *value = vcf_header->hrec[index]->vals[j];
+          if (!key || !value) break;
 
-          int32_t j;
-          for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
-            {
-              char *key = vcf_header->hrec[index]->keys[j];
-              char *value = vcf_header->hrec[index]->vals[j];
-              if (!key || !value) break;
-
-              if (!strcmp (key, "ID"))
-                add_literal (copy (self), copy (id), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Number"))
-                add_literal (copy (self), copy (number), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Type")) 
-                add_literal (copy (self), copy (type), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Description"))
-                add_literal (copy (self), copy (description), value,
-                             config.types[TYPE_STRING]);
-            }
+          add_literal (copy (self),
+                       new_node (config.uris[URI_VCF_HEADER_GENERIC],
+                                 (unsigned char *)key),
+                       value,
+                       config.types[TYPE_STRING]);
         }
 
-      /* Handle FILTER fields.
+      /* Add a specific header type identifier.
        * ------------------------------------------------------------------- */
+      if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
+        add_triplet (copy (self), copy (rdf_type), copy (header_info_type));
       else if (!strcmp (vcf_header->hrec[index]->key, "FILTER"))
-        {
-          add_triplet (copy (self), copy (rdf_type), copy (header_filter_type));
-
-          int32_t j;
-          for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
-            {
-              char *key = vcf_header->hrec[index]->keys[j];
-              char *value = vcf_header->hrec[index]->vals[j];
-              if (!key || !value) break;
-
-              if (!strcmp (key, "ID"))
-                add_literal (copy (self), copy (id), value,
-                             config.types[TYPE_STRING]);
-              else if (!strcmp (key, "Description"))
-                add_literal (copy (self), copy (description), value,
-                             config.types[TYPE_STRING]);
-            }
-        }
-
-      /* Handle ALT fields.
-       * ------------------------------------------------------------------- */
+        add_triplet (copy (self), copy (rdf_type), copy (header_filter_type));
       else if (!strcmp (vcf_header->hrec[index]->key, "ALT"))
-        {
-          add_triplet (copy (self), copy (rdf_type), copy (header_alt_type));
-
-          int32_t j;
-          for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
-            {
-              char *key = vcf_header->hrec[index]->keys[j];
-              char *value = vcf_header->hrec[index]->vals[j];
-              if (!key || !value) break;
-
-              if (!strcmp (key, "ID"))
-                add_literal (copy (self), copy (id), value,
-                             config.types[TYPE_STRING]);
-              else if (!strcmp (key, "Description"))
-                add_literal (copy (self), copy (description), value,
-                             config.types[TYPE_STRING]);
-            }
-        }
-
-      /* Handle FORMAT fields.
-       * ------------------------------------------------------------------- */
+        add_triplet (copy (self), copy (rdf_type), copy (header_alt_type));
       else if (!strcmp (vcf_header->hrec[index]->key, "FORMAT"))
-        {
-          add_triplet (copy (self), copy (rdf_type), copy (header_format_type));
-
-          int32_t j;
-          for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
-            {
-              char *key = vcf_header->hrec[index]->keys[j];
-              char *value = vcf_header->hrec[index]->vals[j];
-              if (!key || !value) break;
-
-              if (!strcmp (key, "ID"))
-                add_literal (copy (self), copy (id), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Number"))
-                add_literal (copy (self), copy (number), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Type")) 
-                add_literal (copy (self), copy (type), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "Description"))
-                add_literal (copy (self), copy (description), value,
-                             config.types[TYPE_STRING]);
-            }
-        }
-
-      /* Handle 'contig' fields.
-       * ------------------------------------------------------------------- */
+        add_triplet (copy (self), copy (rdf_type), copy (header_format_type));
       else if (!strcmp (vcf_header->hrec[index]->key, "contig"))
-        {
-          add_triplet (copy (self), copy (rdf_type), copy (header_contig_type));
-
-          int32_t j;
-          for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
-            {
-              char *key = vcf_header->hrec[index]->keys[j];
-              char *value = vcf_header->hrec[index]->vals[j];
-              if (!key || !value) break;
-
-              if (!strcmp (key, "ID"))
-                add_literal (copy (self), copy (id), value,
-                             config.types[TYPE_STRING]);
-
-              else if (!strcmp (key, "length"))
-                add_literal (copy (self), copy (length), value,
-                             config.types[TYPE_INTEGER]);
-
-              else if (!strcmp (key, "assembly")) 
-                add_literal (copy (self), copy (assembly), value,
-                             config.types[TYPE_STRING]);
-            }
-        }
-      else
-        fprintf (stderr, "Error: Encountered an unknown header item '%s'.\n",
-                 vcf_header->hrec[index]->key);
+        add_triplet (copy (self), copy (rdf_type), copy (header_contig_type));
 
       librdf_free_node (self);
       self = NULL;
     }
 
-  librdf_free_node (key_type);
-  librdf_free_node (value_type);
   librdf_free_node (vcf_header_item);
   librdf_free_node (rdf_type);
   librdf_free_node (origin_type);
@@ -267,11 +146,4 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   librdf_free_node (header_alt_type);
   librdf_free_node (header_format_type);
   librdf_free_node (header_contig_type);
-
-  librdf_free_node (id);
-  librdf_free_node (number);
-  librdf_free_node (type);
-  librdf_free_node (description);
-  librdf_free_node (length);
-  librdf_free_node (assembly);
 }

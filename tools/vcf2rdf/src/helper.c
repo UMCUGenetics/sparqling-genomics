@@ -21,7 +21,7 @@
 #include "ui.h"
 
 bool
-get_pretty_hash (unsigned char *hash, uint32_t length, char *output)
+get_pretty_hash (unsigned char *hash, uint32_t length, unsigned char *output)
 {
   if (output == NULL) return false;
 
@@ -63,10 +63,10 @@ get_pretty_hash (unsigned char *hash, uint32_t length, char *output)
   return true;
 }
 
-char *
+unsigned char *
 helper_get_hash_from_file (const char *filename)
 {
-  const int READ_BUFFER_MAX_LENGTH = 4000000;
+  const size_t READ_BUFFER_MAX_LENGTH = 4000000;
   const int HASH_LENGTH = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
 
   /* Initialize GCrypt.
@@ -124,7 +124,7 @@ helper_get_hash_from_file (const char *filename)
   free (buffer);
   buffer = NULL;
 
-  char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
+  unsigned char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
   if (!pretty_digest)
     {
       gcry_md_close (handler);
