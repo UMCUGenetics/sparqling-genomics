@@ -38,6 +38,7 @@ int32_t ui_print_vcf_header_error (const char *file_name);
 int32_t ui_print_memory_error (const char *file_name);
 int32_t ui_print_file_format_error (void);
 int32_t ui_print_redland_error (void);
+int32_t ui_print_query_error (const char *query);
 
 /*----------------------------------------------------------------------------.
  | WARNING HANDLING                                                           |

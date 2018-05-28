@@ -48,7 +48,7 @@ unsigned char *helper_get_hash_from_file (const char *filename);
 #define new_uri(uri) librdf_new_uri (config.rdf_world, (unsigned char*)uri)
 #define rdf_serialize(model)                                                \
   librdf_serializer_serialize_model_to_file_handle                          \
-  (config.rdf_serializer, stdout, config.uris[URI_GRAPH_LOCATION], model)
+  (config.rdf_serializer, stdout, config.uris[URI_ONTOLOGY_PREFIX], model)
 
 #define add_triplet(s, p, o) librdf_model_add (config.rdf_model, s, p, o)
 #define add_literal(s, p, value, data_type)                                 \

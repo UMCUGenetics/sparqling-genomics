@@ -105,9 +105,9 @@ main (int argc, char **argv)
       librdf_node *node_rdf_type;
       librdf_node *node_origin;
 
-      node_filename = new_node (config.uris[URI_GRAPH_LOCATION], file_hash);
-      node_rdf_type = new_node (config.uris[URI_RDF], (const unsigned char *)"type");
-      node_origin   = new_node (config.uris[URI_VCF], (const unsigned char *)"Origin");
+      node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
+      node_rdf_type = new_node (config.uris[URI_RDF_PREFIX], (const unsigned char *)"type");
+      node_origin   = new_node (config.uris[URI_ONTOLOGY_PREFIX], (const unsigned char *)"Origin");
       add_triplet (node_filename, node_rdf_type, node_origin);
       free (file_hash);
 

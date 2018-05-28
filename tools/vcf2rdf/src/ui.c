@@ -123,6 +123,13 @@ ui_print_redland_error (void)
 }
 
 int32_t
+ui_print_query_error (const char *query)
+{
+  fprintf (stderr, "ERROR: Could not execute query:\n%s\n", query);
+  return 1;
+}
+
+int32_t
 ui_print_file_format_error (void)
 {
   fprintf (stderr, "ERROR: This program only handles \".vcf\", "

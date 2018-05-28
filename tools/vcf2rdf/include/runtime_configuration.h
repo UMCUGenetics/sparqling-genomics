@@ -30,39 +30,45 @@
 /* In this program, a couple of URI prefixes are stored in
  * 'program_config.uris'.  To get an idea of which URI is which, the
  * following named index can be used.  So for example,
- * program_config.uris[URI_FALDO] contains the URI prefix for FALDO. */
-#define URI_GRAPH_LOCATION       0
-#define URI_RDF                  1
-#define URI_RDFS                 2
-#define URI_XSD                  3
-#define URI_FALDO                4
+ * program_config.uris[URI_FALDO_PREFIX] contains the URI prefix for FALDO. */
+#define URI_ONTOLOGY_PREFIX             0
+#define URI_RDF_PREFIX                  1
+#define URI_RDFS_PREFIX                 2
+#define URI_XSD_PREFIX                  3
+#define URI_FALDO_PREFIX                4
 #define URI_VCF                  5
-#define URI_VCF_ORIGIN           6
-#define URI_VCF_HEADER           7
-#define URI_VCF_HEADER_INFO      8
-#define URI_VCF_HEADER_GENERIC   9
-#define URI_VCF_HEADER_FORMAT    10
-#define URI_VCF_HEADER_FILTER    11
-#define URI_VCF_HEADER_ALT       12
-#define URI_VCF_HEADER_CONTIG    13
-#define URI_VCF_SAMPLE           14
-#define URI_VCF_VARIANT          15
-#define URI_VCF_VARIANT_CALL     16
+#define URI_HG19_PREFIX          6
+#define URI_HG19_CHR_PREFIX      7
+#define URI_VCF_HEADER_PREFIX    8
+#define URI_VCF_HEADER_INFO      9
+#define URI_VCF_HEADER_GENERIC   10
+#define URI_VCF_HEADER_FORMAT    11
+#define URI_VCF_HEADER_FILTER    12
+#define URI_VCF_HEADER_ALT       13
+#define URI_VCF_HEADER_CONTIG    14
+#define URI_VCF_SAMPLE           15
+#define URI_VCF_VC_PREFIX     16
 
 /* The following integer is used to determine the size of the contants.
  * Please adjust accordingly when you change the first or the last
  * constant.
  */
-#define NUMBER_OF_URIS     (URI_VCF_VARIANT_CALL + 1)
+#define NUMBER_OF_URIS     (URI_VCF_VC_PREFIX + 1)
 
 
-/* In addition to URIs, nodes can contain literal values.
- * These have a type, which is often described in the xsd namespace. */
+#define NODE_VARIANT_CLASS        0
+
+#define NUMBER_OF_NODES     (NODE_VARIANT_CLASS + 1)
+
+/* In addition to URIs and nodes, “datatype property nodes” can contain literal
+ * values.  These have a type, which is often described in the xsd namespace.
+ */
 #define TYPE_STRING        0
 #define TYPE_INTEGER       1
 #define TYPE_FLOAT         2
+#define TYPE_BOOLEAN       3
 
-#define NUMBER_OF_TYPES    (TYPE_FLOAT + 1)
+#define NUMBER_OF_TYPES    (TYPE_BOOLEAN + 1)
 
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
@@ -78,10 +84,12 @@ typedef struct
   char              *caller;
   int32_t           threads;
   int32_t           jobs_per_thread;
+  int32_t           non_unique_variant_counter;
 
   /* Redland-specifics. */
   librdf_uri        *uris[NUMBER_OF_URIS];
   librdf_uri        *types[NUMBER_OF_TYPES];
+  librdf_node       *nodes[NUMBER_OF_NODES];
   librdf_world      *rdf_world;
   librdf_serializer *rdf_serializer;
   librdf_storage    *rdf_storage;
@@ -96,5 +104,7 @@ RuntimeConfiguration config;
 bool runtime_configuration_init (void);
 bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);
+
+char *generate_variant_id (void);
 
 #endif  /* RUNTIMECONFIGURATION_H */
