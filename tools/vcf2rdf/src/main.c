@@ -108,7 +108,7 @@ main (int argc, char **argv)
       node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
       node_rdf_type = new_node (config.uris[URI_RDF_PREFIX], (const unsigned char *)"type");
       node_origin   = new_node (config.uris[URI_ONTOLOGY_PREFIX], (const unsigned char *)"Origin");
-      add_triplet (node_filename, node_rdf_type, node_origin);
+      add_triplet (copy (node_filename), node_rdf_type, node_origin);
       free (file_hash);
 
       /* Process the header. */
@@ -116,10 +116,41 @@ main (int argc, char **argv)
 
       /* Process variant calls. */
       bcf1_t *buffer = bcf_init ();
+      int32_t counter = 0;
+      uint32_t triplets_count = 0;
+
+      if (config.show_progress_info)
+        {
+          fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "Variants", "Triplets");
+          fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "--------", "--------");
+        }
       while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
-        process_variant (vcf_header, buffer, node_filename);
+        {
+          process_variant (vcf_header, buffer, node_filename);
+          if (counter % 70000 == 0 && counter != 0)
+            {
+              if (config.show_progress_info)
+                {
+                  triplets_count += librdf_model_size (config.rdf_model);
+                  fprintf(stderr, "[ PROGRESS ] %-20d%-20u\n",
+                                  counter, triplets_count);
+                }
+
+              rdf_serialize (config.rdf_model);
+              refresh_model ();
+            }
+
+          counter++;
+        }
+
+      if (config.show_progress_info)
+        fprintf (stderr,
+                 "[ PROGRESS ] \n"
+                 "[ PROGRESS ] Total number of triplets: %u\n",
+                 triplets_count);
 
       /* Return output. */
+      librdf_free_node (node_filename);
       rdf_serialize (config.rdf_model);
 
       /* Clean up. */

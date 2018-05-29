@@ -31,6 +31,10 @@ runtime_configuration_init (void)
   config.caller = NULL;
   config.threads = 1;
   config.jobs_per_thread = 50000;
+  config.non_unique_variant_counter = 0;
+  config.info_field_indexes = NULL;
+  config.info_field_indexes_len = 0;
+  config.show_progress_info = false;
 
   return true;
 }
@@ -55,7 +59,8 @@ runtime_configuration_redland_init (void)
   if (!config.rdf_world)
     return (ui_print_redland_error () == 0);
 
-  config.rdf_storage = librdf_new_storage (config.rdf_world, "memory", NULL, NULL);
+  config.rdf_storage = librdf_new_storage (config.rdf_world, "hashes", NULL, "hash-type='memory'");
+
   if (!config.rdf_storage)
     return (ui_print_redland_error () == 0);
 
@@ -102,7 +107,7 @@ runtime_configuration_redland_init (void)
          && config.types[TYPE_BOOLEAN]))
     return (ui_print_redland_error () == 0);
 
-  config.rdf_serializer = librdf_new_serializer (config.rdf_world, "ntriples", NULL, NULL);
+  config.rdf_serializer = librdf_new_serializer (config.rdf_world, "turtle", NULL, NULL);
 
   if (!config.rdf_serializer)
     return (ui_print_redland_error () == 0);
@@ -131,6 +136,10 @@ runtime_configuration_free (void)
   librdf_free_storage (config.rdf_storage);
   librdf_free_model (config.rdf_model);
   librdf_free_world (config.rdf_world);
+
+  /* Free caches. */
+  if (config.info_field_indexes != NULL)
+    free (config.info_field_indexes);
 }
 
 char *
@@ -141,4 +150,24 @@ generate_variant_id ()
   config.non_unique_variant_counter += 1;
 
   return variant_id;
+}
+
+void refresh_model (void)
+{
+  librdf_free_model (config.rdf_model);
+  librdf_free_storage (config.rdf_storage);
+
+  config.rdf_storage = librdf_new_storage (config.rdf_world, "hashes", NULL, "hash-type='memory'");
+  if (!config.rdf_storage)
+    {
+      ui_print_redland_error ();
+      return;
+    }
+
+  config.rdf_model = librdf_new_model (config.rdf_world, config.rdf_storage, NULL);
+  if (!config.rdf_model)
+    {
+      ui_print_redland_error ();
+      return;
+    }
 }

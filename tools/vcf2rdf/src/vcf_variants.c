@@ -81,6 +81,12 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
   self = new_node (config.uris[URI_ONTOLOGY_PREFIX], variant_id);
 
+  if (!self || !origin_type || !origin || !rdf_type)
+    {
+      ui_print_redland_error ();
+      return;
+    }
+
   add_triplet (copy (self), copy (origin_type), copy (origin));
   add_triplet (copy (self), copy (rdf_type),    copy (config.nodes[NODE_VARIANT_CLASS]));
 
@@ -105,10 +111,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
                (chromosome_len < 3)
                  ? new_node (config.uris[URI_HG19_CHR_PREFIX], chromosome)
                  : new_node (config.uris[URI_HG19_PREFIX], chromosome));
-
-  add_triplet (copy (self),
-               new_node (config.uris[URI_VCF_VC_PREFIX], "ID"),
-               new_node (config.uris[URI_ONTOLOGY_PREFIX], variant_id));
 
   char position_str[10];
   snprintf (position_str, 10, "%u", position);
@@ -149,101 +151,95 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   bcf_unpack (buffer, BCF_UN_FLT);
   int filter_index = 0;
   for (; filter_index < buffer->d.n_flt; filter_index++)
-    add_literal (copy (self),
+    add_triplet (copy (self),
                  new_node (config.uris[URI_VCF_VC_PREFIX], "FILTER"),
-                 header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key,
-                 config.types[TYPE_STRING]);
+                 new_node (config.uris[URI_ONTOLOGY_PREFIX],
+                           header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key));
 
   /* Process INFO fields.
   * ------------------------------------------------------------------------- */
-  char *query_string = calloc (512, sizeof (char));
-  snprintf (query_string, 512,
-            "SELECT DISTINCT ?id ?datatype WHERE { ?subject <%sID> ?id ; "
-            "<%sType> ?datatype ;<%stype> <%s> . }",
-            librdf_uri_as_string (config.uris[URI_VCF_HEADER_PREFIX]),
-            librdf_uri_as_string (config.uris[URI_VCF_HEADER_PREFIX]),
-            librdf_uri_as_string (config.uris[URI_RDF_PREFIX]),
-            librdf_uri_as_string (config.uris[URI_VCF_HEADER_INFO]));
 
-  librdf_query *query;
-  query = librdf_new_query (config.rdf_world, "sparql", NULL, query_string, NULL);
+  char number_buffer[32];
+  char *id_str           = NULL;
+  char *type_str         = NULL;
+  void *value            = NULL;
+  int32_t value_len      = 0;
 
-  if (!query)
-    ui_print_query_error (query_string);
-  else
+  for (int index; index < config.info_field_indexes_len; index++)
     {
-      librdf_query_results *results = NULL;
-      results = librdf_query_execute (query, config.rdf_model);
+      memset(number_buffer, '\0', 32);
+      id_str    = NULL;
+      type_str  = NULL;
+      value     = NULL;
+      value_len = 0;
 
-      if (!results)
-        ui_print_query_error (query_string);
-
-      do
+      /* Determine id_str and type_str. */
+      int32_t j;
+      for (j = 0; j < header->hrec[index]->nkeys; j++)
         {
-          librdf_node *id_node   = NULL;
-          librdf_node *type_node = NULL;
-          char *id_str           = NULL;
-          char *type_str         = NULL;
-          void *value            = NULL;
-          int32_t value_len      = 0;
+          char *key = header->hrec[index]->keys[j];
+          char *value = header->hrec[index]->vals[j];
+          if (!key || !value)
+            continue;
 
-          id_node   = librdf_query_results_get_binding_value (results, 0);
-          type_node = librdf_query_results_get_binding_value (results, 1);
-          if (!id_node || !type_node) continue;
-
-          id_str   = librdf_node_get_literal_value (id_node);
-          type_str = librdf_node_get_literal_value (type_node);
-          if (!id_str || !type_str) continue;
-
-          char number_buffer[32];
-          memset(number_buffer, 32, '\0');
-
-          if (!strcmp (type_str, "Integer"))
-            {
-              bcf_get_info_int32 (header, buffer, id_str, &value, &value_len);
-              if (!value) continue;
-
-              snprintf (number_buffer, 32, "%d", *((int32_t *)value));
-              add_literal (copy (self),
-                           new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
-                           number_buffer,
-                           config.types[TYPE_INTEGER]);
-            }
-          else if (!strcmp (type_str, "Float"))
-            {
-              bcf_get_info_float (header, buffer, id_str, &value, &value_len);
-              if (!value) continue;
-
-              snprintf (number_buffer, 32, "%f", *((float *)value));
-              add_literal (copy (self),
-                           new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
-                           number_buffer,
-                           config.types[TYPE_FLOAT]);
-            }
-          else if (!strcmp (type_str, "String"))
-            {
-              int32_t state = bcf_get_info_string (header, buffer, id_str, &value, &value_len);
-              if (state >= 0)
-                add_literal (copy (self),
-                             new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
-                             (char *)value,
-                             config.types[TYPE_STRING]);
-            }
-          else if (!strcmp (type_str, "Character"))
-            {
-              fprintf (stderr, "INFO fields containing 'Character', have not been implemented (yet).\n");
-            }
-          else if (!strcmp (type_str, "Flag"))
-            {
-              int32_t state = bcf_get_info_flag (header, buffer, id_str, &value, &value_len);
-              if (state == 1)
-                add_literal (copy (self),
-                             new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
-                             "1",
-                             config.types[TYPE_BOOLEAN]);
-            }
+          if (!strcmp (key, "ID"))
+            id_str = value;
+          else if (!strcmp (key, "Type"))
+            type_str = value;
         }
-      while (librdf_query_results_next (results) == 0);
+
+      if (!id_str || !type_str)
+        goto clean_up_iteration;
+
+      if (!strcmp (type_str, "Integer"))
+        {
+          bcf_get_info_int32 (header, buffer, id_str, &value, &value_len);
+          if (!value)
+            goto clean_up_iteration;
+
+          snprintf (number_buffer, 32, "%d", *((int32_t *)value));
+          add_literal (copy (self),
+                       new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                       number_buffer,
+                       config.types[TYPE_INTEGER]);
+        }
+      else if (!strcmp (type_str, "Float"))
+        {
+          bcf_get_info_float (header, buffer, id_str, &value, &value_len);
+          if (!value)
+            goto clean_up_iteration;
+
+          snprintf (number_buffer, 32, "%f", *((float *)value));
+          add_literal (copy (self),
+                       new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                       number_buffer,
+                       config.types[TYPE_FLOAT]);
+        }
+      else if (!strcmp (type_str, "String"))
+        {
+          int32_t state = bcf_get_info_string (header, buffer, id_str, &value, &value_len);
+          if (state >= 0)
+            add_literal (copy (self),
+                         new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                         (char *)value,
+                         config.types[TYPE_STRING]);
+        }
+      else if (!strcmp (type_str, "Character"))
+        {
+          //fprintf (stderr, "INFO fields containing 'Character' (%s), have not been implemented (yet).\n", id_str);
+        }
+      else if (!strcmp (type_str, "Flag"))
+        {
+          int32_t state = bcf_get_info_flag (header, buffer, id_str, &value, &value_len);
+          if (state == 1)
+            add_literal (copy (self),
+                         new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                         "true",
+                         config.types[TYPE_BOOLEAN]);
+        }
+
+    clean_up_iteration:
+      free (value);
     }
 
   if (variant_id_free_p) free (variant_id);

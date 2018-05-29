@@ -23,11 +23,6 @@
 #include <stdio.h>
 #include <librdf.h>
 
-/* NOTE TO SELF: 
- * We could treat the VCF header as the “ontology” for the variant calls
- * that are about to be described.
- */
-
 void
 process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 {
@@ -66,18 +61,29 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   librdf_node *self = NULL;
 
   int32_t index = 0;
-  char index_str[64];
+  char* identifier = NULL;
+
   for (; index < vcf_header->nhrec; index++)
     {
-      memset (index_str, '\0', 64);
-      int32_t index_str_len = snprintf (index_str, 64, "%d", index);
-      if (index_str_len < 0 || index_str_len > 64)
+      if (vcf_header->hrec[index]->nkeys > 0)
         {
-          ui_print_memory_error (config.input_file);
-          break;
+          char *key   = vcf_header->hrec[index]->keys[0];
+          char *value = vcf_header->hrec[index]->vals[0];
+          if (key && value)
+            {
+              if (!strcmp (key, "ID"))
+                identifier = value;
+              else
+                identifier = key;
+            }
         }
+      else
+        identifier = vcf_header->hrec[index]->key;
 
-      self = new_node (config.uris[URI_ONTOLOGY_PREFIX], index_str);
+      if (!identifier)
+        continue;
+
+      self = new_node (config.uris[URI_ONTOLOGY_PREFIX], identifier);
       if (!self)
         {
           ui_print_memory_error (config.input_file);
@@ -93,10 +99,10 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
         {
           add_triplet (copy (self), copy (rdf_type), copy (header_generic_type));
           add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_GENERIC],
-                                 vcf_header->hrec[index]->key),
-                       vcf_header->hrec[index]->value,
-                       config.types[TYPE_STRING]);
+                      new_node (config.uris[URI_VCF_HEADER_PREFIX],
+                                vcf_header->hrec[index]->key),
+                      vcf_header->hrec[index]->value,
+                      config.types[TYPE_STRING]);
         }
 
       /* Handle other fields.
@@ -113,16 +119,37 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
               !strcmp(vcf_header->hrec[index]->keys[j], "IDX"))
             break;
 
-          add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_PREFIX], key),
-                       value,
-                       config.types[TYPE_STRING]);
+          if (strcmp (key, "ID"))
+            add_literal (copy (self),
+                         new_node (config.uris[URI_VCF_HEADER_PREFIX], key),
+                         value,
+                         config.types[TYPE_STRING]);
         }
 
       /* Add a specific header type identifier.
        * ------------------------------------------------------------------- */
       if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
-        add_triplet (copy (self), copy (rdf_type), copy (header_info_type));
+        {
+          add_triplet (copy (self), copy (rdf_type), copy (header_info_type));
+
+          /* Cache the indexes of INFO fields.
+           * ---------------------------------------------------------------- */
+
+          /* Resize block when needed. */
+          if ((config.info_field_indexes_blocks * 1024) <=
+              config.info_field_indexes_len)
+            {
+              config.info_field_indexes_blocks++;
+              config.info_field_indexes = realloc (config.info_field_indexes,
+                                                   config.info_field_indexes_blocks
+                                                   * 1024 * sizeof (int *));
+            }
+
+          /* Store the index in the cache. */
+          config.info_field_indexes[config.info_field_indexes_len] = index;
+          config.info_field_indexes_len++;
+        }
+
       else if (!strcmp (vcf_header->hrec[index]->key, "FILTER"))
         add_triplet (copy (self), copy (rdf_type), copy (header_filter_type));
       else if (!strcmp (vcf_header->hrec[index]->key, "ALT"))

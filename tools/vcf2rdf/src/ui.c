@@ -38,6 +38,7 @@ ui_show_help (void)
         "                         Valid values are: 'GRCh37', 'GRCh38'.\n"
         "  --caller=ARG,      -c  The caller used to produce the VCF file.\n"
 	"  --threads=ARG,     -t  Number of threads to use.\n"
+	"  --progress-info,   -p  Show progress information.\n"
 	"  --version,         -v  Show versioning information.\n"
 	"  --help,            -h  Show this message.\n");
 }
@@ -65,6 +66,7 @@ ui_process_command_line (int argc, char **argv)
       { "keep",              required_argument, 0, 'k' },
       { "reference",         required_argument, 0, 'r' },
       { "threads",           required_argument, 0, 't' },
+      { "progress-info",     required_argument, 0, 'p' },
       { "help",              no_argument,       0, 'h' },
       { "version",           no_argument,       0, 'v' },
       { 0,                   0,                 0, 0   }
@@ -73,7 +75,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:t:hv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:t:phv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -82,6 +84,7 @@ ui_process_command_line (int argc, char **argv)
         case 'k': config.keep = optarg;                          break;
         case 'r': config.reference = optarg;                     break;
         case 't': config.threads = atoi(optarg);                 break;
+        case 'p': config.show_progress_info = true;              break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }
