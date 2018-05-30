@@ -127,20 +127,20 @@ main (int argc, char **argv)
       while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
         {
           process_variant (vcf_header, buffer, node_filename);
-          if (counter % 70000 == 0 && counter != 0)
+          if (config.show_progress_info)
             {
-              if (config.show_progress_info)
+              if (counter % 70000 == 0 && counter != 0)
                 {
                   triplets_count += librdf_model_size (config.rdf_model);
                   fprintf(stderr, "[ PROGRESS ] %-20d%-20u\n",
-                                  counter, triplets_count);
+                          counter, triplets_count);
                 }
 
-              rdf_serialize (config.rdf_model);
-              refresh_model ();
+              counter++;
             }
 
-          counter++;
+          rdf_serialize (config.rdf_model);
+          refresh_model ();
         }
 
       if (config.show_progress_info)
