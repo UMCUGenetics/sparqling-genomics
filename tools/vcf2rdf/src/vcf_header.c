@@ -83,7 +83,7 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
       if (!identifier)
         continue;
 
-      self = new_node (config.uris[URI_ONTOLOGY_PREFIX], identifier);
+      self = new_node (config.uris[URI_VCF_HEADER_PREFIX], identifier);
       if (!self)
         {
           ui_print_memory_error (config.input_file);
