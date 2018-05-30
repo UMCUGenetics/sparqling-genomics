@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <librdf.h>
 #include <htslib/vcf.h>
 
@@ -117,19 +119,27 @@ main (int argc, char **argv)
       bcf1_t *buffer = bcf_init ();
       int32_t counter = 0;
       uint32_t triplets_count = 0;
+      time_t rawtime = 0;
+      char time_str[20];
 
       if (config.show_progress_info)
         {
-          fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "Variants", "Triplets");
-          fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "--------", "--------");
+          fprintf (stderr, "[ PROGRESS ] %-20s%-20s%-20s\n",
+                   "Variants", "Triplets", "Time");
+          fprintf (stderr, "[ PROGRESS ] ------------------- "
+                   "------------------- -------------------\n");
           while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
             {
               process_variant (vcf_header, buffer, node_filename);
               if (counter % 70000 == 0 && counter != 0)
                 {
+                  memset (time_str, 0, 20);
+                  rawtime = time (NULL);
+                  strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
+
                   triplets_count += librdf_model_size (config.rdf_model);
-                  fprintf(stderr, "[ PROGRESS ] %-20d%-20u\n",
-                          counter, triplets_count);
+                  fprintf(stderr, "[ PROGRESS ] %-20d%-20u%-20s\n",
+                          counter, triplets_count, time_str);
 
                   /* Return output. */
                   rdf_serialize (config.rdf_model);
