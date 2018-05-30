@@ -27,27 +27,30 @@
 #include <stdint.h>
 #include <librdf.h>
 
+/* The program uses a base ontology for everything that cannot be
+ * expressed using an existing ontology.  We store the base ontology URI
+ * in this constant, so that it can be used as a macro in the remainder
+ * of the code. */
+#define ONTOLOGY_URI "http://rdf.umcutrecht.nl/vcf2rdf/"
+
 /* In this program, a couple of URI prefixes are stored in
  * 'program_config.uris'.  To get an idea of which URI is which, the
  * following named index can be used.  So for example,
  * program_config.uris[URI_FALDO_PREFIX] contains the URI prefix for FALDO. */
-#define URI_ONTOLOGY_PREFIX      0
-#define URI_RDF_PREFIX           1
-#define URI_RDFS_PREFIX          2
-#define URI_XSD_PREFIX           3
-#define URI_FALDO_PREFIX         4
-#define URI_VCF                  5
-#define URI_HG19_PREFIX          6
-#define URI_HG19_CHR_PREFIX      7
-#define URI_VCF_HEADER_PREFIX    8
-#define URI_VCF_HEADER_INFO      9
-#define URI_VCF_HEADER_GENERIC   10
-#define URI_VCF_HEADER_FORMAT    11
-#define URI_VCF_HEADER_FILTER    12
-#define URI_VCF_HEADER_ALT       13
-#define URI_VCF_HEADER_CONTIG    14
-#define URI_VCF_SAMPLE           15
-#define URI_VCF_VC_PREFIX        16
+#define URI_ONTOLOGY_PREFIX           0
+#define URI_RDF_PREFIX                1
+#define URI_RDFS_PREFIX               2
+#define URI_XSD_PREFIX                3
+#define URI_FALDO_PREFIX              4
+#define URI_HG19_PREFIX               5
+#define URI_HG19_CHR_PREFIX           6
+#define URI_VCF_HEADER_GENERIC_PREFIX 7
+#define URI_VCF_HEADER_INFO_PREFIX    8
+#define URI_VCF_HEADER_FORMAT_PREFIX  9
+#define URI_VCF_HEADER_FILTER_PREFIX  10
+#define URI_VCF_HEADER_ALT_PREFIX     11
+#define URI_VCF_HEADER_CONTIG_PREFIX  12
+#define URI_VCF_VC_PREFIX             13
 
 /* The following integer is used to determine the size of the contants.
  * Please adjust accordingly when you change the first or the last
@@ -55,8 +58,19 @@
  */
 #define NUMBER_OF_URIS           (URI_VCF_VC_PREFIX + 1)
 
-
-#define NODE_VARIANT_CLASS       0
+/* In addition to URIs, we also have NODEs that are commonly used throughout
+ * the remainder of the program.  We use a similar approach as the URIs to
+ * accomodate common nodes. */
+#define NODE_RDF_TYPE                 0
+#define NODE_ORIGIN_CLASS             1
+#define NODE_VCF_HEADER_GENERIC_CLASS 2
+#define NODE_VCF_HEADER_INFO_CLASS    3
+#define NODE_VCF_HEADER_FORMAT_CLASS  4
+#define NODE_VCF_HEADER_FILTER_CLASS  5
+#define NODE_VCF_HEADER_ALT_CLASS     6
+#define NODE_VCF_HEADER_CONTIG_CLASS  7
+#define NODE_SAMPLE_CLASS             8
+#define NODE_VARIANT_CLASS            9
 
 #define NUMBER_OF_NODES          (NODE_VARIANT_CLASS + 1)
 
@@ -84,7 +98,7 @@ typedef struct
   char              *caller;
   int32_t           threads;
   int32_t           jobs_per_thread;
-  int32_t           non_unique_variant_counter;
+  uint32_t          non_unique_variant_counter;
   bool              show_progress_info;
 
   /* Redland-specifics. */

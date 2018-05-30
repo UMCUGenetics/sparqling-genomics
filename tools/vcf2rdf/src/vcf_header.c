@@ -24,6 +24,34 @@
 #include <librdf.h>
 
 void
+process_header_item (bcf_hdr_t   *vcf_header,
+                     librdf_node *origin,
+                     librdf_node *self,
+                     librdf_uri  *prefix,
+                     int32_t index)
+{
+  int32_t j = 0;
+  for (; j < vcf_header->hrec[index]->nkeys; j++)
+    {
+      char *key   = vcf_header->hrec[index]->keys[j];
+      char *value = vcf_header->hrec[index]->vals[j];
+
+      if (!key || !value ||
+          /* It seems that htslib adds an “IDX” key/value pair at the end
+           * to keep track of the order of the header items.  We don't
+           * want that property to leak into the RDF. */
+          !strcmp (key, "IDX"))
+        continue;
+
+      if (strcmp (key, "ID"))
+        add_literal (copy (self),
+                     new_node (prefix, key),
+                     value,
+                     config.types[TYPE_STRING]);
+    }
+}
+
+void
 process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 {
   if (!vcf_header || !origin) return;
@@ -42,26 +70,14 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 
   librdf_node *rdf_type;
   librdf_node *origin_type;
-  librdf_node *header_generic_type;
-  librdf_node *header_info_type;
-  librdf_node *header_filter_type;
-  librdf_node *header_alt_type;
-  librdf_node *header_format_type;
-  librdf_node *header_contig_type;
-
+  librdf_node *self   = NULL;
+  librdf_uri  *prefix = NULL;
+  librdf_node *class  = NULL;
   rdf_type            = new_node (config.uris[URI_RDF_PREFIX], "type");
   origin_type         = new_node (config.uris[URI_ONTOLOGY_PREFIX], "origin");
-  header_generic_type = new_node_from_uri (config.uris[URI_VCF_HEADER_GENERIC]);
-  header_info_type    = new_node_from_uri (config.uris[URI_VCF_HEADER_INFO]);
-  header_filter_type  = new_node_from_uri (config.uris[URI_VCF_HEADER_FILTER]);
-  header_alt_type     = new_node_from_uri (config.uris[URI_VCF_HEADER_ALT]);
-  header_format_type  = new_node_from_uri (config.uris[URI_VCF_HEADER_FORMAT]);
-  header_contig_type  = new_node_from_uri (config.uris[URI_VCF_HEADER_CONTIG]);
 
-  librdf_node *self = NULL;
-
-  int32_t index = 0;
-  char* identifier = NULL;
+  int32_t index       = 0;
+  char* identifier    = NULL;
 
   for (; index < vcf_header->nhrec; index++)
     {
@@ -83,54 +99,28 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
       if (!identifier)
         continue;
 
-      self = new_node (config.uris[URI_VCF_HEADER_PREFIX], identifier);
-      if (!self)
-        {
-          ui_print_memory_error (config.input_file);
-          break;
-        }
-
-      /* Add a reference to the 'origin'. */
-      add_triplet (copy (self), copy (origin_type), copy (origin));
-
       /* Handle simple key-value fields.
        * ------------------------------------------------------------------- */
       if (vcf_header->hrec[index]->value)
         {
-          add_triplet (copy (self), copy (rdf_type), copy (header_generic_type));
+          self = new_node (config.uris[URI_VCF_HEADER_GENERIC_PREFIX], identifier);
+          add_triplet (copy (self),
+                       copy (rdf_type),
+                       copy (config.nodes[NODE_VCF_HEADER_GENERIC_CLASS]));
+
           add_literal (copy (self),
-                      new_node (config.uris[URI_VCF_HEADER_PREFIX],
-                                vcf_header->hrec[index]->key),
-                      vcf_header->hrec[index]->value,
-                      config.types[TYPE_STRING]);
+                       new_node (config.uris[URI_VCF_HEADER_GENERIC_PREFIX],
+                                 vcf_header->hrec[index]->key),
+                       vcf_header->hrec[index]->value,
+                       config.types[TYPE_STRING]);
         }
 
       /* Handle other fields.
        * ------------------------------------------------------------------- */
-      int32_t j;
-      for (j = 0; j < vcf_header->hrec[index]->nkeys; j++)
+      else if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
         {
-          char *key = vcf_header->hrec[index]->keys[j];
-          char *value = vcf_header->hrec[index]->vals[j];
-          if (!key || !value ||
-              /* It seems that htslib adds an “IDX” key/value pair at the end
-               * to keep track of the order of the header items.  We don't
-               * want that property to leak into the RDF. */
-              !strcmp(vcf_header->hrec[index]->keys[j], "IDX"))
-            break;
-
-          if (strcmp (key, "ID"))
-            add_literal (copy (self),
-                         new_node (config.uris[URI_VCF_HEADER_PREFIX], key),
-                         value,
-                         config.types[TYPE_STRING]);
-        }
-
-      /* Add a specific header type identifier.
-       * ------------------------------------------------------------------- */
-      if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
-        {
-          add_triplet (copy (self), copy (rdf_type), copy (header_info_type));
+          prefix = config.uris[URI_VCF_HEADER_INFO_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_INFO_CLASS];
 
           /* Cache the indexes of INFO fields.
            * ---------------------------------------------------------------- */
@@ -151,26 +141,47 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
         }
 
       else if (!strcmp (vcf_header->hrec[index]->key, "FILTER"))
-        add_triplet (copy (self), copy (rdf_type), copy (header_filter_type));
+        {
+          prefix = config.uris[URI_VCF_HEADER_FILTER_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_FILTER_CLASS];
+        }
       else if (!strcmp (vcf_header->hrec[index]->key, "ALT"))
-        add_triplet (copy (self), copy (rdf_type), copy (header_alt_type));
+        {
+          prefix = config.uris[URI_VCF_HEADER_ALT_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_ALT_CLASS];
+        }
       else if (!strcmp (vcf_header->hrec[index]->key, "FORMAT"))
-        add_triplet (copy (self), copy (rdf_type), copy (header_format_type));
+        {
+          prefix = config.uris[URI_VCF_HEADER_FORMAT_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_FORMAT_CLASS];
+        }
       else if (!strcmp (vcf_header->hrec[index]->key, "contig"))
-        add_triplet (copy (self), copy (rdf_type), copy (header_contig_type));
+        {
+          prefix = config.uris[URI_VCF_HEADER_CONTIG_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_CONTIG_CLASS];
+        }
       else
-        add_triplet (copy (self), copy (rdf_type), copy (header_generic_type));
+        {
+          prefix = config.uris[URI_VCF_HEADER_GENERIC_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_GENERIC_CLASS];
+        }
+
+      if (prefix != NULL && class != NULL)
+        {
+          self = new_node (prefix, identifier);
+          add_triplet (copy (self), copy (rdf_type), copy (class));
+          process_header_item (vcf_header, origin, self, prefix, index);
+        }
+
+      /* Add a reference to the 'origin'. */
+      add_triplet (copy (self), copy (origin_type), copy (origin));
 
       librdf_free_node (self);
-      self = NULL;
+      self   = NULL;
+      prefix = NULL;
+      class  = NULL;
     }
 
   librdf_free_node (rdf_type);
   librdf_free_node (origin_type);
-  librdf_free_node (header_generic_type);
-  librdf_free_node (header_info_type);
-  librdf_free_node (header_filter_type);
-  librdf_free_node (header_alt_type);
-  librdf_free_node (header_format_type);
-  librdf_free_node (header_contig_type);
 }

@@ -199,7 +199,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
           snprintf (number_buffer, 32, "%d", *((int32_t *)value));
           add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
                        number_buffer,
                        config.types[TYPE_INTEGER]);
         }
@@ -211,7 +211,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
           snprintf (number_buffer, 32, "%f", *((float *)value));
           add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
                        number_buffer,
                        config.types[TYPE_FLOAT]);
         }
@@ -220,7 +220,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
           int32_t state = bcf_get_info_string (header, buffer, id_str, &value, &value_len);
           if (state >= 0)
             add_literal (copy (self),
-                         new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                         new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
                          (char *)value,
                          config.types[TYPE_STRING]);
         }
@@ -233,7 +233,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
           int32_t state = bcf_get_info_flag (header, buffer, id_str, &value, &value_len);
           if (state == 1)
             add_literal (copy (self),
-                         new_node (config.uris[URI_VCF_HEADER_PREFIX], id_str),
+                         new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
                          "true",
                          config.types[TYPE_BOOLEAN]);
         }

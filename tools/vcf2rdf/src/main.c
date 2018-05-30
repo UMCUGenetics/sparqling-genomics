@@ -109,7 +109,6 @@ main (int argc, char **argv)
       node_rdf_type = new_node (config.uris[URI_RDF_PREFIX], (const unsigned char *)"type");
       node_origin   = new_node (config.uris[URI_ONTOLOGY_PREFIX], (const unsigned char *)"Origin");
       add_triplet (copy (node_filename), node_rdf_type, node_origin);
-      free (file_hash);
 
       /* Process the header. */
       process_header (vcf_header, node_filename);
@@ -123,37 +122,43 @@ main (int argc, char **argv)
         {
           fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "Variants", "Triplets");
           fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n", "--------", "--------");
-        }
-      while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
-        {
-          process_variant (vcf_header, buffer, node_filename);
-          if (config.show_progress_info)
+          while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
             {
+              process_variant (vcf_header, buffer, node_filename);
               if (counter % 70000 == 0 && counter != 0)
                 {
                   triplets_count += librdf_model_size (config.rdf_model);
                   fprintf(stderr, "[ PROGRESS ] %-20d%-20u\n",
                           counter, triplets_count);
+
+                  /* Return output. */
+                  rdf_serialize (config.rdf_model);
+                  librdf_free_node (node_filename);
+
+                  refresh_model ();
+                  node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
                 }
 
               counter++;
             }
 
-          rdf_serialize (config.rdf_model);
-          refresh_model ();
+          fprintf (stderr,
+                   "[ PROGRESS ] \n"
+                   "[ PROGRESS ] Total number of triplets: %u\n",
+                   triplets_count);
         }
-
-      if (config.show_progress_info)
-        fprintf (stderr,
-                 "[ PROGRESS ] \n"
-                 "[ PROGRESS ] Total number of triplets: %u\n",
-                 triplets_count);
+      else
+        {
+          while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
+            process_variant (vcf_header, buffer, node_filename);
+        }
 
       /* Return output. */
       librdf_free_node (node_filename);
       rdf_serialize (config.rdf_model);
 
       /* Clean up. */
+      free (file_hash);
       bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);

@@ -68,33 +68,48 @@ runtime_configuration_redland_init (void)
   if (!config.rdf_model)
     return (ui_print_redland_error () == 0);
 
-  config.uris[URI_ONTOLOGY_PREFIX]    = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/");
-  config.uris[URI_RDF_PREFIX]         = new_uri ("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-  config.uris[URI_RDFS_PREFIX]        = new_uri ("http://www.w3.org/2000/01/rdf-schema#");
-  config.uris[URI_XSD_PREFIX]         = new_uri ("http://www.w3.org/2001/XMLSchema#");
-  config.uris[URI_FALDO_PREFIX]       = new_uri ("http://biohackathon.org/resource/faldo#");
-  config.uris[URI_VCF]                = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/vcf2rdf/VCF/");
-  config.uris[URI_HG19_PREFIX]        = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#");
-  config.uris[URI_HG19_CHR_PREFIX]    = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#chr");
-  config.uris[URI_VCF_HEADER_PREFIX]  = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderItem/");
-  config.uris[URI_VCF_HEADER_GENERIC] = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderGenericItem");
-  config.uris[URI_VCF_HEADER_INFO]    = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderInfoItem");
-  config.uris[URI_VCF_HEADER_FORMAT]  = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderFormatItem");
-  config.uris[URI_VCF_HEADER_FILTER]  = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderFilterItem");
-  config.uris[URI_VCF_HEADER_ALT]     = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderAltItem");
-  config.uris[URI_VCF_HEADER_CONTIG]  = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VcfHeaderContigItem");
-  config.uris[URI_VCF_SAMPLE]         = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/Sample");
-  config.uris[URI_VCF_VC_PREFIX]      = new_uri ("http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/");
+  config.uris[URI_ONTOLOGY_PREFIX]           = new_uri (ONTOLOGY_URI);
+  config.uris[URI_RDF_PREFIX]                = new_uri ("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+  config.uris[URI_RDFS_PREFIX]               = new_uri ("http://www.w3.org/2000/01/rdf-schema#");
+  config.uris[URI_XSD_PREFIX]                = new_uri ("http://www.w3.org/2001/XMLSchema#");
+  config.uris[URI_FALDO_PREFIX]              = new_uri ("http://biohackathon.org/resource/faldo#");
+  config.uris[URI_HG19_PREFIX]               = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#");
+  config.uris[URI_HG19_CHR_PREFIX]           = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#chr");
+  config.uris[URI_VCF_HEADER_GENERIC_PREFIX] = new_uri (ONTOLOGY_URI "VcfHeaderGenericItem/");
+  config.uris[URI_VCF_HEADER_INFO_PREFIX]    = new_uri (ONTOLOGY_URI "VcfHeaderInfoItem/");
+  config.uris[URI_VCF_HEADER_FORMAT_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderFormatItem/");
+  config.uris[URI_VCF_HEADER_FILTER_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderFilterItem/");
+  config.uris[URI_VCF_HEADER_ALT_PREFIX]     = new_uri (ONTOLOGY_URI "VcfHeaderAltItem/");
+  config.uris[URI_VCF_HEADER_CONTIG_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderContigItem/");
+  config.uris[URI_VCF_VC_PREFIX]             = new_uri (ONTOLOGY_URI "VariantCall/");
 
-  config.nodes[NODE_VARIANT_CLASS]      = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Variant");
+  /* NOTE: Keep the number of URIs defined above in sync with the number of
+   * URIs below. */
+  int32_t index = 0;
+  for (; index < URI_VCF_VC_PREFIX; index++)
+    if (! config.uris[index]) break;
 
-  /* This is not ideal, so keep the number of URIs defined above in sync
-   * with the number of URIs below. */
-  int32_t uri_index = 0;
-  for (; uri_index < URI_VCF_VC_PREFIX; uri_index++)
-    if (! config.uris[uri_index]) break;
+  if (index < URI_VCF_VC_PREFIX)
+    return (ui_print_redland_error () == 0);
 
-  if (uri_index < URI_VCF_VC_PREFIX)
+  config.nodes[NODE_RDF_TYPE]                 = new_node (config.uris[URI_RDF_PREFIX], "type");
+  config.nodes[NODE_ORIGIN_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Origin");
+  config.nodes[NODE_VCF_HEADER_GENERIC_CLASS] = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderGenericItem");
+  config.nodes[NODE_VCF_HEADER_INFO_CLASS]    = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderInfoItem");
+  config.nodes[NODE_VCF_HEADER_FORMAT_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderFormatItem");
+  config.nodes[NODE_VCF_HEADER_FILTER_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderFilterItem");
+  config.nodes[NODE_VCF_HEADER_ALT_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderAltItem");
+  config.nodes[NODE_VCF_HEADER_CONTIG_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderContigItem");
+  config.nodes[NODE_SAMPLE_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Sample");
+  config.nodes[NODE_VARIANT_CLASS]            = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Variant");
+
+  /* NOTE: Keep the number of NODEs defined above in sync with the number of
+   * NODEs below. */
+  index = 0;
+  for (; index < NODE_VARIANT_CLASS; index++)
+    if (! config.nodes[index]) break;
+
+  if (index < NODE_VARIANT_CLASS)
     return (ui_print_redland_error () == 0);
 
   config.types[TYPE_STRING]  = new_uri ("http://www.w3.org/2001/XMLSchema#string");
@@ -121,32 +136,48 @@ runtime_configuration_free (void)
   /* Free the memory of the URIs. */
   int32_t index;
   for (index = 0; index < NUMBER_OF_URIS; index++)
-    librdf_free_uri (config.uris[index]);
+    {
+      librdf_free_uri (config.uris[index]);
+      config.uris[index] = NULL;
+    }
 
   /* Free the memory of the NODES. */
   for (index = 0; index < NUMBER_OF_NODES; index++)
-    librdf_free_node (config.nodes[index]);
+    {
+      librdf_free_node (config.nodes[index]);
+      config.nodes[index] = NULL;
+    }
 
   /* Free the memory of the TYPES. */
   for (index = 0; index < NUMBER_OF_TYPES; index++)
-    librdf_free_uri (config.types[index]);
+    {
+      librdf_free_uri (config.types[index]);
+      config.types[index] = NULL;
+    }
 
   /* Free the memory of the RDF world. */
   librdf_free_serializer (config.rdf_serializer);
+  config.rdf_serializer = NULL;
   librdf_free_storage (config.rdf_storage);
+  config.rdf_storage = NULL;
   librdf_free_model (config.rdf_model);
+  config.rdf_model = NULL;
   librdf_free_world (config.rdf_world);
+  config.rdf_world = NULL;
 
   /* Free caches. */
   if (config.info_field_indexes != NULL)
-    free (config.info_field_indexes);
+    {
+      free (config.info_field_indexes);
+      config.info_field_indexes = NULL;
+    }
 }
 
 char *
 generate_variant_id ()
 {
   char *variant_id = calloc (32, sizeof (char));
-  snprintf (variant_id, 32, "uv%07d", config.non_unique_variant_counter);
+  snprintf (variant_id, 32, "uv%07u", config.non_unique_variant_counter);
   config.non_unique_variant_counter += 1;
 
   return variant_id;
@@ -154,20 +185,7 @@ generate_variant_id ()
 
 void refresh_model (void)
 {
-  librdf_free_model (config.rdf_model);
-  librdf_free_storage (config.rdf_storage);
-
-  config.rdf_storage = librdf_new_storage (config.rdf_world, "hashes", NULL, "hash-type='memory'");
-  if (!config.rdf_storage)
-    {
-      ui_print_redland_error ();
-      return;
-    }
-
-  config.rdf_model = librdf_new_model (config.rdf_world, config.rdf_storage, NULL);
-  if (!config.rdf_model)
-    {
-      ui_print_redland_error ();
-      return;
-    }
+  runtime_configuration_free ();
+  if (! runtime_configuration_redland_init ())
+    ui_print_redland_error ();
 }
