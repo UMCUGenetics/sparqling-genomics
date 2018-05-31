@@ -29,8 +29,8 @@ runtime_configuration_init (void)
   config.input_file = NULL;
   config.reference = NULL;
   config.caller = NULL;
-  config.threads = 1;
-  config.jobs_per_thread = 50000;
+  //config.threads = 1;
+  //config.jobs_per_thread = 50000;
   config.non_unique_variant_counter = 0;
   config.info_field_indexes = NULL;
   config.info_field_indexes_len = 0;
@@ -122,7 +122,7 @@ runtime_configuration_redland_init (void)
          && config.types[TYPE_BOOLEAN]))
     return (ui_print_redland_error () == 0);
 
-  config.rdf_serializer = librdf_new_serializer (config.rdf_world, "turtle", NULL, NULL);
+  config.rdf_serializer = librdf_new_serializer (config.rdf_world, "ntriples", NULL, NULL);
 
   if (!config.rdf_serializer)
     return (ui_print_redland_error () == 0);
@@ -173,14 +173,15 @@ runtime_configuration_free (void)
     }
 }
 
-char *
-generate_variant_id ()
+bool
+generate_variant_id (char *variant_id)
 {
-  char *variant_id = calloc (32, sizeof (char));
-  snprintf (variant_id, 32, "uv%07u", config.non_unique_variant_counter);
-  config.non_unique_variant_counter += 1;
+  int32_t bytes_written;
+  bytes_written = snprintf (variant_id, 16, "UV%010u",
+                            config.non_unique_variant_counter);
 
-  return variant_id;
+  config.non_unique_variant_counter++;
+  return (bytes_written > 0);
 }
 
 void refresh_model (void)

@@ -117,7 +117,7 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 
       /* Handle other fields.
        * ------------------------------------------------------------------- */
-      else if (!strcmp (vcf_header->hrec[index]->key, "INFO"))
+      else if (vcf_header->hrec[index]->type == BCF_HL_INFO)
         {
           prefix = config.uris[URI_VCF_HEADER_INFO_PREFIX];
           class  = config.nodes[NODE_VCF_HEADER_INFO_CLASS];
@@ -140,25 +140,25 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
           config.info_field_indexes_len++;
         }
 
-      else if (!strcmp (vcf_header->hrec[index]->key, "FILTER"))
+      else if (vcf_header->hrec[index]->type == BCF_HL_FLT)
         {
           prefix = config.uris[URI_VCF_HEADER_FILTER_PREFIX];
           class  = config.nodes[NODE_VCF_HEADER_FILTER_CLASS];
+        }
+      else if (vcf_header->hrec[index]->type == BCF_HL_FMT)
+        {
+          prefix = config.uris[URI_VCF_HEADER_FORMAT_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_FORMAT_CLASS];
+        }
+      else if (vcf_header->hrec[index]->type == BCF_HL_CTG)
+        {
+          prefix = config.uris[URI_VCF_HEADER_CONTIG_PREFIX];
+          class  = config.nodes[NODE_VCF_HEADER_CONTIG_CLASS];
         }
       else if (!strcmp (vcf_header->hrec[index]->key, "ALT"))
         {
           prefix = config.uris[URI_VCF_HEADER_ALT_PREFIX];
           class  = config.nodes[NODE_VCF_HEADER_ALT_CLASS];
-        }
-      else if (!strcmp (vcf_header->hrec[index]->key, "FORMAT"))
-        {
-          prefix = config.uris[URI_VCF_HEADER_FORMAT_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_FORMAT_CLASS];
-        }
-      else if (!strcmp (vcf_header->hrec[index]->key, "contig"))
-        {
-          prefix = config.uris[URI_VCF_HEADER_CONTIG_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_CONTIG_CLASS];
         }
       else
         {

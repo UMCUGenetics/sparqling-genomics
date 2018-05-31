@@ -96,8 +96,6 @@ typedef struct
   char              *input_file;
   char              *reference;
   char              *caller;
-  int32_t           threads;
-  int32_t           jobs_per_thread;
   uint32_t          non_unique_variant_counter;
   bool              show_progress_info;
 
@@ -115,6 +113,9 @@ typedef struct
   size_t info_field_indexes_len;
   size_t info_field_indexes_blocks;
 
+  /* Shared buffers. */
+  char variant_id_buf[16];
+  char number_buffer[32];
 } RuntimeConfiguration;
 
 
@@ -125,7 +126,7 @@ bool runtime_configuration_init (void);
 bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);
 
-char *generate_variant_id (void);
+bool generate_variant_id (char *variant_id);
 void refresh_model (void);
 
 #endif  /* RUNTIMECONFIGURATION_H */

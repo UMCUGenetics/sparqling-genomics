@@ -52,7 +52,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
   /* Create 'generic' nodes and URIs.
    * ------------------------------------------------------------------------ */
-  librdf_node *rdf_type    = new_node (config.uris[URI_RDF_PREFIX], "type");
   librdf_node *origin_type = new_node (config.uris[URI_ONTOLOGY_PREFIX], "origin");
   librdf_node *self        = NULL;
   char *variant_id         = NULL;
@@ -75,24 +74,28 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
     }
   else
     {
-      variant_id = generate_variant_id ();
-      variant_id_free_p = true;
+      if (! generate_variant_id (config.variant_id_buf))
+        ui_print_general_memory_error ();
+      else
+        variant_id = config.variant_id_buf;
     }
 
   self = new_node (config.uris[URI_ONTOLOGY_PREFIX], variant_id);
 
-  if (!self || !origin_type || !origin || !rdf_type)
+  if (!self || !origin_type || !origin)
     {
       ui_print_redland_error ();
       return;
     }
 
   add_triplet (copy (self), copy (origin_type), copy (origin));
-  add_triplet (copy (self), copy (rdf_type),    copy (config.nodes[NODE_VARIANT_CLASS]));
+  add_triplet (copy (self),
+               copy (config.nodes[NODE_RDF_TYPE]),
+               copy (config.nodes[NODE_VARIANT_CLASS]));
 
   /* Add position information
    * ------------------------------------------------------------------------ */
-  char *chromosome = (char *)bcf_seqname (header, buffer);
+  char *chromosome = (char *)header->id[BCF_DT_CTG][buffer->rid].key; //bcf_seqname (header, buffer);
   size_t chromosome_len = strlen (chromosome);
 
   /* HTSlib uses 0-based positions, while in the VCF 1-based position are used.
@@ -112,12 +115,11 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
                  ? new_node (config.uris[URI_HG19_CHR_PREFIX], chromosome)
                  : new_node (config.uris[URI_HG19_PREFIX], chromosome));
 
-  char position_str[10];
-  snprintf (position_str, 10, "%u", position);
+  snprintf (config.number_buffer, 32, "%u", position);
 
   add_literal (copy (self),
                new_node (config.uris[URI_FALDO_PREFIX], "position"),
-               position_str,
+               config.number_buffer,
                config.types[TYPE_INTEGER]);
 
   add_literal (copy (self),
@@ -136,13 +138,11 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
    * field. */
   if (isfinite (buffer->qual))
     {
-      char qual_str[9];
-      memset (qual_str, '\0', 9);
-      snprintf (qual_str, 9, "%4.3f", buffer->qual);
+      snprintf (config.number_buffer, 32, "%4.6f", buffer->qual);
 
       add_literal (copy (self),
                    new_node (config.uris[URI_VCF_VC_PREFIX], "QUAL"),
-                   qual_str,
+                   config.number_buffer,
                    config.types[TYPE_FLOAT]);
     }
 
@@ -159,22 +159,23 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   /* Process INFO fields.
   * ------------------------------------------------------------------------- */
 
-  char number_buffer[32];
   char *id_str           = NULL;
   char *type_str         = NULL;
   void *value            = NULL;
   int32_t value_len      = 0;
+  int32_t index          = 0;
+  int32_t i              = 0;
+  int32_t j              = 0;
 
-  for (int index; index < config.info_field_indexes_len; index++)
+  for (i = 0; i < config.info_field_indexes_len; i++)
     {
-      memset(number_buffer, '\0', 32);
       id_str    = NULL;
       type_str  = NULL;
       value     = NULL;
       value_len = 0;
+      index = config.info_field_indexes[i];
 
       /* Determine id_str and type_str. */
-      int32_t j;
       for (j = 0; j < header->hrec[index]->nkeys; j++)
         {
           char *key = header->hrec[index]->keys[j];
@@ -186,6 +187,9 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
             id_str = value;
           else if (!strcmp (key, "Type"))
             type_str = value;
+
+          if (id_str && type_str)
+            break;
         }
 
       if (!id_str || !type_str)
@@ -197,10 +201,10 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
           if (!value)
             goto clean_up_iteration;
 
-          snprintf (number_buffer, 32, "%d", *((int32_t *)value));
+          snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
           add_literal (copy (self),
                        new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                       number_buffer,
+                       config.number_buffer,
                        config.types[TYPE_INTEGER]);
         }
       else if (!strcmp (type_str, "Float"))
@@ -209,10 +213,10 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
           if (!value)
             goto clean_up_iteration;
 
-          snprintf (number_buffer, 32, "%f", *((float *)value));
+          snprintf (config.number_buffer, 32, "%f", *((float *)value));
           add_literal (copy (self),
                        new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                       number_buffer,
+                       config.number_buffer,
                        config.types[TYPE_FLOAT]);
         }
       else if (!strcmp (type_str, "String"))
@@ -238,12 +242,17 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
                          config.types[TYPE_BOOLEAN]);
         }
 
+      free (value);
+      value = NULL;
+      continue;
+
     clean_up_iteration:
       free (value);
     }
 
-  if (variant_id_free_p) free (variant_id);
-  librdf_free_node (rdf_type);
+  if (variant_id_free_p)
+    free (variant_id);
+
   librdf_free_node (origin_type);
   librdf_free_node (self);
 }

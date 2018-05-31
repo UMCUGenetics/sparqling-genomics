@@ -131,9 +131,8 @@ main (int argc, char **argv)
           while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
             {
               process_variant (vcf_header, buffer, node_filename);
-              if (counter % 70000 == 0 && counter != 0)
+              if (counter % 70000 == 0)
                 {
-                  memset (time_str, 0, 20);
                   rawtime = time (NULL);
                   strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
 
@@ -141,21 +140,25 @@ main (int argc, char **argv)
                   fprintf(stderr, "[ PROGRESS ] %-20d%-20u%-20s\n",
                           counter, triplets_count, time_str);
 
-                  /* Return output. */
-                  rdf_serialize (config.rdf_model);
-                  librdf_free_node (node_filename);
+                  if (counter > 0)
+                    {
+                      /* Return output. */
+                      rdf_serialize (config.rdf_model);
+                      librdf_free_node (node_filename);
 
-                  refresh_model ();
-                  node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
+                      refresh_model ();
+                      node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
+                    }
                 }
 
               counter++;
             }
 
+          triplets_count += librdf_model_size (config.rdf_model);
           fprintf (stderr,
                    "[ PROGRESS ] \n"
-                   "[ PROGRESS ] Total number of triplets: %u\n",
-                   triplets_count);
+                   "[ PROGRESS ] Total number variants: %d (%u triplets)\n",
+                   counter, triplets_count);
         }
       else
         {
