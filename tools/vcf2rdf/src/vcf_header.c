@@ -76,10 +76,32 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   rdf_type            = new_node (config.uris[URI_RDF_PREFIX], "type");
   origin_type         = new_node (config.uris[URI_ONTOLOGY_PREFIX], "origin");
 
-  int32_t index       = 0;
-  char* identifier    = NULL;
+  /* Register samples.
+   * ----------------------------------------------------------------------- */
+  int32_t number_of_samples = bcf_hdr_nsamples (vcf_header);
+  int32_t index             = 0;
 
-  for (; index < vcf_header->nhrec; index++)
+  for (; index < number_of_samples; index++)
+    {
+      librdf_node *sample = new_node (config.uris[URI_SAMPLE_PREFIX],
+                                      vcf_header->samples[index]);
+
+      add_triplet (copy (sample),
+                   copy (rdf_type),
+                   copy (config.nodes[NODE_SAMPLE_CLASS]));
+
+      add_triplet (copy (sample),
+                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "foundIn"),
+                   copy (origin));
+
+      librdf_free_node (sample);
+    }
+
+  /* Process header fields.
+   * ----------------------------------------------------------------------- */
+
+  char* identifier    = NULL;
+  for (index = 0; index < vcf_header->nhrec; index++)
     {
       if (vcf_header->hrec[index]->nkeys > 0)
         {
@@ -149,6 +171,23 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
         {
           prefix = config.uris[URI_VCF_HEADER_FORMAT_PREFIX];
           class  = config.nodes[NODE_VCF_HEADER_FORMAT_CLASS];
+
+          /* Cache the indexes of FORMAT fields.
+           * ---------------------------------------------------------------- */
+
+          /* Resize block when needed. */
+          if ((config.format_field_indexes_blocks * 1024) <=
+              config.format_field_indexes_len)
+            {
+              config.format_field_indexes_blocks++;
+              config.format_field_indexes = realloc (config.format_field_indexes,
+                                                   config.format_field_indexes_blocks
+                                                   * 1024 * sizeof (int *));
+            }
+
+          /* Store the index in the cache. */
+          config.format_field_indexes[config.format_field_indexes_len] = index;
+          config.format_field_indexes_len++;
         }
       else if (vcf_header->hrec[index]->type == BCF_HL_CTG)
         {

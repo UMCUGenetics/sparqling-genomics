@@ -104,13 +104,25 @@ main (int argc, char **argv)
       if (!file_hash) return 1;
 
       librdf_node *node_filename;
-      librdf_node *node_rdf_type;
       librdf_node *node_origin;
+      librdf_node *node_vcf2rdf;
 
       node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
-      node_rdf_type = new_node (config.uris[URI_RDF_PREFIX], (const unsigned char *)"type");
       node_origin   = new_node (config.uris[URI_ONTOLOGY_PREFIX], (const unsigned char *)"Origin");
-      add_triplet (copy (node_filename), node_rdf_type, node_origin);
+      node_vcf2rdf  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "vcf2rdf");
+
+      add_triplet (copy (node_filename),
+                   copy (config.nodes[NODE_RDF_TYPE]),
+                   node_origin);
+
+      add_triplet (copy (node_filename),
+                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "convertedBy"),
+                   copy(node_vcf2rdf));
+
+      add_literal (copy (node_vcf2rdf),
+                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "version"),
+                   VERSION,
+                   config.types[TYPE_STRING]);
 
       /* Process the header. */
       process_header (vcf_header, node_filename);
@@ -167,10 +179,11 @@ main (int argc, char **argv)
         }
 
       /* Return output. */
-      librdf_free_node (node_filename);
       rdf_serialize (config.rdf_model);
 
       /* Clean up. */
+      librdf_free_node (node_filename);
+      librdf_free_node (node_vcf2rdf);
       free (file_hash);
       bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);

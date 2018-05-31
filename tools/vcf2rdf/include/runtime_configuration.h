@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <librdf.h>
+#include <htslib/vcf.h>
 
 /* The program uses a base ontology for everything that cannot be
  * expressed using an existing ontology.  We store the base ontology URI
@@ -50,9 +51,10 @@
 #define URI_VCF_HEADER_FILTER_PREFIX  10
 #define URI_VCF_HEADER_ALT_PREFIX     11
 #define URI_VCF_HEADER_CONTIG_PREFIX  12
-#define URI_VCF_VC_PREFIX             13
+#define URI_SAMPLE_PREFIX             13
+#define URI_VCF_VC_PREFIX             14
 
-/* The following integer is used to determine the size of the contants.
+/* The following integer is used to determine the size of the constants.
  * Please adjust accordingly when you change the first or the last
  * constant.
  */
@@ -76,13 +78,16 @@
 
 /* In addition to URIs and nodes, “datatype property nodes” can contain literal
  * values.  These have a type, which is often described in the xsd namespace.
+ *
+ * HTSlib has constants for valid datatypes in the variant call format (VCF).
+ * Keeping them in sync makes life easier.
  */
-#define TYPE_STRING              0
-#define TYPE_INTEGER             1
-#define TYPE_FLOAT               2
-#define TYPE_BOOLEAN             3
+#define TYPE_STRING              BCF_HT_STR
+#define TYPE_INTEGER             BCF_HT_INT
+#define TYPE_FLOAT               BCF_HT_REAL
+#define TYPE_BOOLEAN             BCF_HT_FLAG
 
-#define NUMBER_OF_TYPES    (TYPE_BOOLEAN + 1)
+#define NUMBER_OF_TYPES          4
 
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
@@ -112,6 +117,9 @@ typedef struct
   int *info_field_indexes;
   size_t info_field_indexes_len;
   size_t info_field_indexes_blocks;
+  int *format_field_indexes;
+  size_t format_field_indexes_len;
+  size_t format_field_indexes_blocks;
 
   /* Shared buffers. */
   char variant_id_buf[16];
@@ -125,6 +133,7 @@ RuntimeConfiguration config;
 bool runtime_configuration_init (void);
 bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);
+void runtime_configuration_redland_free (void);
 
 bool generate_variant_id (char *variant_id);
 void refresh_model (void);

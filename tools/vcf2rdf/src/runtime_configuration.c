@@ -34,6 +34,10 @@ runtime_configuration_init (void)
   config.non_unique_variant_counter = 0;
   config.info_field_indexes = NULL;
   config.info_field_indexes_len = 0;
+  config.info_field_indexes_blocks = 0;
+  config.format_field_indexes = NULL;
+  config.format_field_indexes_len = 0;
+  config.format_field_indexes_blocks = 0;
   config.show_progress_info = false;
 
   return true;
@@ -81,6 +85,7 @@ runtime_configuration_redland_init (void)
   config.uris[URI_VCF_HEADER_FILTER_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderFilterItem/");
   config.uris[URI_VCF_HEADER_ALT_PREFIX]     = new_uri (ONTOLOGY_URI "VcfHeaderAltItem/");
   config.uris[URI_VCF_HEADER_CONTIG_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderContigItem/");
+  config.uris[URI_SAMPLE_PREFIX]             = new_uri (ONTOLOGY_URI "Sample/");
   config.uris[URI_VCF_VC_PREFIX]             = new_uri (ONTOLOGY_URI "VariantCall/");
 
   /* NOTE: Keep the number of URIs defined above in sync with the number of
@@ -131,7 +136,7 @@ runtime_configuration_redland_init (void)
 }
 
 void
-runtime_configuration_free (void)
+runtime_configuration_redland_free (void)
 {
   /* Free the memory of the URIs. */
   int32_t index;
@@ -164,6 +169,13 @@ runtime_configuration_free (void)
   config.rdf_model = NULL;
   librdf_free_world (config.rdf_world);
   config.rdf_world = NULL;
+}
+
+void
+runtime_configuration_free (void)
+{
+  /* Free the Redland-allocated memory. */
+  runtime_configuration_redland_free ();
 
   /* Free caches. */
   if (config.info_field_indexes != NULL)
@@ -186,7 +198,7 @@ generate_variant_id (char *variant_id)
 
 void refresh_model (void)
 {
-  runtime_configuration_free ();
+  runtime_configuration_redland_free ();
   if (! runtime_configuration_redland_init ())
     ui_print_redland_error ();
 }
