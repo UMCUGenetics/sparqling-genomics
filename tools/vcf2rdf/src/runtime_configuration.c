@@ -29,9 +29,8 @@ runtime_configuration_init (void)
   config.input_file = NULL;
   config.reference = NULL;
   config.caller = NULL;
-  //config.threads = 1;
-  //config.jobs_per_thread = 50000;
   config.non_unique_variant_counter = 0;
+  config.genotype_counter = 0;
   config.info_field_indexes = NULL;
   config.info_field_indexes_len = 0;
   config.info_field_indexes_blocks = 0;
@@ -75,6 +74,7 @@ runtime_configuration_redland_init (void)
   config.uris[URI_ONTOLOGY_PREFIX]           = new_uri (ONTOLOGY_URI);
   config.uris[URI_RDF_PREFIX]                = new_uri ("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
   config.uris[URI_RDFS_PREFIX]               = new_uri ("http://www.w3.org/2000/01/rdf-schema#");
+  config.uris[URI_OWL_PREFIX]                = new_uri ("http://www.w3.org/2002/07/owl#");
   config.uris[URI_XSD_PREFIX]                = new_uri ("http://www.w3.org/2001/XMLSchema#");
   config.uris[URI_FALDO_PREFIX]              = new_uri ("http://biohackathon.org/resource/faldo#");
   config.uris[URI_HG19_PREFIX]               = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#");
@@ -88,16 +88,14 @@ runtime_configuration_redland_init (void)
   config.uris[URI_SAMPLE_PREFIX]             = new_uri (ONTOLOGY_URI "Sample/");
   config.uris[URI_VCF_VC_PREFIX]             = new_uri (ONTOLOGY_URI "VariantCall/");
 
-  /* NOTE: Keep the number of URIs defined above in sync with the number of
-   * URIs below. */
   int32_t index = 0;
-  for (; index < URI_VCF_VC_PREFIX; index++)
+  for (; index < NUMBER_OF_URIS; index++)
     if (! config.uris[index]) break;
 
-  if (index < URI_VCF_VC_PREFIX)
+  if (index < NUMBER_OF_URIS)
     return (ui_print_redland_error () == 0);
 
-  config.nodes[NODE_RDF_TYPE]                 = new_node (config.uris[URI_RDF_PREFIX], "type");
+  config.nodes[NODE_RDF_TYPE]                 = new_node (config.uris[URI_RDF_PREFIX],      "type");
   config.nodes[NODE_ORIGIN_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Origin");
   config.nodes[NODE_VCF_HEADER_GENERIC_CLASS] = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderGenericItem");
   config.nodes[NODE_VCF_HEADER_INFO_CLASS]    = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderInfoItem");
@@ -106,15 +104,17 @@ runtime_configuration_redland_init (void)
   config.nodes[NODE_VCF_HEADER_ALT_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderAltItem");
   config.nodes[NODE_VCF_HEADER_CONTIG_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderContigItem");
   config.nodes[NODE_SAMPLE_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Sample");
+  config.nodes[NODE_HETEROZYGOUS_CLASS]       = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HeterozygousGenotype");
+  config.nodes[NODE_HOMOZYGOUS_CLASS]         = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousGenotype");
+  config.nodes[NODE_HOMOZYGOUS_REF_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousReferenceGenotype");
+  config.nodes[NODE_HOMOZYGOUS_ALT_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousAlternativeGenotype");
   config.nodes[NODE_VARIANT_CLASS]            = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Variant");
 
-  /* NOTE: Keep the number of NODEs defined above in sync with the number of
-   * NODEs below. */
   index = 0;
-  for (; index < NODE_VARIANT_CLASS; index++)
+  for (; index < NUMBER_OF_NODES; index++)
     if (! config.nodes[index]) break;
 
-  if (index < NODE_VARIANT_CLASS)
+  if (index < NUMBER_OF_NODES)
     return (ui_print_redland_error () == 0);
 
   config.types[TYPE_STRING]  = new_uri ("http://www.w3.org/2001/XMLSchema#string");
@@ -193,6 +193,17 @@ generate_variant_id (char *variant_id)
                             config.non_unique_variant_counter);
 
   config.non_unique_variant_counter++;
+  return (bytes_written > 0);
+}
+
+bool
+generate_genotype_id (char *genotype_id)
+{
+  int32_t bytes_written;
+  bytes_written = snprintf (genotype_id, 16, "GT%010u",
+                            config.genotype_counter);
+
+  config.genotype_counter++;
   return (bytes_written > 0);
 }
 

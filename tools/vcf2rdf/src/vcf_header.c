@@ -74,7 +74,8 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
   librdf_uri  *prefix = NULL;
   librdf_node *class  = NULL;
   rdf_type            = new_node (config.uris[URI_RDF_PREFIX], "type");
-  origin_type         = new_node (config.uris[URI_ONTOLOGY_PREFIX], "origin");
+  origin_type         = new_node (config.uris[URI_ONTOLOGY_PREFIX],
+                                  "originatedFrom");
 
   /* Register samples.
    * ----------------------------------------------------------------------- */

@@ -262,7 +262,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       if (!id_str || type == -1)
         continue;
 
-      int32_t max_ploidy = 0;
+      librdf_node *sample_node = NULL;
 
       /* TODO: Figure out how to handle multiple alleles..  */
       /* Each sample in the has its own values for the FORMAT fields.
@@ -270,31 +270,63 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       if (bcf_get_format_string (header, buffer, id_str, (char ***)&value, &value_len) > 0)
         for (j = 0; j < number_of_samples; j++)
           {
-            /* The GT field is parsed automatically by HTSlib.  To restore
-             * the original information, we need to do the following. */
+            /* The information is specific to a sample, so let's define which
+             * sample we're getting information of. */
+            sample_node = new_node (config.uris[URI_SAMPLE_PREFIX],
+                                    header->samples[j]);
+
             if (!strcmp (id_str, "GT"))
               {
-                int32_t gt = bcf_get_genotypes (header, buffer, &value, &value_len);
-                max_ploidy = gt / number_of_samples;
-                int32_t *ptr = (int32_t *)value + j * max_ploidy;
-                for (k = 0; k < max_ploidy; k++)
-                  {
-                    if (ptr[k] == bcf_int32_vector_end)
-                      break;
+                char **dst = NULL;
+                int32_t ndst = 0;
+                int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
+                int32_t ploidy = gt / number_of_samples;
+                int32_t *ptr = (int32_t *)dst + j * ploidy;
+                int32_t *genotypes = calloc (ploidy, sizeof (int32_t));
 
-                    if (bcf_gt_is_missing (ptr[k]))
-                      continue;
+                for (k = 0; k < ploidy; k++)
+                  genotypes[k] = (bcf_gt_is_missing (ptr[k]))
+                                   ? -1
+                                   : bcf_gt_allele (ptr[k]);
 
-                    int allele_index = bcf_gt_allele (ptr[k]);
-                  }
+                int32_t genotype_class = -1;
+
+                if (ploidy == 2)
+                  genotype_class = (genotypes[0] == 0 && genotypes[1] == 0) ? NODE_HOMOZYGOUS_REF_CLASS
+                                 : (genotypes[0] == 1 && genotypes[1] == 1) ? NODE_HOMOZYGOUS_ALT_CLASS
+                                 : NODE_HETEROZYGOUS_CLASS;
+
+                else if (ploidy == 1)
+                  genotype_class = NODE_HOMOZYGOUS_CLASS;
+
+                free (genotypes);
+                free (dst);
+
+                char gt_id[16];
+                generate_genotype_id (gt_id);
+                librdf_node *gt_id_node = new_node (config.uris[URI_ONTOLOGY_PREFIX], gt_id);
+
+                add_triplet (copy (gt_id_node),
+                             copy (config.nodes[NODE_RDF_TYPE]),
+                             copy (config.nodes[genotype_class]));
+
+                add_triplet (copy (gt_id_node),
+                             new_node (config.uris[URI_ONTOLOGY_PREFIX], "sample"),
+                             copy (sample_node));
+
+                add_triplet (copy (gt_id_node),
+                             new_node (config.uris[URI_ONTOLOGY_PREFIX], "variant"),
+                             copy (self));
+
+                librdf_free_node (gt_id_node);
               }
             else
-              {
-                add_literal (copy (self),
-                             new_node (config.uris[URI_VCF_HEADER_FORMAT_PREFIX], id_str),
-                             config.number_buffer,
-                             config.types[type]);
-              }
+              add_literal (copy (self),
+                           new_node (config.uris[URI_VCF_HEADER_FORMAT_PREFIX], id_str),
+                           (char *)value,
+                           config.types[type]);
+
+            librdf_free_node (sample_node);
           }
     }
 

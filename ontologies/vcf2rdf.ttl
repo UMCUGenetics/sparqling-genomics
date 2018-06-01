@@ -1,0 +1,129 @@
+@prefix dc:      <http://purl.org/dc/elements/1.1/> .
+@prefix obo:     <http://purl.obolibrary.org/obo/> .
+@prefix faldo:   <http://biohackathon.org/resource/faldo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix :        <http://rdf.op.umcutrecht.nl/> .
+
+# sequence_variant = obo:SO_0001060
+
+<http://rdf.umcutrecht.nl/vcf2rdf>
+    rdf:type        owl:Ontology ;
+    dc:title        "Ontology describing the output of vcf2rdf." ;
+    rdfs:comment    "This ontology describes the structure exported by vcf2rdf." ;
+    owl:versionInfo "1.0" .
+
+## Class: VariantGenotype
+## ----------------------------------------------------------------------------
+
+:VariantGenotype
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant genotype" ;
+    rdfs:comment "" .
+
+# Possible VariantGenotype subclasses
+# -------------------------------------------------------------------------
+:HomozygousGenotype
+    rdf:type        owl:Class ;
+    rdfs:subClassOf :VariantGenotype .
+
+:HeterozygousGenotype
+    rdf:type        owl:Class ;
+    rdfs:subClassOf :VariantGenotype .
+
+:HomozygousReferenceGenotype
+    rdf:type        owl:Class ;
+    rdfs:subClassOf :VariantGenotype .
+
+:HomozygousAlternativeGenotype
+    rdf:type        owl:Class ;
+    rdfs:subClassOf :VariantGenotype .
+
+## Class: Sample
+## ----------------------------------------------------------------------------
+
+:Sample
+    rdf:type     owl:Class ;
+    rdfs:label   "Sample" ;
+    rdfs:comment "Identifies a data sample." .
+
+## Class: Origin
+## ----------------------------------------------------------------------------
+
+:Origin
+    rdf:type     owl:Class ;
+    rdfs:label   "Origin" ;
+    rdfs:comment "Identifies the originating sample." .
+
+:NonTumorOrigin
+    rdf:type        owl:Class ;
+    rdfs:label      "Non-tumor origin" ;
+    rdfs:comment    "Identifies the originating sample as non-tumoric." ;
+    rdfs:subClassOf :Origin .
+
+:TumorOrigin
+    rdf:type        owl:Class ;
+    rdfs:label      "Tumor origin" ;
+    rdfs:comment    "Identifies the originating sample as tumoric." ;
+    rdfs:subClassOf :Origin .
+
+## Variant Call Format Header
+## ----------------------------------------------------------------------------
+
+:Variant
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant call" ;
+    rdfs:comment "Describes a variant call." .
+
+:VcfHeaderGenericItem
+    rdf:type   owl:Class ;
+    rdfs:label "Generic VCF header item" .
+
+:VcfHeaderInfoItem
+    rdf:type   owl:Class ;
+    rdfs:label "INFO VCF header item" .
+
+:VcfHeaderFormatItem
+    rdf:type   owl:Class ;
+    rdfs:label "FORMAT VCF header item" .
+
+:VcfHeaderFilterItem
+    rdf:type   owl:Class ;
+    rdfs:label "Filter VCF header item" .
+
+:VcfHeaderAltItem
+    rdf:type   owl:Class ;
+    rdfs:label "Alternative VCF header item" .
+
+:VcfHeaderContigItem
+    rdf:type   owl:Class ;
+    rdfs:label "Contig VCF header item" .
+
+## Annotation properties
+## ----------------------------------------------------------------------------
+
+:SoftwareProgram
+    rdf:type     owl:Class ;
+    rdfs:label   "Software program" ;
+    rdfs:comment "This describes a software program." .
+
+:vcf2rdf rdf:type :SoftwareProgram .
+
+:convertedBy
+    rdf:type     owl:AnnotationProperty ;
+    rdfs:label   "Converted by" ;
+    rdfs:comment "The software program used for data conversion." ;
+    rdfs:range   :SoftwareProgram .
+
+:foundIn
+    rdf:type    owl:AnnotationProperty ;
+    rdfs:label  "Whether a sample can be found in a file." ;
+    rdfs:range  :Origin ;
+    rdfs:domain :Sample .
+
+:originatedFrom
+    rdf:type   owl:AnnotationProperty ;
+    rdf:label  "" ;
+    rdfs:range :Origin .

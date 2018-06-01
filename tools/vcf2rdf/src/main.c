@@ -120,7 +120,7 @@ main (int argc, char **argv)
                    copy(node_vcf2rdf));
 
       add_literal (copy (node_vcf2rdf),
-                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "version"),
+                   new_node (config.uris[URI_OWL_PREFIX], "versionInfo"),
                    VERSION,
                    config.types[TYPE_STRING]);
 

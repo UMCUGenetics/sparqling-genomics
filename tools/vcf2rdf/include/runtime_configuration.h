@@ -41,18 +41,19 @@
 #define URI_ONTOLOGY_PREFIX           0
 #define URI_RDF_PREFIX                1
 #define URI_RDFS_PREFIX               2
-#define URI_XSD_PREFIX                3
-#define URI_FALDO_PREFIX              4
-#define URI_HG19_PREFIX               5
-#define URI_HG19_CHR_PREFIX           6
-#define URI_VCF_HEADER_GENERIC_PREFIX 7
-#define URI_VCF_HEADER_INFO_PREFIX    8
-#define URI_VCF_HEADER_FORMAT_PREFIX  9
-#define URI_VCF_HEADER_FILTER_PREFIX  10
-#define URI_VCF_HEADER_ALT_PREFIX     11
-#define URI_VCF_HEADER_CONTIG_PREFIX  12
-#define URI_SAMPLE_PREFIX             13
-#define URI_VCF_VC_PREFIX             14
+#define URI_OWL_PREFIX                3
+#define URI_XSD_PREFIX                4
+#define URI_FALDO_PREFIX              5
+#define URI_HG19_PREFIX               6
+#define URI_HG19_CHR_PREFIX           7
+#define URI_VCF_HEADER_GENERIC_PREFIX 8
+#define URI_VCF_HEADER_INFO_PREFIX    9
+#define URI_VCF_HEADER_FORMAT_PREFIX  10
+#define URI_VCF_HEADER_FILTER_PREFIX  11
+#define URI_VCF_HEADER_ALT_PREFIX     12
+#define URI_VCF_HEADER_CONTIG_PREFIX  13
+#define URI_SAMPLE_PREFIX             14
+#define URI_VCF_VC_PREFIX             15
 
 /* The following integer is used to determine the size of the constants.
  * Please adjust accordingly when you change the first or the last
@@ -72,7 +73,11 @@
 #define NODE_VCF_HEADER_ALT_CLASS     6
 #define NODE_VCF_HEADER_CONTIG_CLASS  7
 #define NODE_SAMPLE_CLASS             8
-#define NODE_VARIANT_CLASS            9
+#define NODE_HETEROZYGOUS_CLASS       9
+#define NODE_HOMOZYGOUS_CLASS         10
+#define NODE_HOMOZYGOUS_REF_CLASS     11
+#define NODE_HOMOZYGOUS_ALT_CLASS     12
+#define NODE_VARIANT_CLASS            13
 
 #define NUMBER_OF_NODES          (NODE_VARIANT_CLASS + 1)
 
@@ -102,6 +107,7 @@ typedef struct
   char              *reference;
   char              *caller;
   uint32_t          non_unique_variant_counter;
+  uint32_t          genotype_counter;
   bool              show_progress_info;
 
   /* Redland-specifics. */
@@ -136,6 +142,7 @@ void runtime_configuration_free (void);
 void runtime_configuration_redland_free (void);
 
 bool generate_variant_id (char *variant_id);
+bool generate_genotype_id (char *genotype_id);
 void refresh_model (void);
 
 #endif  /* RUNTIMECONFIGURATION_H */
