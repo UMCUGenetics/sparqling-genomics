@@ -29,6 +29,28 @@
 #include <string.h>
 
 void
+get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *type)
+{
+  int32_t j = 0;
+  for (; j < header->hrec[index]->nkeys; j++)
+    {
+      char *key   = header->hrec[index]->keys[j];
+      char *value = header->hrec[index]->vals[j];
+      if (!key || !value) continue;
+      if (!strcmp (key, "ID"))
+        *id_str = value;
+      else if (!strcmp (key, "Type"))
+        *type = (!strcmp (value, "Integer")) ? TYPE_INTEGER
+              : (!strcmp (value, "Float"))   ? TYPE_FLOAT
+              : (!strcmp (value, "String"))  ? TYPE_STRING
+              : (!strcmp (value, "Flag"))    ? TYPE_BOOLEAN
+              : -1;
+
+      if (*id_str && *type != -1) break;
+    }
+}
+
+void
 process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 {
   if (!header || !buffer || !origin) return;
@@ -161,6 +183,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
   char *id_str           = NULL;
   void *value            = NULL;
+  int32_t state          = 0;
   int32_t type           = -1;
   int32_t value_len      = 0;
   int32_t index          = 0;
@@ -174,45 +197,19 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       type      = -1;
       value     = NULL;
       value_len = 0;
-      index = config.info_field_indexes[i];
+      index     = config.info_field_indexes[i];
 
-      /* Determine id_str and type. */
-      for (j = 0; j < header->hrec[index]->nkeys; j++)
-        {
-          char *key = header->hrec[index]->keys[j];
-          char *value = header->hrec[index]->vals[j];
-          if (!key || !value)
-            continue;
-
-          if (!strcmp (key, "ID"))
-            id_str = value;
-          else if (!strcmp (key, "Type"))
-            {
-              if (!strcmp (value, "Integer"))
-                type = TYPE_INTEGER;
-              else if (!strcmp (value, "Float"))
-                type = TYPE_FLOAT;
-              //else if (!strcmp (value, "Character"))
-              //  type = TYPE_STRING;
-              else if (!strcmp (value, "String"))
-                type = TYPE_STRING;
-              else if (!strcmp (value, "Flag"))
-                type = TYPE_BOOLEAN;
-            }
-
-          if (id_str && type != -1)
-            break;
-        }
+      get_field_identity (header, index, &id_str, &type);
 
       if (!id_str || type == -1)
         goto clean_up_iteration;
 
+      state = bcf_get_info_values (header, buffer, id_str, &value, &value_len, type);
+      if (!value || state < 0)
+        goto clean_up_iteration;
+
       if (type == TYPE_INTEGER)
         {
-          bcf_get_info_int32 (header, buffer, id_str, &value, &value_len);
-          if (!value)
-            goto clean_up_iteration;
-
           snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
           add_literal (copy (self),
                        new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
@@ -221,10 +218,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
         }
       else if (type == TYPE_FLOAT)
         {
-          bcf_get_info_float (header, buffer, id_str, &value, &value_len);
-          if (!value)
-            goto clean_up_iteration;
-
           snprintf (config.number_buffer, 32, "%f", *((float *)value));
           add_literal (copy (self),
                        new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
@@ -233,20 +226,13 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
         }
       else if (type == TYPE_STRING)
         {
-          int32_t state = bcf_get_info_string (header, buffer, id_str, &value, &value_len);
-          if (state >= 0)
-            add_literal (copy (self),
-                         new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                         (char *)value,
-                         config.types[TYPE_STRING]);
+          add_literal (copy (self),
+                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
+                       (char *)value,
+                       config.types[TYPE_STRING]);
         }
-      /* else if (!strcmp (type_str, "Character")) */
-      /*   { */
-      /*     //fprintf (stderr, "INFO fields containing 'Character' (%s), have not been implemented (yet).\n", id_str); */
-      /*   } */
       else if (type == TYPE_BOOLEAN)
         {
-          int32_t state = bcf_get_info_flag (header, buffer, id_str, &value, &value_len);
           if (state == 1)
             add_literal (copy (self),
                          new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
@@ -254,12 +240,9 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
                          config.types[TYPE_BOOLEAN]);
         }
 
-      free (value);
-      value = NULL;
-      continue;
-
     clean_up_iteration:
       free (value);
+      value = NULL;
     }
 
   /* Process FORMAT fields.
@@ -274,54 +257,26 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       value_len = 0;
       index = config.format_field_indexes[i];
 
-      /* Determine id_str and type. */
-      for (j = 0; j < header->hrec[index]->nkeys; j++)
-        {
-          char *key = header->hrec[index]->keys[j];
-          char *value = header->hrec[index]->vals[j];
-          if (!key || !value)
-            continue;
-
-          if (!strcmp (key, "ID"))
-            id_str = value;
-          else if (!strcmp (key, "Type"))
-            {
-              if (!strcmp (value, "Integer"))
-                type = TYPE_INTEGER;
-              else if (!strcmp (value, "Float"))
-                type = TYPE_FLOAT;
-              //else if (!strcmp (value, "Character"))
-              //  type = TYPE_STRING;
-              else if (!strcmp (value, "String"))
-                type = TYPE_STRING;
-              else if (!strcmp (value, "Flag"))
-                type = TYPE_BOOLEAN;
-            }
-
-          if (id_str && type != -1)
-            break;
-        }
+      get_field_identity (header, index, &id_str, &type);
 
       if (!id_str || type == -1)
-        goto clean_up_iteration;
+        continue;
 
       int32_t max_ploidy = 0;
-      int32_t ndst       = 0;
-      char **dst         = NULL;
 
       /* TODO: Figure out how to handle multiple alleles..  */
       /* Each sample in the has its own values for the FORMAT fields.
        * In the following */
-      if (bcf_get_format_string (header, buffer, id_str, &dst, &ndst) > 0)
+      if (bcf_get_format_string (header, buffer, id_str, (char ***)&value, &value_len) > 0)
         for (j = 0; j < number_of_samples; j++)
           {
             /* The GT field is parsed automatically by HTSlib.  To restore
              * the original information, we need to do the following. */
             if (!strcmp (id_str, "GT"))
               {
-                int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
+                int32_t gt = bcf_get_genotypes (header, buffer, &value, &value_len);
                 max_ploidy = gt / number_of_samples;
-                int32_t *ptr = (int32_t *)dst + j * max_ploidy;
+                int32_t *ptr = (int32_t *)value + j * max_ploidy;
                 for (k = 0; k < max_ploidy; k++)
                   {
                     if (ptr[k] == bcf_int32_vector_end)
@@ -341,8 +296,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
                              config.types[type]);
               }
           }
-
-      free (dst);
     }
 
   if (variant_id_free_p)
