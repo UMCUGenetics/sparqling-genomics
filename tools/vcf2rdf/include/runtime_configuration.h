@@ -23,9 +23,11 @@
  * program more efficient or more convenient to write.
  */
 
+#include "ontology.h"
+
 #include <stdbool.h>
 #include <stdint.h>
-#include <librdf.h>
+#include <raptor2.h>
 #include <htslib/vcf.h>
 
 /* The program uses a base ontology for everything that cannot be
@@ -106,26 +108,26 @@ typedef struct
   char              *input_file;
   char              *reference;
   char              *caller;
+  char              *output_format;
   uint32_t          non_unique_variant_counter;
   uint32_t          genotype_counter;
+  bool              header_only;
   bool              show_progress_info;
 
-  /* Redland-specifics. */
-  librdf_uri        *uris[NUMBER_OF_URIS];
-  librdf_uri        *types[NUMBER_OF_TYPES];
-  librdf_node       *nodes[NUMBER_OF_NODES];
-  librdf_world      *rdf_world;
-  librdf_serializer *rdf_serializer;
-  librdf_storage    *rdf_storage;
-  librdf_model      *rdf_model;
+  /* Raptor-specifics */
+  raptor_world      *raptor_world;
+  raptor_serializer *raptor_serializer;
+
+  /* Application-specific ontology. */
+  ontology_t        *ontology;
 
   /* Caching and internal performance optimizing structures. */
-  int *info_field_indexes;
-  size_t info_field_indexes_len;
-  size_t info_field_indexes_blocks;
-  int *format_field_indexes;
-  size_t format_field_indexes_len;
-  size_t format_field_indexes_blocks;
+  int32_t           *info_field_indexes;
+  size_t            info_field_indexes_len;
+  size_t            info_field_indexes_blocks;
+  int32_t           *format_field_indexes;
+  size_t            format_field_indexes_len;
+  size_t            format_field_indexes_blocks;
 
   /* Shared buffers. */
   char variant_id_buf[16];
@@ -143,6 +145,5 @@ void runtime_configuration_redland_free (void);
 
 bool generate_variant_id (char *variant_id);
 bool generate_genotype_id (char *genotype_id);
-void refresh_model (void);
 
 #endif  /* RUNTIMECONFIGURATION_H */

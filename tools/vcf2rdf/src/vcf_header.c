@@ -21,14 +21,13 @@
 #include "ui.h"
 
 #include <stdio.h>
-#include <librdf.h>
+#include <raptor2.h>
 
 void
 process_header_item (bcf_hdr_t   *vcf_header,
-                     librdf_node *origin,
-                     librdf_node *self,
-                     librdf_uri  *prefix,
-                     int32_t index)
+                     const unsigned char *identifier,
+                     int32_t     prefix,
+                     int32_t     index)
 {
   int32_t j = 0;
   for (; j < vcf_header->hrec[index]->nkeys; j++)
@@ -44,15 +43,20 @@ process_header_item (bcf_hdr_t   *vcf_header,
         continue;
 
       if (strcmp (key, "ID"))
-        add_literal (copy (self),
-                     new_node (prefix, key),
-                     value,
-                     config.types[TYPE_STRING]);
+        {
+          raptor_statement *stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (prefix, identifier);
+          stmt->predicate = term (prefix, key);
+          stmt->object    = literal (value, XSD_STRING);
+
+          register_statement (stmt);
+          stmt = NULL;
+        }
     }
 }
 
 void
-process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
+process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
 {
   if (!vcf_header || !origin) return;
 
@@ -68,14 +72,9 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
    * librdf.
    */
 
-  librdf_node *rdf_type;
-  librdf_node *origin_type;
-  librdf_node *self   = NULL;
-  librdf_uri  *prefix = NULL;
-  librdf_node *class  = NULL;
-  rdf_type            = new_node (config.uris[URI_RDF_PREFIX], "type");
-  origin_type         = new_node (config.uris[URI_ONTOLOGY_PREFIX],
-                                  "originatedFrom");
+  raptor_statement *stmt = NULL;
+  int32_t prefix         = -1;
+  int32_t type           = -1;
 
   /* Register samples.
    * ----------------------------------------------------------------------- */
@@ -84,37 +83,34 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 
   for (; index < number_of_samples; index++)
     {
-      librdf_node *sample = new_node (config.uris[URI_SAMPLE_PREFIX],
-                                      vcf_header->samples[index]);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
+      stmt->predicate = term (PREFIX_RDF, "type");
+      stmt->object    = class (CLASS_SAMPLE);
+      register_statement (stmt);
 
-      add_triplet (copy (sample),
-                   copy (rdf_type),
-                   copy (config.nodes[NODE_SAMPLE_CLASS]));
-
-      add_triplet (copy (sample),
-                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "foundIn"),
-                   copy (origin));
-
-      librdf_free_node (sample);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
+      stmt->predicate = term (PREFIX_BASE, "foundIn");
+      stmt->object    = term (PREFIX_BASE, origin);
+      register_statement (stmt);
+      stmt = NULL;
     }
 
   /* Process header fields.
    * ----------------------------------------------------------------------- */
 
-  char* identifier    = NULL;
+  char *identifier    = NULL;
+  char *key           = NULL;
+  char *value         = NULL;
   for (index = 0; index < vcf_header->nhrec; index++)
     {
       if (vcf_header->hrec[index]->nkeys > 0)
         {
-          char *key   = vcf_header->hrec[index]->keys[0];
-          char *value = vcf_header->hrec[index]->vals[0];
+          key   = vcf_header->hrec[index]->keys[0];
+          value = vcf_header->hrec[index]->vals[0];
           if (key && value)
-            {
-              if (!strcmp (key, "ID"))
-                identifier = value;
-              else
-                identifier = key;
-            }
+            identifier = (!strcmp (key, "ID")) ? value : key;
         }
       else
         identifier = vcf_header->hrec[index]->key;
@@ -126,24 +122,25 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
        * ------------------------------------------------------------------- */
       if (vcf_header->hrec[index]->value)
         {
-          self = new_node (config.uris[URI_VCF_HEADER_GENERIC_PREFIX], identifier);
-          add_triplet (copy (self),
-                       copy (rdf_type),
-                       copy (config.nodes[NODE_VCF_HEADER_GENERIC_CLASS]));
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
+          stmt->predicate = term (PREFIX_RDF, "type");
+          stmt->object    = class (CLASS_VCF_HEADER);
+          register_statement (stmt);
 
-          add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_GENERIC_PREFIX],
-                                 vcf_header->hrec[index]->key),
-                       vcf_header->hrec[index]->value,
-                       config.types[TYPE_STRING]);
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
+          stmt->predicate = term (PREFIX_VCF_HEADER, vcf_header->hrec[index]->key);
+          stmt->object    = literal (vcf_header->hrec[index]->value, XSD_STRING);
+          register_statement (stmt);
         }
 
       /* Handle other fields.
        * ------------------------------------------------------------------- */
       else if (vcf_header->hrec[index]->type == BCF_HL_INFO)
         {
-          prefix = config.uris[URI_VCF_HEADER_INFO_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_INFO_CLASS];
+          prefix = PREFIX_VCF_HEADER_INFO;
+          type  = CLASS_VCF_HEADER_INFO;
 
           /* Cache the indexes of INFO fields.
            * ---------------------------------------------------------------- */
@@ -165,13 +162,13 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
 
       else if (vcf_header->hrec[index]->type == BCF_HL_FLT)
         {
-          prefix = config.uris[URI_VCF_HEADER_FILTER_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_FILTER_CLASS];
+          prefix = PREFIX_VCF_HEADER_FILTER;
+          type  = CLASS_VCF_HEADER_FILTER;
         }
       else if (vcf_header->hrec[index]->type == BCF_HL_FMT)
         {
-          prefix = config.uris[URI_VCF_HEADER_FORMAT_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_FORMAT_CLASS];
+          prefix = PREFIX_VCF_HEADER_FORMAT;
+          type  = CLASS_VCF_HEADER_FORMAT;
 
           /* Cache the indexes of FORMAT fields.
            * ---------------------------------------------------------------- */
@@ -192,36 +189,45 @@ process_header (bcf_hdr_t *vcf_header, librdf_node *origin)
         }
       else if (vcf_header->hrec[index]->type == BCF_HL_CTG)
         {
-          prefix = config.uris[URI_VCF_HEADER_CONTIG_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_CONTIG_CLASS];
+          prefix = PREFIX_VCF_HEADER_CONTIG;
+          type  = CLASS_VCF_HEADER_CONTIG;
         }
       else if (!strcmp (vcf_header->hrec[index]->key, "ALT"))
         {
-          prefix = config.uris[URI_VCF_HEADER_ALT_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_ALT_CLASS];
+          prefix = PREFIX_VCF_HEADER_ALT;
+          type  = CLASS_VCF_HEADER_ALT;
         }
       else
         {
-          prefix = config.uris[URI_VCF_HEADER_GENERIC_PREFIX];
-          class  = config.nodes[NODE_VCF_HEADER_GENERIC_CLASS];
+          prefix = PREFIX_VCF_HEADER;
+          type  = CLASS_VCF_HEADER;
         }
 
-      if (prefix != NULL && class != NULL)
+      if (prefix >= 0 && type >= 0)
         {
-          self = new_node (prefix, identifier);
-          add_triplet (copy (self), copy (rdf_type), copy (class));
-          process_header_item (vcf_header, origin, self, prefix, index);
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (prefix, identifier);
+          stmt->predicate = term (PREFIX_RDF, "type");
+          stmt->object    = class (type);
+          register_statement (stmt);
+
+          process_header_item (vcf_header,
+                               identifier,
+                               prefix,
+                               index);
         }
 
-      /* Add a reference to the 'origin'. */
-      add_triplet (copy (self), copy (origin_type), copy (origin));
+      if (prefix >= 0)
+        {
+          /* Add a reference to the 'origin'. */
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (prefix, identifier);
+          stmt->predicate = term (prefix, "originatedFrom");
+          stmt->object    = term (prefix, origin);
+          register_statement (stmt);
+        }
 
-      librdf_free_node (self);
-      self   = NULL;
-      prefix = NULL;
-      class  = NULL;
+      prefix = -1;
+      type   = -1;
     }
-
-  librdf_free_node (rdf_type);
-  librdf_free_node (origin_type);
 }

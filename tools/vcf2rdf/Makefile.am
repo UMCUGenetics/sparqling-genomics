@@ -12,6 +12,7 @@ vcf2rdf_SOURCES      = src/helper.c include/helper.h                          \
                        src/main.c include/runtime_configuration.h             \
                        src/runtime_configuration.c                            \
                        src/ui.c include/ui.h                                  \
+                       src/ontology.c include/ontology.h                      \
                        src/vcf_header.c include/vcf_header.h                  \
                        src/vcf_variants.c include/vcf_variants.h
 

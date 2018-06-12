@@ -19,9 +19,8 @@
 #define VCF_HEADER_H
 
 #include <htslib/vcf.h>
-#include <librdf.h>
 
-void process_header (bcf_hdr_t *vcf_header, librdf_node *node_origin);
+void process_header (bcf_hdr_t *vcf_header, const unsigned char *origin);
 
 #endif /* VCF_HEADER_H */
 

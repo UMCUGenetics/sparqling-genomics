@@ -19,9 +19,8 @@
 #define VCF_VARIANTS_H
 
 #include <htslib/vcf.h>
-#include <librdf.h>
 
-void process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin);
+void process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin);
 
 #endif /* VCF_VARIANTS_H */
 

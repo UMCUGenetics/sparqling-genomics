@@ -18,6 +18,7 @@
 #include "runtime_configuration.h"
 #include "ui.h"
 #include "helper.h"
+#include "ontology.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,6 +30,7 @@ runtime_configuration_init (void)
   config.input_file = NULL;
   config.reference = NULL;
   config.caller = NULL;
+  config.output_format = NULL;
   config.non_unique_variant_counter = 0;
   config.genotype_counter = 0;
   config.info_field_indexes = NULL;
@@ -37,6 +39,7 @@ runtime_configuration_init (void)
   config.format_field_indexes = NULL;
   config.format_field_indexes_len = 0;
   config.format_field_indexes_blocks = 0;
+  config.header_only = false;
   config.show_progress_info = false;
 
   return true;
@@ -45,91 +48,15 @@ runtime_configuration_init (void)
 bool
 runtime_configuration_redland_init (void)
 {
-  /* Build an in-memory RDF store
-   * --------------------------------------------------------------------
-   *
-   * The general idea is that a 'model' represent a graph, which can
-   * be persisted on a 'storage'.  The hierarchy is: 
-   * world <- storage <- model.
-   * 
-   * For performance, we use an in-memory model.  We could look into
-   * directly connecting it to an existing triple store at a later time.
-   * 
-   * The serializer is used to output RDF in a certain format.  By default,
-   * we use the Turtle format because it's the most dense format. */
-  
-  config.rdf_world = librdf_new_world ();
-  if (!config.rdf_world)
+  config.raptor_world      = raptor_new_world();
+  config.raptor_serializer = raptor_new_serializer (config.raptor_world,
+                                                    config.output_format);
+
+  if (!config.raptor_world || !config.raptor_serializer)
     return (ui_print_redland_error () == 0);
 
-  config.rdf_storage = librdf_new_storage (config.rdf_world, "hashes", NULL, "hash-type='memory'");
-
-  if (!config.rdf_storage)
-    return (ui_print_redland_error () == 0);
-
-  config.rdf_model = librdf_new_model (config.rdf_world, config.rdf_storage, NULL);
-  if (!config.rdf_model)
-    return (ui_print_redland_error () == 0);
-
-  config.uris[URI_ONTOLOGY_PREFIX]           = new_uri (ONTOLOGY_URI);
-  config.uris[URI_RDF_PREFIX]                = new_uri ("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-  config.uris[URI_RDFS_PREFIX]               = new_uri ("http://www.w3.org/2000/01/rdf-schema#");
-  config.uris[URI_OWL_PREFIX]                = new_uri ("http://www.w3.org/2002/07/owl#");
-  config.uris[URI_XSD_PREFIX]                = new_uri ("http://www.w3.org/2001/XMLSchema#");
-  config.uris[URI_FALDO_PREFIX]              = new_uri ("http://biohackathon.org/resource/faldo#");
-  config.uris[URI_HG19_PREFIX]               = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#");
-  config.uris[URI_HG19_CHR_PREFIX]           = new_uri ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#chr");
-  config.uris[URI_VCF_HEADER_GENERIC_PREFIX] = new_uri (ONTOLOGY_URI "VcfHeaderGenericItem/");
-  config.uris[URI_VCF_HEADER_INFO_PREFIX]    = new_uri (ONTOLOGY_URI "VcfHeaderInfoItem/");
-  config.uris[URI_VCF_HEADER_FORMAT_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderFormatItem/");
-  config.uris[URI_VCF_HEADER_FILTER_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderFilterItem/");
-  config.uris[URI_VCF_HEADER_ALT_PREFIX]     = new_uri (ONTOLOGY_URI "VcfHeaderAltItem/");
-  config.uris[URI_VCF_HEADER_CONTIG_PREFIX]  = new_uri (ONTOLOGY_URI "VcfHeaderContigItem/");
-  config.uris[URI_SAMPLE_PREFIX]             = new_uri (ONTOLOGY_URI "Sample/");
-  config.uris[URI_VCF_VC_PREFIX]             = new_uri (ONTOLOGY_URI "VariantCall/");
-
-  int32_t index = 0;
-  for (; index < NUMBER_OF_URIS; index++)
-    if (! config.uris[index]) break;
-
-  if (index < NUMBER_OF_URIS)
-    return (ui_print_redland_error () == 0);
-
-  config.nodes[NODE_RDF_TYPE]                 = new_node (config.uris[URI_RDF_PREFIX],      "type");
-  config.nodes[NODE_ORIGIN_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Origin");
-  config.nodes[NODE_VCF_HEADER_GENERIC_CLASS] = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderGenericItem");
-  config.nodes[NODE_VCF_HEADER_INFO_CLASS]    = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderInfoItem");
-  config.nodes[NODE_VCF_HEADER_FORMAT_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderFormatItem");
-  config.nodes[NODE_VCF_HEADER_FILTER_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderFilterItem");
-  config.nodes[NODE_VCF_HEADER_ALT_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderAltItem");
-  config.nodes[NODE_VCF_HEADER_CONTIG_CLASS]  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "VcfHeaderContigItem");
-  config.nodes[NODE_SAMPLE_CLASS]             = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Sample");
-  config.nodes[NODE_HETEROZYGOUS_CLASS]       = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HeterozygousGenotype");
-  config.nodes[NODE_HOMOZYGOUS_CLASS]         = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousGenotype");
-  config.nodes[NODE_HOMOZYGOUS_REF_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousReferenceGenotype");
-  config.nodes[NODE_HOMOZYGOUS_ALT_CLASS]     = new_node (config.uris[URI_ONTOLOGY_PREFIX], "HomozygousAlternativeGenotype");
-  config.nodes[NODE_VARIANT_CLASS]            = new_node (config.uris[URI_ONTOLOGY_PREFIX], "Variant");
-
-  index = 0;
-  for (; index < NUMBER_OF_NODES; index++)
-    if (! config.nodes[index]) break;
-
-  if (index < NUMBER_OF_NODES)
-    return (ui_print_redland_error () == 0);
-
-  config.types[TYPE_STRING]  = new_uri ("http://www.w3.org/2001/XMLSchema#string");
-  config.types[TYPE_INTEGER] = new_uri ("http://www.w3.org/2001/XMLSchema#integer");
-  config.types[TYPE_FLOAT]   = new_uri ("http://www.w3.org/2001/XMLSchema#float");
-  config.types[TYPE_BOOLEAN] = new_uri ("http://www.w3.org/2001/XMLSchema#boolean");
-  if (! (config.types[TYPE_STRING]
-         && config.types[TYPE_INTEGER]
-         && config.types[TYPE_FLOAT]
-         && config.types[TYPE_BOOLEAN]))
-    return (ui_print_redland_error () == 0);
-
-  config.rdf_serializer = librdf_new_serializer (config.rdf_world, "ntriples", NULL, NULL);
-
-  if (!config.rdf_serializer)
+  raptor_serializer_start_to_file_handle (config.raptor_serializer, NULL, stdout);
+  if (!ontology_init (&(config.ontology)))
     return (ui_print_redland_error () == 0);
 
   return true;
@@ -138,45 +65,14 @@ runtime_configuration_redland_init (void)
 void
 runtime_configuration_redland_free (void)
 {
-  /* Free the memory of the URIs. */
-  int32_t index;
-  for (index = 0; index < NUMBER_OF_URIS; index++)
-    {
-      librdf_free_uri (config.uris[index]);
-      config.uris[index] = NULL;
-    }
-
-  /* Free the memory of the NODES. */
-  for (index = 0; index < NUMBER_OF_NODES; index++)
-    {
-      librdf_free_node (config.nodes[index]);
-      config.nodes[index] = NULL;
-    }
-
-  /* Free the memory of the TYPES. */
-  for (index = 0; index < NUMBER_OF_TYPES; index++)
-    {
-      librdf_free_uri (config.types[index]);
-      config.types[index] = NULL;
-    }
-
-  /* Free the memory of the RDF world. */
-  librdf_free_serializer (config.rdf_serializer);
-  config.rdf_serializer = NULL;
-  librdf_free_storage (config.rdf_storage);
-  config.rdf_storage = NULL;
-  librdf_free_model (config.rdf_model);
-  config.rdf_model = NULL;
-  librdf_free_world (config.rdf_world);
-  config.rdf_world = NULL;
+  /* Free the Redland-allocated memory. */
+  runtime_configuration_redland_free ();
+  ontology_free (config.ontology);
 }
 
 void
 runtime_configuration_free (void)
 {
-  /* Free the Redland-allocated memory. */
-  runtime_configuration_redland_free ();
-
   /* Free caches. */
   if (config.info_field_indexes != NULL)
     {
@@ -205,11 +101,4 @@ generate_genotype_id (char *genotype_id)
 
   config.genotype_counter++;
   return (bytes_written > 0);
-}
-
-void refresh_model (void)
-{
-  runtime_configuration_redland_free ();
-  if (! runtime_configuration_redland_init ())
-    ui_print_redland_error ();
 }

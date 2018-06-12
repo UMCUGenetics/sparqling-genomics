@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <htslib/vcf.h>
-#include <librdf.h>
+#include <raptor2.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -40,10 +40,10 @@ get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *ty
       if (!strcmp (key, "ID"))
         *id_str = value;
       else if (!strcmp (key, "Type"))
-        *type = (!strcmp (value, "Integer")) ? TYPE_INTEGER
-              : (!strcmp (value, "Float"))   ? TYPE_FLOAT
-              : (!strcmp (value, "String"))  ? TYPE_STRING
-              : (!strcmp (value, "Flag"))    ? TYPE_BOOLEAN
+        *type = (!strcmp (value, "Integer")) ? XSD_INTEGER
+              : (!strcmp (value, "Float"))   ? XSD_FLOAT
+              : (!strcmp (value, "String"))  ? XSD_STRING
+              : (!strcmp (value, "Flag"))    ? XSD_BOOLEAN
               : -1;
 
       if (*id_str && *type != -1) break;
@@ -51,7 +51,7 @@ get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *ty
 }
 
 void
-process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
+process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
 {
   if (!header || !buffer || !origin) return;
 
@@ -74,8 +74,9 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
   /* Create 'generic' nodes and URIs.
    * ------------------------------------------------------------------------ */
-  librdf_node *origin_type = new_node (config.uris[URI_ONTOLOGY_PREFIX], "origin");
-  librdf_node *self        = NULL;
+  raptor_term *origin_type = term (PREFIX_BASE, "origin");
+  raptor_term *self        = NULL;
+  raptor_statement *stmt   = NULL;
   char *variant_id         = NULL;
   bool variant_id_free_p   = false;
 
@@ -102,7 +103,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
         variant_id = config.variant_id_buf;
     }
 
-  self = new_node (config.uris[URI_ONTOLOGY_PREFIX], variant_id);
+  self = term (PREFIX_BASE, variant_id);
 
   if (!self || !origin_type || !origin)
     {
@@ -110,14 +111,25 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       return;
     }
 
-  add_triplet (copy (self), copy (origin_type), copy (origin));
-  add_triplet (copy (self),
-               copy (config.nodes[NODE_RDF_TYPE]),
-               copy (config.nodes[NODE_VARIANT_CLASS]));
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = raptor_term_copy (origin_type);
+  stmt->object    = term (PREFIX_BASE, origin);
+  register_statement (stmt);
+
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = class (CLASS_RDF_TYPE);
+  stmt->object    = class (CLASS_VARIANT_CALL);
+  register_statement (stmt);
 
   /* Add position information
    * ------------------------------------------------------------------------ */
-  char *chromosome = (char *)header->id[BCF_DT_CTG][buffer->rid].key; //bcf_seqname (header, buffer);
+
+  /* We would usually do 'chromosome = bcf_seqname (header, buffer)', but
+   * the function call overhead is worth avoiding.  So we just directly access
+   * the field containing the chromosome identifier instead. */
+  char *chromosome = (char *)header->id[BCF_DT_CTG][buffer->rid].key;
   size_t chromosome_len = strlen (chromosome);
 
   /* HTSlib uses 0-based positions, while in the VCF 1-based position are used.
@@ -127,32 +139,37 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   /* Add the standard fields.
    * Default fields: ID, CHROM, POS, REF, ALT, QUAL, FILTER, INFO, FORMAT.
    * ------------------------------------------------------------------------ */
-  add_triplet (copy (self),
-               new_node (config.uris[URI_FALDO_PREFIX], "reference"),
-               /* The chromosome can be a contig name or the usual 1..MT.
-                * The usual ones are prefixed by "chr" in the ontology we use
-                * to describe a chromosome.  To avoid string copying, we can
-                * use the URI_HG19_CHR_PREFIX. */
-               (chromosome_len < 3)
-                 ? new_node (config.uris[URI_HG19_CHR_PREFIX], chromosome)
-                 : new_node (config.uris[URI_HG19_PREFIX], chromosome));
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = term (PREFIX_FALDO, "reference");
+  /* The chromosome can be a contig name or the usual 1..MT.
+   * The usual ones are prefixed by "chr" in the ontology we use
+   * to describe a chromosome.  To avoid string copying, we can
+   * use the URI_HG19_CHR_PREFIX. */
+  stmt->object    = (chromosome_len < 3)
+                      ? term (PREFIX_HG19_CHR, chromosome)
+                      : term (PREFIX_HG19, chromosome);
+  register_statement (stmt);
 
   snprintf (config.number_buffer, 32, "%u", position);
 
-  add_literal (copy (self),
-               new_node (config.uris[URI_FALDO_PREFIX], "position"),
-               config.number_buffer,
-               config.types[TYPE_INTEGER]);
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = term (PREFIX_FALDO, "position");
+  stmt->object    = literal (config.number_buffer, XSD_INTEGER);
+  register_statement (stmt);
 
-  add_literal (copy (self),
-               new_node (config.uris[URI_VCF_VC_PREFIX], "REF"),
-               buffer->d.allele[0],
-               config.types[TYPE_STRING]);
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = term (PREFIX_VARIANT_CALL, "REF");
+  stmt->object    = literal (buffer->d.allele[0], XSD_STRING);
+  register_statement (stmt);
 
-  add_literal (copy (self),
-               new_node (config.uris[URI_VCF_VC_PREFIX], "ALT"),
-               buffer->d.allele[1],
-               config.types[TYPE_STRING]);
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = raptor_term_copy (self);
+  stmt->predicate = term (PREFIX_VARIANT_CALL, "ALT");
+  stmt->object    = literal (buffer->d.allele[1], XSD_STRING);
+  register_statement (stmt);
 
   /* The QUAL indicator "." means that the QUAL value is missing or unknown.
    * In such a case we skip the entire triplet.  This behavior needs to be
@@ -162,10 +179,12 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
     {
       snprintf (config.number_buffer, 32, "%4.6f", buffer->qual);
 
-      add_literal (copy (self),
-                   new_node (config.uris[URI_VCF_VC_PREFIX], "QUAL"),
-                   config.number_buffer,
-                   config.types[TYPE_FLOAT]);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (self);
+      stmt->predicate = term (PREFIX_VARIANT_CALL, "QUAL");
+      stmt->object    = literal (config.number_buffer, XSD_FLOAT);
+
+      register_statement (stmt);
     }
 
   /* Process filter fields.
@@ -173,10 +192,13 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   bcf_unpack (buffer, BCF_UN_FLT);
   int filter_index = 0;
   for (; filter_index < buffer->d.n_flt; filter_index++)
-    add_triplet (copy (self),
-                 new_node (config.uris[URI_VCF_VC_PREFIX], "FILTER"),
-                 new_node (config.uris[URI_ONTOLOGY_PREFIX],
-                           header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key));
+    {
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (self);
+      stmt->predicate = term (PREFIX_VARIANT_CALL, "FILTER");
+      stmt->object    = term (PREFIX_BASE, header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key);
+      register_statement (stmt);
+    }
 
   /* Process INFO fields.
   * ------------------------------------------------------------------------- */
@@ -187,8 +209,8 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   int32_t type           = -1;
   int32_t value_len      = 0;
   int32_t index          = 0;
-  int32_t i              = 0;
-  int32_t j              = 0;
+  uint32_t i             = 0;
+  uint32_t j             = 0;
   int32_t k              = 0;
 
   for (i = 0; i < config.info_field_indexes_len; i++)
@@ -208,37 +230,27 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       if (!value || state < 0)
         goto clean_up_iteration;
 
-      if (type == TYPE_INTEGER)
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (self);
+      stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
+
+      if (type == XSD_INTEGER)
         {
           snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
-          add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                       config.number_buffer,
-                       config.types[TYPE_INTEGER]);
+          stmt->object = literal (config.number_buffer, XSD_INTEGER);
         }
-      else if (type == TYPE_FLOAT)
+      else if (type == XSD_FLOAT)
         {
           snprintf (config.number_buffer, 32, "%f", *((float *)value));
-          add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                       config.number_buffer,
-                       config.types[TYPE_FLOAT]);
+          stmt->object = literal (config.number_buffer, XSD_FLOAT);
         }
-      else if (type == TYPE_STRING)
-        {
-          add_literal (copy (self),
-                       new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                       (char *)value,
-                       config.types[TYPE_STRING]);
-        }
-      else if (type == TYPE_BOOLEAN)
-        {
-          if (state == 1)
-            add_literal (copy (self),
-                         new_node (config.uris[URI_VCF_HEADER_INFO_PREFIX], id_str),
-                         "true",
-                         config.types[TYPE_BOOLEAN]);
-        }
+      else if (type == XSD_STRING)
+        stmt->object = literal ((char *)value, XSD_STRING);
+      else if (type == XSD_BOOLEAN && state == 1)
+        stmt->object = literal ("true", XSD_BOOLEAN);
+
+      if (!stmt->subject && !stmt->predicate && !stmt->object)
+        register_statement (stmt);
 
     clean_up_iteration:
       free (value);
@@ -248,7 +260,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
   /* Process FORMAT fields.
   * ------------------------------------------------------------------------- */
 
-  int32_t number_of_samples = bcf_hdr_nsamples (header);
+  uint32_t number_of_samples = bcf_hdr_nsamples (header);
   for (i = 0; i < config.format_field_indexes_len; i++)
     {
       id_str    = NULL;
@@ -262,7 +274,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
       if (!id_str || type == -1)
         continue;
 
-      librdf_node *sample_node = NULL;
+      raptor_term *sample_node = NULL;
 
       /* TODO: Figure out how to handle multiple alleles..  */
       /* Each sample in the has its own values for the FORMAT fields.
@@ -272,8 +284,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
           {
             /* The information is specific to a sample, so let's define which
              * sample we're getting information of. */
-            sample_node = new_node (config.uris[URI_SAMPLE_PREFIX],
-                                    header->samples[j]);
+            sample_node = term (PREFIX_SAMPLE, header->samples[j]);
 
             if (!strcmp (id_str, "GT"))
               {
@@ -304,35 +315,52 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, librdf_node *origin)
 
                 char gt_id[16];
                 generate_genotype_id (gt_id);
-                librdf_node *gt_id_node = new_node (config.uris[URI_ONTOLOGY_PREFIX], gt_id);
+                raptor_term *gt_id_node = term (PREFIX_BASE, gt_id);
 
-                add_triplet (copy (gt_id_node),
-                             copy (config.nodes[NODE_RDF_TYPE]),
-                             copy (config.nodes[genotype_class]));
+                stmt = raptor_new_statement (config.raptor_world);
+                stmt->subject   = raptor_term_copy (gt_id_node);
+                stmt->predicate = class (CLASS_RDF_TYPE);
+                stmt->object    = class(genotype_class);
+                register_statement (stmt);
 
-                add_triplet (copy (gt_id_node),
-                             new_node (config.uris[URI_ONTOLOGY_PREFIX], "sample"),
-                             copy (sample_node));
+                stmt = raptor_new_statement (config.raptor_world);
+                stmt->subject   = raptor_term_copy (gt_id_node);
+                stmt->predicate = term (PREFIX_BASE, "sample");
+                stmt->object    = raptor_term_copy (sample_node);
+                register_statement (stmt);
+                
+                stmt = raptor_new_statement (config.raptor_world);
+                stmt->subject   = raptor_term_copy (gt_id_node);
+                stmt->predicate = term (PREFIX_BASE, "variant");
+                stmt->object    = raptor_term_copy (self);
+                register_statement (stmt);
 
-                add_triplet (copy (gt_id_node),
-                             new_node (config.uris[URI_ONTOLOGY_PREFIX], "variant"),
-                             copy (self));
+                stmt = raptor_new_statement (config.raptor_world);
+                stmt->subject   = raptor_term_copy (gt_id_node);
+                stmt->predicate = raptor_term_copy (origin_type);
+                stmt->object    = term (PREFIX_BASE, origin);
+                register_statement (stmt);
 
-                librdf_free_node (gt_id_node);
+                raptor_free_term (gt_id_node);
               }
             else
-              add_literal (copy (self),
-                           new_node (config.uris[URI_VCF_HEADER_FORMAT_PREFIX], id_str),
-                           (char *)value,
-                           config.types[type]);
+              {
+                stmt = raptor_new_statement (config.raptor_world);
+                stmt->subject   = term (PREFIX_BASE, origin);
+                stmt->predicate = term (URI_VCF_HEADER_FORMAT_PREFIX, id_str);
+                stmt->object    = literal (value, type);
 
-            librdf_free_node (sample_node);
+                register_statement (stmt);
+              }
+            raptor_free_term (sample_node);
           }
+
+      free (value);
     }
 
   if (variant_id_free_p)
     free (variant_id);
 
-  librdf_free_node (origin_type);
-  librdf_free_node (self);
+  raptor_free_term (origin_type);
+  raptor_free_term (self);
 }

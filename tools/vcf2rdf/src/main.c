@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <librdf.h>
+#include <raptor2.h>
 #include <htslib/vcf.h>
 
 #include "ui.h"
@@ -29,6 +29,7 @@
 #include "runtime_configuration.h"
 #include "vcf_header.h"
 #include "vcf_variants.h"
+#include "ontology.h"
 
 int
 main (int argc, char **argv)
@@ -103,89 +104,79 @@ main (int argc, char **argv)
       unsigned char *file_hash = helper_get_hash_from_file (config.input_file);
       if (!file_hash) return 1;
 
-      librdf_node *node_filename;
-      librdf_node *node_origin;
-      librdf_node *node_vcf2rdf;
+      raptor_statement *stmt;
+      raptor_term *node_filename;
 
-      node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
-      node_origin   = new_node (config.uris[URI_ONTOLOGY_PREFIX], (const unsigned char *)"Origin");
-      node_vcf2rdf  = new_node (config.uris[URI_ONTOLOGY_PREFIX], "vcf2rdf");
+      node_filename = term (PREFIX_BASE, file_hash);
 
-      add_triplet (copy (node_filename),
-                   copy (config.nodes[NODE_RDF_TYPE]),
-                   node_origin);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (node_filename);
+      stmt->predicate = term (PREFIX_RDF, "type");
+      stmt->object    = term (PREFIX_BASE, "Origin");
+      register_statement (stmt);
 
-      add_triplet (copy (node_filename),
-                   new_node (config.uris[URI_ONTOLOGY_PREFIX], "convertedBy"),
-                   copy(node_vcf2rdf));
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (node_filename);
+      stmt->predicate = term (PREFIX_BASE, "convertedBy");
+      stmt->object    = term (PREFIX_BASE, "vcf2rdf");
+      register_statement (stmt);
 
-      add_literal (copy (node_vcf2rdf),
-                   new_node (config.uris[URI_OWL_PREFIX], "versionInfo"),
-                   VERSION,
-                   config.types[TYPE_STRING]);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = term (PREFIX_BASE, "vcf2rdf");
+      stmt->predicate = term (PREFIX_OWL, "versionInfo");
+      stmt->object    = literal (VERSION, XSD_STRING);
+      register_statement (stmt);
+      stmt = NULL;
 
       /* Process the header. */
-      process_header (vcf_header, node_filename);
+      process_header (vcf_header, file_hash);
 
-      /* Process variant calls. */
-      bcf1_t *buffer = bcf_init ();
-      int32_t counter = 0;
-      uint32_t triplets_count = 0;
-      time_t rawtime = 0;
-      char time_str[20];
-
-      if (config.show_progress_info)
+      if (!config.header_only)
         {
-          fprintf (stderr, "[ PROGRESS ] %-20s%-20s%-20s\n",
-                   "Variants", "Triplets", "Time");
-          fprintf (stderr, "[ PROGRESS ] ------------------- "
-                   "------------------- -------------------\n");
-          while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
+          /* Process variant calls. */
+          bcf1_t *buffer = bcf_init ();
+          int32_t counter = 0;
+          time_t rawtime = 0;
+          char time_str[20];
+
+          if (config.show_progress_info)
             {
-              process_variant (vcf_header, buffer, node_filename);
-              if (counter % 70000 == 0)
+              fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n",
+                       "Variants", "Time");
+              fprintf (stderr, "[ PROGRESS ] ------------------- "
+                       "------------------- -------------------\n");
+              while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
                 {
-                  rawtime = time (NULL);
-                  strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
-
-                  triplets_count += librdf_model_size (config.rdf_model);
-                  fprintf(stderr, "[ PROGRESS ] %-20d%-20u%-20s\n",
-                          counter, triplets_count, time_str);
-
-                  if (counter > 0)
+                  process_variant (vcf_header, buffer, file_hash);
+                  if (counter % 50000 == 0)
                     {
-                      /* Return output. */
-                      rdf_serialize (config.rdf_model);
-                      librdf_free_node (node_filename);
-
-                      refresh_model ();
-                      node_filename = new_node (config.uris[URI_ONTOLOGY_PREFIX], file_hash);
+                      rawtime = time (NULL);
+                      strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
+                      fprintf(stderr, "[ PROGRESS ] %-20d%-20s\n", counter, time_str);
                     }
+
+                  counter++;
                 }
 
-              counter++;
+              fprintf (stderr,
+                       "[ PROGRESS ] \n"
+                       "[ PROGRESS ] Total number variants: %d\n", counter);
+            }
+          else
+            {
+              while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
+                process_variant (vcf_header, buffer, file_hash);
             }
 
-          triplets_count += librdf_model_size (config.rdf_model);
-          fprintf (stderr,
-                   "[ PROGRESS ] \n"
-                   "[ PROGRESS ] Total number variants: %d (%u triplets)\n",
-                   counter, triplets_count);
-        }
-      else
-        {
-          while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
-            process_variant (vcf_header, buffer, node_filename);
+          bcf_destroy (buffer);
         }
 
-      /* Return output. */
-      rdf_serialize (config.rdf_model);
+      raptor_serializer_serialize_end (config.raptor_serializer);
+      raptor_free_serializer (config.raptor_serializer);
 
       /* Clean up. */
-      librdf_free_node (node_filename);
-      librdf_free_node (node_vcf2rdf);
+      raptor_free_term (node_filename);
       free (file_hash);
-      bcf_destroy (buffer);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
     }
