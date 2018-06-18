@@ -303,12 +303,18 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
                 int32_t genotype_class = -1;
 
                 if (ploidy == 2)
-                  genotype_class = (genotypes[0] == 0 && genotypes[1] == 0) ? NODE_HOMOZYGOUS_REF_CLASS
-                                 : (genotypes[0] == 1 && genotypes[1] == 1) ? NODE_HOMOZYGOUS_ALT_CLASS
-                                 : NODE_HETEROZYGOUS_CLASS;
+                  genotype_class = (genotypes[0] == 0 && genotypes[1] == 0)
+                                    ? CLASS_HOMOZYGOUS_REFERENCE
+                                 : (genotypes[0] == 1 && genotypes[1] == 1)
+                                    ? CLASS_HOMOZYGOUS_ALTERNATIVE
+                                    : CLASS_HETEROZYGOUS;
 
                 else if (ploidy == 1)
-                  genotype_class = NODE_HOMOZYGOUS_CLASS;
+                  genotype_class = CLASS_HOMOZYGOUS;
+                else if (ploidy > 2)
+                  genotype_class = CLASS_MULTIZYGOUS;
+                else if (ploidy == 0)
+                  genotype_class = CLASS_NULLIZYGOUS;
 
                 free (genotypes);
                 free (dst);
@@ -320,7 +326,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
                 stmt = raptor_new_statement (config.raptor_world);
                 stmt->subject   = raptor_term_copy (gt_id_node);
                 stmt->predicate = class (CLASS_RDF_TYPE);
-                stmt->object    = class(genotype_class);
+                stmt->object    = class (genotype_class);
                 register_statement (stmt);
 
                 stmt = raptor_new_statement (config.raptor_world);
@@ -328,7 +334,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
                 stmt->predicate = term (PREFIX_BASE, "sample");
                 stmt->object    = raptor_term_copy (sample_node);
                 register_statement (stmt);
-                
+
                 stmt = raptor_new_statement (config.raptor_world);
                 stmt->subject   = raptor_term_copy (gt_id_node);
                 stmt->predicate = term (PREFIX_BASE, "variant");
@@ -355,7 +361,11 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
             raptor_free_term (sample_node);
           }
 
-      free (value);
+      if (value)
+        {
+          free (((char **)value)[0]);
+          free (value);
+        }
     }
 
   if (variant_id_free_p)

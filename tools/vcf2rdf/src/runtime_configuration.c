@@ -66,18 +66,25 @@ void
 runtime_configuration_redland_free (void)
 {
   /* Free the Redland-allocated memory. */
-  runtime_configuration_redland_free ();
   ontology_free (config.ontology);
 }
 
 void
 runtime_configuration_free (void)
 {
+  runtime_configuration_redland_free ();
+
   /* Free caches. */
   if (config.info_field_indexes != NULL)
     {
       free (config.info_field_indexes);
       config.info_field_indexes = NULL;
+    }
+
+  if (config.format_field_indexes != NULL)
+    {
+      free (config.format_field_indexes);
+      config.format_field_indexes = NULL;
     }
 }
 

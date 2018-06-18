@@ -24,6 +24,10 @@
 #include <raptor2.h>
 #include <htslib/vcf.h>
 
+#ifdef ENABLE_MTRACE
+#include <mcheck.h>
+#endif
+
 #include "ui.h"
 #include "helper.h"
 #include "runtime_configuration.h"
@@ -34,6 +38,10 @@
 int
 main (int argc, char **argv)
 {
+#ifdef ENABLE_MTRACE
+  mtrace ();
+#endif
+
   /* Initialize the run-time configuration.
    * ------------------------------------------------------------------------ */
   if (!runtime_configuration_init ()) return 1;
@@ -182,6 +190,10 @@ main (int argc, char **argv)
     }
 
   runtime_configuration_free ();
+
+#ifdef ENABLE_MTRACE
+  muntrace ();
+#endif
 
   return 0;
 }

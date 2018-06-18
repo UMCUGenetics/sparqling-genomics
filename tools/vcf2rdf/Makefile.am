@@ -7,6 +7,11 @@ AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 AM_CFLAGS            = -Iinclude $(LIBGCRYPT_CFLAGS) $(htslib_CFLAGS)         \
                        $(redland_CFLAGS) $(raptor2_CFLAGS) $(rasqal_CFLAGS)
+
+if ENABLE_MTRACE_OPTION
+AM_CFLAGS              += -DENABLE_MTRACE
+endif
+
 bin_PROGRAMS         = vcf2rdf
 vcf2rdf_SOURCES      = src/helper.c include/helper.h                          \
                        src/main.c include/runtime_configuration.h             \
