@@ -35,13 +35,16 @@
                                    ontology->prefixes[PREFIX_XSD],      \
                                    (unsigned char *)suffix)
 
-#define define_class(index, prefix, suffix) ontology->classes[index] =  \
-  ontology->classes[index] =                                            \
-    raptor_new_term_from_uri (config.raptor_world,                      \
-                              raptor_new_uri_relative_to_base (         \
-                                config.raptor_world,                    \
-                                ontology->prefixes[prefix],             \
-                                (unsigned char *)suffix))
+void
+define_class (ontology_t *ontology, int32_t index, int32_t prefix, char *suffix)
+{
+  raptor_uri *uri = raptor_new_uri_relative_to_base (config.raptor_world,
+                                                     ontology->prefixes[prefix],
+                                                     (unsigned char *)suffix);
+
+  ontology->classes[index] = raptor_new_term_from_uri (config.raptor_world, uri);
+  raptor_free_uri (uri);
+}
 
 bool
 ontology_init (ontology_t **ontology_ptr)
@@ -54,51 +57,47 @@ ontology_init (ontology_t **ontology_ptr)
   ontology->prefixes_length = 17;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
-  register_prefix (PREFIX_BASE,              URI_ONTOLOGY "/",                           "");
-  register_prefix (PREFIX_SAMPLE,            URI_ONTOLOGY "/Sample/",                    "sample");
-  register_prefix (PREFIX_ORIGIN,            URI_ONTOLOGY "/Origin/",                    "orig");
-  register_prefix (PREFIX_VCF_HEADER,        URI_ONTOLOGY "/VcfHeaderItem/",             "hdr");
-  register_prefix (PREFIX_VCF_HEADER_INFO,   URI_ONTOLOGY "VcfHeaderInfoItem/",          "info");
-  register_prefix (PREFIX_VCF_HEADER_FORMAT, URI_ONTOLOGY "VcfHeaderFormatItem/",        "fmt");
-  register_prefix (PREFIX_VCF_HEADER_FILTER, URI_ONTOLOGY "VcfHeaderFilterItem/",        "flt");
-  register_prefix (PREFIX_VCF_HEADER_ALT,    URI_ONTOLOGY "VcfHeaderAltItem/",           "alt");
-  register_prefix (PREFIX_VCF_HEADER_CONTIG, URI_ONTOLOGY "VcfHeaderContigItem/",        "ctg");
-  register_prefix (PREFIX_VARIANT_CALL,      URI_ONTOLOGY "/VariantCall/",               "v");
-  register_prefix (PREFIX_RDF,               URI_W3 "/1999/02/22-rdf-syntax-ns#test",    "rdf");
-  register_prefix (PREFIX_RDFS,              URI_W3 "/2000/01/rdf-schema#test",          "rdfs");
-  register_prefix (PREFIX_XSD,               URI_W3 "/2001/XMLSchema#",                  "xsd");
-  register_prefix (PREFIX_OWL,               URI_W3 "/2002/07/owl#",                     "owl");
-  register_prefix (PREFIX_FALDO,             "http://biohackathon.org/resource/faldo#",  "faldo");
-  register_prefix (PREFIX_HG19,              URI_ASSEMBLIES "/hg19#",                    "hg19");
-  register_prefix (PREFIX_HG19_CHR,          URI_ASSEMBLIES "/hg19#chr",                 "hg19chr");
+  register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
+  register_prefix (PREFIX_SAMPLE,            STR_PREFIX_SAMPLE,            "sample");
+  register_prefix (PREFIX_ORIGIN,            STR_PREFIX_ORIGIN,            "orig");
+  register_prefix (PREFIX_VCF_HEADER,        STR_PREFIX_VCF_HEADER,        "hdr");
+  register_prefix (PREFIX_VCF_HEADER_INFO,   STR_PREFIX_VCF_HEADER_INFO,   "info");
+  register_prefix (PREFIX_VCF_HEADER_FORMAT, STR_PREFIX_VCF_HEADER_FORMAT, "fmt");
+  register_prefix (PREFIX_VCF_HEADER_FILTER, STR_PREFIX_VCF_HEADER_FILTER, "flt");
+  register_prefix (PREFIX_VCF_HEADER_ALT,    STR_PREFIX_VCF_HEADER_ALT,    "alt");
+  register_prefix (PREFIX_VCF_HEADER_CONTIG, STR_PREFIX_VCF_HEADER_CONTIG, "ctg");
+  register_prefix (PREFIX_VARIANT_CALL,      STR_PREFIX_VARIANT_CALL,      "v");
+  register_prefix (PREFIX_RDF,               STR_PREFIX_RDF,               "rdf");
+  register_prefix (PREFIX_RDFS,              STR_PREFIX_RDFS,              "rdfs");
+  register_prefix (PREFIX_XSD,               STR_PREFIX_XSD,               "xsd");
+  register_prefix (PREFIX_OWL,               STR_PREFIX_OWL,               "owl");
+  register_prefix (PREFIX_FALDO,             STR_PREFIX_FALDO,             "faldo");
+  register_prefix (PREFIX_HG19,              STR_PREFIX_HG19,              "hg19");
+  register_prefix (PREFIX_HG19_CHR,          STR_PREFIX_HG19_CHR,          "hg19chr");
 
   int32_t initialized_prefixes = 0;
   for (; initialized_prefixes < ontology->prefixes_length; initialized_prefixes++)
     if (!ontology->prefixes[initialized_prefixes]) break;
 
-  ontology->classes_length = 20;
+  ontology->classes_length = 16;
   ontology->classes = calloc (ontology->classes_length, sizeof (raptor_term*));
 
-  define_class (CLASS_RDF_TYPE,               PREFIX_RDF,  "type");
-  define_class (CLASS_ORIGIN,                 PREFIX_BASE, "Origin");
-  define_class (CLASS_VCF_HEADER,             PREFIX_BASE, "VcfHeaderItem");
-  define_class (CLASS_VCF_HEADER_INFO,        PREFIX_BASE, "VcfHeaderInfoItem");
-  define_class (CLASS_VCF_HEADER_FORMAT,      PREFIX_BASE, "VcfHeaderFormatItem");
-  define_class (CLASS_VCF_HEADER_FILTER,      PREFIX_BASE, "VcfHeaderFilterItem");
-  define_class (CLASS_VCF_HEADER_ALT,         PREFIX_BASE, "VcfHeaderAltItem");
-  define_class (CLASS_VCF_HEADER_CONTIG,      PREFIX_BASE, "VcfHeaderContigItem");
-  define_class (CLASS_SAMPLE,                 PREFIX_BASE, "Sample");
-  define_class (CLASS_VARIANT_CALL,           PREFIX_BASE, "VariantCall");
-  define_class (CLASS_HETEROZYGOUS,           PREFIX_BASE, "HeterozygousGenotype");
-  define_class (CLASS_MULTIZYGOUS,            PREFIX_BASE, "Multizygous");
-  define_class (CLASS_NULLIZYGOUS,            PREFIX_BASE, "Nullizygous");
-  define_class (CLASS_HOMOZYGOUS,             PREFIX_BASE, "HomozygousGenotype");
-  define_class (CLASS_HOMOZYGOUS_REFERENCE,   PREFIX_BASE, "HomozygousReferenceGenotype");
-  define_class (CLASS_HOMOZYGOUS_ALTERNATIVE, PREFIX_BASE, "HomozygousAlternativeGenotype");
-  define_class (CLASS_XSD_STRING,             PREFIX_XSD,  "string");
-  define_class (CLASS_XSD_INTEGER,            PREFIX_XSD,  "integer");
-  define_class (CLASS_XSD_FLOAT,              PREFIX_XSD,  "float");
-  define_class (CLASS_XSD_BOOLEAN,            PREFIX_XSD,  "boolean");
+  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,  "type");
+  define_class (ontology, CLASS_ORIGIN,                 PREFIX_BASE, "Origin");
+  define_class (ontology, CLASS_VCF_HEADER,             PREFIX_BASE, "VcfHeaderItem");
+  define_class (ontology, CLASS_VCF_HEADER_INFO,        PREFIX_BASE, "VcfHeaderInfoItem");
+  define_class (ontology, CLASS_VCF_HEADER_FORMAT,      PREFIX_BASE, "VcfHeaderFormatItem");
+  define_class (ontology, CLASS_VCF_HEADER_FILTER,      PREFIX_BASE, "VcfHeaderFilterItem");
+  define_class (ontology, CLASS_VCF_HEADER_ALT,         PREFIX_BASE, "VcfHeaderAltItem");
+  define_class (ontology, CLASS_VCF_HEADER_CONTIG,      PREFIX_BASE, "VcfHeaderContigItem");
+  define_class (ontology, CLASS_SAMPLE,                 PREFIX_BASE, "Sample");
+  define_class (ontology, CLASS_VARIANT_CALL,           PREFIX_BASE, "VariantCall");
+  define_class (ontology, CLASS_HETEROZYGOUS,           PREFIX_BASE, "HeterozygousGenotype");
+  define_class (ontology, CLASS_MULTIZYGOUS,            PREFIX_BASE, "Multizygous");
+  define_class (ontology, CLASS_NULLIZYGOUS,            PREFIX_BASE, "Nullizygous");
+  define_class (ontology, CLASS_HOMOZYGOUS,             PREFIX_BASE, "HomozygousGenotype");
+  define_class (ontology, CLASS_HOMOZYGOUS_REFERENCE,   PREFIX_BASE, "HomozygousReferenceGenotype");
+  define_class (ontology, CLASS_HOMOZYGOUS_ALTERNATIVE, PREFIX_BASE, "HomozygousAlternativeGenotype");
 
   int32_t initialized_classes = 0;
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
@@ -165,4 +164,18 @@ ontology_free (ontology_t *ontology)
   ontology->xsds_length = 0;
 
   free (ontology);
+}
+
+raptor_term*
+term (int32_t index, const unsigned char *suffix)
+{
+  raptor_term *term;
+  raptor_uri *uri;
+  uri = raptor_new_uri_relative_to_base (config.raptor_world,
+                                         config.ontology->prefixes[index],
+                                         suffix);
+
+  term = raptor_new_term_from_uri (config.raptor_world, uri);
+  raptor_free_uri (uri);
+  return term;
 }

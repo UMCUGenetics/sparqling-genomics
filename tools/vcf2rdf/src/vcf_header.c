@@ -25,7 +25,7 @@
 
 void
 process_header_item (bcf_hdr_t   *vcf_header,
-                     const unsigned char *identifier,
+                     const char  *identifier,
                      int32_t     prefix,
                      int32_t     index)
 {
@@ -211,10 +211,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           stmt->object    = class (type);
           register_statement (stmt);
 
-          process_header_item (vcf_header,
-                               identifier,
-                               prefix,
-                               index);
+          process_header_item (vcf_header, identifier, prefix, index);
         }
 
       if (prefix >= 0)
@@ -223,7 +220,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
           stmt->predicate = term (prefix, "originatedFrom");
-          stmt->object    = term (prefix, origin);
+          stmt->object    = term (PREFIX_BASE, origin);
           register_statement (stmt);
         }
 

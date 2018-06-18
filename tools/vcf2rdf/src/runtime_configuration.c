@@ -86,6 +86,10 @@ runtime_configuration_free (void)
       free (config.format_field_indexes);
       config.format_field_indexes = NULL;
     }
+
+  raptor_serializer_serialize_end (config.raptor_serializer);
+  raptor_free_serializer (config.raptor_serializer);
+  raptor_free_world (config.raptor_world);
 }
 
 bool

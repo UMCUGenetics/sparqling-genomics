@@ -74,7 +74,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
 
   /* Create 'generic' nodes and URIs.
    * ------------------------------------------------------------------------ */
-  raptor_term *origin_type = term (PREFIX_BASE, "origin");
+  raptor_term *origin_type = term (PREFIX_BASE, "originatedFrom");
   raptor_term *self        = NULL;
   raptor_statement *stmt   = NULL;
   char *variant_id         = NULL;

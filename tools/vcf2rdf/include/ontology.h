@@ -27,6 +27,24 @@
 #define URI_ASSEMBLIES    URI_BIOSEMANTICS "/data/genomeassemblies"
 #define URI_ONTOLOGY      "http://rdf.umcutrecht.nl/vcf2rdf"
 
+#define STR_PREFIX_BASE                URI_ONTOLOGY "/"
+#define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
+#define STR_PREFIX_VCF_HEADER          URI_ONTOLOGY "/VcfHeaderItem/"
+#define STR_PREFIX_VCF_HEADER_INFO     URI_ONTOLOGY "VcfHeaderInfoItem/"
+#define STR_PREFIX_VCF_HEADER_FORMAT   URI_ONTOLOGY "VcfHeaderFormatItem/"
+#define STR_PREFIX_VCF_HEADER_FILTER   URI_ONTOLOGY "VcfHeaderFilterItem/"
+#define STR_PREFIX_VCF_HEADER_ALT      URI_ONTOLOGY "VcfHeaderAltItem/"
+#define STR_PREFIX_VCF_HEADER_CONTIG   URI_ONTOLOGY "VcfHeaderContigItem/"
+#define STR_PREFIX_VARIANT_CALL        URI_ONTOLOGY "/VariantCall/"
+#define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
+#define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
+#define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
+#define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"
+#define STR_PREFIX_XSD                 URI_W3 "/2001/XMLSchema#"
+#define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
+#define STR_PREFIX_HG19                URI_ASSEMBLIES "/hg19#"
+#define STR_PREFIX_HG19_CHR            URI_ASSEMBLIES "/hg19#chr"
+
 typedef enum
 {
   PREFIX_BASE = 0,
@@ -65,11 +83,7 @@ typedef enum
   CLASS_NULLIZYGOUS,
   CLASS_HOMOZYGOUS,
   CLASS_HOMOZYGOUS_REFERENCE,
-  CLASS_HOMOZYGOUS_ALTERNATIVE,
-  CLASS_XSD_STRING,
-  CLASS_XSD_INTEGER,
-  CLASS_XSD_FLOAT,
-  CLASS_XSD_BOOLEAN
+  CLASS_HOMOZYGOUS_ALTERNATIVE
 } ontology_class;
 
 typedef struct
@@ -93,6 +107,8 @@ typedef enum
 bool ontology_init (ontology_t **ontology_ptr);
 void ontology_free (ontology_t *ontology);
 
+raptor_term* term (int32_t index, const unsigned char *suffix);
+
 /* The following marcros can be used to construct terms (nodes) and URIs.
  * These assume 'config.raptor_world', 'config.uris', 'config.ontology',
  * and 'config.raptor_serializer' exist and have been initialized.
@@ -105,14 +121,6 @@ void ontology_free (ontology_t *ontology);
 /* TODO: Possibly wrap this in raptor_term_copy. */
 #define class(index)                                            \
   raptor_term_copy (config.ontology->classes[index])
-
-#define term(index, suffix)                                     \
-  raptor_new_term_from_uri                                      \
-  (config.raptor_world,                                         \
-    raptor_new_uri_relative_to_base                             \
-    (config.raptor_world,                                       \
-     config.ontology->prefixes[index],                          \
-     (unsigned char *)suffix))
 
 #define literal(str, datatype)                                  \
   raptor_new_term_from_literal                                  \

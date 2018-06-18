@@ -179,9 +179,6 @@ main (int argc, char **argv)
           bcf_destroy (buffer);
         }
 
-      raptor_serializer_serialize_end (config.raptor_serializer);
-      raptor_free_serializer (config.raptor_serializer);
-
       /* Clean up. */
       raptor_free_term (node_filename);
       free (file_hash);
