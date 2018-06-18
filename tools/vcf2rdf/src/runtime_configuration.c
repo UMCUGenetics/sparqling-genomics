@@ -48,6 +48,9 @@ runtime_configuration_init (void)
 bool
 runtime_configuration_redland_init (void)
 {
+  if (!config.output_format)
+    config.output_format = "turtle";
+
   config.raptor_world      = raptor_new_world();
   config.raptor_serializer = raptor_new_serializer (config.raptor_world,
                                                     config.output_format);

@@ -91,9 +91,6 @@ ui_process_command_line (int argc, char **argv)
         case 'v': ui_show_version ();                            break;
         }
     }
-
-  if (!config.output_format)
-    config.output_format = "turtle";
 }
 
 int32_t
