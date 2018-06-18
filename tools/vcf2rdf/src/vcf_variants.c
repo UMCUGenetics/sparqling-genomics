@@ -141,7 +141,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
    * ------------------------------------------------------------------------ */
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_FALDO, "reference");
+  stmt->predicate = term (PREFIX_FALDO, "#reference");
   /* The chromosome can be a contig name or the usual 1..MT.
    * The usual ones are prefixed by "chr" in the ontology we use
    * to describe a chromosome.  To avoid string copying, we can
@@ -155,7 +155,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
 
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_FALDO, "position");
+  stmt->predicate = term (PREFIX_FALDO, "#position");
   stmt->object    = literal (config.number_buffer, XSD_INTEGER);
   register_statement (stmt);
 

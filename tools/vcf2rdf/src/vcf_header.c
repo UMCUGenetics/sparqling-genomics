@@ -85,7 +85,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
     {
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
-      stmt->predicate = term (PREFIX_RDF, "type");
+      stmt->predicate = term (PREFIX_RDF, "#type");
       stmt->object    = class (CLASS_SAMPLE);
       register_statement (stmt);
 
@@ -124,7 +124,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
-          stmt->predicate = term (PREFIX_RDF, "type");
+          stmt->predicate = term (PREFIX_RDF, "#type");
           stmt->object    = class (CLASS_VCF_HEADER);
           register_statement (stmt);
 
@@ -207,7 +207,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
-          stmt->predicate = term (PREFIX_RDF, "type");
+          stmt->predicate = term (PREFIX_RDF, "#type");
           stmt->object    = class (type);
           register_statement (stmt);
 

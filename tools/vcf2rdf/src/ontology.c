@@ -82,7 +82,7 @@ ontology_init (ontology_t **ontology_ptr)
   ontology->classes_length = 16;
   ontology->classes = calloc (ontology->classes_length, sizeof (raptor_term*));
 
-  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,  "type");
+  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,  "#type");
   define_class (ontology, CLASS_ORIGIN,                 PREFIX_BASE, "Origin");
   define_class (ontology, CLASS_VCF_HEADER,             PREFIX_BASE, "VcfHeaderItem");
   define_class (ontology, CLASS_VCF_HEADER_INFO,        PREFIX_BASE, "VcfHeaderInfoItem");
@@ -105,10 +105,10 @@ ontology_init (ontology_t **ontology_ptr)
 
   ontology->xsds_length = 4;
   ontology->xsds = calloc (ontology->xsds_length, sizeof (raptor_uri*));
-  define_xsd (XSD_STRING,  "string");
-  define_xsd (XSD_INTEGER, "integer");
-  define_xsd (XSD_FLOAT,   "float");
-  define_xsd (XSD_BOOLEAN, "boolean");
+  define_xsd (XSD_STRING,  "#string");
+  define_xsd (XSD_INTEGER, "#integer");
+  define_xsd (XSD_FLOAT,   "#float");
+  define_xsd (XSD_BOOLEAN, "#boolean");
   
   int32_t initialized_xsds = 0;
   for (; initialized_xsds < ontology->xsds_length; initialized_xsds++)
