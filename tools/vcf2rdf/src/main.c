@@ -53,14 +53,14 @@ main (int argc, char **argv)
   else
     ui_show_help ();
 
-  /* Initialize the Redland run-time configuration.
-   * ------------------------------------------------------------------------ */
-  if (!runtime_configuration_redland_init ()) return 1;
-
   /* Read the input file.
    * ------------------------------------------------------------------------ */
   if (config.input_file)
     {
+      /* Initialize the Redland run-time configuration.
+       * -------------------------------------------------------------------- */
+      if (!runtime_configuration_redland_init ()) return 1;
+
       ui_show_missing_options_warning ();
       hts_verbose = 0;
 
@@ -143,12 +143,13 @@ main (int argc, char **argv)
         {
           /* Process variant calls. */
           bcf1_t *buffer = bcf_init ();
-          int32_t counter = 0;
-          time_t rawtime = 0;
-          char time_str[20];
 
           if (config.show_progress_info)
             {
+              int32_t counter = 0;
+              time_t rawtime = 0;
+              char time_str[20];
+
               fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n",
                        "Variants", "Time");
               fprintf (stderr, "[ PROGRESS ] ------------------- "
@@ -181,12 +182,12 @@ main (int argc, char **argv)
 
       /* Clean up. */
       raptor_free_term (node_filename);
+      runtime_configuration_free ();
+
       free (file_hash);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
     }
-
-  runtime_configuration_free ();
 
 #ifdef ENABLE_MTRACE
   muntrace ();
