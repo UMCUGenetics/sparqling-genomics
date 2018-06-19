@@ -167,13 +167,13 @@ ontology_free (ontology_t *ontology)
 }
 
 raptor_term*
-term (int32_t index, const unsigned char *suffix)
+term (int32_t index, char *suffix)
 {
   raptor_term *term;
   raptor_uri *uri;
   uri = raptor_new_uri_relative_to_base (config.raptor_world,
                                          config.ontology->prefixes[index],
-                                         suffix);
+                                         (const unsigned char *)suffix);
 
   term = raptor_new_term_from_uri (config.raptor_world, uri);
   raptor_free_uri (uri);

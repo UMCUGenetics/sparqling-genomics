@@ -114,7 +114,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = raptor_term_copy (self);
   stmt->predicate = raptor_term_copy (origin_type);
-  stmt->object    = term (PREFIX_BASE, origin);
+  stmt->object    = term (PREFIX_BASE, (char *)origin);
   register_statement (stmt);
 
   stmt = raptor_new_statement (config.raptor_world);
@@ -196,7 +196,8 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (self);
       stmt->predicate = term (PREFIX_VARIANT_CALL, "FILTER");
-      stmt->object    = term (PREFIX_BASE, header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key);
+      stmt->object    = term (PREFIX_BASE,
+                              (char *)(header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key));
       register_statement (stmt);
     }
 
@@ -344,7 +345,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
                 stmt = raptor_new_statement (config.raptor_world);
                 stmt->subject   = raptor_term_copy (gt_id_node);
                 stmt->predicate = raptor_term_copy (origin_type);
-                stmt->object    = term (PREFIX_BASE, origin);
+                stmt->object    = term (PREFIX_BASE, (char *)origin);
                 register_statement (stmt);
 
                 raptor_free_term (gt_id_node);
@@ -352,7 +353,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
             else
               {
                 stmt = raptor_new_statement (config.raptor_world);
-                stmt->subject   = term (PREFIX_BASE, origin);
+                stmt->subject   = term (PREFIX_BASE, (char *)origin);
                 stmt->predicate = term (URI_VCF_HEADER_FORMAT_PREFIX, id_str);
                 stmt->object    = literal (value, type);
 

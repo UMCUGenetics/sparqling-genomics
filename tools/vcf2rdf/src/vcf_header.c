@@ -24,10 +24,10 @@
 #include <raptor2.h>
 
 void
-process_header_item (bcf_hdr_t   *vcf_header,
-                     const char  *identifier,
-                     int32_t     prefix,
-                     int32_t     index)
+process_header_item (bcf_hdr_t *vcf_header,
+                     char      *identifier,
+                     int32_t   prefix,
+                     int32_t   index)
 {
   int32_t j = 0;
   for (; j < vcf_header->hrec[index]->nkeys; j++)
@@ -45,7 +45,7 @@ process_header_item (bcf_hdr_t   *vcf_header,
       if (strcmp (key, "ID"))
         {
           raptor_statement *stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (prefix, identifier);
+          stmt->subject   = term (prefix, (char *)identifier);
           stmt->predicate = term (prefix, key);
           stmt->object    = literal (value, XSD_STRING);
 
@@ -92,7 +92,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
       stmt->predicate = term (PREFIX_BASE, "foundIn");
-      stmt->object    = term (PREFIX_BASE, origin);
+      stmt->object    = term (PREFIX_BASE, (char *)origin);
       register_statement (stmt);
       stmt = NULL;
     }
@@ -220,7 +220,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
           stmt->predicate = term (prefix, "originatedFrom");
-          stmt->object    = term (PREFIX_BASE, origin);
+          stmt->object    = term (PREFIX_BASE, (char *)origin);
           register_statement (stmt);
         }
 

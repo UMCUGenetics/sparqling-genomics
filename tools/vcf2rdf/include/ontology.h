@@ -107,7 +107,7 @@ typedef enum
 bool ontology_init (ontology_t **ontology_ptr);
 void ontology_free (ontology_t *ontology);
 
-raptor_term* term (int32_t index, const unsigned char *suffix);
+raptor_term* term (int32_t index, char *suffix);
 
 /* The following marcros can be used to construct terms (nodes) and URIs.
  * These assume 'config.raptor_world', 'config.uris', 'config.ontology',
