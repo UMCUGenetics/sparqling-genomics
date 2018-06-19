@@ -44,38 +44,32 @@
     \item Push data to a SPARQL endpoint.
   \end{itemize}
 
-\section{Preparing data with \texttt{vcf2turtle}}
+\section{Preparing data with \texttt{vcf2rdf}}
 \label{sec:vcf2turtle}
 
   Obtaining variants from sequenced data is a task of so called
   \emph{variant callers}.  These programs output the variants they found in
   the \emph{Variant Call Format} (VCF).  Before we can use the data described
-  in this format, we need to extract triples from it.
+  in this format, we need to extract \emph{knowledge} in the form of triples
+  from it.
 
-  The \texttt{vcf2turtle} program does exactly this, by converting a VCF file
-  into the \emph{Terse RDF Triple Language} (Turtle) format.  In section
-  \ref{sec:curl} {\color{LinkGray}`\nameref{sec:curl}%
-  '} we describe how to import the data produced by \texttt{vcf2turtle} in the
+  The \texttt{vcf2rdf} program does exactly this, by converting a VCF file
+  into an RDF format.  In section \ref{sec:curl} {\color{LinkGray}`\nameref{sec:curl}%
+  '} we describe how to import the data produced by \texttt{vcf2rdf} in the
   database.
 
-\subsection{Data extracted by \texttt{vcf2turtle}}
+\subsection{Knowledge extracted by \texttt{vcf2rdf}}
 
-  The triples \texttt{vcf2turtle} extracts are:
-  \begin{itemize}
-    \item The base fields: \texttt{CHROM}, \texttt{POS}, \texttt{ID},
-      \texttt{ALT}, \texttt{REF}, \texttt{QUAL}, and \texttt{FILTER}.
-    \item Optionally, when present: \texttt{SVTYPE}, \texttt{END},
-      \texttt{SVLEN}, \texttt{CIPOS}, \texttt{CIEND}, \texttt{MAPQ},
-      \texttt{PE}, \texttt{SR}, \texttt{SRQ}, \texttt{RC}, \texttt{DR},
-      \texttt{DV}, \texttt{RR}, \texttt{RV}.
-  \end{itemize}
+  The program treats the VCF as its own ontology.  It uses the VCF header as
+  a guide.  All fields described in the header of the VCF file will be
+  translated into triples.
 
 \subsection{How \texttt{vcf2turtle} describes variants}
 
   The program uses the \emph{Sequence Manipulation Ontology} (SMO)\cite{unknown},
   and the \emph{Feature Annotation Location Description Ontology} (FALDO)%
   \cite{unknown}.  We will use the sequence from figure \ref{fig:sequence} as
-  an example to explain how variants are described by \texttt{vcf2turtle}.
+  an example to explain how variants are described by \texttt{vcf2rdf}.
 
 \begin{figure}[H]
   \begin{center}
@@ -104,8 +98,7 @@ vcf2turtle --input-file=/path/to/my/variants.vcf > /path/to/my/variants.ttl
 \section{Importing data with \texttt{curl}}
 \label{sec:curl}
 
-  To import data in the \emph{Terse RDF Triple Language} (Turtle) format in
-  a triple store (our database), we can use \texttt{curl}.
+  To load RDF data into a triple store (our database), we can use \texttt{curl}.
 
   The triple stores typically store data in \emph{graphs}.  One triple store
   can host multiple graphs, so we must tell the triple store which graph we
@@ -120,7 +113,7 @@ curl -X POST                                                 \
      -T /path/to/variants.ttl                                \
      -G <endpoint URL>                                       \
      --digest -u <username>:<password>                       \
-     --data-urlencode graph=http://destination:8890/Example/
+     --data-urlencode graph=http://example/graph
 \end{verbatim}
 \end{siderules}
 
