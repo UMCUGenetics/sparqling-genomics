@@ -119,7 +119,7 @@ main (int argc, char **argv)
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_RDF, "type");
+      stmt->predicate = term (PREFIX_RDF, "#type");
       stmt->object    = term (PREFIX_BASE, "Origin");
       register_statement (stmt);
 
@@ -131,8 +131,14 @@ main (int argc, char **argv)
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_BASE, "vcf2rdf");
-      stmt->predicate = term (PREFIX_OWL, "versionInfo");
+      stmt->predicate = term (PREFIX_OWL, "#versionInfo");
       stmt->object    = literal (VERSION, XSD_STRING);
+      register_statement (stmt);
+
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (node_filename);
+      stmt->predicate = term (PREFIX_BASE, "filename");
+      stmt->object    = literal (config.input_file, XSD_STRING);
       register_statement (stmt);
       stmt = NULL;
 

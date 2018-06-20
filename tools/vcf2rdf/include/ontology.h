@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <raptor2.h>
+#include <htslib/vcf.h>
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_W3            "http://www.w3.org"
@@ -96,13 +97,10 @@ typedef struct
   int32_t     xsds_length;
 } ontology_t;
 
-typedef enum
-{
-  XSD_STRING = 0,
-  XSD_INTEGER,
-  XSD_FLOAT,
-  XSD_BOOLEAN
-} xsd_type;
+#define XSD_STRING              BCF_HT_STR
+#define XSD_INTEGER             BCF_HT_INT
+#define XSD_FLOAT               BCF_HT_REAL
+#define XSD_BOOLEAN             BCF_HT_FLAG
 
 bool ontology_init (ontology_t **ontology_ptr);
 void ontology_free (ontology_t *ontology);

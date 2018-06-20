@@ -99,7 +99,7 @@ bool
 generate_variant_id (char *variant_id)
 {
   int32_t bytes_written;
-  bytes_written = snprintf (variant_id, 16, "UV%010u",
+  bytes_written = snprintf (variant_id, 16, "V%010u",
                             config.non_unique_variant_counter);
 
   config.non_unique_variant_counter++;
