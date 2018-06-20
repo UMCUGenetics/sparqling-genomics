@@ -55,3 +55,16 @@ CREATE BITMAP INDEX RDF_QUAD_PGOS ON DB.DBA.RDF_QUAD (G, P, O, S)
 PARTITION (O VARCHAR (-1, 0hexffff));
 \end{verbatim}
 \end{siderules}
+
+  If \texttt{predicate} and \texttt{graph} are given, but \texttt{subject} and
+  \texttt{object} are not, the following index may speed up your queries
+  significantly:
+
+\begin{siderules}
+\begin{verbatim}
+CREATE BITMAP INDEX RDF_QUAD_PGOS
+ON DB.DBA.RDF_QUAD (G, P, O, S)
+PARTITION (O VARCHAR (-1, 0hexffff));
+\end{verbatim}
+\end{siderules}
+

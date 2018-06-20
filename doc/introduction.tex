@@ -3,7 +3,7 @@
 \section{Prerequisites}
 \label{sec:prerequisites}
 
-  In addition to the tools provided by this project, a triple store is required.
+  In addition to the tools provided by this project, a RDF store is required.
   In the manual we use \href{https://virtuoso.openlinksw.com/}{Virtuoso}, but
   \href{https://github.com/4store/4store}{4store},
   \href{https://www.blazegraph.com/}{BlazeGraph}, or
@@ -27,17 +27,21 @@
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{ X X X }
       \headrow
-      \textbf{vcf2turtle} & \textbf{Web interface} & \textbf{Documentation}\\
+      \textbf{vcf2rdf} & \textbf{Web interface} & \textbf{Documentation}\\
       \evenrow
       \href{https://gcc.gnu.org/}{GNU C compiler}
       & \href{https://www.gnu.org/software/guile}{GNU Guile}
       & \href{https://tug.org/texlive/}{\LaTeX{} distribtion}\\
       \oddrow
       \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      & 
+      & \href{https://www.github.com/roelj/guile-sparql/}{\texttt{guile-sparql}}
       & \\
       \evenrow
       \href{http://www.htslib.org/}{HTSLib}
+      &
+      & \\
+      \oddrow
+      \href{http://www.librdf.org/}{\texttt{raptor2}}
       &
       & \\
     \end{tabularx}
@@ -87,7 +91,7 @@ yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
 
 \begin{siderules}
 \begin{verbatim}
-guix environment -l guix.scm
+guix environment -l environment.scm
 \end{verbatim}
 \end{siderules}
 
@@ -107,6 +111,6 @@ Alternatively, the individual components can be built by replacing
 So, to only build \texttt{vcf2turtle}, the following command could be used:
 \begin{siderules}
 \begin{verbatim}
-make -C tools/vcf2turtle
+make -C tools/vcf2rdf
 \end{verbatim}
 \end{siderules}
