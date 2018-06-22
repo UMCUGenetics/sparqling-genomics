@@ -21,6 +21,10 @@ SOURCES =                                               \
   json/builder.scm                                      \
   json/parser.scm                                       \
   json/syntax.scm                                       \
+  sparql/driver.scm                                     \
+  sparql/lang.scm                                       \
+  sparql/md5.scm                                        \
+  sparql/util.scm                                       \
   web-interface.scm                                     \
   www/config.scm                                        \
   www/db/connections.scm                                \
