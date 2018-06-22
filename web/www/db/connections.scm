@@ -35,10 +35,12 @@
             connection-name
             connection-address
             connection-port
+            connection-username
+            connection-password
             connection?
 
-            connection-connect
-            connection-disconnect))
+            set-connection-username!
+            set-connection-password!))
 
 (define %db-connections '())
 
@@ -50,8 +52,8 @@
   (name      connection-name)
   (address   connection-address)
   (port      connection-port)
-  (username  connection-username)
-  (password  connection-password))
+  (username  connection-username   set-connection-username!)
+  (password  connection-password   set-connection-password!))
 
 
 ;; ALIST->CONNECTION AND CONNECTION->ALIST
@@ -60,11 +62,16 @@
   "Turns the association list INPUT into a connection record."
   (catch #t
     (lambda _
-      (make-connection (assoc-ref input 'name)
-                       (assoc-ref input 'address)
-                       (assoc-ref input 'port)
-                       (assoc-ref input 'username)
-                       (assoc-ref input 'password)))
+      (let ((obj (make-connection (assoc-ref input 'name)
+                                  (assoc-ref input 'address)
+                                  (assoc-ref input 'port)
+                                  (assoc-ref input 'username)
+                                  (assoc-ref input 'password))))
+        (unless (connection-username obj)
+          (set-connection-username! obj "dba"))
+        (unless (connection-password obj)
+          (set-connection-password! obj "dba"))
+        obj))
     (lambda (key . args) #f)))
 
 (define (connection->alist record)

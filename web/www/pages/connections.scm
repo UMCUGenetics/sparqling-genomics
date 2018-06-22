@@ -73,10 +73,6 @@
                       (connection-add (alist->connection alist)))
                      (((remove . a))
                       (connection-remove a))
-                     (((start . a))
-                      (connection-connect a))
-                     (((stop . a))
-                      (connection-disconnect a))
                      (else     #f)))
                (if success?
                    #f ; No need to display a message.

@@ -26,22 +26,7 @@
 
 (define page-title-prefix (string-append (www-name) " | "))
 
-(define (page-is-ontology? request-path)
-  (catch #t
-    (lambda _
-      (receive (header port)
-          (sparql-query (build-existence-query request-path) #:type "text/csv")
-        (if (= (response-code header) 200)
-            (begin
-              ;; The first line is the header.
-              (read-line port)
-              ;; The second line contains a single number.
-              (let ((result (string->number (read-line port))))
-                (close port)
-                (> result 0)))
-            #f)))
-    (lambda (key . args)
-      #f)))
+(define (page-is-ontology? request-path) #f)
 
 (define pages
   '(("/" "Overview")
