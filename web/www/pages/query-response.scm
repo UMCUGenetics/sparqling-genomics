@@ -60,7 +60,7 @@
                                    (if (and (> (string-length td-object-raw) 7)
                                             ;; Detect both HTTP and HTTPS URLs.
                                             (string= "http" (string-take td-object-raw 4)))
-                                       `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
+                                       `(a (@ (href ,td-object-raw)) ,td-object-raw)
                                        td-object-raw)))
                              `(td ,td-object)))
                          tokens))))))))))
