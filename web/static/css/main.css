@@ -339,6 +339,18 @@ svg { width: 100%; height: 600px; background: #333333; }
     background: #eeeeee;
 }
 
+select#connection {
+    background: #dddddd;
+    border: solid 10px #dddddd;
+    height: 40px;
+    width: 250px;
+    margin: 10px 0px 0px 0px;
+    padding: 0px;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+}
+
 .small-action a { text-decoration: none; }
 .small-action a:hover { color: #000000; }
 .small-action:hover { background: #ffeeaa; } 
