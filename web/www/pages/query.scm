@@ -1,27 +1,53 @@
+;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
+;;;
+;;; This program is free software: you can redistribute it and/or
+;;; modify it under the terms of the GNU Affero General Public License
+;;; as published by the Free Software Foundation, either version 3 of
+;;; the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Affero General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Affero General Public
+;;; License along with this program.  If not, see
+;;; <http://www.gnu.org/licenses/>.
+
 (define-module (www pages query)
   #:use-module (www pages)
+  #:use-module (www db connections)
+  #:use-module (www util)
+  #:use-module (www config)
+  #:use-module (srfi srfi-1)
   #:export (page-query))
 
-(define* (page-query request-path #:key (post-data ""))
-  (page-root-template "sparqling-svs" request-path
+(define* (page-query request-path #:key (post-data '()))
+  (page-root-template "Query" request-path
    `((h2 "Query the database")
-     (h3 "Query editor")
-     (p "Use " (strong "Ctrl + Enter") " to execute the query.")
-     (div (@ (id "editor"))
-          "PREFIX faldo: <http://biohackathon.org/resource/faldo#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX : <http://localhost:5000/MyData/>
+     ,(let ((available-connections (all-connections #:filter connection-name)))
+        (if (null? available-connections)
+            ;; Before we can query, there must be a connection that we can query on.
+            ;; The best we can do is refer to creating a connection at this point.
+            `((h3 "Create a connection")
+              (p "Please " (a (@ (href "/connections")) "create a connection") " first."))
+            ;; Queries are executed on a connection, so we must give users the choice
+            ;; to select the appropriate connection.
+            `((h3 "Select a connection")
+              (select (@ (id "connection"))
+                      ,(map (lambda (connection) `(option (@ (value ,connection)) ,connection))
+                            available-connections))
 
-")
-     (h4 "Authentication token")
-     (p "Paste your authentication token below (if applicable).")
-     (input (@ (id "oauth_token")
-               (type "text")
-               (name "token")
-               (value "")))
-     (script "
+              (h3 "Query editor")
+              (p "Use " (strong "Ctrl + Enter") " to execute the query.")
+              (div (@ (id "editor"))
+                   ,(format #f "~a~%SELECT ?s, ?p, ?o { ?s ?p ?o }~%"
+                            (apply string-append
+                                   (map (lambda (uri)
+                                          (format #f "PREFIX ~a: <~a>~%"
+                                                  (car uri) (cdr uri)))
+                                        default-uri-strings))))
+              (script "
 $(document).ready(function(){
   var editor = ace.edit('editor');
   var session = editor.getSession();
@@ -51,28 +77,29 @@ $(document).ready(function(){
     name: 'executeQueryCommand',
     bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
     exec: function(editor) {
-      $('#oauth_token').after(function(){ return '"
+      $('#editor').after(function(){ return '"
       (div (@ (class "query-data-loader"))
            (div (@ (class "title")) "Loading data ...")
            (div (@ (class "content")) "Please wait for the results to appear."))
       "' });
 
-        /* Remove the previous query results. */
+      /* Remove the previous query results. */
       $('.query-error').remove();
       $('#query-results').remove();
       $('#query-output').remove();
       $('#query-output_wrapper').remove();
 
-      post_data = { query: editor.getValue(), token: oauth_token.value };
+      post_data = { query: editor.getValue(), connection: $('#connection').val() };
       $.post('/query-response', JSON.stringify(post_data), function (data){
 
         /*  Insert the results HTML table into the page. */
-        $('#oauth_token').after(data);
+        $('#editor').after(data);
         $('.query-data-loader').remove();
 
         /* Detect an error response. */
         if ($('.query-error').length == 0) {
-          $('#oauth_token').after(function(){ return '" (h3 (@ (id "query-results")) "Query results") "' });
+          $('#editor').after(function(){ return '"
+      (h3 (@ (id "query-results")) "Query results") "' });
 
           /* Initialize DataTables. */
           $('#query-output').addClass('display');
@@ -83,5 +110,5 @@ $(document).ready(function(){
       }, readOnly: true
     });
 });
-"))
+")))))
    #:dependencies '(ace jquery datatables)))

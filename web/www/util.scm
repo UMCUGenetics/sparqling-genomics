@@ -21,17 +21,22 @@
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
   #:use-module (web response)
+  #:use-module (web uri)
   #:use-module (www config)
-  #:export (build-existence-query
-            build-exploration-query
-            csv-split-line
+  #:export (csv-split-line
             file-extension
             predicate-label
             sparql-response->sxml
             string-replace-occurrence
             suffix-iri
-            without-hostname
-            without-prefix-iri))
+            string-is-longer-than
+            post-data->alist
+            alist-symbol-key<?))
+
+(define (string-is-longer-than str length)
+  (catch 'out-of-range
+    (lambda _ (if (string-ref str length) #t))
+    (lambda (key . args) #f)))
 
 (define (file-extension file-name)
   (last (string-split file-name #\.)))
@@ -65,36 +70,6 @@
        (string-drop input
                     (1+ (string-rindex input #\/))) #\")
       "unknown"))
-
-(define (without-hostname input)
-  (string-drop input (string-length %www-sparql-hostname)))
-
-(define (without-prefix-iri input)
-  (string-drop input (+ (string-length %www-sparql-hostname) 5)))
-
-(define (build-existence-query path)
-  (format #f
-          "PREFIX : <~a~a/>
-
-SELECT COUNT(DISTINCT ?predicate) AS ?numberOfPredicates
-WHERE {
-  :~a ?predicate ?object .
-}"
-          %www-sparql-hostname
-          (string-take path (string-rindex path #\/))
-          (string-drop path (1+ (string-rindex path #\/)))))
-
-(define (build-exploration-query path)
-  (format #f
-   "PREFIX : <~a~a/>
-
-SELECT DISTINCT ?predicate ?object
-WHERE {
-  :~a ?predicate ?object .
-}"
-   %www-sparql-hostname
-   (string-take path (string-rindex path #\/))
-   (string-drop path (1+ (string-rindex path #\/)))))
 
 (define (predicate-label pred)
   "Returns the rdf:label of PRED, or PRED if rdf:label is unavailable."
@@ -155,3 +130,16 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                                                  td-predicate)))
                                      (td ,td-object))))
                type))))))
+
+(define (post-data->alist post-data)
+  (catch #t
+    (lambda _
+      (map (lambda (item)
+             (let ((pair (string-split item #\=)))
+               `(,(string->symbol (uri-decode (car pair))) . ,(uri-decode (cadr pair)))))
+           (sort (string-split post-data #\&) string<?)))
+    (lambda (key . args) '())))
+
+(define (alist-symbol-key<? a b)
+          (string<? (symbol->string (car a))
+                    (symbol->string (car b))))

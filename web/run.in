@@ -1,16 +1,283 @@
-#!/bin/sh
+#!@GUILE@ --debug
+-*- scheme -*-
+!#
+;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
+;;;
+;;; This program is free software: you can redistribute it and/or
+;;; modify it under the terms of the GNU Affero General Public License
+;;; as published by the Free Software Foundation, either version 3 of
+;;; the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Affero General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Affero General Public
+;;; License along with this program.  If not, see
+;;; <http://www.gnu.org/licenses/>.
 
-GUILE_LOAD_PATH=@abs_top_srcdir@/web:$GUILE_LOAD_PATH
-if test "@abs_top_srcdir@" != "@abs_top_builddir@"; then
-    GUILE_LOAD_PATH=@abs_top_builddir@/web:$GUILE_LOAD_PATH
-fi
-GUILE_LOAD_COMPILED_PATH=@abs_top_builddir@/web:$GUILE_LOAD_COMPILED_PATH
-PATH=@abs_top_builddir@/bin:$PATH
+(add-to-load-path (canonicalize-path (dirname (car (command-line)))))
+(use-modules (ice-9 getopt-long)
+             (ice-9 rdelim)
+             (rnrs bytevectors)
+             (rnrs io ports)
+             (srfi srfi-1)
+             (srfi srfi-26)
+             (sxml simple)
+             (web server)
+             (web request)
+             (web response)
+             (web uri)
+             (www config)
+             (www db connections)
+             (www pages error)
+             (www pages welcome)
+             (www pages)
+             (www util))
 
-export GUILE_LOAD_PATH
-export GUILE_LOAD_COMPILED_PATH
-export PATH
 
-guile --no-auto-compile --no-debug \
-      -l @abs_top_builddir@/web/web-interface.scm \
-      -e '(begin (use-modules (web-interface)) (run-web-interface))'
+;; ----------------------------------------------------------------------------
+;; HANDLERS
+;; ----------------------------------------------------------------------------
+;;
+;; The way a request is handled varies upon the nature of the request.  It can
+;; be as simple as serving a pre-existing file, or as complex as finding a
+;; Scheme module to use for handling the request.
+;;
+;; In this section, the different handlers are implemented.
+;;
+
+(define (request-file-handler path)
+  "This handler takes data from a file and sends that as a response."
+
+  (define (response-content-type path)
+    "This function returns the content type of a file based on its extension."
+    (let ((extension (substring path (1+ (string-rindex path #\.)))))
+      (cond [(string= extension "css")  '(text/css)]
+            [(string= extension "js")   '(application/javascript)]
+            [(string= extension "json") '(application/javascript)]
+            [(string= extension "html") '(text/html)]
+            [(string= extension "png")  '(image/png)]
+            [(string= extension "svg")  '(image/svg+xml)]
+            [(string= extension "ico")  '(image/x-icon)]
+            [(string= extension "pdf")  '(application/pdf)]
+            [(string= extension "ttf")  '(application/font-sfnt)]
+            [(#t '(text/plain))])))
+
+  (let ((full-path (string-append (www-root) "/" path)))
+    (if (not (file-exists? full-path))
+        (values '((content-type . (text/html)))
+                (with-output-to-string (lambda _ (sxml->xml (page-error-404 path)))))
+        ;; Do not handle files larger than (maximum-file-size).
+        ;; Please increase the file size if your server can handle it.
+        (let ((file-stat (stat full-path)))
+          (if (> (stat:size file-stat) (www-max-file-size))
+              (values '((content-type . (text/html)))
+                      (with-output-to-string
+                        (lambda _ (sxml->xml (page-error-filesize path)))))
+              (values `((content-type . ,(response-content-type full-path)))
+                      (with-input-from-file full-path
+                        (lambda _
+                          (get-bytevector-all (current-input-port))))))))))
+
+(define (request-scheme-page-handler request request-body request-path)
+
+  (define (module-path prefix elements)
+    "Returns the module path so it can be loaded."
+    (append prefix (map string->symbol elements)))
+
+  (define (resolve-module-function request-path)
+    "Return FUNCTION from MODULE."
+    (let* ((module (resolve-module (module-path '(www pages)
+                     (string-split request-path #\/)) #:ensure #f))
+           (page-symbol (symbol-append 'page-
+                         (string->symbol
+                          (string-replace-occurrence request-path #\/ #\-)))))
+      ;; Return #f unless the 'page-symbol' exists in 'module',
+      ;; in which case we return that.
+      (if module
+          (catch #t
+            (lambda _ (module-ref module page-symbol))
+            (lambda (key . args) #f))
+          #f)))
+
+  ;; Return-type handlers.
+  ;; --------------------------------------------------------------------------
+  (cond
+   ;; The “/” page is special, because we re-route it to “graphs”.
+   [(< (string-length request-path) 2)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (page-welcome "/") port))))]
+
+   ;; When the “file extension” of the request indicates JSON, treat the
+   ;; returned format as ‘application/javascript’.
+   [(and (> (string-length request-path) 5)
+         (string= (string-take-right request-path 5) ".json"))
+    (values '((content-type . (application/javascript)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (let* ((request-path (basename request-path ".json"))
+                       (page-function (resolve-module-function request-path)))
+                  (if page-function
+                      (if (eq? (request-method request) 'POST)
+                          (put-string port
+                                      (page-function
+                                       request-path
+                                       #:post-data (utf8->string request-body)))
+                          (put-string port (page-function request-path)))
+                      (put-string port "{}"))))))]
+
+   ;; When the URI begins with “/ontology/”, use the internal ontology viewer.
+   [(and (> (string-length request-path) 10)
+         (string= (string-take request-path 10) "/ontology/"))
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (page-ontology-or-error-404
+                            (substring request-path 10)
+                            #:is-ontology? #t) port))))]
+
+   ;; All other requests can be handled as HTML responses.
+   [#t
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (let* ((path          (substring request-path 1))
+                       (page-function (resolve-module-function path))
+                       (sxml-tree     (if page-function
+                                          (if (eq? (request-method request) 'POST)
+                                              (page-function request-path
+                                                             #:post-data
+                                                             (utf8->string request-body))
+                                              (page-function request-path))
+                                          (page-ontology-or-error-404
+                                           request-path))))
+                  (catch 'wrong-type-arg
+                    (lambda _
+                      (when (eq? (car (car sxml-tree)) 'html)
+                        (format port "<!DOCTYPE html>~%")))
+                    (lambda (key . args) #f))
+                  (sxml->xml sxml-tree port)))))]))
+
+
+;; ----------------------------------------------------------------------------
+;; ROUTING & HANDLERS
+;; ----------------------------------------------------------------------------
+;;
+;; Requests can have different handlers.
+;; * Static objects (images, stylesheet, javascript files) have their own
+;;   handler.
+;; * Package pages are generated dynamically, so they have their own handler.
+;; * The 'regular' Scheme pages have their own handler that resolves the
+;;   module dynamically.
+;;
+;; Feel free to add your own handler whenever that is necessary.
+;;
+
+(define (request-handler request request-body)
+  (let ((request-path (uri-path (request-uri request))))
+    (cond
+     ((and (> (string-length request-path) 7)
+           (string= (string-take request-path 8) "/static/"))
+      (request-file-handler request-path))
+     (else
+      (request-scheme-page-handler request request-body request-path)))))
+
+;; ----------------------------------------------------------------------------
+;; CONFIGURATION READER
+;; ----------------------------------------------------------------------------
+;;
+;; The following function(s) parse a configuration file.
+;;
+
+;; (define (read-configuration-from-file filename)
+;;   (call-with-input-file filename
+;;     (lambda (port)
+;;       (let ((xml-data  (get-bytevector-all port))
+;;             (sxml-data (xml->sxml xml-data)))
+;;         (sxml-match sxml-data
+;;          [(WebInterface (BindAddress))]
+;;         )))))
+
+(define (read-configuration-from-file filename)
+  (catch #t
+    (lambda _
+      (let* ((sxml-data (call-with-input-file filename
+                          (lambda (port)
+                            (xml->sxml port #:trim-whitespace? #t))))
+             (config (assoc-ref sxml-data 'web-interface)))
+
+        ;; Handle options
+        ;; --------------------------------------------------------------------
+        (let ((fork? (assoc-ref config 'fork))
+              (port  (assoc-ref config 'port))
+              (internal-graph (assoc-ref config 'internal-graph)))
+          (when (and fork? (> (string->number (car fork?)) 0))
+            (set-fork-on-startup! #t))
+          (when port
+            (set-www-listen-port! (string->number (car port))))
+          (when (and internal-graph (assoc-ref internal-graph 'directory))
+            (set-rdf-graphs-location! (car (assoc-ref internal-graph 'directory)))
+            (set-rdf-internal-graph-name! (car (assoc-ref internal-graph 'name))))
+          #t)))
+    (lambda (key . args)
+      (format #t "Couldn't read configuration file (~a: ~a).~%" key args)
+      #f)))
+
+
+;; ---------------------------------------------------------------------------
+;; COMMAND-LINE PARSING
+;; ---------------------------------------------------------------------------
+;;
+;; The following section handles command-line arguments.
+;;
+
+(define program-options
+  '((version      (single-char #\v) (value #f))
+    (help         (single-char #\h) (value #f))
+    (config-file  (single-char #\f) (value #t))))
+
+(define (show-help)
+  (for-each (lambda (line) (display line) (newline))
+   '("This is sparqling-genomics."
+     "  --help                     Show this message."
+     "  --version                  Show versioning information."
+     "  --configuration-file=ARG   Path to the configuration file.")))
+
+(define %config (getopt-long (command-line) program-options))
+
+;; ----------------------------------------------------------------------------
+;; RUNNER
+;; ----------------------------------------------------------------------------
+;;
+;; This code runs the web server.
+;;
+
+(when (and (assoc-ref %config 'config-file)
+           (read-configuration-from-file (assoc-ref %config 'config-file)))
+  (format #t "Using configuration from ~s.~%" (assoc-ref %config 'config-file)))
+
+(begin
+  (format #t "sparqling-genomics is running at http://127.0.0.1:~a~%" (www-listen-port))
+  (load-connections)
+  (if (fork-on-startup?)
+      (let ((pid (primitive-fork)))
+        (if (eq? pid 0)
+            (with-output-to-file "web.log"
+              (lambda _
+                (run-server request-handler 'http
+                            `(#:port ,(www-listen-port)
+                              #:addr ,INADDR_ANY))))
+            (primitive-exit)))
+      (run-server request-handler 'http
+                  `(#:port ,(www-listen-port)
+                    #:addr ,INADDR_ANY))))

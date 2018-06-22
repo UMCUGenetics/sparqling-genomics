@@ -20,7 +20,7 @@
 
 (define (page-help request-path)
   (page-root-template "Help" request-path
-                      `((h2 "Help")
-                        (p "For questions and feedback, please contact "
-                           (a (@ (href "mailto:R.R.E.Janssen-10@umcutrecht.nl"))
-                              "Roel Janssen") "."))))
+   `((h2 "Help")
+     (p "Please use the project's "
+        (a (@ (href "https://github.com/UMCUGenetics/sparqling-svs"))
+           "Github page") " for support."))))

@@ -18,6 +18,7 @@
   #:use-module (www pages)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (www db connections)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
@@ -75,26 +76,20 @@
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
       (let* ((parsed-data (json-string->scm post-data))
-             (token (hash-ref parsed-data "token"))
-             (query (hash-ref parsed-data "query"))
+             (connection  (connection-by-name (hash-ref parsed-data "connection")))
+             (query       (hash-ref parsed-data "query"))
              (result
              (catch 'system-error
                (lambda _
                  (receive (header port)
                      (sparql-query query
-                                   ;; We need a better way to determine which
-                                   ;; back-end is used.
-                                   #:store-backend
-                                   (if (eq? %sparql-endpoint-port 8890)
-                                       'virtuoso
-                                       '4store)
                                    #:type "text/csv"
-                                   #:host %sparql-endpoint-host
-                                   #:port %sparql-endpoint-port
-                                   #:token
-                                   (if (and (string? token)
-                                            (not (string= "" token)))
-                                       token #f))
+                                   #:host (connection-address connection)
+                                   #:port (connection-port connection)
+                                   #:digest-auth
+                                   (string-append
+                                    (connection-username connection) ":"
+                                    (connection-password connection)))
                    (if (= (response-code header) 200)
                        (response->sxml port)
                        (respond-with-error port))))

@@ -24,7 +24,7 @@
   #:use-module (ice-9 rdelim)
   #:export (page-root-template))
 
-(define page-title-prefix (string-append %www-name " | "))
+(define page-title-prefix (string-append (www-name) " | "))
 
 (define (page-is-ontology? request-path)
   (catch #t
@@ -45,6 +45,7 @@
 
 (define pages
   '(("/" "Overview")
+    ("/connections" "Connections")
     ("/query" "Query")
     ("/getting-started" "Getting started")
     ("/help" "Help")))
@@ -101,7 +102,7 @@
                 (div (@ (class "title")
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
-                             (alt ,%www-name))))
+                             (alt ,(www-name)))))
                 (div (@ (class "menu"))
                      ,(page-partial-main-menu request-path)))
            (div (@ (id "content"))

@@ -28,6 +28,7 @@
   #:use-module (json)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (www db connections)
   #:use-module (www pages)
   #:use-module (www pages error)
   #:use-module (www pages welcome)
@@ -64,14 +65,14 @@
             [(string= extension "ttf")  '(application/font-sfnt)]
             [(#t '(text/plain))])))
 
-  (let ((full-path (string-append %www-root "/" path)))
+  (let ((full-path (string-append (www-root) "/" path)))
     (if (not (file-exists? full-path))
         (values '((content-type . (text/html)))
                 (with-output-to-string (lambda _ (sxml->xml (page-error-404 path)))))
         ;; Do not handle files larger than %maximum-file-size.
         ;; Please increase the file size if your server can handle it.
         (let ((file-stat (stat full-path)))
-          (if (> (stat:size file-stat) %www-max-file-size)
+          (if (> (stat:size file-stat) (www-max-file-size))
               (values '((content-type . (text/html)))
                       (with-output-to-string 
                         (lambda _ (sxml->xml (page-error-filesize path)))))
@@ -185,10 +186,11 @@
     (if (eq? pid 0)
         (begin
           (format #t "SPARQLing-SVs web service is running at http://127.0.0.1:~a~%"
-                  %www-listen-port)
+                  (www-listen-port))
           (with-output-to-file "web.log"
             (lambda _
+              (load-connections)
               (run-server request-handler 'http
-                          `(#:port ,%www-listen-port
+                          `(#:port ,(www-listen-port)
                             #:addr ,INADDR_ANY)))))
         (primitive-exit))))

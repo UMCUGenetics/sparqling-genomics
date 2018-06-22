@@ -32,11 +32,9 @@ body,html {
     padding: 0pt;
     margin: 0pt;
     font-family: 'Roboto', sans-serif;
-    font-size: 11pt;
+    line-height: 1.4em;
     color: #000000;
-    background: url('/static/images/background.png');
-    background-repeat: repeat-x;
-    background-color: #6f917c;
+    background-color: #93ac9d /*#b7c8b7*/  /*#6f8a91*/ /*#2ca05a*/ /*#53676c*/;
 }
 
 #wrapper {
@@ -47,6 +45,7 @@ body,html {
 }
 
 #header {
+    background: #eeeeee;
 }
 
 #header .logo { vertical-align: bottom; }
@@ -118,7 +117,7 @@ a:hover { color: #555555; }
     -moz-border-radius: 4pt;
     border-radius: 4pt;
 }
-#content table td { padding: 2pt 4pt 2pt 4pt; font-size: 11pt; height: 25pt; }
+#content table td { padding: 2pt 4pt 2pt 4pt; font-size: 0.85em; height: 25pt; }
 #stand-by {
     background: #decd87;
     -webkit-border-radius: 4pt;
@@ -172,44 +171,18 @@ code {
     border: solid thin #cccccc;
 } 
 
-div.action-button {
-    display: inline-block;
-    font-size: 16pt;
-    font-weight: bold;
-    text-transform: uppercase;
-    background: #d38d5f;
-    padding: 4pt;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    border: solid 2pt #000000;
-}
-
-div.action-button a {
-    text-decoration: none;
-}
-
-div.action-button a:hover {
-    text-decoration: none;
-    color: #111111;
-}
-
-div.action-button:hover {
-    background: #a05a2c;
-}
-
 #editor {
     width: 100%;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    /*font-family: 'FiraMono', monospace;*/
-    font-size: 12pt;
+    font-family: 'FiraMono', monospace;
+    font-size: 16px;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    border: solid 2px #cccccc;
+    border: solid 1px #cccccc;
 }
 
 #query-output {
@@ -239,6 +212,24 @@ div.action-button:hover {
 }
 
 #content .query-error .content {
+    padding: 5pt;
+    background: #e8e8e8;
+    -webkit-border-radius: 0pt 0pt 4pt 4pt;
+    -moz-border-radius: 0pt 0pt 4pt 4pt;
+    border-radius: 0pt 0pt 4pt 4pt;
+}
+
+#content .query-success .title {
+    margin-top: 10pt;
+    padding: 5pt;
+    font-weight: bold;
+    background: #33cc33;
+    -webkit-border-radius: 4pt 4pt 0pt 0pt;
+    -moz-border-radius: 4pt 4pt 0pt 0pt;
+    border-radius: 4pt 4pt 0pt 0pt;
+}
+
+#content .query-success .content {
     padding: 5pt;
     background: #e8e8e8;
     -webkit-border-radius: 0pt 0pt 4pt 4pt;
@@ -309,3 +300,101 @@ table {
     width: 100%;
 }
 
+svg { width: 100%; height: 600px; background: #333333; }
+
+#add-field { width: 100% }
+#add-field-button {
+    width: 24px;
+    height: 24px;
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+    background: #008800;
+    border: none;
+    color: #ffffff;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+}
+
+.item-table-right { width: 200px; }
+#add-field { width: 100% }
+#query-output {
+    width: 100%;
+    min-height: 600px:
+}
+
+#item-table {
+    width: 100%;
+    border: solid 2px #222222;
+}
+
+#item-table th {
+    background: #222222;
+    color: #ffffff;
+    padding: 5px;
+}
+
+#item-table tr:nth-child(even) {
+    background: #eeeeee;
+}
+
+.small-action a { text-decoration: none; }
+.small-action a:hover { color: #000000; }
+.small-action:hover { background: #ffeeaa; } 
+.small-action {
+    display: inline-block;
+    font-size: 20px;
+    font-weight: normal;
+    background: #ffdd55;
+    border: solid 1px #aa8800;
+    padding: 0px 5px 0px 5px;
+    margin: 5px;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    width: auto;
+}
+
+.message-box {
+    width: auto;
+    margin: 0px 0px 1em 0px;
+    padding: 0px 10px 0px 10px;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+}
+
+.action-btn {
+    display: inline-block;
+    width: auto;
+    height: 24px;
+    text-align: center;
+    border: none;
+    color: #ffffff;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    margin-right: 10px;
+}
+
+.remove-btn { background: #880000; }
+.remove-btn:hover { background: #aa0000; }
+
+.insert-btn { background: #008800 }
+.insert-btn:hover { background: #00aa00; }
+
+.import-btn { background: #008800 }
+.import-btn:hover { background: #00aa00; }
+
+.export-btn { background: #008888; }
+.export-btn:hover { background: #00aaaa; }
+
+.start-btn { background: #000088; }
+.start-btn:hover { background: #0000aa; }
+
+.stop-btn { background: #008888; }
+.stop-btn:hover { background: #00aaaa; }
+
+.success { background: #33cc33; }
+.failure { background: #cc3333; }

@@ -23,7 +23,9 @@ SOURCES =                                               \
   json/syntax.scm                                       \
   web-interface.scm                                     \
   www/config.scm                                        \
+  www/db/connections.scm                                \
   www/pages.scm                                         \
+  www/pages/connections.scm                             \
   www/pages/error.scm                                   \
   www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
