@@ -1,4 +1,4 @@
-#!@GUILE@ --debug
+#!@GUILE@ --no-auto-compile
 -*- scheme -*-
 !#
 ;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
