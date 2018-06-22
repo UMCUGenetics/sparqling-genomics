@@ -12,4 +12,4 @@ configure
 *.o
 *.go
 *.xml
-tools/vcf2turtle/vcf2turtle
+tools/vcf2rdf/vcf2rdf
