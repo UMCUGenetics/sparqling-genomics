@@ -8,7 +8,7 @@ To build the programs in this repository, the following tools are required:
 - GNU Autoconf, GNU Automake, pkg-config and GNU Make
 - HTSlib
 - Libgcrypt
-- Redland (librdf, raptor2, rasqal)
+- Raptor2
 - GNU Guile
 
 ## Installation and development environment with GNU Guix
@@ -26,16 +26,16 @@ Do the usual autotools dance to build everything:
 [env]$ make
 ```
 
-Or change the last step to build individual components, like `vcf2turtle`:
+Or change the last step to build individual components, like `vcf2rdf`:
 ```
-[env]$ make -C tools/vcf2turtle
+[env]$ make -C tools/vcf2rdf
 ```
 
 ## Starting the web interface
 
 To start the web interface, run:
 ```
-[env]$ sh web/run
+[env]$ web/run
 ```
 
 ## Further reading
