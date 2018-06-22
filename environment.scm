@@ -26,38 +26,24 @@
              (gnu packages statistics)
              (gnu packages rdf))
 
-(define vcf2turtle
+(define vcf2rdf
   (package
-   (name "vcf2turtle")
+   (name "vcf2rdf")
    (version "0.0.1")
    (source #f)
    (build-system gnu-build-system)
    (native-inputs
     `(("autoconf" ,autoconf)
-      ("automake" ,automake)))
+      ("automake" ,automake)
+      ("pkg-config" ,pkg-config)))
    (inputs
     `(("htslib" ,htslib)
-      ("libgcrypt" ,libgcrypt)))
-   (home-page "")
-   (synopsis "Data transformer from VCF to Turtle")
-   (description "The vcf2turtle program takes Variant Call Format input and
-outputs it in Turtle-format.")
-   (license license:gpl3+)))
-
-(define svplot
-  (package
-   (name "svplot")
-   (version "0.0.1")
-   (source #f)
-   (build-system gnu-build-system)
-   (inputs
-    `(("r" ,r)))
-   (propagated-inputs
-    `(("r-ggplot2" ,r-ggplot2)
-      ("r-sparql" ,r-sparql)))
-   (home-page "")
-   (synopsis "Plotting package for this project.")
-   (description "Plotting package for this project.")
+      ("libgcrypt" ,libgcrypt)
+      ("raptor" ,raptor2)))
+   (home-page "https://github.com/UMCUGenetics/sparqling-svs")
+   (synopsis "Data transformer from VCF to RDF")
+   (description "The vcf2rdf program takes Variant Call Format input and
+outputs it in various RDF formats.  It uses Raptor2 for serialization.")
    (license license:gpl3+)))
 
 (define sparqling-svs-web
@@ -92,11 +78,12 @@ outputs it in Turtle-format.")
     `(("pkg-config" ,pkg-config)
       ("zlib" ,zlib)
       ("xz" ,xz)
-      ,@(package-inputs vcf2turtle)
+      ,@(package-inputs vcf2rdf)
       ,@(package-inputs sparqling-svs-web)))
-   (home-page "")
-   (synopsis "")
-   (description "")
+   (home-page "https://github.com/UMCUGenetics/sparqling-svs")
+   (synopsis "Tools to use SPARQL to analyze genomic structural variation")
+   (description "This package provides various tools to extract RDF triples
+from genomic data formats.")
    (license license:gpl3+)))
 
 ;; Evaluate to the complete recipe, so that the development
