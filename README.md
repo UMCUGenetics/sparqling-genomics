@@ -38,6 +38,8 @@ To start the web interface, run:
 [env]$ web/run
 ```
 
+![Web interface screenshot](https://github.com/UMCUGenetics/sparqling-svs/blob/master/doc/figures/web-interface.png)
+
 ## Further reading
 
 Please read the manual in the `doc/` directory.  A PDF can be built using:
