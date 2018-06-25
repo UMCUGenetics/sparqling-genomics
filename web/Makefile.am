@@ -25,7 +25,6 @@ SOURCES =                                               \
   sparql/lang.scm                                       \
   sparql/md5.scm                                        \
   sparql/util.scm                                       \
-  web-interface.scm                                     \
   www/config.scm                                        \
   www/db/connections.scm                                \
   www/pages.scm                                         \
