@@ -32,7 +32,6 @@ runtime_configuration_init (void)
   config.caller = NULL;
   config.output_format = NULL;
   config.non_unique_variant_counter = 0;
-  config.genotype_counter = 0;
   config.info_field_indexes = NULL;
   config.info_field_indexes_len = 0;
   config.info_field_indexes_blocks = 0;
@@ -96,23 +95,13 @@ runtime_configuration_free (void)
 }
 
 bool
-generate_variant_id (char *variant_id)
+generate_variant_id (const unsigned char *origin, char *variant_id)
 {
   int32_t bytes_written;
-  bytes_written = snprintf (variant_id, 16, "V%010u",
+  bytes_written = snprintf (variant_id, 76, "%s-V%010u",
+                            origin,
                             config.non_unique_variant_counter);
 
   config.non_unique_variant_counter++;
-  return (bytes_written > 0);
-}
-
-bool
-generate_genotype_id (char *genotype_id)
-{
-  int32_t bytes_written;
-  bytes_written = snprintf (genotype_id, 16, "GT%010u",
-                            config.genotype_counter);
-
-  config.genotype_counter++;
   return (bytes_written > 0);
 }

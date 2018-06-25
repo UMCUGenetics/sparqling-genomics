@@ -83,7 +83,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
       char *variant_id         = NULL;
       bool variant_id_free_p   = false;
 
-      if (! generate_variant_id (config.variant_id_buf))
+      if (! generate_variant_id (origin, config.variant_id_buf))
         ui_print_general_memory_error ();
       else
         variant_id = config.variant_id_buf;

@@ -110,7 +110,6 @@ typedef struct
   char              *caller;
   char              *output_format;
   uint32_t          non_unique_variant_counter;
-  uint32_t          genotype_counter;
   bool              header_only;
   bool              show_progress_info;
 
@@ -130,7 +129,7 @@ typedef struct
   size_t            format_field_indexes_blocks;
 
   /* Shared buffers. */
-  char variant_id_buf[16];
+  char variant_id_buf[76];
   char number_buffer[32];
 } RuntimeConfiguration;
 
@@ -143,7 +142,6 @@ bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);
 void runtime_configuration_redland_free (void);
 
-bool generate_variant_id (char *variant_id);
-bool generate_genotype_id (char *genotype_id);
+bool generate_variant_id (const unsigned char *origin, char *variant_id);
 
 #endif  /* RUNTIMECONFIGURATION_H */
