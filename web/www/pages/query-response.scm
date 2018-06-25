@@ -87,9 +87,12 @@
                                    #:host (connection-address connection)
                                    #:port (connection-port connection)
                                    #:digest-auth
-                                   (string-append
-                                    (connection-username connection) ":"
-                                    (connection-password connection)))
+                                   (if (and (connection-username connection)
+                                            (connection-password connection))
+                                       (string-append
+                                        (connection-username connection) ":"
+                                        (connection-password connection))
+                                       #f))
                    (if (= (response-code header) 200)
                        (response->sxml port)
                        (respond-with-error port))))
