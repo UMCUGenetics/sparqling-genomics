@@ -50,6 +50,10 @@
                  (string= (car item) "/query"))
             `(li (@ (class "active")) (a (@ (href "/query")
                                             (onclick "history.go(-1); return false;")) "← Go back")))
+           ((and (string= (car item) "/connections")
+                 (string-is-longer-than request-path 16)
+                 (string= (string-take request-path 16) "/edit-connection"))
+            `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
            (else
             `(li (a (@ (href ,(car item))) ,(cadr item))))))
         pages))))

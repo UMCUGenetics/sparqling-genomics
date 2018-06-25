@@ -41,5 +41,5 @@
 (define page-error
     page-error-404)
 
-(define (page-ontology-or-error-404 request-path)
+(define* (page-ontology-or-error-404 request-path #:key (is-ontology? #f))
   (page-error-404 request-path))

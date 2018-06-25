@@ -277,6 +277,10 @@ code {
     background: #eeeeee;
 }
 
+tr:nth-child(even) {
+    background: #eeeeee;
+}
+
 #ontology-feature-table {
     width: 100%;
     -webkit-border-radius: 4pt;
@@ -304,12 +308,26 @@ svg { width: 100%; height: 600px; background: #333333; }
 
 #add-field { width: 100% }
 #add-field-button {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     padding: 0px;
+    font-weight: bold;
     margin: 0px;
     text-align: center;
     background: #008800;
+    border: none;
+    color: #ffffff;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+}
+#edit-button {
+    height: 28px;
+    padding: 0px;
+    font-weight: bold;
+    margin: 0px;
+    text-align: center;
+    background: #aa8800;
     border: none;
     color: #ffffff;
     -webkit-border-radius: 4pt;
@@ -356,10 +374,10 @@ select#connection {
 .small-action:hover { background: #ffeeaa; } 
 .small-action {
     display: inline-block;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: normal;
     background: #ffdd55;
-    border: solid 1px #aa8800;
+    border: solid 2px #aa8800;
     padding: 0px 5px 0px 5px;
     margin: 5px;
     -webkit-border-radius: 4pt;

@@ -25,7 +25,8 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
-  #:export (page-connections))
+  #:export (page-connections
+            connections-table))
 
 ;; ----------------------------------------------------------------------------
 ;; CONNECTIONS-TABLE
@@ -40,10 +41,10 @@
      (tr (th "Connection")
          (th (@ (class "item-table-right")) "Actions"))
      ,(map (lambda (record)
-             (let ((name    (connection-name record))
+             (let ((name    (connection-name    record))
                    (address (connection-address record))
-                   (port    (connection-port record)))
-               `(tr (td (a (@ (href ,(string-append (www-hostname)) "/" name))
+                   (port    (connection-port    record)))
+               `(tr (td (a (@ (href ,(string-append "/edit-connection/" name)))
                            ,(string-append name " (" address ":" port ")")))
                     (td (form (@ (action "/connections") (method "post"))
                               (button (@ (type "submit")
@@ -115,11 +116,11 @@ function ui_insert_connection_form () {
                                     (td (input (@ (type "text")
                                                   (id "add-username-field")
                                                   (name "username")
-                                                  (placeholder "Username"))))
+                                                  (placeholder "Username (optional)"))))
                                     (td (input (@ (type "password")
                                                   (id "add-password-field")
                                                   (name "password")
-                                                  (placeholder "Password"))))
+                                                  (placeholder "Password (optional)"))))
                                     (td (@ (class "item-table-right"))
                                         (input (@ (id "add-field-button")
                                                   (type "submit")

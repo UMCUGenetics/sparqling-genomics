@@ -33,6 +33,7 @@
              (www db connections)
              (www pages error)
              (www pages welcome)
+             (www pages edit-connection)
              (www pages)
              (www util))
 
@@ -106,7 +107,7 @@
   ;; --------------------------------------------------------------------------
   (cond
    ;; The “/” page is special, because we re-route it to “graphs”.
-   [(< (string-length request-path) 2)
+   [(not (string-is-longer-than request-path 2))
     (values '((content-type . (text/html)))
             (call-with-output-string
               (lambda (port)
@@ -116,7 +117,7 @@
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
-   [(and (> (string-length request-path) 5)
+   [(and (string-is-longer-than request-path 5)
          (string= (string-take-right request-path 5) ".json"))
     (values '((content-type . (application/javascript)))
             (call-with-output-string
@@ -134,7 +135,7 @@
                       (put-string port "{}"))))))]
 
    ;; When the URI begins with “/ontology/”, use the internal ontology viewer.
-   [(and (> (string-length request-path) 10)
+   [(and (string-is-longer-than request-path 10)
          (string= (string-take request-path 10) "/ontology/"))
     (values '((content-type . (text/html)))
             (call-with-output-string
@@ -144,6 +145,20 @@
                 (sxml->xml (page-ontology-or-error-404
                             (substring request-path 10)
                             #:is-ontology? #t) port))))]
+
+   ;; When the URI begins with “/edit-connection/”, use the edit-connection
+   ;; page.
+   [(and (string-is-longer-than request-path 16)
+         (string= (string-take request-path 16) "/edit-connection"))
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (if (eq? (request-method request) 'POST)
+                               (page-edit-connection request-path
+                                #:post-data (utf8->string request-body))
+                               (page-edit-connection request-path)) port))))]
 
    ;; All other requests can be handled as HTML responses.
    [#t
@@ -219,15 +234,11 @@
         ;; Handle options
         ;; --------------------------------------------------------------------
         (let ((fork? (assoc-ref config 'fork))
-              (port  (assoc-ref config 'port))
-              (internal-graph (assoc-ref config 'internal-graph)))
+              (port  (assoc-ref config 'port)))
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
           (when port
             (set-www-listen-port! (string->number (car port))))
-          (when (and internal-graph (assoc-ref internal-graph 'directory))
-            (set-rdf-graphs-location! (car (assoc-ref internal-graph 'directory)))
-            (set-rdf-internal-graph-name! (car (assoc-ref internal-graph 'name))))
           #t)))
     (lambda (key . args)
       (format #t "Couldn't read configuration file (~a: ~a).~%" key args)
