@@ -47,7 +47,7 @@ if test "x${LIBGCRYPT_LIBS}" = "x"; then
 fi
 
 AC_CONFIG_FILES([env], [chmod +x env])
-AC_CONFIG_FILES([web/run], [chmod +x web/run])
+AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile

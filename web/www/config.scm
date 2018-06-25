@@ -52,13 +52,13 @@
 
   (www-root                #:init-value
                            (lambda _ (dirname
-                                      (search-path %load-path "run.in")))
+                                      (search-path %load-path "sg-web")))
                            #:getter get-www-root)
 
   (www-static-root         #:init-value
                            (lambda _
                              (string-append
-                              (dirname (search-path %load-path "run.in"))
+                              (dirname (search-path %load-path "sg-web"))
                             "/static"))
                            #:getter get-www-static-root)
 

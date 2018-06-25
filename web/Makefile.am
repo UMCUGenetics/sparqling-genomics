@@ -30,6 +30,7 @@ SOURCES =                                               \
   www/db/connections.scm                                \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
+  www/pages/edit-connection.scm                         \
   www/pages/error.scm                                   \
   www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
@@ -58,4 +59,5 @@ WWW_STATIC_RESOURCES =                                  \
   static/datatables.min.css                             \
   static/jquery.dataTables.min.js
 
+bin_SCRIPTS = sg-web
 EXTRA_DIST += $(WWW_STATIC_RESOURCES)
