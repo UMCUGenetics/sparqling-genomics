@@ -22,5 +22,5 @@
   (page-root-template "Help" request-path
    `((h2 "Help")
      (p "Please use the project's "
-        (a (@ (href "https://github.com/UMCUGenetics/sparqling-svs"))
+        (a (@ (href "https://github.com/UMCUGenetics/sparqling-genomics"))
            "Github page") " for support."))))

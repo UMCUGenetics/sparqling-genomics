@@ -96,5 +96,5 @@
                      ,(page-partial-main-menu request-path)))
            (div (@ (id "content"))
                 ,content-tree)
-           (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-svs"))
+           (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
                                         "Download the source code of this page."))))))))

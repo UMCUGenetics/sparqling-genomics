@@ -40,15 +40,15 @@
     `(("htslib" ,htslib)
       ("libgcrypt" ,libgcrypt)
       ("raptor" ,raptor2)))
-   (home-page "https://github.com/UMCUGenetics/sparqling-svs")
+   (home-page "https://github.com/UMCUGenetics/sparqling-genomics")
    (synopsis "Data transformer from VCF to RDF")
    (description "The vcf2rdf program takes Variant Call Format input and
 outputs it in various RDF formats.  It uses Raptor2 for serialization.")
    (license license:gpl3+)))
 
-(define sparqling-svs-web
+(define sparqling-genomics-web
   (package
-   (name "sparqling-svs-web")
+   (name "sparqling-genomics-web")
    (version "0.0.1")
    (source #f)
    (build-system gnu-build-system)
@@ -65,9 +65,9 @@ outputs it in various RDF formats.  It uses Raptor2 for serialization.")
    (description "")
    (license license:gpl3+)))
 
-(define sparqling-svs
+(define sparqling-genomics
   (package
-   (name "sparqling-svs")
+   (name "sparqling-genomics")
    (version "0.0.1")
    (source #f)
    (build-system gnu-build-system)
@@ -79,8 +79,8 @@ outputs it in various RDF formats.  It uses Raptor2 for serialization.")
       ("zlib" ,zlib)
       ("xz" ,xz)
       ,@(package-inputs vcf2rdf)
-      ,@(package-inputs sparqling-svs-web)))
-   (home-page "https://github.com/UMCUGenetics/sparqling-svs")
+      ,@(package-inputs sparqling-genomics-web)))
+   (home-page "https://github.com/UMCUGenetics/sparqling-genomics")
    (synopsis "Tools to use SPARQL to analyze genomic structural variation")
    (description "This package provides various tools to extract RDF triples
 from genomic data formats.")
@@ -88,4 +88,4 @@ from genomic data formats.")
 
 ;; Evaluate to the complete recipe, so that the development
 ;; environment has everything to start from scratch.
-sparqling-svs
+sparqling-genomics

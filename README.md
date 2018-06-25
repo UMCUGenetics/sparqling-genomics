@@ -1,4 +1,4 @@
-# SPARQLing structural variation
+# SPARQLing genomics
 
 More documentation is available in the `doc/` directory.
 
@@ -35,10 +35,10 @@ Or change the last step to build individual components, like `vcf2rdf`:
 
 To start the web interface, run:
 ```
-[env]$ web/run
+[env]$ web/sg-web
 ```
 
-![Web interface screenshot](https://github.com/UMCUGenetics/sparqling-svs/blob/master/doc/figures/web-interface.png)
+![Web interface screenshot](https://github.com/UMCUGenetics/sparqling-genomics/blob/master/doc/figures/web-interface.png)
 
 ## Further reading
 
