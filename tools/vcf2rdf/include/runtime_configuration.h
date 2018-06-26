@@ -129,7 +129,7 @@ typedef struct
   size_t            format_field_indexes_blocks;
 
   /* Shared buffers. */
-  char variant_id_buf[76];
+  char variant_id_buf[77];
   char number_buffer[32];
 } RuntimeConfiguration;
 

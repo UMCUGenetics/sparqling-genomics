@@ -98,7 +98,7 @@ bool
 generate_variant_id (const unsigned char *origin, char *variant_id)
 {
   int32_t bytes_written;
-  bytes_written = snprintf (variant_id, 76, "%s-V%010u",
+  bytes_written = snprintf (variant_id, 77, "%s-V%010u",
                             origin,
                             config.non_unique_variant_counter);
 
