@@ -95,6 +95,24 @@ guix environment -l environment.scm
 \end{verbatim}
 \end{siderules}
 
+\subsection{MacOS}
+
+  The necessary dependencies to build \texttt{sparqling-genomics} can be
+  installed using \href{https://brew.sh/}{homebrew}:
+
+\begin{siderules}
+\begin{verbatim}
+brew install autoconf automake gcc make pkg-config libgrcypt guile \
+             htslib curl
+\end{verbatim}
+\end{siderules}
+
+  The only missing dependency is a \LaTeX{} distribution.  But this is
+  only needed to build this documentation.
+
+  Building on MacOS has not been tested.  If you've tried it, please let
+  us know, so we can attempt to support it in the future.
+
 \section{Installation instructions}
 
 After installing the required tools (see section \ref{sec:prerequisites}),
