@@ -69,12 +69,15 @@
                                   (assoc-ref input 'port)
                                   (assoc-ref input 'username)
                                   (assoc-ref input 'password))))
-        (when (string= (connection-username obj) "")
+        (when (and (string? (connection-username obj))
+                   (string= (connection-username obj) ""))
           (set-connection-username! obj #f))
-        (when (string= (connection-password obj) "")
+        (when (and (string? (connection-username obj))
+                   (string= (connection-password obj) ""))
           (set-connection-password! obj #f))
         obj))
-    (lambda (key . args) #f)))
+    (lambda (key . args)
+       #f)))
 
 (define (connection->alist record)
   `((name     . ,(connection-name     record))
@@ -94,7 +97,7 @@
           (call-with-input-file filename
             (lambda (port)
               (set! %db-connections
-                    (delete #f (map alist->connection (read port)))))))))
+                    (map alist->connection (read port))))))))
     (lambda (key . args)
       #f)))
 
