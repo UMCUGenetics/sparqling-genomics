@@ -26,6 +26,13 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'FiraMono';
+    src: url('/static/fonts/FiraMono-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
 body,html {
     width: 100%;
     height: 100%;
