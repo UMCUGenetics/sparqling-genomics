@@ -37,6 +37,7 @@
 #define STR_PREFIX_VCF_HEADER_ALT      URI_ONTOLOGY "VcfHeaderAltItem/"
 #define STR_PREFIX_VCF_HEADER_CONTIG   URI_ONTOLOGY "VcfHeaderContigItem/"
 #define STR_PREFIX_VARIANT_CALL        URI_ONTOLOGY "/VariantCall/"
+#define STR_PREFIX_SEQUENCE            URI_ONTOLOGY "/Sequence/"
 #define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
 #define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
 #define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
@@ -57,6 +58,7 @@ typedef enum
   PREFIX_VCF_HEADER_ALT,
   PREFIX_VCF_HEADER_CONTIG,
   PREFIX_VARIANT_CALL,
+  PREFIX_SEQUENCE,
   PREFIX_ORIGIN,
   PREFIX_RDF,
   PREFIX_RDFS,

@@ -73,15 +73,20 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
     return;
   uint32_t number_of_samples = bcf_hdr_nsamples (header);
   int32_t sample_index = 0;
+  raptor_term *origin_type = term (PREFIX_BASE, "originatedFrom");
+  if (!origin_type || !origin)
+    {
+      ui_print_redland_error ();
+      return;
+    }
+
   for (; sample_index < number_of_samples; sample_index++)
     {
       /* Create 'generic' nodes and URIs.
        * -------------------------------------------------------------------- */
-      raptor_term *origin_type = term (PREFIX_BASE, "originatedFrom");
       raptor_term *self        = NULL;
       raptor_statement *stmt   = NULL;
       char *variant_id         = NULL;
-      bool variant_id_free_p   = false;
 
       if (! generate_variant_id (origin, config.variant_id_buf))
         ui_print_general_memory_error ();
@@ -89,7 +94,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
         variant_id = config.variant_id_buf;
 
       self = term (PREFIX_BASE, variant_id);
-      if (!self || !origin_type || !origin)
+      if (!self)
         {
           ui_print_redland_error ();
           return;
@@ -170,13 +175,13 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (self);
       stmt->predicate = term (PREFIX_VARIANT_CALL, "REF");
-      stmt->object    = literal (buffer->d.allele[0], XSD_STRING);
+      stmt->object    = term (PREFIX_SEQUENCE, buffer->d.allele[0]);
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (self);
       stmt->predicate = term (PREFIX_VARIANT_CALL, "ALT");
-      stmt->object    = literal (buffer->d.allele[1], XSD_STRING);
+      stmt->object    = term (PREFIX_SEQUENCE, buffer->d.allele[1]);
       register_statement (stmt);
 
       /* The QUAL indicator "." means that the QUAL value is missing or unknown.
@@ -356,10 +361,8 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
             }
         }
 
-      if (variant_id_free_p)
-        free (variant_id);
-
-      raptor_free_term (origin_type);
       raptor_free_term (self);
     }
+
+  raptor_free_term (origin_type);
 }
