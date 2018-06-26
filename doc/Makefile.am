@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
 SUBDIRS                 = . 
 
-doc_NAME                = sparqling-svs
+doc_NAME                = sparqling-genomics
 doc_PDF                 = $(doc_NAME).pdf
 doc_TEX                 = $(doc_NAME).tex
 doc_STYLE		= umcu.sty
