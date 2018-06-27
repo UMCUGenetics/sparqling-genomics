@@ -166,9 +166,7 @@ curl -X POST                                                 \
   web interface you can:
   \begin{itemize}
   \item Write and execute SPARQL queries;
-  \item Import and export data;
-  \item Visualize triple patterns;
-  \item View database statistics.
+  \item Keep track of different SPARQL endpoints.
   \end{itemize}
 
 \section{Running the web interface}
@@ -213,7 +211,7 @@ sg-web
   we do that, let's look at simple queries that only look at our own data.
 
 \subsection{Listing non-empty graphs}
-
+\label{sec:non-empty-graphs}
   Each SPARQL endpoint can host multiple \emph{graphs}.  Each graph can contain
   an independent set of triples.  The following query displays the available
   graphs in a SPARQL endpoint:
@@ -252,7 +250,7 @@ WHERE { ?s ?p ?o }
 \end{verbatim}
 \end{siderules}
 
-  In \ref{sec:federated-querying} {\color{LinkGray}%
+  In section \ref{sec:federated-querying} {\color{LinkGray}%
   `\nameref{sec:federated-querying}'} we will look at querying over multiple
   RDF stores.
 
@@ -272,6 +270,10 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
+  The \texttt{graph-name} must be one of the graphs returned by the query from
+  section \ref{sec:non-empty-graphs} {\color{LinkGray}%
+    `\nameref{sec:non-empty-graphs}'}.
+
 \subsection{Listing samples and their originating files}
 
 Using the knowledge we gained from exploring the predicates in a graph,
@@ -283,7 +285,7 @@ samples and their originating filenames from the output of \texttt{vcf2rdf}:
 PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
 
 SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample ?filename
-FROM <http://localhost/test>
+FROM <graph-name>
 WHERE {
   ?variant  vcf2rdf:sample    ?sample .
   ?sample   vcf2rdf:foundIn   ?origin .
@@ -307,7 +309,7 @@ SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample
        ?filename
        COUNT(DISTINCT ?variant) AS ?numberOfVariants
 
-FROM <http://localhost/test>
+FROM <graph-name>
 WHERE
 {
   ?variant  rdf:type                vcf2rdf:VariantCall ;
@@ -341,7 +343,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 
 SELECT DISTINCT ?variant ?sample ?chromosome ?position ?filter
-FROM <http://localhost/test>
+FROM <graph-name>
 WHERE
 {
   ?variant  rdf:type                vcf2rdf:VariantCall ;
@@ -410,29 +412,20 @@ library('SPARQL')
 endpoint <- "http://localhost:8890/sparql"
 
 # Define the actual query to run.
-query <- "PREFIX : <http://localhost:5000/cth/>
-PREFIX ref: <http://rdf.ebi.ac.uk/resource/ensembl/90/homo_sapiens/GRCh38/>
-PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+query <- "PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vc: <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 
-SELECT DISTINCT ?variant ?svtype ?geneName ?ensemblGeneId ?location {
-    ?variant       rdf:type            :StructuralVariant ;
-                   :genome_position    ?p ;
-                   :filter             ?filter ;
-                   :type               ?svtype .
-    ?p             :chromosome         ?chromosome ;
-                   :position           ?position .
-    ?location      faldo:reference     ref:1 ;
-                   faldo:begin         ?begin ;
-                   faldo:end           ?end .
-    ?begin         faldo:position      ?beginPosition .
-    ?end           faldo:position      ?endPosition .
-    ?ensemblGeneId rdf:type            ?type ;
-                   faldo:location      ?location ;
-                   rdfs:label          ?geneName .
-    FILTER (?chromosome = \"1\")
-    FILTER (?position > (?beginPosition) && ?position < (?endPosition))
+SELECT DISTINCT ?variant ?sample ?chromosome ?position ?filter
+FROM <graph-name>
+WHERE
+{
+  ?variant  rdf:type                vcf2rdf:VariantCall ;
+            vcf2rdf:sample          ?sample ;
+            faldo:reference         ?chromosome ;
+            faldo:position          ?position ;
+            vc:FILTER               ?filter .
 }
 LIMIT 10";
 
