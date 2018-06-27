@@ -21,6 +21,7 @@ $(doc_PDF):
 	$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
 	$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
 
+EXTRA_DIST = $(doc_PDF)
 endif
 
 docs-clean:
