@@ -71,6 +71,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
    * we will end up without REF information.  Skip these records. */
   if (buffer->d.allele == NULL)
     return;
+
   uint32_t number_of_samples = bcf_hdr_nsamples (header);
   int32_t sample_index = 0;
   raptor_term *origin_type = term (PREFIX_BASE, "originatedFrom");
@@ -147,7 +148,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
 
       /* Add the standard fields.
        * Default fields: ID, CHROM, POS, REF, ALT, QUAL, FILTER, INFO, FORMAT.
-       * ------------------------------------------------------------------------ */
+       * -------------------------------------------------------------------- */
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (self);
       stmt->predicate = term (PREFIX_FALDO, "#reference");
@@ -201,7 +202,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
         }
 
       /* Process filter fields.
-       * ------------------------------------------------------------------------ */
+       * -------------------------------------------------------------------- */
       bcf_unpack (buffer, BCF_UN_FLT);
       int filter_index = 0;
       for (; filter_index < buffer->d.n_flt; filter_index++)
@@ -214,9 +215,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
           register_statement (stmt);
         }
 
-      /* Process INFO fields.
-       * ------------------------------------------------------------------------- */
-
       char *id_str           = NULL;
       void *value            = NULL;
       int32_t state          = 0;
@@ -225,116 +223,30 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
       int32_t index          = 0;
       uint32_t i             = 0;
 
-      for (i = 0; i < config.info_field_indexes_len; i++)
+      /* Process INFO fields.
+       * -------------------------------------------------------------------- */
+      if (config.process_info_fields)
         {
-          id_str    = NULL;
-          type      = -1;
-          value     = NULL;
-          value_len = 0;
-          index     = config.info_field_indexes[i];
-
-          get_field_identity (header, index, &id_str, &type);
-
-          if (!id_str || type == -1)
-            goto clean_up_iteration;
-
-          state = bcf_get_info_values (header, buffer, id_str, &value, &value_len, type);
-          if (!value || state < 0)
-            goto clean_up_iteration;
-
-          stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = raptor_term_copy (self);
-          stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
-
-          if (type == XSD_INTEGER)
+          for (i = 0; i < config.info_field_indexes_len; i++)
             {
-              snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
-              stmt->object = literal (config.number_buffer, XSD_INTEGER);
-            }
-          else if (type == XSD_FLOAT)
-            {
-              snprintf (config.number_buffer, 32, "%f", *((float *)value));
-              stmt->object = literal (config.number_buffer, XSD_FLOAT);
-            }
-          else if (type == XSD_STRING)
-            stmt->object = literal ((char *)value, XSD_STRING);
-          else if (type == XSD_BOOLEAN && state == 1)
-            stmt->object = literal ("true", XSD_BOOLEAN);
+              id_str    = NULL;
+              type      = -1;
+              value     = NULL;
+              value_len = 0;
+              index     = config.info_field_indexes[i];
 
-          if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
-            register_statement (stmt);
+              get_field_identity (header, index, &id_str, &type);
 
-        clean_up_iteration:
-          free (value);
-          value = NULL;
-        }
+              if (!id_str || type == -1)
+                goto clean_up_iteration;
 
-      /* Process FORMAT fields.
-       * ------------------------------------------------------------------------- */
-      for (i = 0; i < config.format_field_indexes_len; i++)
-        {
-          id_str    = NULL;
-          type      = -1;
-          value     = NULL;
-          value_len = 0;
-
-          get_field_identity (header,
-                              config.format_field_indexes[i],
-                              &id_str,
-                              &type);
-
-          if (!id_str || type == -1)
-            continue;
-
-          if (!strcmp (id_str, "GT"))
-            {
-              char **dst = NULL;
-              int32_t ndst = 0;
-              int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
-              int32_t ploidy = gt / number_of_samples;
-              int32_t *ptr = (int32_t *)dst + sample_index * ploidy;
-              int32_t *genotypes = calloc (ploidy, sizeof (int32_t));
-
-              int32_t k;
-              for (k = 0; k < ploidy; k++)
-                genotypes[k] = (bcf_gt_is_missing (ptr[k]))
-                  ? -1
-                  : bcf_gt_allele (ptr[k]);
-
-              int32_t genotype_class = -1;
-
-              if (ploidy == 2)
-                genotype_class = (genotypes[0] == 0 && genotypes[1] == 0)
-                  ? CLASS_HOMOZYGOUS_REFERENCE
-                  : (genotypes[0] == 1 && genotypes[1] == 1)
-                  ? CLASS_HOMOZYGOUS_ALTERNATIVE
-                  : CLASS_HETEROZYGOUS;
-
-              else if (ploidy == 1)
-                genotype_class = CLASS_HOMOZYGOUS;
-              else if (ploidy > 2)
-                genotype_class = CLASS_MULTIZYGOUS;
-              else if (ploidy == 0)
-                genotype_class = CLASS_NULLIZYGOUS;
-
-              free (genotypes);
-              free (dst);
-
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = raptor_term_copy (self);
-              stmt->predicate = term (PREFIX_RDF, "#type");
-              stmt->object    = class (genotype_class);
-              register_statement (stmt);
-            }
-          else
-            {
-              state = bcf_get_format_values (header, buffer, id_str, &value, &value_len, type);
+              state = bcf_get_info_values (header, buffer, id_str, &value, &value_len, type);
               if (!value || state < 0)
-                goto clean_format_iteration;
+                goto clean_up_iteration;
 
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = raptor_term_copy (self);
-              stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
+              stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
 
               if (type == XSD_INTEGER)
                 {
@@ -354,10 +266,104 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
               if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
                 register_statement (stmt);
 
-            clean_format_iteration:
+            clean_up_iteration:
               free (value);
               value = NULL;
+            }
+        }
 
+      /* Process FORMAT fields.
+       * -------------------------------------------------------------------- */
+      if (config.process_format_fields)
+        {
+          for (i = 0; i < config.format_field_indexes_len; i++)
+            {
+              id_str    = NULL;
+              type      = -1;
+              value     = NULL;
+              value_len = 0;
+
+              get_field_identity (header,
+                                  config.format_field_indexes[i],
+                                  &id_str,
+                                  &type);
+
+              if (!id_str || type == -1)
+                continue;
+
+              if (!strcmp (id_str, "GT"))
+                {
+                  char **dst = NULL;
+                  int32_t ndst = 0;
+                  int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
+                  int32_t ploidy = gt / number_of_samples;
+                  int32_t *ptr = (int32_t *)dst + sample_index * ploidy;
+                  int32_t *genotypes = calloc (ploidy, sizeof (int32_t));
+
+                  int32_t k;
+                  for (k = 0; k < ploidy; k++)
+                    genotypes[k] = (bcf_gt_is_missing (ptr[k]))
+                      ? -1
+                      : bcf_gt_allele (ptr[k]);
+
+                  int32_t genotype_class = -1;
+
+                  if (ploidy == 2)
+                    genotype_class = (genotypes[0] == 0 && genotypes[1] == 0)
+                      ? CLASS_HOMOZYGOUS_REFERENCE
+                      : (genotypes[0] == 1 && genotypes[1] == 1)
+                      ? CLASS_HOMOZYGOUS_ALTERNATIVE
+                      : CLASS_HETEROZYGOUS;
+
+                  else if (ploidy == 1)
+                    genotype_class = CLASS_HOMOZYGOUS;
+                  else if (ploidy > 2)
+                    genotype_class = CLASS_MULTIZYGOUS;
+                  else if (ploidy == 0)
+                    genotype_class = CLASS_NULLIZYGOUS;
+
+                  free (genotypes);
+                  free (dst);
+
+                  stmt = raptor_new_statement (config.raptor_world);
+                  stmt->subject   = raptor_term_copy (self);
+                  stmt->predicate = term (PREFIX_RDF, "#type");
+                  stmt->object    = class (genotype_class);
+                  register_statement (stmt);
+                }
+              else
+                {
+                  state = bcf_get_format_values (header, buffer, id_str, &value, &value_len, type);
+                  if (!value || state < 0)
+                    goto clean_format_iteration;
+
+                  stmt = raptor_new_statement (config.raptor_world);
+                  stmt->subject   = raptor_term_copy (self);
+                  stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
+
+                  if (type == XSD_INTEGER)
+                    {
+                      snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
+                      stmt->object = literal (config.number_buffer, XSD_INTEGER);
+                    }
+                  else if (type == XSD_FLOAT)
+                    {
+                      snprintf (config.number_buffer, 32, "%f", *((float *)value));
+                      stmt->object = literal (config.number_buffer, XSD_FLOAT);
+                    }
+                  else if (type == XSD_STRING)
+                    stmt->object = literal ((char *)value, XSD_STRING);
+                  else if (type == XSD_BOOLEAN && state == 1)
+                    stmt->object = literal ("true", XSD_BOOLEAN);
+
+                  if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
+                    register_statement (stmt);
+
+                clean_format_iteration:
+                  free (value);
+                  value = NULL;
+
+                }
             }
         }
 

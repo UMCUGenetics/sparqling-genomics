@@ -139,6 +139,9 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
        * ------------------------------------------------------------------- */
       else if (vcf_header->hrec[index]->type == BCF_HL_INFO)
         {
+          if (!config.process_info_fields)
+            continue;
+
           prefix = PREFIX_VCF_HEADER_INFO;
           type  = CLASS_VCF_HEADER_INFO;
 
@@ -167,6 +170,9 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
         }
       else if (vcf_header->hrec[index]->type == BCF_HL_FMT)
         {
+          if (!config.process_format_fields)
+            continue;
+
           prefix = PREFIX_VCF_HEADER_FORMAT;
           type  = CLASS_VCF_HEADER_FORMAT;
 

@@ -40,6 +40,8 @@ runtime_configuration_init (void)
   config.format_field_indexes_blocks = 0;
   config.header_only = false;
   config.show_progress_info = false;
+  config.process_info_fields = true;
+  config.process_format_fields = true;
 
   return true;
 }

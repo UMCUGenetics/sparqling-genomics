@@ -28,19 +28,23 @@ void
 ui_show_help (void)
 {
   puts ("\nAvailable options:\n"
-	"  --header-only  ,   -o  Only process the VCF header.\n"
-	"  --help,            -h  Show this message.\n"
-	"  --progress-info,   -p  Show progress information.\n"
-	"  --version,         -v  Show versioning information.\n"
-        "  --caller=ARG,      -c  The caller used to produce the VCF file.\n"
-        "  --filter=ARG,      -f  Omit calls with FILTER=ARG from the "
-                                 "output.\n"
-        "  --input-file=ARG,  -i  The input file to process.\n"
-        "  --keep=ARG,        -k  Omit calls without FILTER=ARG from the "
-                                 "output.\n"
-        "  --output-format    -O  The output format to serialize to.\n"
-        "  --reference=ARG,   -r  The reference genome the variant positions "
-                                 "refer to.  GRCh37 is assumed.\n");
+	"  --header-only  ,         -o  Only process the VCF header.\n"
+	"  --help,                  -h  Show this message.\n"
+	"  --progress-info,         -p  Show progress information.\n"
+	"  --version,               -v  Show versioning information.\n"
+        "  --caller=ARG,            -c  The caller used to produce the VCF "
+                                       "file.\n"
+        "  --filter=ARG,            -f  Omit calls with FILTER=ARG from the "
+                                       "output.\n"
+        "  --without-info-fields,   -x  Do not process INFO fields.\n"
+        "  --without-format-fields, -y  Do not process FORMAT fields.\n"
+        "  --input-file=ARG,        -i  The input file to process.\n"
+        "  --keep=ARG,              -k  Omit calls without FILTER=ARG from the "
+                                       "output.\n"
+        "  --output-format          -O  The output format to serialize to.\n"
+        "  --reference=ARG,         -r  The reference genome the variant "
+                                       "positions refer to.  GRCh37 is "
+                                       "assumed.\n");
 }
 
 void
@@ -60,23 +64,26 @@ ui_process_command_line (int argc, char **argv)
    * ------------------------------------------------------------------- */
   static struct option options[] =
     {
-      { "caller",            required_argument, 0, 'c' },
-      { "filter",            required_argument, 0, 'f' },
-      { "input-file",        required_argument, 0, 'i' },
-      { "keep",              required_argument, 0, 'k' },
-      { "reference",         required_argument, 0, 'r' },
-      { "header-only",       no_argument,       0, 'o' },
-      { "output-format",     required_argument, 0, 'O' },
-      { "progress-info",     no_argument,       0, 'p' },
-      { "help",              no_argument,       0, 'h' },
-      { "version",           no_argument,       0, 'v' },
-      { 0,                   0,                 0, 0   }
+      { "caller",                required_argument, 0, 'c' },
+      { "filter",                required_argument, 0, 'f' },
+      { "input-file",            required_argument, 0, 'i' },
+      { "keep",                  required_argument, 0, 'k' },
+      { "reference",             required_argument, 0, 'r' },
+      { "header-only",           no_argument,       0, 'o' },
+      { "output-format",         required_argument, 0, 'O' },
+      { "progress-info",         no_argument,       0, 'p' },
+      { "without-info-fields",   no_argument,       0, 'x' },
+      { "without-format-fields", no_argument,       0, 'y' },
+      { "progress-info",         no_argument,       0, 'p' },
+      { "help",                  no_argument,       0, 'h' },
+      { "version",               no_argument,       0, 'v' },
+      { 0,                       0,                 0, 0   }
     };
 
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:O:ophv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:O:oxyphv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -87,6 +94,8 @@ ui_process_command_line (int argc, char **argv)
         case 'o': config.header_only = true;                     break;
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
+        case 'x': config.process_info_fields = false;            break;
+        case 'y': config.process_format_fields = false;          break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }

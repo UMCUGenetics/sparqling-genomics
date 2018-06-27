@@ -112,6 +112,8 @@ typedef struct
   uint32_t          non_unique_variant_counter;
   bool              header_only;
   bool              show_progress_info;
+  bool              process_info_fields;
+  bool              process_format_fields;
 
   /* Raptor-specifics */
   raptor_world      *raptor_world;
