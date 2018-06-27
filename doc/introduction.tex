@@ -34,7 +34,7 @@
       & \href{https://tug.org/texlive/}{\LaTeX{} distribtion}\\
       \oddrow
       \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      & \href{https://www.github.com/roelj/guile-sparql/}{\texttt{guile-sparql}}
+      &
       & \\
       \evenrow
       \href{http://www.htslib.org/}{HTSLib}
@@ -102,7 +102,7 @@ guix environment -l environment.scm
 
 \begin{siderules}
 \begin{verbatim}
-brew install autoconf automake gcc make pkg-config libgrcypt guile \
+brew install autoconf automake gcc make pkg-config libgcrypt guile \
              htslib curl
 \end{verbatim}
 \end{siderules}
@@ -115,14 +115,22 @@ brew install autoconf automake gcc make pkg-config libgrcypt guile \
 
 \section{Installation instructions}
 
-After installing the required tools (see section \ref{sec:prerequisites}),
-building involves running the following commands:
-\begin{siderules}
+  After installing the required tools (see section \ref{sec:prerequisites}
+  {\color{LinkGray}`\nameref{sec:vcf2rdf}'}),
+  building involves running the following commands:
+
+  \begin{siderules}
 \begin{verbatim}
 autoreconf -vfi && ./configure
 make && make install
 \end{verbatim}
 \end{siderules}
+
+  To run the \texttt{make install} command, super user privileges are possibly
+  required.  This step can be ignored, but will keep the tools in the project's
+  directory.  So, invoking \texttt{vcf2rdf} must be done using
+  \texttt{tools/vcf2rdf/vcf2rdf} when inside the project's root directory,
+  instead of ``just'' \texttt{vcf2rdf}.
 
 Alternatively, the individual components can be built by replacing
 \texttt{make \&\& make install} with \texttt{make -C <component-directory>}.
