@@ -42,9 +42,9 @@
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
-                      (((address . a) (name . b) (password . e) (port . c) (username . d))
+                      (((name . a) (uri . b) (password . c) (username . d))
                        (connection-edit (alist->connection alist)))
-                      (((address . a) (name . b) (port . c))
+                      (((name . a) (uri . b))
                        (connection-edit (alist->connection alist)))
                       (else
                        (values #f "Invalid form data."))))
@@ -76,19 +76,12 @@
                                       (placeholder "Name")
                                       (disabled "disabled")))))
                     (tr
-                     (td "Address")
+                     (td "URI")
                      (td (input (@ (type "text")
-                                      (id "add-address-field")
-                                      (name "address")
-                                      (value ,(connection-address connection))
-                                      (placeholder "Address")))))
-                    (tr
-                     (td "Port")
-                     (td (input (@ (type "text")
-                                      (id "add-port-field")
-                                      (name "port")
-                                      (value ,(connection-port connection))
-                                      (placeholder "Port")))))
+                                      (id "add-uri-field")
+                                      (name "uri")
+                                      (value ,(connection-uri connection))
+                                      (placeholder "https://example.com:8890/sparql")))))
                     (tr
                      (td "Username")
                      (td (input (@ (type "text")

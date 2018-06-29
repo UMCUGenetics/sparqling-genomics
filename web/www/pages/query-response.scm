@@ -84,8 +84,7 @@
                  (receive (header port)
                      (sparql-query query
                                    #:type "text/csv"
-                                   #:host (connection-address connection)
-                                   #:port (connection-port connection)
+                                   #:uri (connection-uri connection)
                                    #:digest-auth
                                    (if (and (connection-username connection)
                                             (connection-password connection))

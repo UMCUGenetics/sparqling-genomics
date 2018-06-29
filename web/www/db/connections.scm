@@ -34,8 +34,7 @@
 
             make-connection
             connection-name
-            connection-address
-            connection-port
+            connection-uri
             connection-username
             connection-password
             connection?
@@ -49,11 +48,10 @@
 ;; CONNECTION RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <connection>
-  (make-connection name address port username password)
+  (make-connection name uri username password)
   connection?
   (name      connection-name       set-connection-name!)
-  (address   connection-address)
-  (port      connection-port)
+  (uri       connection-uri        set-connection-uri!)
   (username  connection-username   set-connection-username!)
   (password  connection-password   set-connection-password!))
 
@@ -65,8 +63,7 @@
   (catch #t
     (lambda _
       (let ((obj (make-connection (assoc-ref input 'name)
-                                  (assoc-ref input 'address)
-                                  (assoc-ref input 'port)
+                                  (assoc-ref input 'uri)
                                   (assoc-ref input 'username)
                                   (assoc-ref input 'password))))
         (when (and (string? (connection-username obj))
@@ -81,8 +78,7 @@
 
 (define (connection->alist record)
   `((name     . ,(connection-name     record))
-    (address  . ,(connection-address  record))
-    (port     . ,(connection-port     record))
+    (uri      . ,(connection-uri      record))
     (username . ,(connection-username record))
     (password . ,(connection-password record))))
 
@@ -117,22 +113,17 @@
 (define (connection-add record)
   "Adds a reference to the internal graph for the connection RECORD."
   (let ((name    (connection-name    record))
-        (address (connection-address record))
-        (port    (connection-port    record)))
+        (uri     (connection-uri     record)))
     (cond
      ((string-is-longer-than name (graph-name-max-length))
       (values #f (format #f "The connection name cannot be longer than ~a characters."
                          (graph-name-max-length))))
-     ((string-is-longer-than port 10)
-      (values #f (format #f "Invalid port number.")))
      ((string= name "")
       (values #f (format #f "The connection name cannot empty.")))
      ((connection-by-name (connection-name record))
       (values #f (format #f "There already exists a connection with this name.")))
-     ((string= address "")
-      (values #f (format #f "The connection address cannot empty.")))
-     ((string= port "")
-      (values #f (format #f "The connection port cannot empty.")))
+     ((string= uri "")
+      (values #f (format #f "The connection URI cannot empty.")))
      ((string-contains name " ")
       (values #f (format #f "The connection name cannot contain whitespace characters.")))
      (#t (begin
@@ -145,22 +136,17 @@
 (define (connection-edit record)
   "Updates RECORD for which NAME equals the name of an existing record."
   (let ((name    (connection-name    record))
-        (address (connection-address record))
-        (port    (connection-port    record)))
+        (uri     (connection-uri     record)))
     (cond
      ((string-is-longer-than name (graph-name-max-length))
       (values #f (format #f "The connection name cannot be longer than ~a characters."
                          (graph-name-max-length))))
-     ((string-is-longer-than port 10)
-      (values #f (format #f "Invalid port number.")))
      ((string= name "")
       (values #f (format #f "An empty connection name is not allowed.")))
      ((not (connection-by-name name))
       (values #f (format #f "There is no connection with this name.")))
-     ((string= address "")
-      (values #f (format #f "The connection address cannot empty.")))
-     ((string= port "")
-      (values #f (format #f "The connection port cannot empty.")))
+     ((string= uri "")
+      (values #f (format #f "The connection URI cannot empty.")))
      ((string-contains name " ")
       (values #f (format #f "The connection name cannot contain whitespace characters.")))
      (#t (begin
