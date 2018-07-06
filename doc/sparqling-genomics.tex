@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper,oneside]{book}
 \usepackage{umcu}
-\title{SPARQLing structural variation}
+\title{SPARQLing genomics}
 \author{Roel Janssen}
 
 \begin{document}
@@ -9,11 +9,12 @@
   \topskip0pt
   \vspace*{\fill}
   \begin{center}
-    \rule{\textwidth}{1.0pt}~\\~\\
-    \Huge SPARQLing structural variation
-    \rule{\textwidth}{1.0pt}
-    \Large Roel Janssen~\\~\\
-    \large September 2017
+    \includegraphics[width=0.75\textwidth]{figures/logo.pdf}
+    %\Huge SPARQLing genomics
+    \rule{0.75\textwidth}{1.0pt}~\\
+    %\Large Roel Janssen~\\~\\
+    \url{https://github.com/UMCUGenetics/sparqling-genomics}~\\
+    \large v0.99.0, \today{}
     % Put it a little bit above the center of the page.
     ~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\
   \end{center}
@@ -44,7 +45,7 @@
     \item Push data to a SPARQL endpoint.
   \end{itemize}
 
-\section{Preparing data with \texttt{vcf2rdf}}
+\section{Preparing variant call data with \texttt{vcf2rdf}}
 \label{sec:vcf2rdf}
 
   Obtaining variants from sequenced data is a task of so called
@@ -124,7 +125,7 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
 
 \subsection{Run-time properties}
 
-  Depending on the serialization format, the program typically uses from ten megabytes
+  Depending on the serialization format, the program typically uses from two megabytes
   (in \texttt{ntriples} mode), to multiple times the size of the input VCF
   (in \texttt{turtle} mode).
 
@@ -134,6 +135,76 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
 
   We recommend using the \texttt{ntriples} format for large input files, and
   \texttt{turtle} for small input files.
+
+\section{Preparing sequence data with \texttt{fasta2rdf}}
+\label{sec:fasta2rdf}
+
+  Resources like pre-composed reference genomes are often distributed in the
+  FASTA file format.  The \texttt{fasta2rdf} program generates RDF that
+  describes each nucleotide, its position (where the first nucleotide is at
+  position 1, not 0), and to which sequence the nucleotide belongs.
+
+  Its main aim is to describe a sequence to allow for querying the sequence
+  context of a variant.
+
+\subsection{Knowledge extracted by \texttt{fasta2rdf}}
+
+  The \texttt{fasta2rdf} program extracts a nucleotide and describes it along
+  with its position in the sequence.
+
+  In addition to the knowledge from the FASTA file, \texttt{fasta2rdf} stores the
+  following metadata:
+
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l l L }
+      \headrow
+      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      & \textbf{Description}\\
+      \evenrow
+      :Origin & rdf:type & owl:Class
+      & \texttt{:Origin} is used to identify a data origin (which
+      is usually a file).\\
+      \oddrow
+      :Sample & rdf:type & owl:Class
+      & \texttt{:Sample} is used to identify a sample name.\\
+      \evenrow
+      :Sequence & rdf:type & owl:Class
+      & \texttt{:Sequence} is used to identify a sequence within the file.
+      This is typically a chromosome or contig\\
+      \oddrow
+      :filename & rdf:type & xsd:string
+      & \texttt{:filename} contains the path to the file that \texttt{:Origin}
+      represents.\\
+      \evenrow
+      :convertedBy & rdf:type & owl:AnnotationProperty
+      & \texttt{:convertedBy} is used to identify the program that performed
+      the VCF->RDF conversion.\\
+      \oddrow
+      :foundIn & rdf:type & owl:AnnotationProperty
+      & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
+    \end{tabularx}
+    \caption{\small The additional triple patterns described by \texttt{fasta2rdf}.}
+    \label{table:fasta2rdf-ontology}
+  \end{table}
+
+  The following snippet is an example of the extra data in Turtle-format:
+
+  \begin{siderules}
+\begin{verbatim}
+<http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b>
+    :convertedBy :vcf2rdf ;
+    :filename "grch37.fasta.gz"^^xsd:string ;
+    a :Origin .
+
+sample:grch37
+    :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+    a :Sample .
+
+sample:CLONE_TUMOR
+    :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+    a :Sample .
+\end{verbatim}
+\end{siderules}
 
 \section{Importing data with \texttt{curl}}
 \label{sec:curl}
@@ -179,12 +250,39 @@ sg-web
 \end{verbatim}
 \end{siderules}
 
-  By default, it will be available on \url{http://localhost:5000}.
+  By default, it will be accessible on \url{http://localhost:5000}.
 
-\subsection{Authentication}
+\subsection{Configurating connections}
+
+  The first useful step is to configure a connection to a SPARQL endpoint.
+
+  \begin{figure}[h]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/web-connections.png}
+    \end{center}
+    \caption{The \emph{connections} page enables users to configure accessible
+      SPARQL endpoints.  Adding a connection here will provide an option to
+      query it on the \emph{query} page.}
+    \label{fig:web-connections}
+  \end{figure}
 
   When providing a username and password for a connection, it will attempt
   to connect using \emph{digest authentication}.
+
+\subsection{Executing queries}
+
+  After configuring at least one endpoint, it can be chosen on the \emph{query}
+  page to execute a query against it.
+
+  \begin{figure}[h]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/web-query.png}
+    \end{center}
+    \caption{The \emph{query} page enables users to execute a query against a
+      SPARQL endpoint.  The connections configured at the \emph{connections} page
+      can be chosen from the drop-down menu.}
+    \label{fig:web-query}
+  \end{figure}
 
 \chapter{Information retrieval with SPARQL}
 
@@ -436,7 +534,5 @@ query_data <- SPARQL (endpoint, query)
 query_results <- query_data$results
 \end{verbatim}
 \end{siderules}
-
-%\input{performance-tuning}
 
 \end{document}

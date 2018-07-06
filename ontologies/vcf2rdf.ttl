@@ -77,6 +77,36 @@
     rdfs:label   "Variant call" ;
     rdfs:comment "Describes a variant call." .
 
+:ID
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant call identifier" ;
+    rdfs:comment "A non-unique identifier provided by the variant caller or annotation program to identify a variant call." ;
+    rdfs:domain  :Variant .
+
+:REF
+    rdf:type     owl:Class ;
+    rdfs:label   "Reference" ;
+    rdfs:comment "The value of the reference genome at the position of the variant call." ;
+    rdfs:domain  :Variant .
+
+:ALT
+    rdf:type     owl:Class ;
+    rdfs:label   "Alternative" ;
+    rdfs:comment "The canonical value of the sample genome at the position of the variant call." ;
+    rdfs:domain  :Variant .
+
+:QUAL
+    rdf:type     owl:Class ;
+    rdfs:label   "Quality" ;
+    rdfs:comment "A quality score of the variant call." ;
+    rdfs:domain  :Variant .
+
+:FILTER
+    rdf:type     owl:Class ;
+    rdfs:label   "Filter" ;
+    rdfs:comment "A filter (tag) field for a variant call." ;
+    rdfs:domain  :Variant .
+
 :VcfHeaderGenericItem
     rdf:type   owl:Class ;
     rdfs:label "Generic VCF header item" .

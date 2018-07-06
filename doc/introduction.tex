@@ -1,4 +1,4 @@
-\chapter{Introduction}
+\chapter{Getting started}
 
 \section{Prerequisites}
 \label{sec:prerequisites}
@@ -140,3 +140,42 @@ So, to only build \texttt{vcf2rdf}, the following command could be used:
 make -C tools/vcf2rdf
 \end{verbatim}
 \end{siderules}
+
+\chapter{The knowledge graph}
+
+  The tools provided by \texttt{sparqling-genomics} are designed to build a
+  common format to express genomic information.  Each program reads data in
+  a domain-specific format, and translates it into a common format; the
+  Resource Description Framework (RDF).
+
+  Programs can be categorized in layers.  A program belongs to the first
+  layer (layer 0) when it translates a non-RDF format into RDF.  In the
+  second layer (layer 1), we find programs that read RDF and generate more
+  RDF.  Higher-level layers depend on the knowledge added by programs from
+  the previous layer.
+
+  In \texttt{sparqling-genomics}, the knowledge graph created by the programs
+  is more important than the programs themselves.  When designing and
+  implementing new programs, we should consider the added knowledge first.
+
+  Furthermore, programs should not depend on programs, but on the knowledge
+  produced by programs.  For example, the \texttt{vcf2rdf} program always
+  writes genomic positions by using the \emph{FALDO} ontology.  An annotation
+  program needs not to know about the existence of \texttt{vcf2rdf}, but it
+  needs to know about the \emph{FALDO} ontology.  Therefore, the common
+  interface between programs dealing with genomic positions is the \emph{FALDO}
+  ontology.  This enables developers of the knowledge graph to understand
+  the bigger picture without needing to understand the details of each
+  program, or each individual data format.
+
+  The next challenge is to describe knowledge in an integrative manner.  Again,
+  \emph{FALDO} serves a good example: it describes a way of expressing knowledge
+  that multiple programs can use; locations in a genome.  Developing effective
+  ontologies means extracting common patterns in how information is described.
+  This is an ever-ongoing process of refinement that changes over time with the
+  knowledge that is most valuable to the researcher.
+
+  With \texttt{sparqling-genomics}, we attempt to design a knowledge graph and
+  provide the tools to practically implement it.  When improving
+  \texttt{sparqling-genomics}, please always keep an eye out for the knowledge
+  graph.
