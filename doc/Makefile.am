@@ -11,7 +11,11 @@ doc_PDF                 = $(doc_NAME).pdf
 doc_TEX                 = $(doc_NAME).tex
 doc_STYLE		= umcu.sty
 
-dist_doc_DATA           = $(doc_TEX) $(doc_STYLE)
+dist_doc_DATA           = $(doc_TEX) $(doc_STYLE) 	\
+			  introduction.tex		\
+			  figures/logo.pdf		\
+			  figures/web-connections.png	\
+			  figures/web-query.png
 
 if HAVE_PDFLATEX
 
