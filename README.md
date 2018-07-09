@@ -47,3 +47,5 @@ Please read the manual in the `doc/` directory.  A PDF can be built using:
 $ guix environment -l environment.scm --ad-hoc texlive
 [env]$ make doc
 ```
+
+Alternatively, a ![pre-built PDF](https://github.com/UMCUGenetics/sparqling-genomics/blob/master/doc/sparqling-genomics.pdf) is also available.
