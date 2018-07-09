@@ -29,6 +29,7 @@
             www-name
             www-hostname
             www-root
+            www-cache-root
             www-static-root))
 
 
@@ -51,15 +52,28 @@
                            #:getter get-www-hostname)
 
   (www-root                #:init-value
-                           (lambda _ (dirname
-                                      (search-path %load-path "sg-web")))
+                           (lambda _
+                             (if (getenv "SG_WEB_ROOT")
+                                 (getenv "SG_WEB_ROOT")
+                                 (dirname (search-path %load-path "sg-web"))))
                            #:getter get-www-root)
-
+  (www-cache-root          #:init-value
+                           (lambda _
+                             (let ((xdg-cache-home (getenv "XDG_CACHE_HOME")))
+                               (if xdg-cache-home
+                                   (string-append xdg-cache-home
+                                                  "/sparqling-genomics")
+                                   (string-append
+                                    (getenv "HOME")
+                                    "/.cache/sparqling-genomics"))))
+                           #:getter get-www-cache-root)
   (www-static-root         #:init-value
                            (lambda _
-                             (string-append
-                              (dirname (search-path %load-path "sg-web"))
-                            "/static"))
+                             (if (getenv "SG_WEB_ROOT")
+                                 (string-append (getenv "SG_WEB_ROOT") "/static")
+                                 (string-append
+                                  (dirname (search-path %load-path "sg-web"))
+                                  "/static")))
                            #:getter get-www-static-root)
 
   (www-max-file-size       #:init-value 250000000
@@ -104,6 +118,12 @@
 (define-syntax-rule
   (www-root)
   ((get-www-root %runtime-configuration)))
+
+(define (www-cache-root)
+  (let ((cache-root (get-www-cache-root %runtime-configuration)))
+    (unless (file-exists? (cache-root))
+      (mkdir (cache-root)))
+    (cache-root)))
 
 (define-syntax-rule
   (www-static-root)

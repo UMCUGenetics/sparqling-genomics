@@ -35,18 +35,17 @@ SOURCES =                                               \
   www/pages/help.scm                                    \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
+  www/pages/ontology.scm                                \
   www/pages/welcome.scm                                 \
   www/util.scm
 
 WWW_STATIC_RESOURCES =                                  \
   static/css/main.css                                   \
   static/fonts/FiraMono-Regular.ttf                     \
+  static/fonts/FiraMono-Bold.ttf                        \
   static/fonts/Roboto-Bold.ttf                          \
   static/fonts/Roboto-LightItalic.ttf                   \
   static/fonts/Roboto-Light.ttf                         \
-  static/images/background.png                          \
-  static/images/bedge_grunge.png                        \
-  static/images/g16.png                                 \
   static/images/logo.png                                \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \
@@ -56,7 +55,11 @@ WWW_STATIC_RESOURCES =                                  \
   static/highlight/styles/androidstudio.css             \
   static/highlight/styles/github.css                    \
   static/datatables.min.css                             \
-  static/jquery.dataTables.min.js
+  static/jquery.dataTables.min.js                       \
+  static/jquery-3.2.1.min.js                            \
+  static/ace/ace.js                                     \
+  static/ace/mode-sparql.js                             \
+  static/ace/theme-github.js
 
 bin_SCRIPTS = sg-web
 EXTRA_DIST += $(WWW_STATIC_RESOURCES)

@@ -88,7 +88,7 @@
 (define (load-connections)
   (catch #t
     (lambda _
-      (let ((filename (string-append (www-root) "/connections.scm")))
+      (let ((filename (string-append (www-cache-root) "/connections.scm")))
         (when (file-exists? filename)
           (call-with-input-file filename
             (lambda (port)
@@ -98,7 +98,7 @@
       #f)))
 
 (define (persist-connections)
-  (let ((filename (string-append (www-root) "/connections.scm")))
+  (let ((filename (string-append (www-cache-root) "/connections.scm")))
     (call-with-output-file filename
       (lambda (port)
         ;; Before writing to the file under 'port', chmod it so that
