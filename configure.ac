@@ -52,6 +52,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   tools/vcf2rdf/Makefile
+  tools/table2rdf/Makefile
   web/Makefile
 ])
 
