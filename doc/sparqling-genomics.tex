@@ -312,13 +312,34 @@ sg-web
 \label{sec:non-empty-graphs}
   Each SPARQL endpoint can host multiple \emph{graphs}.  Each graph can contain
   an independent set of triples.  The following query displays the available
-  graphs in a SPARQL endpoint:
+  non-empty graphs in a SPARQL endpoint:
 
 \begin{siderules}
 \begin{verbatim}
 SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }
 \end{verbatim}
 \end{siderules}
+
+Which may yield the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ L }
+    \headrow
+    \textbf{graph}\\
+    \evenrow
+    \texttt{http://example}\\
+    \oddrow
+    \texttt{http://localuriqaserver/sparql}\\
+    \evenrow
+    \texttt{http://www.openlinksw.com/schemas/virtrdf#}\\
+    \oddrow
+    \texttt{http://www.w3.org/2002/07/owl#}\\
+    \evenrow
+    \texttt{http://www.w3.org/ns/ldp#}\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-1}
+\end{table}
 
 \subsection{Querying a specific graph}
 
@@ -334,6 +355,10 @@ FROM <graph-name>
 WHERE { ?s ?p ?o }
 \end{verbatim}
 \end{siderules}
+
+  The \texttt{graph-name} must be one of the graphs returned by the query from
+  section \ref{sec:non-empty-graphs} {\color{LinkGray}%
+    `\nameref{sec:non-empty-graphs}'}.
 
   Without the \texttt{FROM} clause, the RDF store will search in all graphs.
   We can repeat the \texttt{FROM} clause to query over multiple graphs in the
@@ -354,23 +379,76 @@ WHERE { ?s ?p ?o }
 
 \subsection{Exploring the structure of knowledge in a graph}
 
+
   Inside the \texttt{WHERE} clause of a SPARQL query we specify a graph
-  pattern.  One useful method of finding out which patterns exist in a
+  pattern.  When the information in a graph is structured, there are only few
+  predicates in comparison to the number of subjects and the number of objects.
+
+\begin{siderules}
+\begin{verbatim}
+SELECT COUNT(DISTINCT ?s) AS ?subjects
+       COUNT(DISTINCT ?p) AS ?predicates
+       COUNT(DISTINCT ?o) AS ?objects
+FROM <http://example>
+WHERE {
+  ?s ?p ?o
+}
+\end{verbatim}
+\end{siderules}
+
+On a typical graph with data originating from \texttt{vcf2rdf}, this may yield
+the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ L L L }
+    \headrow
+    \textbf{subjects} & \textbf{predicates} & \textbf{objects}\\
+    \evenrow
+    \texttt{3011691} & \texttt{229} & \texttt{4000809}\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-2}
+\end{table}
+
+  Therefore, one useful method of finding out which patterns exist in a
   graph is to look for predicates:
 
 \begin{siderules}
 \begin{verbatim}
 SELECT DISTINCT ?predicate
-FROM <graph-name>
+FROM <http://example>
 WHERE {
   ?subject ?predicate ?object .
 }
 \end{verbatim}
 \end{siderules}
 
-  The \texttt{graph-name} must be one of the graphs returned by the query from
-  section \ref{sec:non-empty-graphs} {\color{LinkGray}%
-    `\nameref{sec:non-empty-graphs}'}.
+  The query above may yield the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ L }
+    \headrow
+    \textbf{predicate}\\
+    \evenrow
+    \texttt{http://biohackathon.org/resource/faldo#position}\\
+    \oddrow
+    \texttt{http://biohackathon.org/resource/faldo#reference}\\
+    \evenrow
+    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/filename}\\
+    \oddrow
+    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/foundIn}\\
+    \evenrow
+    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/sample}\\
+    \oddrow
+    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/ALT}\\
+    \evenrow
+    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/FILTER}\\
+    \oddrow
+    $\ldots$\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-3}
+\end{table}
 
 \subsection{Listing samples and their originating files}
 
@@ -391,6 +469,23 @@ WHERE {
 }
 \end{verbatim}
 \end{siderules}
+
+Which may yield the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ l L }
+    \headrow
+    \textbf{sample} & \textbf{filename}\\
+    \evenrow
+    \texttt{REF0047} & \texttt{/data/examples/TUMOR\_REF0047.annotated.vcf.gz}\\
+    \oddrow
+    \texttt{TUMOR0047} & \texttt{/data/examples/TUMOR\_REF0047.annotated.vcf.gz}\\
+    \evenrow
+    $\ldots$ & $\ldots$\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-4}
+\end{table}
 
 \subsection{Listing samples, originated files, and number of variants}
 
@@ -419,11 +514,28 @@ WHERE
 \end{verbatim}
 \end{siderules}
 
+  Which may yield the following table:
+
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l L l }
+      \headrow
+      \textbf{sample} & \textbf{filename} & \textbf{numberOfVariants}\\
+      \evenrow
+      \texttt{REF0047}   & \texttt{/data/examples/TUMOR\_REF0047.annotated.vcf.gz} & \texttt{1505712}\\
+      \oddrow
+      \texttt{TUMOR0047} & \texttt{/data/examples/TUMOR\_REF0047.annotated.vcf.gz} & \texttt{1505712}\\
+      \evenrow
+      $\ldots$ & $\ldots$ & $\ldots$\\
+    \end{tabularx}
+    \caption{\small Query results of the above query.}
+    \label{table:query-output-5}
+  \end{table}
+
   By using \texttt{COUNT}, we can get the \texttt{DISTINCT} number of
   matching patterns for a variant call for a sample, originating from
   a distinct file.
 
-\subsection{Retrieving all variants}
+  \subsection{Retrieving all variants}
 
   When retrieving potentially large amounts of data, the \texttt{LIMIT}
   clause may come in handy to prototype a query until we are sure enough
@@ -459,6 +571,55 @@ LIMIT 100
   rows, the query could have returned possibly a few million rows, which
   would obviously take longer to process.
 
+\subsection{Retrieving variants with a specific mutation}
+
+  Any property can be used to subset the results.  For example, we can
+  look for occurrences of a \texttt{C} to \texttt{T} mutation in the positional
+  range $202950000$ to $202960000$ on chromosome \texttt{2}, according to the
+  \emph{GRCh37 (hg19)} reference genome with the following query:
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+PREFIX hg19: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
+PREFIX v: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vc: <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX seq: <http://rdf.umcutrecht.nl/vcf2rdf/Sequence/>
+
+SELECT COUNT(DISTINCT ?variant) AS ?occurrences ?sample
+FROM <http://example>
+WHERE {
+  ?variant  rdf:type         v:VariantCall .
+  ?variant  v:sample         ?sample .
+  ?variant  vc:REF           seq:C .
+  ?variant  vc:ALT           seq:T .
+  ?variant  faldo:reference  hg19:chr2 .
+  ?variant  faldo:position   ?position .
+
+  FILTER (?position >= 202950000)
+  FILTER (?position <= 202960000)
+}
+LIMIT 2
+\end{verbatim}
+\end{siderules}
+
+Which may yield the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ l L }
+    \headrow
+    \textbf{occurrences} & \textbf{sample}\\
+    \evenrow
+    \texttt{5} & \texttt{http://rdf.umcutrecht.nl/vcf2rdf/Sample/REF0047}\\
+    \oddrow
+    \texttt{5} & \texttt{http://rdf.umcutrecht.nl/vcf2rdf/Sample/TUMOR0047}\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-6}
+\end{table}
+
 \section{Federated querying}
 \label{sec:federated-querying}
 
@@ -470,6 +631,7 @@ LIMIT 100
   {public SPARQL endpoint hosted by EBI}.
 
 \subsection{Get an overview of Biomodels (from ENSEMBL)}
+
 \begin{siderules}
 \begin{verbatim}
 PREFIX sbmlrdf: <http://identifiers.org/biomodels.vocabulary#>
@@ -484,7 +646,30 @@ SELECT ?speciesId ?name {
 \end{verbatim}
 \end{siderules}
 
-\chapter{Programming in Python, Perl, R, Scheme, C, and/or C++}
+Which may yield the following table:
+
+\begin{table}[H]
+  \begin{tabularx}{\textwidth}{ l L }
+    \headrow
+    \textbf{speciesId} & \textbf{name}\\
+    \evenrow
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000003} & \texttt{BasalACh2}\\
+    \oddrow
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000004} & \texttt{IntermediateACh}\\
+    \evenrow
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000005} & \texttt{ActiveACh}\\
+    \oddrow
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000006} & \texttt{Active}\\
+    \evenrow
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000007} & \texttt{BasalACh}\\
+    \oddrow
+    $\ldots$ & $\ldots$\\
+  \end{tabularx}
+  \caption{\small Query results of the above query.}
+  \label{table:query-output-7}
+\end{table}
+
+\chapter{Programming in R, Python, Perl, Scheme, C, and/or C++}
 \label{chap:programming}
 
 \section{Using SPARQL with R}
