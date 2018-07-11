@@ -23,12 +23,13 @@
 
 typedef struct {
   char *header_line;
+  char **column_ids;
   char **keys;
   uint32_t keys_len;
   uint32_t keys_alloc_len;
 } table_hdr_t;
 
 table_hdr_t *process_header (FILE* stream, const unsigned char *origin);
-void process_variant (table_hdr_t* hdr, FILE *stream, const unsigned char *origin);
+void process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin);
 
 #endif /* TABLE_H */

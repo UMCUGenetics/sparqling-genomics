@@ -97,7 +97,8 @@ typedef struct
   ontology_t        *ontology;
 
   /* Shared buffers. */
-  uint32_t          non_unique_variant_counter;
+  uint32_t          column_counter;
+  uint32_t          row_counter;
   char              id_buf[77];
   char              number_buffer[32];
 } RuntimeConfiguration;
@@ -111,6 +112,7 @@ bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);
 void runtime_configuration_redland_free (void);
 
-bool generate_variant_id (const unsigned char *origin, char *variant_id);
+bool generate_column_id (const unsigned char *origin, char *column_id);
+bool generate_row_id (const unsigned char *origin, char *row_id);
 
 #endif  /* RUNTIMECONFIGURATION_H */

@@ -116,7 +116,7 @@ main (int argc, char **argv)
                        "------------------- -------------------\n");
               while (!feof (stream))
                 {
-                  process_variant (table, stream, file_hash);
+                  process_row (table, stream, file_hash);
                   if (counter % 50000 == 0)
                     {
                       rawtime = time (NULL);
@@ -134,8 +134,16 @@ main (int argc, char **argv)
           else
             {
               while (!feof (stream))
-                process_variant (table, stream, file_hash);
+                process_row (table, stream, file_hash);
             }
+
+          uint32_t index = 0;
+          for (; index < table->keys_len; index++)
+            free (table->column_ids[index]);
+
+          free (table->keys);
+          free (table->column_ids);
+          free (table);
         }
 
       /* Clean up. */

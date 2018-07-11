@@ -29,7 +29,8 @@ runtime_configuration_init (void)
   config.caller = NULL;
   config.delimiter = "\t";
   config.output_format = NULL;
-  config.non_unique_variant_counter = 0;
+  config.column_counter = 0;
+  config.row_counter = 0;
   config.header_only = false;
   config.show_progress_info = false;
 
@@ -74,13 +75,25 @@ runtime_configuration_free (void)
 }
 
 bool
-generate_variant_id (const unsigned char *origin, char *variant_id)
+generate_column_id (const unsigned char *origin, char *column_id)
 {
   int32_t bytes_written;
-  bytes_written = snprintf (variant_id, 77, "%s-V%010u",
+  bytes_written = snprintf (column_id, 77, "%s-C%010u",
                             origin,
-                            config.non_unique_variant_counter);
+                            config.column_counter);
 
-  config.non_unique_variant_counter++;
+  config.column_counter++;
+  return (bytes_written > 0);
+}
+
+bool
+generate_row_id (const unsigned char *origin, char *row_id)
+{
+  int32_t bytes_written;
+  bytes_written = snprintf (row_id, 77, "%s-R%010u",
+                            origin,
+                            config.row_counter);
+
+  config.row_counter++;
   return (bytes_written > 0);
 }

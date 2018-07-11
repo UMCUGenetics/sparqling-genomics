@@ -28,6 +28,7 @@
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
 #define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
 #define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
+#define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
 #define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
 #define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
 #define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"
@@ -39,6 +40,7 @@ typedef enum
   PREFIX_BASE = 0,
   PREFIX_SAMPLE,
   PREFIX_ORIGIN,
+  PREFIX_COLUMN,
   PREFIX_RDF,
   PREFIX_RDFS,
   PREFIX_OWL,
@@ -50,7 +52,9 @@ typedef enum
 {
   CLASS_RDF_TYPE = 0,
   CLASS_ORIGIN,
-  CLASS_SAMPLE
+  CLASS_SAMPLE,
+  CLASS_COLUMN,
+  CLASS_ROW
 } ontology_class;
 
 typedef struct
