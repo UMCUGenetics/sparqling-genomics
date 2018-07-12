@@ -14,4 +14,4 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 AUTOMAKE_OPTIONS 	= subdir-objects
-SUBDIRS                 = tools/vcf2rdf web doc
+SUBDIRS                 = tools/vcf2rdf tools/table2rdf web doc
