@@ -136,24 +136,25 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
   We recommend using the \texttt{ntriples} format for large input files, and
   \texttt{turtle} for small input files.
 
-\section{Preparing sequence data with \texttt{fasta2rdf}}
-\label{sec:fasta2rdf}
+\section{Preparing sequence data with \texttt{table2rdf}}
+\label{sec:table2rdf}
 
-  Resources like pre-composed reference genomes are often distributed in the
-  FASTA file format.  The \texttt{fasta2rdf} program generates RDF that
-  describes each nucleotide, its position (where the first nucleotide is at
-  position 1, not 0), and to which sequence the nucleotide belongs.
+  Data that can be represented as a table, like comma-separated values (CSV)
+  or BED files, can be imported using \texttt{table2rdf}.  The column headers
+  are used as predicates, and each row gets a unique row ID.  Non-alphanumeric
+  characters in the header line are replaced by underscores, and all characters
+  are replaced by their lowercase equivalent to make a consistent scheme for
+  predicates.
 
-  Its main aim is to describe a sequence to allow for querying the sequence
-  context of a variant.
+  When the file does not contain a header line, one can be specified using the
+  \texttt{-{}-header-line} argument.  When using this command-line argument, the
+  delimiter must be a semicolon (\texttt{;}).
 
-\subsection{Knowledge extracted by \texttt{fasta2rdf}}
+\subsection{Knowledge extracted by \texttt{table2rdf}}
 
-  The \texttt{fasta2rdf} program extracts a nucleotide and describes it along
-  with its position in the sequence.
-
-  In addition to the knowledge from the FASTA file, \texttt{fasta2rdf} stores the
-  following metadata:
+  The \texttt{table2rdf} program extracts all fields in the table.  In addition
+  to the knowledge from the table file, \texttt{table2rdf} stores the following
+  metadata:
 
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{ l l l L }
@@ -168,43 +169,113 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
       :Sample & rdf:type & owl:Class
       & \texttt{:Sample} is used to identify a sample name.\\
       \evenrow
-      :Sequence & rdf:type & owl:Class
-      & \texttt{:Sequence} is used to identify a sequence within the file.
-      This is typically a chromosome or contig\\
-      \oddrow
       :filename & rdf:type & xsd:string
       & \texttt{:filename} contains the path to the file that \texttt{:Origin}
       represents.\\
-      \evenrow
+      \oddrow
       :convertedBy & rdf:type & owl:AnnotationProperty
       & \texttt{:convertedBy} is used to identify the program that performed
       the VCF->RDF conversion.\\
-      \oddrow
+      \evenrow
       :foundIn & rdf:type & owl:AnnotationProperty
       & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns described by \texttt{fasta2rdf}.}
-    \label{table:fasta2rdf-ontology}
+    \caption{\small The additional triple patterns described by \texttt{table2rdf}.}
+    \label{table:table2rdf-ontology}
   \end{table}
 
   The following snippet is an example of the extra data in Turtle-format:
 
   \begin{siderules}
 \begin{verbatim}
-<http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b>
-    :convertedBy :vcf2rdf ;
-    :filename "grch37.fasta.gz"^^xsd:string ;
+<http://rdf.umcutrecht.nl/table2rdf/1jka8923i4>
+    :convertedBy :table2rdf ;
+    :filename "grch37.bed"^^xsd:string ;
     a :Origin .
 
 sample:grch37
-    :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
-    a :Sample .
-
-sample:CLONE_TUMOR
-    :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+    :foundIn <http://rdf.umcutrecht.nl/table2rdf/1jka8923i4> ;
     a :Sample .
 \end{verbatim}
 \end{siderules}
+
+\subsection{Example usage}
+
+\begin{siderules}
+\begin{verbatim}
+table2rdf -i /path/to/my/table.tsv > /path/to/my/table.ttl
+\end{verbatim}
+\end{siderules}
+
+%% \section{Preparing sequence data with \texttt{fasta2rdf}}
+%% \label{sec:fasta2rdf}
+
+%%   Resources like pre-composed reference genomes are often distributed in the
+%%   FASTA file format.  The \texttt{fasta2rdf} program generates RDF that
+%%   describes each nucleotide, its position (where the first nucleotide is at
+%%   position 1, not 0), and to which sequence the nucleotide belongs.
+
+%%   Its main aim is to describe a sequence to allow for querying the sequence
+%%   context of a variant.
+
+%% \subsection{Knowledge extracted by \texttt{fasta2rdf}}
+
+%%   The \texttt{fasta2rdf} program extracts a nucleotide and describes it along
+%%   with its position in the sequence.
+
+%%   In addition to the knowledge from the FASTA file, \texttt{fasta2rdf} stores the
+%%   following metadata:
+
+%%   \begin{table}[H]
+%%     \begin{tabularx}{\textwidth}{ l l l L }
+%%       \headrow
+%%       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+%%       & \textbf{Description}\\
+%%       \evenrow
+%%       :Origin & rdf:type & owl:Class
+%%       & \texttt{:Origin} is used to identify a data origin (which
+%%       is usually a file).\\
+%%       \oddrow
+%%       :Sample & rdf:type & owl:Class
+%%       & \texttt{:Sample} is used to identify a sample name.\\
+%%       \evenrow
+%%       :Sequence & rdf:type & owl:Class
+%%       & \texttt{:Sequence} is used to identify a sequence within the file.
+%%       This is typically a chromosome or contig\\
+%%       \oddrow
+%%       :filename & rdf:type & xsd:string
+%%       & \texttt{:filename} contains the path to the file that \texttt{:Origin}
+%%       represents.\\
+%%       \evenrow
+%%       :convertedBy & rdf:type & owl:AnnotationProperty
+%%       & \texttt{:convertedBy} is used to identify the program that performed
+%%       the VCF->RDF conversion.\\
+%%       \oddrow
+%%       :foundIn & rdf:type & owl:AnnotationProperty
+%%       & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
+%%     \end{tabularx}
+%%     \caption{\small The additional triple patterns described by \texttt{fasta2rdf}.}
+%%     \label{table:fasta2rdf-ontology}
+%%   \end{table}
+
+%%   The following snippet is an example of the extra data in Turtle-format:
+
+%%   \begin{siderules}
+%% \begin{verbatim}
+%% <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b>
+%%     :convertedBy :vcf2rdf ;
+%%     :filename "grch37.fasta.gz"^^xsd:string ;
+%%     a :Origin .
+
+%% sample:grch37
+%%     :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+%%     a :Sample .
+
+%% sample:CLONE_TUMOR
+%%     :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+%%     a :Sample .
+%% \end{verbatim}
+%% \end{siderules}
 
 \section{Importing data with \texttt{curl}}
 \label{sec:curl}
@@ -303,10 +374,17 @@ sg-web
 
 \section{Local querying}
 
-  The promise from ``linked data'' is to make data available in such a way that
-  one query can retrieve information from multiple SPARQL endpoints.  We call
-  querying over multiple SPARQL endpoints \emph{federated querying}.  But before
-  we do that, let's look at simple queries that only look at our own data.
+  When we request information from a SPARQL endpoint, we are performing a
+  \emph{local query} because we request data from a single place.  In our case,
+  that is most likely to be our own SPARQL endpoint.
+
+  In contrast to \emph{local querying}, we can also query multiple SPARQL
+  endpoints in one go, to combine the information from multiple locations.
+  Combining information from multiple SPARQL endpoints is called \emph{federated
+    querying}.
+
+  Federated querying is discussed in section \ref{sec:federated-querying}
+  {\color{LinkGray}`\nameref{sec:federated-querying}'}.
 
 \subsection{Listing non-empty graphs}
 \label{sec:non-empty-graphs}
@@ -331,15 +409,22 @@ Which may yield the following table:
     \oddrow
     \texttt{http://localuriqaserver/sparql}\\
     \evenrow
-    \texttt{http://www.openlinksw.com/schemas/virtrdf#}\\
+    \texttt{http://www.openlinksw.com/schemas/virtrdf\#}\\
     \oddrow
-    \texttt{http://www.w3.org/2002/07/owl#}\\
+    \texttt{http://www.w3.org/2002/07/owl\#}\\
     \evenrow
-    \texttt{http://www.w3.org/ns/ldp#}\\
+    \texttt{http://www.w3.org/ns/ldp\#}\\
   \end{tabularx}
-  \caption{\small Query results of the above query.}
+  \caption{\small Results of the query to list non-empty graphs.}
   \label{table:query-output-1}
 \end{table}
+
+  The graph names usually look like URLs, like we would encounter them on the
+  web.  In fact, not only graph names, but any node that has a symbolic meaning,
+  rather than a literal\footnote{Examples of literals are numbers and strings.
+    Symbols are nodes that don't have a literal value.} meaning is usually
+  written as a URL.  We can go to such a URL with a web browser and might even
+  find more information.
 
 \subsection{Querying a specific graph}
 
@@ -390,9 +475,7 @@ SELECT COUNT(DISTINCT ?s) AS ?subjects
        COUNT(DISTINCT ?p) AS ?predicates
        COUNT(DISTINCT ?o) AS ?objects
 FROM <http://example>
-WHERE {
-  ?s ?p ?o
-}
+WHERE { ?s ?p ?o }
 \end{verbatim}
 \end{siderules}
 
@@ -406,7 +489,8 @@ the following table:
     \evenrow
     \texttt{3011691} & \texttt{229} & \texttt{4000809}\\
   \end{tabularx}
-  \caption{\small Query results of the above query.}
+  \caption{\small Results of the query to count the number of subjects,
+    predicates, and objects in a graph.}
   \label{table:query-output-2}
 \end{table}
 
@@ -423,16 +507,16 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
-  The query above may yield the following table:
+  Which may yield the following table:
 
 \begin{table}[H]
   \begin{tabularx}{\textwidth}{ L }
     \headrow
     \textbf{predicate}\\
     \evenrow
-    \texttt{http://biohackathon.org/resource/faldo#position}\\
+    \texttt{http://biohackathon.org/resource/faldo\#position}\\
     \oddrow
-    \texttt{http://biohackathon.org/resource/faldo#reference}\\
+    \texttt{http://biohackathon.org/resource/faldo\#reference}\\
     \evenrow
     \texttt{http://rdf.umcutrecht.nl/vcf2rdf/filename}\\
     \oddrow
@@ -446,7 +530,7 @@ WHERE {
     \oddrow
     $\ldots$\\
   \end{tabularx}
-  \caption{\small Query results of the above query.}
+  \caption{\small Results of the query to list predicates.}
   \label{table:query-output-3}
 \end{table}
 
@@ -483,9 +567,21 @@ Which may yield the following table:
     \evenrow
     $\ldots$ & $\ldots$\\
   \end{tabularx}
-  \caption{\small Query results of the above query.}
+  \caption{\small Results of the query to list samples and their originating
+    filenames.}
   \label{table:query-output-4}
 \end{table}
+
+  Notice how most predicates for \texttt{vcf2rdf} in table
+  \ref{table:query-output-3} start with
+  \texttt{http://rdf.umcutrecht.nl/vcf2rdf/}.  In the above query, we used
+  this to shorten the query.  We started the query by writing a \texttt{PREFIX}
+  rule for \texttt{http://rdf.umcutrecht.nl/vcf2rdf/}, which we called
+  \texttt{vcf2rdf:}.  This means that whenever we write \texttt{vcf2rdf:FOO}, the SPARQL endpoint interprets
+  it as if we would write\\\texttt{<http://rdf.umcutrecht.nl/vcf2rdf/FOO>}.
+
+  We will use more prefixes in the upcoming queries.  We can look up prefixes
+  for common ontologies using \href{http://prefix.cc}{http://prefix.cc}.
 
 \subsection{Listing samples, originated files, and number of variants}
 
@@ -527,7 +623,8 @@ WHERE
       \evenrow
       $\ldots$ & $\ldots$ & $\ldots$\\
     \end{tabularx}
-    \caption{\small Query results of the above query.}
+    \caption{\small Results of the query to list samples, their originated
+      filenames, and the number of variant calls for each sample in a file.}
     \label{table:query-output-5}
   \end{table}
 
@@ -535,7 +632,7 @@ WHERE
   matching patterns for a variant call for a sample, originating from
   a distinct file.
 
-  \subsection{Retrieving all variants}
+\subsection{Retrieving all variants}
 
   When retrieving potentially large amounts of data, the \texttt{LIMIT}
   clause may come in handy to prototype a query until we are sure enough
