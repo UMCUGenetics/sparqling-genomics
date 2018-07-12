@@ -259,11 +259,9 @@ process_variant_for_sample (bcf_hdr_t *header,
           type      = -1;
           value     = NULL;
           value_len = 0;
+          index     = config.format_field_indexes[i];
 
-          get_field_identity (header,
-                              config.format_field_indexes[i],
-                              &id_str,
-                              &type);
+          get_field_identity (header, index, &id_str, &type);
 
           if (!id_str || type == -1)
             continue;
@@ -369,7 +367,7 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
   if (buffer->d.allele == NULL)
     return;
 
-  uint32_t number_of_samples = bcf_hdr_nsamples (header);
+  int32_t number_of_samples = bcf_hdr_nsamples (header);
   int32_t sample_index = 0;
 
   if (!origin)
