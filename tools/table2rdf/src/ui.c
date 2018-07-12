@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <stdbool.h>
 #include <getopt.h>
 
@@ -35,6 +36,12 @@ ui_show_help (void)
                                        "file.\n"
 	"  --delimiter,             -d  The delimiter to distinguish fields "
                                        "in the file.\n"
+	"  --header-line,           -H  When the input file does not contain a "
+                                       "header\n"
+        "                               line, provide it here. When using this "
+                                       "argument,\n"
+        "                               the header line must use ';' as the "
+                                       "delimiter.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
         "  --output-format          -O  The output format to serialize to.\n");
 }
@@ -58,7 +65,7 @@ ui_process_command_line (int argc, char **argv)
     {
       { "caller",                required_argument, 0, 'c' },
       { "delimiter",             required_argument, 0, 'd' },
-      { "header-only",           no_argument,       0, 'o' },
+      { "header-line",           required_argument, 0, 'H' },
       { "help",                  no_argument,       0, 'h' },
       { "input-file",            required_argument, 0, 'i' },
       { "output-format",         required_argument, 0, 'O' },
@@ -70,7 +77,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:i:O:ophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:i:O:H:ophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -78,8 +85,24 @@ ui_process_command_line (int argc, char **argv)
         case 'i': config.input_file = optarg;                    break;
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
+        case 'H': config.header_line = optarg;                   break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
+        }
+    }
+
+  /* Passing '\t' on the command-line can be parsed as if it were '\\t'.
+   * Let's fix that here. */
+  if (config.delimiter && !strcmp(config.delimiter, "\\t"))
+    config.delimiter = "\t";
+
+  if (config.header_line != NULL)
+    {
+      if (strchr (config.header_line, ';') == NULL)
+        {
+          fprintf (stderr, "When using --header-line, use ';' as the delimiter "
+                           "for the header string.\n");
+          exit (0);
         }
     }
 }

@@ -100,51 +100,51 @@ main (int argc, char **argv)
       stmt = NULL;
 
       /* Process the header. */
-      table_hdr_t *table = process_header (stream, file_hash);
+      table_hdr_t *table = process_header (stream, file_hash, config.input_file);
 
-      if (!config.header_only)
+      if (config.show_progress_info)
         {
-          if (config.show_progress_info)
+          int32_t counter = 0;
+          time_t rawtime = 0;
+          char time_str[20];
+
+          fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n",
+                   "Rows", "Time");
+          fprintf (stderr, "[ PROGRESS ] ------------------- "
+                   "------------------- -------------------\n");
+          while (!feof (stream))
             {
-              int32_t counter = 0;
-              time_t rawtime = 0;
-              char time_str[20];
-
-              fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n",
-                       "Rows", "Time");
-              fprintf (stderr, "[ PROGRESS ] ------------------- "
-                       "------------------- -------------------\n");
-              while (!feof (stream))
+              process_row (table, stream, file_hash, config.input_file);
+              if (counter % 50000 == 0)
                 {
-                  process_row (table, stream, file_hash);
-                  if (counter % 50000 == 0)
-                    {
-                      rawtime = time (NULL);
-                      strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
-                      fprintf(stderr, "[ PROGRESS ] %-20d%-20s\n", counter, time_str);
-                    }
-
-                  counter++;
+                  rawtime = time (NULL);
+                  strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
+                  fprintf(stderr, "[ PROGRESS ] %-20d%-20s\n", counter, time_str);
                 }
 
-              fprintf (stderr,
-                       "[ PROGRESS ] \n"
-                       "[ PROGRESS ] Total number rows: %d\n", counter);
-            }
-          else
-            {
-              while (!feof (stream))
-                process_row (table, stream, file_hash);
+              counter++;
             }
 
-          uint32_t index = 0;
-          for (; index < table->keys_len; index++)
-            free (table->column_ids[index]);
-
-          free (table->keys);
-          free (table->column_ids);
-          free (table);
+          fprintf (stderr,
+                   "[ PROGRESS ] \n"
+                   "[ PROGRESS ] Total number rows: %d\n", counter);
         }
+      else
+        {
+          while (!feof (stream))
+            process_row (table, stream, file_hash, config.input_file);
+        }
+
+      uint32_t index = 0;
+      for (; index < table->keys_len; index++)
+        {
+          free (table->column_ids[index]);
+          free (table->keys[index]);
+        }
+
+      free (table->keys);
+      free (table->column_ids);
+      free (table);
 
       /* Clean up. */
       raptor_free_term (node_filename);

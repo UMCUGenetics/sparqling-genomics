@@ -29,7 +29,10 @@ typedef struct {
   uint32_t keys_alloc_len;
 } table_hdr_t;
 
-table_hdr_t *process_header (FILE* stream, const unsigned char *origin);
-void process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin);
+table_hdr_t *process_header (FILE* stream, const unsigned char *origin, const char *filename);
+void process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const char *filename);
+
+char *trim_quotes (const char *string, uint32_t length);
+char *sanitize_string (const char *string, uint32_t length);
 
 #endif /* TABLE_H */

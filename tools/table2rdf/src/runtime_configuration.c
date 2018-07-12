@@ -28,10 +28,10 @@ runtime_configuration_init (void)
   config.input_file = NULL;
   config.caller = NULL;
   config.delimiter = "\t";
+  config.header_line = NULL;
   config.output_format = NULL;
   config.column_counter = 0;
   config.row_counter = 0;
-  config.header_only = false;
   config.show_progress_info = false;
 
   return true;

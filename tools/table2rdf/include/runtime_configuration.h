@@ -86,7 +86,7 @@ typedef struct
   char              *caller;
   char              *output_format;
   char              *delimiter;
-  bool              header_only;
+  char              *header_line;
   bool              show_progress_info;
 
   /* Raptor-specifics */
