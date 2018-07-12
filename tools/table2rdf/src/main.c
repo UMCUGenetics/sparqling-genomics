@@ -102,6 +102,12 @@ main (int argc, char **argv)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
+          stmt->predicate = term (PREFIX_RDF, "#type");
+          stmt->object    = term (PREFIX_BASE, "Sample");
+          register_statement (stmt);
+
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
           stmt->predicate = term (PREFIX_BASE, "foundIn");
           stmt->object    = raptor_term_copy (node_filename);
           register_statement (stmt);
