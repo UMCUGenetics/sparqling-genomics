@@ -97,6 +97,16 @@ main (int argc, char **argv)
       stmt->predicate = term (PREFIX_BASE, "filename");
       stmt->object    = literal (config.input_file, XSD_STRING);
       register_statement (stmt);
+
+      if (config.sample_name != NULL)
+        {
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
+          stmt->predicate = term (PREFIX_BASE, "foundIn");
+          stmt->object    = raptor_term_copy (node_filename);
+          register_statement (stmt);
+        }
+
       stmt = NULL;
 
       /* Process the header. */

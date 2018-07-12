@@ -87,6 +87,7 @@ typedef struct
   char              *output_format;
   char              *delimiter;
   char              *header_line;
+  char              *sample_name;
   bool              show_progress_info;
 
   /* Raptor-specifics */

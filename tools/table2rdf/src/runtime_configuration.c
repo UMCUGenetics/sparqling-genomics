@@ -29,6 +29,7 @@ runtime_configuration_init (void)
   config.caller = NULL;
   config.delimiter = "\t";
   config.header_line = NULL;
+  config.sample_name = NULL;
   config.output_format = NULL;
   config.column_counter = 0;
   config.row_counter = 0;
