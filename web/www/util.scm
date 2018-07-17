@@ -18,6 +18,7 @@
 (define-module (www util)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 receive)
+  #:use-module (ice-9 match)
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
   #:use-module (web response)
@@ -31,7 +32,8 @@
             suffix-iri
             string-is-longer-than
             post-data->alist
-            alist-symbol-key<?))
+            alist-symbol-key<?
+            mkdir-p))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -143,3 +145,28 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
 (define (alist-symbol-key<? a b)
           (string<? (symbol->string (car a))
                     (symbol->string (car b))))
+
+(define (mkdir-p dir)
+  "Create directory DIR and all its ancestors."
+  (define absolute?
+    (string-prefix? "/" dir))
+
+  (define not-slash
+    (char-set-complement (char-set #\/)))
+
+  (let loop ((components (string-tokenize dir not-slash))
+             (root       (if absolute?
+                             ""
+                             ".")))
+    (match components
+      ((head tail ...)
+       (let ((path (string-append root "/" head)))
+         (catch 'system-error
+           (lambda ()
+             (mkdir path)
+             (loop tail path))
+           (lambda args
+             (if (= EEXIST (system-error-errno args))
+                 (loop tail path)
+                 (apply throw args))))))
+      (() #t))))
