@@ -15,7 +15,6 @@
 
 (use-modules (guix packages)
              ((guix licenses) #:prefix license:)
-             (guix build-system gnu)
              (gnu packages autotools)
              (gnu packages bioinformatics)
              (gnu packages compression)
@@ -23,67 +22,73 @@
              (gnu packages gnupg)
              (gnu packages guile)
              (gnu packages pkg-config)
-             (gnu packages statistics)
-             (gnu packages rdf))
-
-(define vcf2rdf
-  (package
-   (name "vcf2rdf")
-   (version "0.0.1")
-   (source #f)
-   (build-system gnu-build-system)
-   (native-inputs
-    `(("autoconf" ,autoconf)
-      ("automake" ,automake)
-      ("pkg-config" ,pkg-config)))
-   (inputs
-    `(("htslib" ,htslib)
-      ("libgcrypt" ,libgcrypt)
-      ("raptor" ,raptor2)))
-   (home-page "https://github.com/UMCUGenetics/sparqling-genomics")
-   (synopsis "Data transformer from VCF to RDF")
-   (description "The vcf2rdf program takes Variant Call Format input and
-outputs it in various RDF formats.  It uses Raptor2 for serialization.")
-   (license license:gpl3+)))
-
-(define sparqling-genomics-web
-  (package
-   (name "sparqling-genomics-web")
-   (version "0.0.1")
-   (source #f)
-   (build-system gnu-build-system)
-   (native-inputs
-    `(("autoconf" ,autoconf)
-      ("automake" ,automake)))
-   (inputs
-    `(("guile" ,guile-2.2)
-      ("raptor2" ,raptor2)
-      ("redland" ,redland)
-      ("rasqal" ,rasqal)))
-   (home-page "")
-   (synopsis "")
-   (description "")
-   (license license:gpl3+)))
+             (gnu packages rdf)
+             (gnu packages tls)
+             (gnu packages tex)
+             (gnu packages)
+             (guix build utils)
+             (guix build-system gnu)
+             (guix download)
+             (guix git-download)
+             (guix packages)
+             (ice-9 format)
+             (ice-9 rdelim))
 
 (define sparqling-genomics
   (package
    (name "sparqling-genomics")
-   (version "0.0.1")
-   (source #f)
+   (version "0.99.2")
+   (source (origin
+            (method url-fetch)
+            (uri (string-append
+                  "https://github.com/UMCUGenetics/sparqling-genomics/"
+                  "releases/download/" version "/sparqling-genomics-"
+                  version ".tar.gz"))
+            (sha256
+             (base32
+              "1lmjvglbjiq4n9a56ic0kwwwip3y1f6wsksdjylf5hggaf5bhmpr"))))
    (build-system gnu-build-system)
+   (arguments
+    `(#:phases
+      (modify-phases %standard-phases
+        (add-after 'install 'setup-static-resources
+          (lambda* (#:key outputs #:allow-other-keys)
+            (let* ((out        (assoc-ref outputs "out"))
+                   (web-root   (string-append
+                                out "/share/sparqing-genomics/sg-web"))
+                   (static-dir (string-append web-root "/static")))
+              (mkdir-p static-dir)
+              (copy-recursively "web/static" static-dir))))
+        (add-after 'install 'wrap-executable
+          (lambda* (#:key outputs #:allow-other-keys)
+            (let* ((out  (assoc-ref outputs "out"))
+                   (guile-load-path
+                    (string-append out "/share/guile/site/2.2"))
+                   (guile-load-compiled-path
+                    (string-append out "/lib/guile/2.2/site-ccache"))
+                   (web-root (string-append
+                              out "/share/sparqing-genomics/sg-web")))
+              (wrap-program (string-append out "/bin/sg-web")
+                `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
+                `("GUILE_LOAD_COMPILED_PATH" ":" prefix
+                  (,guile-load-compiled-path))
+                `("SG_WEB_ROOT" ":" prefix (,web-root)))))))))
    (native-inputs
-    `(("autoconf" ,autoconf)
-      ("automake" ,automake)))
+    `(("texlive" ,texlive)))
    (inputs
-    `(("pkg-config" ,pkg-config)
-      ("zlib" ,zlib)
+    `(("guile" ,guile-2.2)
+      ("htslib" ,htslib)
+      ("libgcrypt" ,libgcrypt)
+      ("pkg-config" ,pkg-config)
+      ("raptor2" ,raptor2)
       ("xz" ,xz)
-      ,@(package-inputs vcf2rdf)
-      ,@(package-inputs sparqling-genomics-web)))
+      ("zlib" ,zlib)))
+   (propagated-inputs
+    `(("gnutls" ,gnutls))) ; Needed to query HTTPS endpoints.
    (home-page "https://github.com/UMCUGenetics/sparqling-genomics")
-   (synopsis "Tools to use SPARQL to analyze genomic structural variation")
+   (synopsis "Tools to use SPARQL to analyze genomics data")
    (description "This package provides various tools to extract RDF triples
-from genomic data formats.")
+from genomic data formats, and a web interface to query SPARQL endpoints.")
    (license license:gpl3+)))
 
 ;; Evaluate to the complete recipe, so that the development
