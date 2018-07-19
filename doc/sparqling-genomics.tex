@@ -689,6 +689,7 @@ SELECT COUNT(DISTINCT ?variant) AS ?occurrences ?sample
 FROM <http://example>
 WHERE {
   ?variant  rdf:type         v:VariantCall .
+  ?variant  rdf:type         ?genotype .
   ?variant  v:sample         ?sample .
   ?variant  vc:REF           seq:C .
   ?variant  vc:ALT           seq:T .
@@ -697,6 +698,9 @@ WHERE {
 
   FILTER (?position >= 202950000)
   FILTER (?position <= 202960000)
+
+  # Exclude variants that actually don't deviate from hg19.
+  FILTER (?genotype != v:HomozygousReferenceGenotype)
 }
 LIMIT 2
 \end{verbatim}
