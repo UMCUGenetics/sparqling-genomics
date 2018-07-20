@@ -42,6 +42,7 @@
   perform with the command-line programs are:
   \begin{itemize}
     \item Extract triples from VCF files;
+    \item Extract triples from tabular data files;
     \item Push data to a SPARQL endpoint.
   \end{itemize}
 
@@ -98,7 +99,7 @@
 
   The following snippet is an example of the extra data in Turtle-format:
 
-  \begin{siderules}
+\begin{siderules}
 \begin{verbatim}
 <http://rdf.umcutrecht.nl/vcf2rdf/14f2b609b>
     :convertedBy :vcf2rdf ;
@@ -483,7 +484,7 @@ On a typical graph with data originating from \texttt{vcf2rdf}, this may yield
 the following table:
 
 \begin{table}[H]
-  \begin{tabularx}{\textwidth}{ L L L }
+  \begin{tabularx}{\textwidth}{ X X X }
     \headrow
     \textbf{subjects} & \textbf{predicates} & \textbf{objects}\\
     \evenrow
@@ -754,23 +755,23 @@ Which may yield the following table:
     \headrow
     \textbf{speciesId} & \textbf{name}\\
     \evenrow
-    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000003} & \texttt{BasalACh2}\\
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001\#\_000003} & \texttt{BasalACh2}\\
     \oddrow
-    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000004} & \texttt{IntermediateACh}\\
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001\#\_000004} & \texttt{IntermediateACh}\\
     \evenrow
-    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000005} & \texttt{ActiveACh}\\
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001\#\_000005} & \texttt{ActiveACh}\\
     \oddrow
-    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000006} & \texttt{Active}\\
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001\#\_000006} & \texttt{Active}\\
     \evenrow
-    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001#\_000007} & \texttt{BasalACh}\\
+    \texttt{http://identifiers.org/biomodels.db/BIOMD0000000001\#\_000007} & \texttt{BasalACh}\\
     \oddrow
-    $\ldots$ & $\ldots$\\
+    $\ldots{}$ & $\ldots{}$\\
   \end{tabularx}
   \caption{\small Query results of the above query.}
   \label{table:query-output-7}
 \end{table}
 
-\chapter{Programming in R, Python, Perl, Scheme, C, and/or C++}
+\chapter{Programming in R}
 \label{chap:programming}
 
 \section{Using SPARQL with R}
