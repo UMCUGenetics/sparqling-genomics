@@ -17,6 +17,7 @@
 (define-module (www config)
   #:use-module (oop goops)
   #:use-module (system foreign)
+  #:use-module ((www util) #:select (mkdir-p))
   #:export (default-uri-strings
             fork-on-startup?
             initialize-internal-rdf
@@ -122,7 +123,7 @@
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))
     (unless (file-exists? (cache-root))
-      (mkdir (cache-root)))
+      (mkdir-p (cache-root)))
     (cache-root)))
 
 (define-syntax-rule
