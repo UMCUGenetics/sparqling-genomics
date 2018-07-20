@@ -35,7 +35,6 @@ SOURCES =                                               \
   www/pages/help.scm                                    \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
-  www/pages/ontology.scm                                \
   www/pages/welcome.scm                                 \
   www/util.scm
 
