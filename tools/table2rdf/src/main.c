@@ -23,6 +23,7 @@
 #include <time.h>
 #include <raptor2.h>
 #include <htslib/vcf.h>
+#include <gcrypt.h>
 
 #ifdef ENABLE_MTRACE
 #include <mcheck.h>
@@ -41,6 +42,18 @@ main (int argc, char **argv)
   mtrace ();
 #endif
 
+  /* Initialize libgcrypt. */
+  if (!gcry_check_version (GCRYPT_VERSION))
+    {
+      fputs ("libgcrypt version mismatch\n", stderr);
+      exit (2);
+    }
+
+  /* We are not dealing with passwords or confidential crypto in this
+   * program. Therefore we don't need "secure memory". */
+  gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
+  gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
+
   /* Initialize the run-time configuration.
    * ------------------------------------------------------------------------ */
   if (!runtime_configuration_init ()) return 1;
@@ -54,7 +67,7 @@ main (int argc, char **argv)
 
   /* Read the input file.
    * ------------------------------------------------------------------------ */
-  if (config.input_file)
+  if (config.input_file || config.input_from_stdin)
     {
       /* Initialize the Redland run-time configuration.
        * -------------------------------------------------------------------- */
@@ -62,12 +75,32 @@ main (int argc, char **argv)
 
       ui_show_missing_options_warning ();
 
-      FILE *stream = fopen (config.input_file, "r");
+      FILE *stream = NULL;
+      if (config.input_from_stdin)
+        stream = stdin;
+      else
+        stream = fopen (config.input_file, "r");
+
       if (!stream)
         return ui_print_file_error (config.input_file);
 
-      unsigned char *file_hash = helper_get_hash_from_file (config.input_file);
-      if (!file_hash) return 1;
+      unsigned char *file_hash = NULL;
+      if (!config.input_from_stdin)
+        {
+          file_hash = helper_get_hash_from_file (config.input_file);
+          if (!file_hash) return 1;
+        }
+      else
+        {
+          unsigned char buf[32];
+          memset (buf, '\0', 32);
+          file_hash = calloc (65, sizeof (unsigned char));
+          if (!file_hash) return 1;
+
+          gcry_randomize (buf, 32, GCRY_VERY_STRONG_RANDOM);
+          if (! get_pretty_hash (buf, 32, file_hash))
+            return 1;
+        }
 
       raptor_statement *stmt;
       raptor_term *node_filename;
@@ -95,7 +128,12 @@ main (int argc, char **argv)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_BASE, "filename");
-      stmt->object    = literal (config.input_file, XSD_STRING);
+
+      if (config.input_from_stdin)
+        stmt->object    = literal ("stdin", XSD_STRING);
+      else
+        stmt->object    = literal (config.input_file, XSD_STRING);
+
       register_statement (stmt);
 
       if (config.sample_name != NULL)
@@ -175,7 +213,10 @@ main (int argc, char **argv)
       runtime_configuration_free ();
 
       free (file_hash);
-      fclose (stream);
+      if (!config.input_from_stdin)
+        {
+          fclose (stream);
+        }
     }
 
 #ifdef ENABLE_MTRACE

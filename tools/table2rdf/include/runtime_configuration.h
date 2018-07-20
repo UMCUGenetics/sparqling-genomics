@@ -90,6 +90,7 @@ typedef struct
   char              *sample_name;
   bool              show_progress_info;
   bool              skip_first_line;
+  bool              input_from_stdin;
 
   /* Raptor-specifics */
   raptor_world      *raptor_world;

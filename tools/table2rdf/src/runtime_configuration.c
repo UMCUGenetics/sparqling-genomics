@@ -35,6 +35,7 @@ runtime_configuration_init (void)
   config.row_counter = 0;
   config.show_progress_info = false;
   config.skip_first_line = false;
+  config.input_from_stdin = false;
 
   return true;
 }
