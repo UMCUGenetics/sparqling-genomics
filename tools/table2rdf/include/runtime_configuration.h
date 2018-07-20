@@ -89,6 +89,7 @@ typedef struct
   char              *header_line;
   char              *sample_name;
   bool              show_progress_info;
+  bool              skip_first_line;
 
   /* Raptor-specifics */
   raptor_world      *raptor_world;

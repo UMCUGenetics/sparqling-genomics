@@ -44,6 +44,7 @@ ui_show_help (void)
                                        "argument,\n"
         "                               the header line must use ';' as the "
                                        "delimiter.\n"
+        "  --skip-first-line=ARG,   -S  Ignore the first line in the file.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
         "  --output-format          -O  The output format to serialize to.\n");
 }
@@ -73,6 +74,7 @@ ui_process_command_line (int argc, char **argv)
       { "input-file",            required_argument, 0, 'i' },
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
+      { "skip-first-line",       no_argument,       0, 'S' },
       { "version",               no_argument,       0, 'v' },
       { 0,                       0,                 0, 0   }
     };
@@ -80,7 +82,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:i:O:H:s:ophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:i:O:H:s:Sophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -90,6 +92,7 @@ ui_process_command_line (int argc, char **argv)
         case 'p': config.show_progress_info = true;              break;
         case 'H': config.header_line = optarg;                   break;
         case 's': config.sample_name = optarg;                   break;
+        case 'S': config.skip_first_line = true;                 break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }

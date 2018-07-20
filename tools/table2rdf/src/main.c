@@ -115,6 +115,14 @@ main (int argc, char **argv)
 
       stmt = NULL;
 
+      if (config.skip_first_line)
+        {
+          char *line = NULL;
+          size_t line_len = 0;
+          getdelim (&line, &line_len, '\n', stream);
+          free (line);
+        }
+
       /* Process the header. */
       table_hdr_t *table = process_header (stream, file_hash, config.input_file);
 

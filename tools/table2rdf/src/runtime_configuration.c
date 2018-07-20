@@ -34,6 +34,7 @@ runtime_configuration_init (void)
   config.column_counter = 0;
   config.row_counter = 0;
   config.show_progress_info = false;
+  config.skip_first_line = false;
 
   return true;
 }
