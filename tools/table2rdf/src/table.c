@@ -21,7 +21,54 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <ctype.h>
+
+bool
+is_integer (const char *input, uint32_t length)
+{
+  uint32_t index = 0;
+    for (; index < length; index++)
+      if (!isdigit (input[index]))
+        return false;
+
+    return true;
+}
+
+bool
+is_float (const char *input, uint32_t length)
+{
+  uint32_t has_dot = 0;
+  uint32_t has_digits = 0;
+  uint32_t index = 0;
+  for (; index < length; index++)
+    {
+      if (input[index] == '.') has_dot += 1;
+      else if (isdigit (input[index])) has_digits += 1;
+      else return false;
+    }
+
+  return (has_dot == 1 && has_digits > 0);
+}
+
+bool
+is_flag (const char *input, uint32_t length)
+{
+  char buf[length];
+  strncpy (buf, input, length);
+
+  uint32_t index = 0;
+  for (; index < length; index++)
+    buf[index] = toupper(buf[index]);
+
+  return ((!strcmp (buf, "T")) ||
+          (!strcmp (buf, "F")) ||
+          (!strcmp (buf, "TRUE")) ||
+          (!strcmp (buf, "FALSE")) ||
+          (!strcmp (buf, "YES")) ||
+          (!strcmp (buf, "NO")));
+}
 
 /* This function replaces non-alphanumeric characters with
  * underscores, and all uppercase characters with their lowercase
@@ -226,12 +273,24 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
         }
 
       token = strtok (line, config.delimiter);
+      uint32_t trimmed_length = 0;
       uint32_t column_index = 0;
       for (; column_index < hdr->keys_len; column_index++)
         {
           if (token != NULL)
             {
               trimmed_token = trim_quotes (token, strlen (token));
+              trimmed_length = strlen (trimmed_token);
+
+              /* Determine the actual type this data represents.
+               * TODO: Also detect booleans. */
+              int32_t data_type;
+              if (is_integer (trimmed_token, trimmed_length))
+                data_type = XSD_INTEGER;
+              else if (is_float (trimmed_token, trimmed_length))
+                data_type = XSD_FLOAT;
+              else
+                data_type = XSD_STRING;
 
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
@@ -248,9 +307,7 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
               stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
-              /* TODO: Detect integers as integers, floats as floats,
-               * booleans as booleans, and the rest as strings. */
-              stmt->object    = literal (trimmed_token, XSD_STRING);
+              stmt->object    = literal (trimmed_token, data_type);
               register_statement (stmt);
 
               free (trimmed_token);
