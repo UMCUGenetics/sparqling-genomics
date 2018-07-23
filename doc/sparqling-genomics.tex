@@ -137,7 +137,7 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
   We recommend using the \texttt{ntriples} format for large input files, and
   \texttt{turtle} for small input files.
 
-\section{Preparing sequence data with \texttt{table2rdf}}
+\section{Preparing tabular data with \texttt{table2rdf}}
 \label{sec:table2rdf}
 
   Data that can be represented as a table, like comma-separated values (CSV)
@@ -207,6 +207,25 @@ sample:grch37
 table2rdf -i /path/to/my/table.tsv > /path/to/my/table.ttl
 \end{verbatim}
 \end{siderules}
+
+\section{Converting MySQL data to RDF with \texttt{table2rdf}}
+
+  Relational databases store data in tables.  With \texttt{table2rdf} we
+  can oftentimes convert the data in a single go to RDF triples.  The following
+  example extracts the \texttt{regions} table from a MySQL server in a database
+  called \texttt{example}.
+
+\begin{siderules}
+\begin{verbatim}
+mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
+  --batch | table2rdf --stdin -O ntriples > regions.n3
+\end{verbatim}
+\end{siderules}
+
+  The \texttt{mysql} command outputs the table in tab-delimited form when using
+  the \texttt{-{}-batch} argument, which is the default input type for
+  \texttt{table2rdf}.  To accept input from a UNIX pipe \texttt{table2rdf} must
+  be invoked with the \texttt{-{}-stdin} argument.
 
 %% \section{Preparing sequence data with \texttt{fasta2rdf}}
 %% \label{sec:fasta2rdf}
