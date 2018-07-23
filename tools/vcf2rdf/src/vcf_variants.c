@@ -349,14 +349,26 @@ void
 process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
 {
   if (!header || !buffer || !origin) return;
+  int32_t number_of_samples = bcf_hdr_nsamples (header);
 
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
   if (config.filter && bcf_has_filter (header, buffer, config.filter) == 1)
-    return;
+    {
+      /* Up the variant ID because we might want to add this variant
+       * at a later time.  When processing the same file, it will keep the
+       * variant IDs in sync. */
+      config.non_unique_variant_counter +=
+        (number_of_samples > 0) ? number_of_samples : 1;
+      return;
+    }
 
   if (config.keep && bcf_has_filter (header, buffer, config.keep) != 1)
-    return;
+    {
+      config.non_unique_variant_counter +=
+        (number_of_samples > 0) ? number_of_samples : 1;
+      return;
+    }
 
   /* Unpack up and including the ALT field.
    * ------------------------------------------------------------------------ */
@@ -367,11 +379,12 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
   if (buffer->d.allele == NULL)
     return;
 
-  int32_t number_of_samples = bcf_hdr_nsamples (header);
   int32_t sample_index = 0;
 
   if (!origin)
     {
+      config.non_unique_variant_counter +=
+        (number_of_samples > 0) ? number_of_samples : 1;
       ui_print_redland_error ();
       return;
     }
