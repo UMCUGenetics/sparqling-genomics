@@ -805,17 +805,24 @@ install.packages('SPARQL')
 \end{verbatim}
 \end{siderules}
 
-  Once we're set up, we can query like so:
+  Once the package is installed, we can load it:
 
 \begin{siderules}
 \begin{verbatim}
-# Load the library
 library('SPARQL')
+\end{verbatim}
+\end{siderules}
 
-# Define the endpoint to query.
+  Let's define where to send the query to:
+\begin{siderules}
+\begin{verbatim}
 endpoint <- "http://localhost:8890/sparql"
+\end{verbatim}
+\end{siderules}
 
-# Define the actual query to run.
+  $\ldots{}$ and the query itself:
+\begin{siderules}
+\begin{verbatim}
 query <- "PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
 PREFIX vc:    <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -832,12 +839,41 @@ WHERE
             vc:FILTER               ?filter .
 }
 LIMIT 10";
+\end{verbatim}
+\end{siderules}
 
-# Run the query
+  To actually execute the query, we can use the \texttt{SPARQL} function:
+\begin{siderules}
+\begin{verbatim}
 query_data <- SPARQL (endpoint, query)
+\end{verbatim}
+\end{siderules}
 
-# Put the results (a data frame) in a separate variable.
+  If the query execution went fine, we can gather the resulting
+  \texttt{dataframe} from the \texttt{results} index.
+
+\begin{siderules}
+\begin{verbatim}
 query_results <- query_data$results
+\end{verbatim}
+\end{siderules}
+
+\subsection{Querying with authentication}
+
+  When the SPARQL endpoint we try to reach requires authentication before
+  it accepts a query, we can use the \texttt{curl\_args} parameter of the
+  \texttt{SPARQL} function.
+
+  In the following example, we use \texttt{dba} as username, and
+  \texttt{secret-password} as password.
+
+\begin{siderules}
+\begin{verbatim}
+endpoint     <- "http://localhost:8890/sparql-auth"
+auth_options <- curlOptions(userpwd="dba:secret-password")
+query        <- "SELECT DISTINCT ?p WHERE { ?s ?p ?o }"
+query_data   <- SPARQL (endpoint, query, curl_args=auth_options)
+results      <- query_data$results
 \end{verbatim}
 \end{siderules}
 
