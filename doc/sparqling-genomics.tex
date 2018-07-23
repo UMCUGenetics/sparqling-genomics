@@ -612,7 +612,7 @@ include the number of variants for each sample, in each file.
 \begin{siderules}
 \begin{verbatim}
 PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample
        ?filename
@@ -665,9 +665,9 @@ WHERE
 \begin{siderules}
 \begin{verbatim}
 PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc: <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX faldo: <http://biohackathon.org/resource/faldo#>
+PREFIX vc:      <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX faldo:   <http://biohackathon.org/resource/faldo#>
 
 SELECT DISTINCT ?variant ?sample ?chromosome ?position ?filter
 FROM <graph-name>
@@ -697,13 +697,13 @@ LIMIT 100
 
 \begin{siderules}
 \begin{verbatim}
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
-PREFIX hg19: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
-PREFIX v: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc: <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
-PREFIX seq: <http://rdf.umcutrecht.nl/vcf2rdf/Sequence/>
+PREFIX hg19:  <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
+PREFIX v:     <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vc:    <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX seq:   <http://rdf.umcutrecht.nl/vcf2rdf/Sequence/>
 
 SELECT COUNT(DISTINCT ?variant) AS ?occurrences ?sample
 FROM <http://example>
@@ -756,7 +756,7 @@ Which may yield the following table:
 \begin{siderules}
 \begin{verbatim}
 PREFIX sbmlrdf: <http://identifiers.org/biomodels.vocabulary#>
-PREFIX sbmldb: <http://identifiers.org/biomodels.db/>
+PREFIX sbmldb:  <http://identifiers.org/biomodels.db/>
 
 SELECT ?speciesId ?name {
   SERVICE <http://www.ebi.ac.uk/rdf/services/sparql/> {
@@ -817,8 +817,8 @@ endpoint <- "http://localhost:8890/sparql"
 
 # Define the actual query to run.
 query <- "PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc: <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX vc:    <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 
 SELECT DISTINCT ?variant ?sample ?chromosome ?position ?filter
