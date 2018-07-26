@@ -67,8 +67,9 @@
 
 \begin{siderules}
 \begin{verbatim}
-apt-get install autoconf automake gcc make pkg-config libgcrypt-dev \
-                zlib-dev guile-2.0 guile-2.0-dev texlive curl
+apt-get install autoconf automake gcc make pkg-config libgcrypt-dev     \
+                zlib-dev guile-2.0 guile-2.0-dev libraptor2-dev texlive \
+                curl
 \end{verbatim}
 \end{siderules}
 
@@ -82,7 +83,7 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt-dev \
 \begin{siderules}
 \begin{verbatim}
 yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
-            guile guile-devel texlive curl
+            guile guile-devel raptor2-devel texlive curl
 \end{verbatim}
 \end{siderules}
 
@@ -107,7 +108,7 @@ guix environment -l environment.scm
 \begin{siderules}
 \begin{verbatim}
 brew install autoconf automake gcc make pkg-config libgcrypt guile \
-             htslib curl
+             htslib curl raptor
 \end{verbatim}
 \end{siderules}
 
