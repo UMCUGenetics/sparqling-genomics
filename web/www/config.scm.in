@@ -56,7 +56,7 @@
                            (lambda _
                              (if (getenv "SG_WEB_ROOT")
                                  (getenv "SG_WEB_ROOT")
-                                 (dirname (search-path %load-path "sg-web"))))
+                                 "@WEB_ROOT@/sparqling-genomics/web"))
                            #:getter get-www-root)
   (www-cache-root          #:init-value
                            (lambda _
@@ -72,9 +72,7 @@
                            (lambda _
                              (if (getenv "SG_WEB_ROOT")
                                  (string-append (getenv "SG_WEB_ROOT") "/static")
-                                 (string-append
-                                  (dirname (search-path %load-path "sg-web"))
-                                  "/static")))
+                                  "@WEB_ROOT@/sparqling-genomics/web/static"))
                            #:getter get-www-static-root)
 
   (www-max-file-size       #:init-value 250000000

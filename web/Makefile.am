@@ -60,5 +60,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/ace/mode-sparql.js                             \
   static/ace/theme-github.js
 
-bin_SCRIPTS = sg-web
-EXTRA_DIST += $(WWW_STATIC_RESOURCES)
+bin_SCRIPTS     = sg-web
+webdir          = $(pkgdatadir)/web
+nobase_web_DATA = $(WWW_STATIC_RESOURCES)
+EXTRA_DIST     += $(WWW_STATIC_RESOURCES)

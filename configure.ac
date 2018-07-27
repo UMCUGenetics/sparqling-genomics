@@ -46,6 +46,29 @@ if test "x${LIBGCRYPT_LIBS}" = "x"; then
 	AC_MSG_ERROR([unable to find libgcrypt])
 fi
 
+dnl This macro is used to resolve the absolute path to @datarootdir@ so that
+dnl the absolute path can be used in the configuration file for the web
+dnl interface.
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AC_DEFINE_DIR], [
+  prefix_NONE=
+  exec_prefix_NONE=
+  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
+dnl In Autoconf 2.60, ${datadir} refers to ${datarootdir}, which in turn
+dnl refers to ${prefix}.  Thus we have to use `eval' twice.
+  eval ac_define_dir="\"[$]$2\""
+  eval ac_define_dir="\"$ac_define_dir\""
+  AC_SUBST($1, "$ac_define_dir")
+  AC_DEFINE_UNQUOTED($1, "$ac_define_dir", [$3])
+  test "$prefix_NONE" && prefix=NONE
+  test "$exec_prefix_NONE" && exec_prefix=NONE
+])
+
+dnl Use the above macro to define a resolved path for the web root.
+dnl ---------------------------------------------------------------------------
+AC_DEFINE_DIR([WEB_ROOT], [datarootdir], [Data directory for web resources.])
+
 AC_CONFIG_FILES([env], [chmod +x env])
 AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
 AC_CONFIG_FILES([
@@ -53,6 +76,7 @@ AC_CONFIG_FILES([
   doc/Makefile
   tools/vcf2rdf/Makefile
   tools/table2rdf/Makefile
+  web/www/config.scm
   web/Makefile
 ])
 
