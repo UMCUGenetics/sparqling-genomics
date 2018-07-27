@@ -27,7 +27,9 @@
 #define URI_BIOSEMANTICS  "http://rdf.biosemantics.org"
 #define URI_ASSEMBLIES    URI_BIOSEMANTICS "/data/genomeassemblies"
 #define URI_ONTOLOGY      "http://rdf.umcutrecht.nl/vcf2rdf"
+#define URI_MASTER        "http://rdf.umcutrecht.nl"
 
+#define STR_PREFIX_MASTER              URI_MASTER "/"
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
 #define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
 #define STR_PREFIX_VCF_HEADER          URI_ONTOLOGY "/VcfHeaderItem/"
@@ -50,6 +52,7 @@
 typedef enum
 {
   PREFIX_BASE = 0,
+  PREFIX_MASTER,
   PREFIX_SAMPLE,
   PREFIX_VCF_HEADER,
   PREFIX_VCF_HEADER_INFO,

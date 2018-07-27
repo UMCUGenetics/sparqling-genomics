@@ -1,0 +1,180 @@
+@prefix dc:        <http://purl.org/dc/elements/1.1/> .
+@prefix obo:       <http://purl.obolibrary.org/obo/> .
+@prefix faldo:     <http://biohackathon.org/resource/faldo#> .
+@prefix owl:       <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
+@prefix vcf2rdf:   <http://rdf.op.umcutrecht.nl/vcf2rdf> .
+@prefix table2rdf: <http://rdf.op.umcutrecht.nl/table2rdf> .
+@prefix :          <http://rdf.op.umcutrecht.nl/> .
+
+# sequence_variant = obo:SO_0001060
+
+<http://rdf.umcutrecht.nl/sparqling-genomics>
+    rdf:type        owl:Ontology ;
+    dc:title        "Ontology describing the output of sparqling-genomics tools." ;
+    rdfs:comment    "This ontology describes the structure exported by tools in sparqling-genomics." ;
+    owl:versionInfo "1.0" .
+
+## Class: VariantGenotype
+## ----------------------------------------------------------------------------
+
+vcf2rdf:VariantGenotype
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant genotype" ;
+    rdfs:comment "" .
+
+# Possible VariantGenotype subclasses
+# -------------------------------------------------------------------------
+
+vcf2rdf:HomozygousGenotype
+    rdf:type        owl:Class ;
+    rdfs:label "Homozygous genotype" ;
+    rdfs:subClassOf :VariantGenotype .
+
+vcf2rdf:HeterozygousGenotype
+    rdf:type        owl:Class ;
+    rdfs:label "Heterozygous genotype" ;
+    rdfs:subClassOf :VariantGenotype .
+
+vcf2rdf:HomozygousReferenceGenotype
+    rdf:type        owl:Class ;
+    rdfs:label "Homozygous reference genotype" ;
+    rdfs:subClassOf :VariantGenotype .
+
+vcf2rdf:HomozygousAlternativeGenotype
+    rdf:type        owl:Class ;
+    rdfs:label "Homozygous alternative genotype" ;
+    rdfs:subClassOf :VariantGenotype .
+
+## Variant Call Format Header
+## ----------------------------------------------------------------------------
+
+vcf2rdf:Variant
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant call" ;
+    rdfs:comment "Describes a variant call." .
+
+vcf2rdf:variantId
+    rdf:type     owl:Class ;
+    rdfs:label   "Variant call identifier" ;
+    rdfs:comment "A non-unique identifier provided by the variant caller or annotation program to identify a variant call." ;
+    rdfs:domain  :Variant .
+
+vcf2rdf:REF
+    rdf:type     owl:Class ;
+    rdfs:label   "Reference sequence" ;
+    rdfs:comment "The value of the reference genome at the position of the variant call." ;
+    rdfs:domain  :Variant .
+
+vcf2rdf:ALT
+    rdf:type     owl:Class ;
+    rdfs:label   "Alternative sequence" ;
+    rdfs:comment "The canonical value of the sample genome at the position of the variant call." ;
+    rdfs:domain  :Variant .
+
+vcf2rdf:QUAL
+    rdf:type     owl:Class ;
+    rdfs:label   "Quality" ;
+    rdfs:comment "A quality score of the variant call." ;
+    rdfs:domain  :Variant .
+
+vcf2rdf:FILTER
+    rdf:type     owl:Class ;
+    rdfs:label   "Filter" ;
+    rdfs:comment "A filter (tag) field for a variant call." ;
+    rdfs:domain  :Variant .
+
+vcf2rdf:VcfHeaderGenericItem
+    rdf:type   owl:Class ;
+    rdfs:label "Generic VCF header item" .
+
+vcf2rdf:VcfHeaderInfoItem
+    rdf:type   owl:Class ;
+    rdfs:label "INFO VCF header item" .
+
+vcf2rdf:VcfHeaderFormatItem
+    rdf:type   owl:Class ;
+    rdfs:label "FORMAT VCF header item" .
+
+vcf2rdf:VcfHeaderFilterItem
+    rdf:type   owl:Class ;
+    rdfs:label "Filter VCF header item" .
+
+vcf2rdf:VcfHeaderAltItem
+    rdf:type   owl:Class ;
+    rdfs:label "Alternative VCF header item" .
+
+vcf2rdf:VcfHeaderContigItem
+    rdf:type   owl:Class ;
+    rdfs:label "Contig VCF header item" .
+
+## Class: Sample
+## ----------------------------------------------------------------------------
+
+:Sample
+    rdf:type     owl:Class ;
+    rdfs:label   "Sample" ;
+    rdfs:comment "Identifies a data sample." .
+
+:sample
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "sample" ;
+    rdfs:comment "Expresses that the variant (subject) is found in the sample (object)." ;
+    rdfs:range :Sample ;
+    rdfs:domain :VariantCall .
+
+## Class: Origin
+## ----------------------------------------------------------------------------
+
+:Origin
+    rdf:type owl:Class ;
+    rdfs:label "Origin" ;
+    rdfs:comment "The source of information.  This is often the file that contained the data that are represented by a group of triples." .
+
+:filename
+    rdf:type owl:DatatypeProperty ;
+    rdfs:label "Filename" ;
+    rdfs:comment "A file path or file name." ;
+    rdfs:domain :Origin .
+
+## Annotation properties
+## ----------------------------------------------------------------------------
+
+:SoftwareProgram
+    rdf:type     owl:Class ;
+    rdfs:label   "Software program" ;
+    rdfs:comment "This describes a software program." .
+
+:convertedBy
+    rdf:type     owl:AnnotationProperty ;
+    rdfs:label   "Converted by" ;
+    rdfs:comment "The software program used for data conversion." ;
+    rdfs:range   :SoftwareProgram .
+
+:foundIn
+    rdf:type    owl:AnnotationProperty ;
+    rdfs:label  "Whether a sample can be found in a file." ;
+    rdfs:range  :Origin ;
+    rdfs:domain :Sample .
+
+:originatedFrom
+    rdf:type   owl:AnnotationProperty ;
+    rdf:label  "" ;
+    rdfs:range :Origin .
+
+## Individuals
+## ----------------------------------------------------------------------------
+
+:vcf2rdf rdf:type :SoftwareProgram ;
+    rdfs:label   "vcf2rdf" ;
+    rdfs:comment "Tool to convert VCF files to RDF." .
+
+:table2rdf rdf:type :SoftwareProgram ;
+    rdfs:label   "table2rdf" ;
+    rdfs:comment "Tool to convert tabular data to RDF." .
+
+:sg-web rdf:type :SoftwareProgram ;
+    rdfs:label   "SPARQLing genomics web interface" ;
+    rdfs:comment "Tool for querying multiple SPARQL endpoints using a web interface" .

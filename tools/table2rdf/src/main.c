@@ -22,7 +22,6 @@
 #include <string.h>
 #include <time.h>
 #include <raptor2.h>
-#include <htslib/vcf.h>
 #include <gcrypt.h>
 
 #ifdef ENABLE_MTRACE
@@ -110,24 +109,24 @@ main (int argc, char **argv)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = term (PREFIX_BASE, "Origin");
+      stmt->object    = term (PREFIX_MASTER, "Origin");
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_BASE, "convertedBy");
+      stmt->predicate = term (PREFIX_MASTER, "convertedBy");
       stmt->object    = term (PREFIX_BASE, "table2rdf");
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_BASE, "table2rdf");
+      stmt->subject   = term (PREFIX_MASTER, "table2rdf");
       stmt->predicate = term (PREFIX_OWL, "#versionInfo");
       stmt->object    = literal (VERSION, XSD_STRING);
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_BASE, "filename");
+      stmt->predicate = term (PREFIX_MASTER, "filename");
 
       if (config.input_from_stdin)
         stmt->object    = literal ("stdin", XSD_STRING);
@@ -141,12 +140,12 @@ main (int argc, char **argv)
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
           stmt->predicate = term (PREFIX_RDF, "#type");
-          stmt->object    = term (PREFIX_BASE, "Sample");
+          stmt->object    = term (PREFIX_MASTER, "Sample");
           register_statement (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
-          stmt->predicate = term (PREFIX_BASE, "foundIn");
+          stmt->predicate = term (PREFIX_MASTER, "foundIn");
           stmt->object    = raptor_term_copy (node_filename);
           register_statement (stmt);
         }

@@ -115,22 +115,22 @@ main (int argc, char **argv)
       raptor_statement *stmt;
       raptor_term *node_filename;
 
-      node_filename = term (PREFIX_BASE, (char *)file_hash);
+      node_filename = term (PREFIX_MASTER, (char *)file_hash);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = term (PREFIX_BASE, "Origin");
+      stmt->object    = term (PREFIX_MASTER, "Origin");
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_BASE, "convertedBy");
-      stmt->object    = term (PREFIX_BASE, "vcf2rdf");
+      stmt->predicate = term (PREFIX_MASTER, "convertedBy");
+      stmt->object    = term (PREFIX_MASTER, "vcf2rdf");
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_BASE, "vcf2rdf");
+      stmt->subject   = term (PREFIX_MASTER, "vcf2rdf");
       stmt->predicate = term (PREFIX_OWL, "#versionInfo");
       stmt->object    = literal (VERSION, XSD_STRING);
       register_statement (stmt);

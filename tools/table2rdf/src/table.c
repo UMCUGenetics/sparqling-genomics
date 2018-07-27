@@ -207,8 +207,8 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
 
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_COLUMN, column_id);
-          stmt->predicate = term (PREFIX_BASE, "foundIn");
-          stmt->object    = term (PREFIX_BASE, (char *)origin);
+          stmt->predicate = term (PREFIX_MASTER, "foundIn");
+          stmt->object    = term (PREFIX_MASTER, (char *)origin);
           register_statement (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
@@ -300,8 +300,8 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
 
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
-              stmt->predicate = term (PREFIX_BASE, "originatedFrom");
-              stmt->object    = term (PREFIX_BASE, (char *)origin);
+              stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
+              stmt->object    = term (PREFIX_MASTER, (char *)origin);
               register_statement (stmt);
 
               stmt = raptor_new_statement (config.raptor_world);

@@ -24,8 +24,10 @@
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_W3            "http://www.w3.org"
 #define URI_ONTOLOGY      "http://rdf.umcutrecht.nl/table2rdf"
+#define URI_MASTER        "http://rdf.umcutrecht.nl"
 
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
+#define STR_PREFIX_MASTER              URI_MASTER "/"
 #define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
 #define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
@@ -38,6 +40,7 @@
 typedef enum
 {
   PREFIX_BASE = 0,
+  PREFIX_MASTER,
   PREFIX_SAMPLE,
   PREFIX_ORIGIN,
   PREFIX_COLUMN,

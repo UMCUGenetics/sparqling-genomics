@@ -77,15 +77,15 @@ process_variant_for_sample (bcf_hdr_t *header,
 
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_BASE, "originatedFrom");
-  stmt->object    = term (PREFIX_BASE, (char *)origin);
+  stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
+  stmt->object    = term (PREFIX_MASTER, (char *)origin);
   register_statement (stmt);
 
   if (number_of_samples > 0)
     {
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (self);
-      stmt->predicate = term (PREFIX_BASE, "sample");
+      stmt->predicate = term (PREFIX_MASTER, "sample");
       stmt->object    = term (PREFIX_SAMPLE, header->samples[sample_index]);
       register_statement (stmt);
     }

@@ -54,10 +54,11 @@ ontology_init (ontology_t **ontology_ptr)
   ontology_t *ontology = calloc (1, sizeof (ontology_t));
   if (!ontology) return false;
 
-  ontology->prefixes_length = 18;
+  ontology->prefixes_length = 19;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
   register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
+  register_prefix (PREFIX_MASTER,            STR_PREFIX_MASTER,            "sg");
   register_prefix (PREFIX_SAMPLE,            STR_PREFIX_SAMPLE,            "sample");
   register_prefix (PREFIX_ORIGIN,            STR_PREFIX_ORIGIN,            "orig");
   register_prefix (PREFIX_VCF_HEADER,        STR_PREFIX_VCF_HEADER,        "hdr");
@@ -83,22 +84,22 @@ ontology_init (ontology_t **ontology_ptr)
   ontology->classes_length = 16;
   ontology->classes = calloc (ontology->classes_length, sizeof (raptor_term*));
 
-  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,  "#type");
-  define_class (ontology, CLASS_ORIGIN,                 PREFIX_BASE, "Origin");
-  define_class (ontology, CLASS_VCF_HEADER,             PREFIX_BASE, "VcfHeaderItem");
-  define_class (ontology, CLASS_VCF_HEADER_INFO,        PREFIX_BASE, "VcfHeaderInfoItem");
-  define_class (ontology, CLASS_VCF_HEADER_FORMAT,      PREFIX_BASE, "VcfHeaderFormatItem");
-  define_class (ontology, CLASS_VCF_HEADER_FILTER,      PREFIX_BASE, "VcfHeaderFilterItem");
-  define_class (ontology, CLASS_VCF_HEADER_ALT,         PREFIX_BASE, "VcfHeaderAltItem");
-  define_class (ontology, CLASS_VCF_HEADER_CONTIG,      PREFIX_BASE, "VcfHeaderContigItem");
-  define_class (ontology, CLASS_SAMPLE,                 PREFIX_BASE, "Sample");
-  define_class (ontology, CLASS_VARIANT_CALL,           PREFIX_BASE, "VariantCall");
-  define_class (ontology, CLASS_HETEROZYGOUS,           PREFIX_BASE, "HeterozygousGenotype");
-  define_class (ontology, CLASS_MULTIZYGOUS,            PREFIX_BASE, "Multizygous");
-  define_class (ontology, CLASS_NULLIZYGOUS,            PREFIX_BASE, "Nullizygous");
-  define_class (ontology, CLASS_HOMOZYGOUS,             PREFIX_BASE, "HomozygousGenotype");
-  define_class (ontology, CLASS_HOMOZYGOUS_REFERENCE,   PREFIX_BASE, "HomozygousReferenceGenotype");
-  define_class (ontology, CLASS_HOMOZYGOUS_ALTERNATIVE, PREFIX_BASE, "HomozygousAlternativeGenotype");
+  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,    "#type");
+  define_class (ontology, CLASS_ORIGIN,                 PREFIX_MASTER, "Origin");
+  define_class (ontology, CLASS_VCF_HEADER,             PREFIX_BASE,   "VcfHeaderItem");
+  define_class (ontology, CLASS_VCF_HEADER_INFO,        PREFIX_BASE,   "VcfHeaderInfoItem");
+  define_class (ontology, CLASS_VCF_HEADER_FORMAT,      PREFIX_BASE,   "VcfHeaderFormatItem");
+  define_class (ontology, CLASS_VCF_HEADER_FILTER,      PREFIX_BASE,   "VcfHeaderFilterItem");
+  define_class (ontology, CLASS_VCF_HEADER_ALT,         PREFIX_BASE,   "VcfHeaderAltItem");
+  define_class (ontology, CLASS_VCF_HEADER_CONTIG,      PREFIX_BASE,   "VcfHeaderContigItem");
+  define_class (ontology, CLASS_SAMPLE,                 PREFIX_MASTER, "Sample");
+  define_class (ontology, CLASS_VARIANT_CALL,           PREFIX_BASE,   "VariantCall");
+  define_class (ontology, CLASS_HETEROZYGOUS,           PREFIX_BASE,   "HeterozygousGenotype");
+  define_class (ontology, CLASS_MULTIZYGOUS,            PREFIX_BASE,   "Multizygous");
+  define_class (ontology, CLASS_NULLIZYGOUS,            PREFIX_BASE,   "Nullizygous");
+  define_class (ontology, CLASS_HOMOZYGOUS,             PREFIX_BASE,   "HomozygousGenotype");
+  define_class (ontology, CLASS_HOMOZYGOUS_REFERENCE,   PREFIX_BASE,   "HomozygousReferenceGenotype");
+  define_class (ontology, CLASS_HOMOZYGOUS_ALTERNATIVE, PREFIX_BASE,   "HomozygousAlternativeGenotype");
 
   int32_t initialized_classes = 0;
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
