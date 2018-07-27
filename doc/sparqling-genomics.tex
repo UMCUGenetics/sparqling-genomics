@@ -320,6 +320,42 @@ curl -X POST                                                 \
 \end{verbatim}
 \end{siderules}
 
+\subsubsection{Virtuoso example}
+
+\begin{sloppypar}
+The following example inserts the file \texttt{vcf2rdf-variants.ttl} into
+a graph called \texttt{http://example/graph} in a Virtuoso endpoint at
+\url{http://127.0.0.1:8890} with the username \texttt{dba} and
+password \texttt{qwerty}.
+\end{sloppypar}
+
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                                 \
+     -H Content-Type:text/turtle                             \
+     -T vcf2rdf-variants.ttl                                 \
+     -G http://127.0.0.1:8890/sparql-graph-crud-auth         \
+     --digest -u dba:qwerty                                  \
+     --data-urlencode graph=http://example/graph
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{4store example}
+
+Similar to the Virtuoso example, for \texttt{4store} the command looks like
+this:
+
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                                 \
+     -H Content-Type:text/turtle                             \
+     -T vcf2rdf-variants.ttl                                 \
+     -G http://127.0.0.1:8080/data/http://example/graph
+\end{verbatim}
+\end{siderules}
+
+Notice that \texttt{4store} does not provide an authentication mechanism.
+
 \chapter{Web interface}
 \label{chap:web-interface}
 
