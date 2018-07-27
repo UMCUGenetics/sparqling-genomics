@@ -118,16 +118,49 @@ brew install autoconf automake gcc make pkg-config libgcrypt guile \
   Building on MacOS has not been tested.  If you've tried it, please let
   us know, so we can attempt to support it in the future.
 
-\section{Installation instructions}
+\section{Obtaining the source code}
+\label{sec:obtaining-tarball}
 
-  After installing the required tools (see section \ref{sec:prerequisites}
-  {\color{LinkGray}`\nameref{sec:prerequisites}'}),
-  building involves running the following commands:
+  \begin{sloppypar}
+  The source code can be downloaded at the
+  \href{https://github.com/UMCUGenetics/sparqling-genomics/releases}%
+  {Releases}%
+  \footnote{\url{https://github.com/UMCUGenetics/sparqling-genomics/releases}}
+  page.  Make sure to download the \mbox{\texttt{sparqling-genomics-0.99.3.tar.gz}}
+  file.
+  \end{sloppypar}
+
+  Or, directly download the tarball using the command-line:
+\begin{siderules}
+\begin{verbatim}
+curl -O https://github.com/UMCUGenetics/sparqling-genomics/releases/\
+download/0.99.3/sparqling-genomics-0.99.3.tar.gz
+\end{verbatim}
+\end{siderules}
+
+  After obtaining the tarball, it can be unpacked using the following commands:
 
 \begin{siderules}
 \begin{verbatim}
-autoreconf -vfi && ./configure
-make && make install
+tar zxvf sparqling-genomics-0.99.3.tar.gz
+cd sparqling-genomics-0.99.3
+\end{verbatim}
+\end{siderules}
+
+\section{Installation instructions}
+
+  After installing the required tools (see section \ref{sec:prerequisites}
+  {\color{LinkGray}`\nameref{sec:prerequisites}'}), and obtaining the source
+  code (see section \ref{sec:obtaining-tarball} {\color{LinkGray}
+    `\nameref{sec:obtaining-tarball}'}), building involves running the following
+  commands:
+
+\begin{siderules}
+\begin{verbatim}
+autoreconf -vif # Only needed if the './configure' step doesn't work.
+./configure
+make
+make install
 \end{verbatim}
 \end{siderules}
 
