@@ -413,7 +413,7 @@ sg-web
 
 \input{information-retrieval}
 
-\chapter{Programming in R}
+\chapter{Using SPARQL with other programming languages}
 \label{chap:programming}
 
 \section{Using SPARQL with R}
@@ -497,6 +497,41 @@ auth_options <- curlOptions(userpwd="dba:secret-password")
 query        <- "SELECT DISTINCT ?p WHERE { ?s ?p ?o }"
 query_data   <- SPARQL (endpoint, query, curl_args=auth_options)
 results      <- query_data$results
+\end{verbatim}
+\end{siderules}
+
+\section{Using SPARQL with GNU Guile}
+\label{sec:sparql-with-guile}
+
+  For Schemers using GNU Guile, the \href{https://github.com/roelj/guile-sparql}%
+  {guile-sparql}\footnote{https://github.com/roelj/guile-sparql} package provides
+  a SPARQL interface.
+
+  The package provides a \texttt{driver} module that communicates with the
+  SPARQL endpoint, a \texttt{lang} module to construct SPARQL queries using
+  S-expressions, and a \texttt{util} module containing convenience functions.
+
+  After installation, the modules can be loaded using:
+
+\begin{siderules}
+\begin{verbatim}
+(use-modules (sparql driver)
+             (sparql lang)
+             (sparql util))
+\end{verbatim}
+\end{siderules}
+
+  Using the \texttt{sparql-query} function, we can execute a query:
+
+\begin{siderules}
+\begin{verbatim}
+(let ((endpoint       "http://localhost:8890/sparql-auth")
+      (authentication "dba:secret-password")
+      (query          "SELECT DISTINCT ?p WHERE { ?s ?p ?o }"))
+  (display-query-results-of
+    (sparql-query query
+                  #:uri    endpoint
+                  #:digest authentication)))
 \end{verbatim}
 \end{siderules}
 
