@@ -14,7 +14,7 @@
     \rule{0.75\textwidth}{1.0pt}~\\
     %\Large Roel Janssen~\\~\\
     \url{https://github.com/UMCUGenetics/sparqling-genomics}~\\
-    \large v0.99.3, \today{}
+    \large v0.99.4, \today{}
     % Put it a little bit above the center of the page.
     ~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\~\\
   \end{center}
@@ -218,7 +218,7 @@ table2rdf -i /path/to/my/table.tsv > /path/to/my/table.ttl
 \begin{siderules}
 \begin{verbatim}
 mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
-  --batch | table2rdf --stdin -O ntriples > regions.n3
+      --batch | table2rdf --stdin -O ntriples > regions.n3
 \end{verbatim}
 \end{siderules}
 
