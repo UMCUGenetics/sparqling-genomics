@@ -16,6 +16,10 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
 SUBDIRS                 = tools/vcf2rdf tools/table2rdf web doc
 
+ontologydir             = ${pkgdatadir}
+nobase_ontology_DATA    = ontologies/sparqling-genomics.ttl
+EXTRA_DIST              = $(nobase_ontology_DATA)
+
 # Build docker image with Guix
 docker: dist
 	guix pack -C none -e '(load "environment.scm")' --with-source=sparqling-genomics-$(VERSION).tar.gz -f docker -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc glibc-utf8-locales tzdata coreutils bash
