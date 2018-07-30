@@ -27,6 +27,7 @@ SOURCES =                                               \
   sparql/util.scm                                       \
   www/config.scm                                        \
   www/db/connections.scm                                \
+  www/db/overview.scm                                   \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
   www/pages/edit-connection.scm                         \
