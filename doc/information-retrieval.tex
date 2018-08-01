@@ -364,6 +364,70 @@ Which may yield the following table:
   \label{table:query-output-6}
 \end{table}
 
+\subsection{Comparing two datasets on specific properties}
+
+  Suppose we run variant calling on the same sample with slightly different
+  analysis programs.  We expect a large overlap in variants between the
+  datasets, and would like to view the few variants differ in each dataset.
+
+  We imported each dataset in a separate graph (\texttt{http://comparison/aaa}
+  and \texttt{http://comparison/bbb}).
+
+  The properties we are going to compare are the predicates \texttt{faldo:reference},
+  \texttt{faldo:position}, \texttt{vc:REF}, and \texttt{vc:ALT}.
+
+  The query below displays how each variant in \texttt{http://comparison/aaa}
+  can be compared to a matching variant in \texttt{http://comparison/bbb}.
+  Only those variants in \texttt{http://comparison/aaa} that \textbf{do not}
+  have an equivalent variant in \texttt{http://comparison/bbb} will be
+  returned by the SPARQL endpoint.
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX faldo:   <http://biohackathon.org/resource/faldo#>
+PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vc:      <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+
+SELECT DISTINCT
+  STRAFTER(STR(?chromosome), "hg19#") AS ?chromosome
+  ?position
+  STRAFTER(STR(?reference), "Sequence/") AS ?reference
+  STRAFTER(STR(?alternative), "Sequence/") AS ?alternative
+  STRAFTER(STR(?filter), "vcf2rdf/") AS ?filter
+WHERE
+{
+  GRAPH <http://comparison/aaa>
+  {
+    ?aaa_variant  rdf:type         vcf2rdf:VariantCall ;
+                  vc:REF           ?reference ;
+                  vc:ALT           ?alternative ;
+                  vc:FILTER        ?filter ;
+                  faldo:reference  ?chromosome ;
+                  faldo:position   ?position .
+  }
+
+  MINUS
+  {
+    GRAPH <http://comparison/bbb>
+    {
+      ?variant  rdf:type         vcf2rdf:VariantCall ;
+                vc:REF           ?reference ;
+                vc:ALT           ?alternative ;
+                faldo:reference  ?chromosome ;
+                faldo:position   ?position .
+    }
+  }
+}
+\end{verbatim}
+\end{siderules}
+
+  So the \texttt{MINUS} construct in SPARQL can be used to filter overlapping
+  information between multiple graphs.
+
+  This query demonstrates how a fine-grained ``diff'' can be constructed
+  between two datasets.
+
 \section{Federated querying}
 \label{sec:federated-querying}
 
