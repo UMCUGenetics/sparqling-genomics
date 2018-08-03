@@ -312,7 +312,7 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
 \begin{siderules}
 \begin{verbatim}
 curl -X POST                                                 \
-     -H Content-Type:text/turtle                             \
+     -H 'Content-Type: text/turtle'                          \
      -T /path/to/variants.ttl                                \
      -G <endpoint URL>                                       \
      --digest -u <username>:<password>                       \
@@ -332,7 +332,7 @@ password \texttt{qwerty}.
 \begin{siderules}
 \begin{verbatim}
 curl -X POST                                                 \
-     -H Content-Type:text/turtle                             \
+     -H 'Content-Type: text/turtle'                          \
      -T vcf2rdf-variants.ttl                                 \
      -G http://127.0.0.1:8890/sparql-graph-crud-auth         \
      --digest -u dba:qwerty                                  \
@@ -348,13 +348,27 @@ this:
 \begin{siderules}
 \begin{verbatim}
 curl -X POST                                                 \
-     -H Content-Type:text/turtle                             \
+     -H 'Content-Type: text/turtle'                          \
      -T vcf2rdf-variants.ttl                                 \
      -G http://127.0.0.1:8080/data/http://example/graph
 \end{verbatim}
 \end{siderules}
 
 Notice that \texttt{4store} does not provide an authentication mechanism.
+
+\subsubsection{Sending \texttt{gzip}-compressed data}
+
+  When the RDF file is compressed with \texttt{gzip}, extra HTTP headers must
+  be added to the \texttt{curl} command:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                                 \
+     -H 'Content-Type: text/turtle'                          \
+     -H 'Transfer-Encoding: chunked'                         \
+     -H 'Content-Encoding: gzip'                             \
+     ...
+\end{verbatim}
+\end{siderules}
 
 \chapter{Web interface}
 \label{chap:web-interface}
