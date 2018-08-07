@@ -31,6 +31,7 @@
 (define pages
   '(("/" "Overview")
     ("/connections" "Connections")
+    ("/projects" "Projects")
     ("/query" "Query")
     ("/getting-started" "Getting started")
     ("/help" "Help")))
@@ -50,9 +51,10 @@
                  (string= (car item) "/query"))
             `(li (@ (class "active")) (a (@ (href "/query")
                                             (onclick "history.go(-1); return false;")) "← Go back")))
-           ((and (string= (car item) "/connections")
-                 (string-is-longer-than request-path 16)
-                 (string= (string-take request-path 16) "/edit-connection"))
+           ((or (and (string= (car item) "/connections")
+                     (string-prefix? "/edit-connection" request-path))
+                (and (string= (car item) "/projects")
+                     (string-prefix? "/edit-project" request-path)))
             `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
            (else
             `(li (a (@ (href ,(car item))) ,(cadr item))))))

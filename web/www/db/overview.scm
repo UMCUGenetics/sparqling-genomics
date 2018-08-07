@@ -61,7 +61,9 @@
 ;; ----------------------------------------------------------------------------
 
 (define* (number-of-samples #:key (connection #f))
-  (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  (catch #t
+    (lambda _
+      (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
 PREFIX nsg: <http://rdf.op.umcutrecht.nl/>
 
@@ -70,16 +72,19 @@ WHERE
 {
   ?sample rdf:type sg:Sample .
 }")
-         (results (single-value-query query #:connection connection)))
-    (if (list? results)
-        (apply + (map length results))
-        (length results))))
+             (results (single-value-query query #:connection connection)))
+        (if (list? results)
+            (apply + (map length results))
+            (length results))))
+    (lambda (key . args) 0)))
 
 ;; NUMBER-OF-VARIANT-CALLS
 ;; ----------------------------------------------------------------------------
 
 (define* (number-of-variant-calls #:key (connection #f))
-  (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  (catch #t
+    (lambda _
+      (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
 PREFIX nsg: <http://rdf.umcutrecht.nl/vcf2rdf/>
 
@@ -88,8 +93,9 @@ WHERE
 {
   ?variant rdf:type sg:VariantCall .
 }")
-         (results (single-value-query query #:connection connection)))
-    (if (list? results)
-        (apply + (map string->number (delete #f results)))
-        (string->number results))))
+             (results (single-value-query query #:connection connection)))
+        (if (list? results)
+            (apply + (map string->number (delete #f results)))
+            (string->number results))))
+    (lambda (key . args) 0)))
 

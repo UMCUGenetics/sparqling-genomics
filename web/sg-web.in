@@ -33,6 +33,7 @@
              (www pages error)
              (www pages welcome)
              (www pages edit-connection)
+             (www pages edit-project)
              (www pages)
              (www util))
 
@@ -116,8 +117,7 @@
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
-   [(and (string-is-longer-than request-path 5)
-         (string= (string-take-right request-path 5) ".json"))
+   [(string-suffix? ".json" request-path)
     (values '((content-type . (application/javascript)))
             (call-with-output-string
               (lambda (port)
@@ -134,8 +134,7 @@
                       (put-string port "{}"))))))]
 
    ;; When the URI begins with “/ontology/”, use the internal ontology viewer.
-   [(and (string-is-longer-than request-path 10)
-         (string= (string-take request-path 10) "/ontology/"))
+   [(string-prefix? "/ontology/" request-path)
     (values '((content-type . (text/html)))
             (call-with-output-string
               (lambda (port)
@@ -147,8 +146,7 @@
 
    ;; When the URI begins with “/edit-connection/”, use the edit-connection
    ;; page.
-   [(and (string-is-longer-than request-path 16)
-         (string= (string-take request-path 16) "/edit-connection"))
+   [(string-prefix? "/edit-connection" request-path)
     (values '((content-type . (text/html)))
             (call-with-output-string
               (lambda (port)
@@ -158,6 +156,19 @@
                                (page-edit-connection request-path
                                 #:post-data (utf8->string request-body))
                                (page-edit-connection request-path)) port))))]
+
+   ;; When the URI begins with “/edit-project/”, use the edit-project
+   ;; page.
+   [(string-prefix? "/edit-project" request-path)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (if (eq? (request-method request) 'POST)
+                               (page-edit-project request-path
+                                #:post-data (utf8->string request-body))
+                               (page-edit-project request-path)) port))))]
 
    ;; All other requests can be handled as HTML responses.
    [#t
