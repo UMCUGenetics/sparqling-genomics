@@ -30,6 +30,7 @@
              (web uri)
              (www config)
              (www db connections)
+             (www db projects)
              (www pages error)
              (www pages welcome)
              (www pages edit-connection)
@@ -80,6 +81,7 @@
               (values `((content-type . ,(response-content-type full-path)))
                       (with-input-from-file full-path
                         (lambda _
+                          (setvbuf (current-input-port) 'block)
                           (get-bytevector-all (current-input-port))))))))))
 
 (define (request-scheme-page-handler request request-body request-path)
@@ -106,7 +108,7 @@
   ;; Return-type handlers.
   ;; --------------------------------------------------------------------------
   (cond
-   ;; The “/” page is special, because we re-route it to “graphs”.
+   ;; The “/” page is special, because we re-route it to “welcome”.
    [(not (string-is-longer-than request-path 2))
     (values '((content-type . (text/html)))
             (call-with-output-string
@@ -114,6 +116,11 @@
                 (set-port-encoding! port "utf8")
                 (format port "<!DOCTYPE html>~%")
                 (sxml->xml (page-welcome "/") port))))]
+
+   ;; Static resources can be served directly using the ‘request-file-handler’.
+   ;; -------------------------------------------------------------------------
+   [(string-prefix? "/static/" request-path)
+    (request-file-handler request-path)]
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
@@ -210,12 +217,7 @@
 
 (define (request-handler request request-body)
   (let ((request-path (uri-path (request-uri request))))
-    (cond
-     ((and (> (string-length request-path) 7)
-           (string= (string-take request-path 8) "/static/"))
-      (request-file-handler request-path))
-     (else
-      (request-scheme-page-handler request request-body request-path)))))
+    (request-scheme-page-handler request request-body request-path)))
 
 ;; ----------------------------------------------------------------------------
 ;; CONFIGURATION READER
@@ -290,6 +292,7 @@
 (begin
   (format #t "sparqling-genomics is running at http://127.0.0.1:~a~%" (www-listen-port))
   (load-connections)
+  (load-projects)
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
         (if (eq? pid 0)

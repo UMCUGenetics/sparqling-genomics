@@ -28,9 +28,12 @@ SOURCES =                                               \
   www/config.scm                                        \
   www/db/connections.scm                                \
   www/db/overview.scm                                   \
+  www/db/projects.scm                                   \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
   www/pages/edit-connection.scm                         \
+  www/pages/projects.scm                                \
+  www/pages/edit-project.scm                            \
   www/pages/error.scm                                   \
   www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
