@@ -21,25 +21,32 @@ SOURCES =                                               \
   json/builder.scm                                      \
   json/parser.scm                                       \
   json/syntax.scm                                       \
+  ldap/authenticate.scm                                 \
   sparql/driver.scm                                     \
   sparql/lang.scm                                       \
   sparql/md5.scm                                        \
   sparql/util.scm                                       \
+  www/base64.scm                                        \
   www/config.scm                                        \
   www/db/connections.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
+  www/db/sessions.scm                                   \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
   www/pages/edit-connection.scm                         \
-  www/pages/projects.scm                                \
   www/pages/edit-project.scm                            \
   www/pages/error.scm                                   \
   www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
+  www/pages/login.scm                                   \
+  www/pages/project-samples.scm                         \
+  www/pages/projects.scm                                \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
+  www/pages/samples.scm                                 \
   www/pages/welcome.scm                                 \
+  www/requests.scm                                      \
   www/util.scm
 
 WWW_STATIC_RESOURCES =                                  \

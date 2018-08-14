@@ -50,22 +50,24 @@
                 (response-code header)
                 (read-line port)))))
 
-(define* (query-results-to-list port #:optional (output '()))
+(define* (query-results-to-list port #:optional (skip-first-line? #f)
+                                                (output '()))
   "Returns a list of data read from PORT."
+  (when skip-first-line? (read-line port))
   (let* ((line   (read-line port)))
     (if (eof-object? line)
         (reverse output)
-        (query-results-to-list port
+        (query-results-to-list port #f
          (cons (map (lambda (item) (string-trim-both item #\"))
                     (string-split line #\,))
                output)))))
 
 (define-syntax-rule
-  (query-results->list query)
+  (query-results->list query skip-first-line?)
   (receive (header port)
       query
     (if (= (response-code header) 200)
-        (query-results-to-list port)
+        (query-results-to-list port skip-first-line?)
         (format #t "Error (~a): ~a~%"
                 (response-code header)
                 (read-line port)))))

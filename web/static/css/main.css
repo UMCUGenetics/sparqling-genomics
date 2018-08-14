@@ -295,8 +295,16 @@ tr:nth-child(even) {
     border-radius: 4pt;
     background: #ccc;
 }
-
-input {
+#samples {
+    text-align: left;
+    background: #cccccc;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    padding: 5pt;
+    margin: 5pt;
+}
+input[type=text],input[type=submit],input[type=password] {
     width: 100%;
     height: 20pt;
     font-family: 'FiraMono', monospace;
@@ -306,7 +314,11 @@ input {
     border-radius: 4pt;
     border: solid 2px #cccccc;
 }
-
+.sample-field {
+    display: inline-block;
+    min-width: 150pt;
+    max-width: 150pt;
+}
 table {
     width: 100%;
 }
@@ -402,17 +414,63 @@ select#connection {
     border-radius: 4pt;
 }
 
+.action-btn a {
+    color: #ffffff;
+    text-decoration: none;
+    outline: none;
+}
 .action-btn {
     display: inline-block;
-    width: auto;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    font-size: 22px;
     text-align: center;
+    padding: 0px;
     border: none;
     color: #ffffff;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
     margin-right: 10px;
+}
+
+.left-button-column {
+    max-width: 1px;
+    text-align: right;
+}
+.right-button-column {
+    width: auto;
+    text-align: left;
+}
+.button-column {
+    width: 30px;
+}
+
+#login-wrapper {
+    width: 220pt;
+    margin: auto;
+    text-align: center;
+}
+
+input[type=submit].login-field,input[type=password].login-field,input[type=text].login-field {
+    width: 180pt;
+    border: none;
+    padding: 10pt;
+    margin: 10pt;
+    height: auto;
+    font-size: 15pt;
+    font-family: 'Roboto', sans-serif;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    border: solid 2px #ccc;
+}
+
+input[type=submit].login-field {
+    background: #008800;
+    color: #fff;
+    border: none;
+    cursor: pointer;
 }
 
 .remove-btn { background: #880000; }

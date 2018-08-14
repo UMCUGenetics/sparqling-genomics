@@ -21,11 +21,14 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (web response)
+  #:use-module (ice-9 threads)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-19)
 
   #:export (number-of-samples
+            all-samples
             number-of-variant-calls))
 
 ;; SINGLE-VALUE-QUERY
@@ -60,42 +63,134 @@
 ;; NUMBER-OF-SAMPLES
 ;; ----------------------------------------------------------------------------
 
-(define* (number-of-samples #:key (connection #f))
+(define* (number-of-samples #:optional (connection #f))
   (catch #t
     (lambda _
+      (length (all-samples connection)))
+    (lambda (key . args)
+      (format #t "Thrown exception: ~a: ~a~%" key args)
+      0)))
+
+(define* (all-samples #:optional (connection #f))
+  (if connection
       (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX nsg: <http://rdf.op.umcutrecht.nl/>
+PREFIX sg: <http://rdf.umcutrecht.nl/>
 
 SELECT DISTINCT ?sample
 WHERE
 {
   ?sample rdf:type sg:Sample .
 }")
-             (results (single-value-query query #:connection connection)))
-        (if (list? results)
-            (apply + (map length results))
-            (length results))))
-    (lambda (key . args) 0)))
+             (results (query-results->list
+                       (sparql-query query
+                                     #:uri (connection-uri connection)
+                                     #:digest-auth
+                                     (if (and (connection-username connection)
+                                              (connection-password connection))
+                                         (string-append
+                                          (connection-username connection) ":"
+                                          (connection-password connection))
+                                         #f))
+                       #t)))
+        results)
+      (sort (delete-duplicates
+             (apply append
+                    (delete #f
+                            (apply append
+                                   (par-map all-samples (all-connections))))))
+            string<?)))
+
+
+;; Wrapper around ‘merge’ that accepts multiple sorted input lists.
+;; ----------------------------------------------------------------------------
+
+(define* (merge-multiple less? input #:optional (result '()))
+  (if (null? input)
+      result
+      (merge-multiple less? (cdr input) (merge (car input) result less?))))
+
+;; Function to delete duplicates assuming the list is already sorted.
+;; ----------------------------------------------------------------------------
+
+(define* (delete-duplicates-sorted input same? #:optional (result '()))
+  (if (null? input)
+      (reverse result)
+      (let ((item (car input)))
+        (if (or (null? result)
+                (not (same? (car result) item)))
+            (delete-duplicates-sorted (cdr input) same? (cons item result))
+            (delete-duplicates-sorted (cdr input) same? result)))))
 
 ;; NUMBER-OF-VARIANT-CALLS
 ;; ----------------------------------------------------------------------------
 
-(define* (number-of-variant-calls #:key (connection #f))
+(define* (number-of-variant-calls #:optional (connection #f))
   (catch #t
     (lambda _
-      (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      (if connection
+          (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX nsg: <http://rdf.umcutrecht.nl/vcf2rdf/>
 
-SELECT COUNT(DISTINCT ?variant)
-WHERE
-{
-  ?variant rdf:type sg:VariantCall .
-}")
-             (results (single-value-query query #:connection connection)))
-        (if (list? results)
-            (apply + (map string->number (delete #f results)))
-            (string->number results))))
-    (lambda (key . args) 0)))
+SELECT COUNT(?variant) WHERE { ?variant rdf:type sg:VariantCall }")
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
+                                              (connection-password connection))
+                                             #f))
+                           #t)))
+            (string->number (caar results)))
+          (let* ((variants (par-map number-of-variant-calls (all-connections))))
+            (apply + variants))))
+    (lambda (key . args)
+      (format #t "Thrown exception: ~a: ~a~%" key args)
+      0)))
 
+(define* (number-of-variant-calls-deduplicated #:optional (connection #f))
+  (format #t "Pre-executed time:   ~a~%"
+          (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
+  (catch #t
+    (lambda _
+      (if connection
+          (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
+
+SELECT STRAFTER(STR(?variant), 'vcf2rdf/') WHERE { ?variant rdf:type sg:VariantCall }
+ORDER BY DESC(?variant)")
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
+                                              (connection-password connection))
+                                             #f))
+                           #t)))
+            (map car (delete #f results)))
+          ;; To get grand total numbers we need to query each “connection”,
+          ;; and remove duplicated entries.  We assume it's faster to let
+          ;; the RDF store(s) sort and deduplicate its own results.
+          (let* ((variants  (begin
+                              (format #t "Executing queries:     ~a~%"
+                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
+                              (par-map number-of-variant-calls (all-connections))))
+                 (merged    (begin
+                              (format #t "Merging results:       ~a~%"
+                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
+                              (merge-multiple string>? variants)))
+                 (dedupped  (begin
+                              (format #t "Deduplicating results: ~a~%"
+                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
+                              (delete-duplicates-sorted merged string=))))
+            (format #t "Post-executed time: ~a~%"
+                    (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
+            (length dedupped))))
+    (lambda (key . args)
+      (format #t "Thrown exception: ~a: ~a~%" key args)
+      0)))

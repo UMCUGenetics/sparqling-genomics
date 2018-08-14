@@ -22,202 +22,26 @@
              (rnrs bytevectors)
              (rnrs io ports)
              (srfi srfi-1)
-             (srfi srfi-26)
              (sxml simple)
-             (web server)
+             (system foreign)
+             (fibers web server)
+             (ldap authenticate)
              (web request)
              (web response)
              (web uri)
+             (www base64)
              (www config)
+             (www requests)
              (www db connections)
              (www db projects)
+             (www db sessions)
              (www pages error)
              (www pages welcome)
+             (www pages project-samples)
              (www pages edit-connection)
              (www pages edit-project)
              (www pages)
              (www util))
-
-
-;; ----------------------------------------------------------------------------
-;; HANDLERS
-;; ----------------------------------------------------------------------------
-;;
-;; The way a request is handled varies upon the nature of the request.  It can
-;; be as simple as serving a pre-existing file, or as complex as finding a
-;; Scheme module to use for handling the request.
-;;
-;; In this section, the different handlers are implemented.
-;;
-
-(define (request-file-handler path)
-  "This handler takes data from a file and sends that as a response."
-
-  (define (response-content-type path)
-    "This function returns the content type of a file based on its extension."
-    (let ((extension (substring path (1+ (string-rindex path #\.)))))
-      (cond [(string= extension "css")  '(text/css)]
-            [(string= extension "js")   '(application/javascript)]
-            [(string= extension "json") '(application/javascript)]
-            [(string= extension "html") '(text/html)]
-            [(string= extension "png")  '(image/png)]
-            [(string= extension "svg")  '(image/svg+xml)]
-            [(string= extension "ico")  '(image/x-icon)]
-            [(string= extension "pdf")  '(application/pdf)]
-            [(string= extension "ttf")  '(application/font-sfnt)]
-            [(#t '(text/plain))])))
-
-  (let ((full-path (string-append (www-root) "/" path)))
-    (if (not (file-exists? full-path))
-        (values '((content-type . (text/html)))
-                (with-output-to-string (lambda _ (sxml->xml (page-error-404 path)))))
-        ;; Do not handle files larger than (maximum-file-size).
-        ;; Please increase the file size if your server can handle it.
-        (let ((file-stat (stat full-path)))
-          (if (> (stat:size file-stat) (www-max-file-size))
-              (values '((content-type . (text/html)))
-                      (with-output-to-string
-                        (lambda _ (sxml->xml (page-error-filesize path)))))
-              (values `((content-type . ,(response-content-type full-path)))
-                      (with-input-from-file full-path
-                        (lambda _
-                          (setvbuf (current-input-port) 'block)
-                          (get-bytevector-all (current-input-port))))))))))
-
-(define (request-scheme-page-handler request request-body request-path)
-
-  (define (module-path prefix elements)
-    "Returns the module path so it can be loaded."
-    (append prefix (map string->symbol elements)))
-
-  (define (resolve-module-function request-path)
-    "Return FUNCTION from MODULE."
-    (let* ((module (resolve-module (module-path '(www pages)
-                     (string-split request-path #\/)) #:ensure #f))
-           (page-symbol (symbol-append 'page-
-                         (string->symbol
-                          (string-replace-occurrence request-path #\/ #\-)))))
-      ;; Return #f unless the 'page-symbol' exists in 'module',
-      ;; in which case we return that.
-      (if module
-          (catch #t
-            (lambda _ (module-ref module page-symbol))
-            (lambda (key . args) #f))
-          #f)))
-
-  ;; Return-type handlers.
-  ;; --------------------------------------------------------------------------
-  (cond
-   ;; The “/” page is special, because we re-route it to “welcome”.
-   [(not (string-is-longer-than request-path 2))
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (page-welcome "/") port))))]
-
-   ;; Static resources can be served directly using the ‘request-file-handler’.
-   ;; -------------------------------------------------------------------------
-   [(string-prefix? "/static/" request-path)
-    (request-file-handler request-path)]
-
-   ;; When the “file extension” of the request indicates JSON, treat the
-   ;; returned format as ‘application/javascript’.
-   [(string-suffix? ".json" request-path)
-    (values '((content-type . (application/javascript)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (let* ((request-path (basename request-path ".json"))
-                       (page-function (resolve-module-function request-path)))
-                  (if page-function
-                      (if (eq? (request-method request) 'POST)
-                          (put-string port
-                                      (page-function
-                                       request-path
-                                       #:post-data (utf8->string request-body)))
-                          (put-string port (page-function request-path)))
-                      (put-string port "{}"))))))]
-
-   ;; When the URI begins with “/ontology/”, use the internal ontology viewer.
-   [(string-prefix? "/ontology/" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (page-ontology-or-error-404
-                            (substring request-path 10)
-                            #:is-ontology? #t) port))))]
-
-   ;; When the URI begins with “/edit-connection/”, use the edit-connection
-   ;; page.
-   [(string-prefix? "/edit-connection" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-connection request-path
-                                #:post-data (utf8->string request-body))
-                               (page-edit-connection request-path)) port))))]
-
-   ;; When the URI begins with “/edit-project/”, use the edit-project
-   ;; page.
-   [(string-prefix? "/edit-project" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-project request-path
-                                #:post-data (utf8->string request-body))
-                               (page-edit-project request-path)) port))))]
-
-   ;; All other requests can be handled as HTML responses.
-   [#t
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (let* ((path          (substring request-path 1))
-                       (page-function (resolve-module-function path))
-                       (sxml-tree     (if page-function
-                                          (if (eq? (request-method request) 'POST)
-                                              (page-function request-path
-                                                             #:post-data
-                                                             (utf8->string request-body))
-                                              (page-function request-path))
-                                          (page-ontology-or-error-404
-                                           request-path))))
-                  (catch 'wrong-type-arg
-                    (lambda _
-                      (when (eq? (car (car sxml-tree)) 'html)
-                        (format port "<!DOCTYPE html>~%")))
-                    (lambda (key . args) #f))
-                  (sxml->xml sxml-tree port)))))]))
-
-
-;; ----------------------------------------------------------------------------
-;; ROUTING & HANDLERS
-;; ----------------------------------------------------------------------------
-;;
-;; Requests can have different handlers.
-;; * Static objects (images, stylesheet, javascript files) have their own
-;;   handler.
-;; * Package pages are generated dynamically, so they have their own handler.
-;; * The 'regular' Scheme pages have their own handler that resolves the
-;;   module dynamically.
-;;
-;; Feel free to add your own handler whenever that is necessary.
-;;
-
-(define (request-handler request request-body)
-  (let ((request-path (uri-path (request-uri request))))
-    (request-scheme-page-handler request request-body request-path)))
 
 ;; ----------------------------------------------------------------------------
 ;; CONFIGURATION READER
@@ -225,15 +49,6 @@
 ;;
 ;; The following function(s) parse a configuration file.
 ;;
-
-;; (define (read-configuration-from-file filename)
-;;   (call-with-input-file filename
-;;     (lambda (port)
-;;       (let ((xml-data  (get-bytevector-all port))
-;;             (sxml-data (xml->sxml xml-data)))
-;;         (sxml-match sxml-data
-;;          [(WebInterface (BindAddress))]
-;;         )))))
 
 (define (read-configuration-from-file filename)
   (catch #t
@@ -245,12 +60,51 @@
 
         ;; Handle options
         ;; --------------------------------------------------------------------
-        (let ((fork? (assoc-ref config 'fork))
-              (port  (assoc-ref config 'port)))
+        (let ((fork?             (assoc-ref config 'fork))
+              (port              (assoc-ref config 'port))
+              (authentication    (assoc-ref config 'authentication)))
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
           (when port
             (set-www-listen-port! (string->number (car port))))
+          (when authentication
+            (cond
+             ;; LDAP is preferred over single-user authentication.
+             [(assoc-ref authentication 'ldap)
+              (if (not (ldap-is-available?))
+                  (begin
+                    (display "Warning: Your configuration specifies an LDAP ")
+                    (display "connection, but LDAP is unavailable.  Please ")
+                    (display "enable LDAP-support when building ")
+                    (display "sparqling-genomics.")
+                    (newline))
+                  (let ((ldap (assoc-ref authentication 'ldap)))
+                    (set-ldap-uri! (car (assoc-ref ldap 'uri)))
+                    (set-ldap-organizational-unit!
+                     (car (assoc-ref ldap 'organizational-unit)))
+                    (set-ldap-domain! (car (assoc-ref ldap 'domain)))
+                    (set-ldap-enabled! #t)))]
+             ;; Single-user configuration is an alternative to LDAP auth.
+             [(assoc-ref authentication 'single-user)
+              (let ((user (assoc-ref authentication 'single-user)))
+                (if (not user)
+                    (begin
+                      (display "Warning: Your configuration specifies ")
+                      (display "single-user authentication, but your ")
+                      (display "configuration is incomplete.")
+                      (newline))
+                    (if (or (null? (assoc-ref user 'username))
+                            (null? (assoc-ref user 'password)))
+                        (begin
+                          (display "An empty username or password is not ")
+                          (display "allowed.")
+                          (newline))
+                        (let ((username (car (assoc-ref user 'username)))
+                              (password (car (assoc-ref user 'password))))
+                          (begin
+                            (set-authentication-username! username)
+                            (set-authentication-password! password)
+                            (set-authentication-enabled! #t))))))]))
           #t)))
     (lambda (key . args)
       (format #t "Couldn't read configuration file (~a: ~a).~%" key args)
@@ -265,18 +119,27 @@
 ;;
 
 (define program-options
-  '((version      (single-char #\v) (value #f))
-    (help         (single-char #\h) (value #f))
-    (config-file  (single-char #\f) (value #t))))
+  '((version             (single-char #\v) (value #f))
+    (help                (single-char #\h) (value #f))
+    (configuration-file  (single-char #\f) (value #t))))
 
 (define (show-help)
   (for-each (lambda (line) (display line) (newline))
    '("This is sparqling-genomics."
      "  --help                     Show this message."
      "  --version                  Show versioning information."
-     "  --configuration-file=ARG   Path to the configuration file.")))
+     "  --configuration-file=ARG   Path to the configuration file."))
+  (exit 0))
+
+(define (show-version)
+  (display "sparqling-genomics 0.99.4")
+  (newline)
+  (exit 0))
 
 (define %config (getopt-long (command-line) program-options))
+
+(when (assoc-ref %config 'help)    (show-help))
+(when (assoc-ref %config 'version) (show-version))
 
 ;; ----------------------------------------------------------------------------
 ;; RUNNER
@@ -285,23 +148,46 @@
 ;; This code runs the web server.
 ;;
 
-(when (and (assoc-ref %config 'config-file)
-           (read-configuration-from-file (assoc-ref %config 'config-file)))
-  (format #t "Using configuration from ~s.~%" (assoc-ref %config 'config-file)))
+(when (assoc-ref %config 'configuration-file)
+  (format #t "Using configuration from ~s.~%"
+          (assoc-ref %config 'configuration-file))
+  (read-configuration-from-file
+   (assoc-ref %config 'configuration-file)))
+
+(when (and (not (ldap-enabled?))
+           (not (authentication-enabled?)))
+  (format #t "Refused to run without an authentication mechanism.~%")
+  (exit 0))
 
 (begin
+  ;; Seed the random number generator.  We use this to generate session IDs.
+  ;; To get a secure seed, we use the system call 'getrandom'.
+  (let* ((getrandom (pointer->procedure
+                     int
+                     (dynamic-func "getrandom" (dynamic-link))
+                     (list '* size_t uint32)))
+         (random-state (make-bytevector 256))
+         (random-state-pointer (bytevector->pointer random-state)))
+    (do ((bytes 0 (+ bytes (getrandom
+                            (make-pointer
+                             (+ bytes
+                                (pointer-address random-state-pointer)))
+                            (- 256 bytes) 2))))
+        ((= bytes 256))
+      #t)
+    (set! *random-state* (seed->random-state (base64-encode random-state))))
+
   (format #t "sparqling-genomics is running at http://127.0.0.1:~a~%" (www-listen-port))
-  (load-connections)
-  (load-projects)
+  (load-sessions)
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
         (if (eq? pid 0)
             (with-output-to-file "web.log"
               (lambda _
-                (run-server request-handler 'http
-                            `(#:port ,(www-listen-port)
-                              #:addr ,INADDR_ANY))))
-            (primitive-exit)))
-      (run-server request-handler 'http
-                  `(#:port ,(www-listen-port)
-                    #:addr ,INADDR_ANY))))
+                (run-server request-handler
+                            #:port (www-listen-port)
+                            #:addr INADDR_ANY)
+                (primitive-exit)))))
+      (run-server request-handler
+                  #:port (www-listen-port)
+                  #:addr INADDR_ANY)))

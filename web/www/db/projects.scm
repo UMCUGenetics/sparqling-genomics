@@ -17,6 +17,8 @@
 (define-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (sparql lang)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
@@ -31,6 +33,7 @@
 
             alist->project
             project->alist
+            project->ntriples
 
             make-project
             project-name
@@ -41,6 +44,7 @@
             set-project-samples!))
 
 (define %db-projects '())
+(define %db-projects-username "")
 
 ;; PROJECT RECORD TYPE
 ;; ----------------------------------------------------------------------------
@@ -70,23 +74,49 @@
   `((name     . ,(project-name     record))
     (samples  . ,(project-samples  record))))
 
+;; PROJECT->NTRIPLES
+;; ----------------------------------------------------------------------------
+(define (project->ntriples input)
+  (with-output-to-string
+    (lambda _
+      (let ((sg  (prefix "http://rdf.umcutrecht.nl/"))
+            (sam (prefix "http://rdf.umcutrecht.nl/Sample/"))
+            (pro (prefix "http://rdf.umcutrecht.nl/Project/"))
+            (rdf (prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns#")))
+        (format #t "~a ~a ~a .~%"
+                (pro (project-name input))
+                (rdf "type")
+                (sg "Project"))
+        (for-each (lambda (sample)
+                    (format #t "~a ~a ~a .~%"
+                            (sam sample)
+                            (sg  "foundIn")
+                            (pro (project-name input))))
+                  (project-samples input))))))
 
 ;; PROJECTS PERSISTENCE
 ;; ----------------------------------------------------------------------------
-(define (load-projects)
+(define (persistence-path username)
+  (string-append (www-cache-root) "/" username "/projects.scm"))
+
+(define (load-projects username)
+  (set! %db-projects-username username)
   (catch #t
     (lambda _
-      (let ((filename (string-append (www-cache-root) "/projects.scm")))
-        (when (file-exists? filename)
+      (let ((filename (persistence-path username)))
+        (if (file-exists? filename)
           (call-with-input-file filename
             (lambda (port)
               (set! %db-projects
-                    (map alist->project (read port))))))))
+                    (map alist->project (read port)))))
+          (set! %db-projects '()))))
     (lambda (key . args)
       #f)))
 
 (define (persist-projects)
-  (let ((filename (string-append (www-cache-root) "/projects.scm")))
+  (let ((filename (persistence-path %db-projects-username)))
+    (unless (file-exists? (dirname filename))
+      (mkdir-p (dirname filename)))
     (call-with-output-file filename
       (lambda (port)
         ;; Before writing to the file under 'port', chmod it so that

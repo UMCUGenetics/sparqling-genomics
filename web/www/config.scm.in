@@ -31,7 +31,21 @@
             www-hostname
             www-root
             www-cache-root
-            www-static-root))
+            www-static-root
+            ldap-enabled?
+            ldap-uri
+            ldap-organizational-unit
+            ldap-domain
+            authentication-enabled?
+            authentication-username
+            authentication-password
+            set-ldap-enabled!
+            set-ldap-uri!
+            set-ldap-organizational-unit!
+            set-ldap-domain!
+            set-authentication-enabled!
+            set-authentication-username!
+            set-authentication-password!))
 
 
 ;; ----------------------------------------------------------------------------
@@ -46,50 +60,78 @@
 
   ;; Web settings
   ;; --------------------------------------------------------------------------
-  (www-name                #:init-value "sparqling-genomics"
-                           #:getter get-www-name)
+  (www-name                 #:init-value "sparqling-genomics"
+                            #:getter get-www-name)
 
-  (www-hostname            #:init-value "http://sparqling-genomics/"
-                           #:getter get-www-hostname)
+  (www-hostname             #:init-value "http://sparqling-genomics/"
+                            #:getter get-www-hostname)
 
-  (www-root                #:init-value
-                           (lambda _
-                             (if (getenv "SG_WEB_ROOT")
-                                 (getenv "SG_WEB_ROOT")
-                                 "@WEB_ROOT@/sparqling-genomics/web"))
-                           #:getter get-www-root)
-  (www-cache-root          #:init-value
-                           (lambda _
-                             (let ((xdg-cache-home (getenv "XDG_CACHE_HOME")))
-                               (if xdg-cache-home
-                                   (string-append xdg-cache-home
-                                                  "/sparqling-genomics")
-                                   (string-append
-                                    (getenv "HOME")
-                                    "/.cache/sparqling-genomics"))))
-                           #:getter get-www-cache-root)
-  (www-static-root         #:init-value
-                           (lambda _
-                             (if (getenv "SG_WEB_ROOT")
-                                 (string-append (getenv "SG_WEB_ROOT") "/static")
-                                  "@WEB_ROOT@/sparqling-genomics/web/static"))
-                           #:getter get-www-static-root)
+  (www-root                 #:init-value
+                            (lambda _
+                              (if (getenv "SG_WEB_ROOT")
+                                  (getenv "SG_WEB_ROOT")
+                                  "@WEB_ROOT@/sparqling-genomics/web"))
+                            #:getter get-www-root)
+  (www-cache-root           #:init-value
+                            (lambda _
+                              (let ((xdg-cache-home (getenv "XDG_CACHE_HOME")))
+                                (if xdg-cache-home
+                                    (string-append xdg-cache-home
+                                                   "/sparqling-genomics")
+                                    (string-append
+                                     (getenv "HOME")
+                                     "/.cache/sparqling-genomics"))))
+                            #:getter get-www-cache-root)
+  (www-static-root          #:init-value
+                            (lambda _
+                              (if (getenv "SG_WEB_ROOT")
+                                  (string-append (getenv "SG_WEB_ROOT") "/static")
+                                   "@WEB_ROOT@/sparqling-genomics/web/static"))
+                            #:getter get-www-static-root)
 
-  (www-max-file-size       #:init-value 250000000
-                           #:getter get-www-max-file-size)
+  (www-max-file-size        #:init-value 250000000
+                            #:getter get-www-max-file-size)
 
-  (www-listen-port         #:init-value 5000
-                           #:getter get-www-listen-port
-                           #:setter set-www-listen-port-private!)
+  (www-listen-port          #:init-value 5000
+                            #:getter get-www-listen-port
+                            #:setter set-www-listen-port-private!)
+
+  (ldap-enabled?            #:init-value #f
+                            #:getter get-ldap-enabled?
+                            #:setter set-ldap-enabled-private!)
+
+  (ldap-uri                 #:init-value #f
+                            #:getter get-ldap-uri
+                            #:setter set-ldap-uri-private!)
+
+  (ldap-organizational-unit #:init-value #f
+                            #:getter get-ldap-organizational-unit
+                            #:setter set-ldap-organizational-unit-private!)
+
+  (ldap-domain              #:init-value #f
+                            #:getter get-ldap-domain
+                            #:setter set-ldap-domain-private!)
+
+  (authentication-enabled?  #:init-value #f
+                            #:getter get-authentication-enabled?
+                            #:setter set-authentication-enabled-private!)
+
+  (authentication-username  #:init-value #f
+                            #:getter get-authentication-username
+                            #:setter set-authentication-username-private!)
+
+  (authentication-password  #:init-value #f
+                            #:getter get-authentication-password
+                            #:setter set-authentication-password-private!)
 
   ;; Other settings
   ;; --------------------------------------------------------------------------
-  (fork-on-startup?        #:init-value #f
-                           #:getter get-fork-on-startup?
-                           #:setter set-fork-on-startup-private!)
+  (fork-on-startup?         #:init-value #f
+                            #:getter get-fork-on-startup?
+                            #:setter set-fork-on-startup-private!)
 
-  (graph-name-max-length   #:init-value 128
-                           #:getter get-graph-name-max-length))
+  (graph-name-max-length    #:init-value 128
+                            #:getter get-graph-name-max-length))
 
 
 ;; Create an instance of the <runtime-configuration> environment.
@@ -151,6 +193,62 @@
 (define-syntax-rule
   (set-www-listen-port! arg)
   (set-www-listen-port-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-uri)
+  (get-ldap-uri %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-uri! arg)
+  (set-ldap-uri-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-organizational-unit)
+  (get-ldap-organizational-unit %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-organizational-unit! arg)
+  (set-ldap-organizational-unit-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-domain)
+  (get-ldap-domain %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-domain! arg)
+  (set-ldap-domain-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-enabled?)
+  (get-ldap-enabled? %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-enabled! arg)
+  (set-ldap-enabled-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (authentication-enabled?)
+  (get-authentication-enabled? %runtime-configuration))
+
+(define-syntax-rule
+  (set-authentication-enabled! arg)
+  (set-authentication-enabled-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (authentication-username)
+  (get-authentication-username %runtime-configuration))
+
+(define-syntax-rule
+  (set-authentication-username! arg)
+  (set-authentication-username-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (authentication-password)
+  (get-authentication-password %runtime-configuration))
+
+(define-syntax-rule
+  (set-authentication-password! arg)
+  (set-authentication-password-private! %runtime-configuration arg))
 
 ;; ----------------------------------------------------------------------------
 ;; DEFAULT URIS

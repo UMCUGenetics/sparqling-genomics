@@ -125,6 +125,11 @@ vcf2rdf:VcfHeaderContigItem
     rdfs:range :Sample ;
     rdfs:domain :VariantCall .
 
+:Project
+    rdf:type     owl:Class ;
+    rdfs:label   "Project" ;
+    rdfs:comment "Identifies a project." .
+
 ## Class: Origin
 ## ----------------------------------------------------------------------------
 
@@ -155,7 +160,7 @@ vcf2rdf:VcfHeaderContigItem
 
 :foundIn
     rdf:type    owl:AnnotationProperty ;
-    rdfs:label  "Whether a sample can be found in a file." ;
+    rdfs:label  "Whether a sample can be found in a file or a project." ;
     rdfs:range  :Origin ;
     rdfs:domain :Sample .
 

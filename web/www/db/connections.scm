@@ -44,6 +44,7 @@
             set-connection-password!))
 
 (define %db-connections '())
+(define %db-connections-username "")
 
 ;; CONNECTION RECORD TYPE
 ;; ----------------------------------------------------------------------------
@@ -85,20 +86,27 @@
 
 ;; CONNECTIONS PERSISTENCE
 ;; ----------------------------------------------------------------------------
-(define (load-connections)
+(define (persistence-path username)
+  (string-append (www-cache-root) "/" username "/connections.scm"))
+
+(define (load-connections username)
+  (set! %db-connections-username username)
   (catch #t
     (lambda _
-      (let ((filename (string-append (www-cache-root) "/connections.scm")))
-        (when (file-exists? filename)
+      (let ((filename (persistence-path username)))
+        (if (file-exists? filename)
           (call-with-input-file filename
             (lambda (port)
               (set! %db-connections
-                    (map alist->connection (read port))))))))
+                    (map alist->connection (read port)))))
+          (set! %db-connections '()))))
     (lambda (key . args)
       #f)))
 
 (define (persist-connections)
-  (let ((filename (string-append (www-cache-root) "/connections.scm")))
+  (let ((filename (persistence-path %db-connections-username)))
+    (unless (file-exists? (dirname filename))
+      (mkdir-p (dirname filename)))
     (call-with-output-file filename
       (lambda (port)
         ;; Before writing to the file under 'port', chmod it so that

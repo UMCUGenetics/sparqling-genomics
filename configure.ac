@@ -77,12 +77,36 @@ AC_CONFIG_FILES([
   tools/vcf2rdf/Makefile
   tools/table2rdf/Makefile
   web/www/config.scm
+  web/ldap/authenticate.scm
   web/Makefile
 ])
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
 PKG_CHECK_MODULES([raptor2], [raptor2])
+
+
+dnl Let users provide a path to the libldap library because there is
+dnl no portable way to find the path to libldap.
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([libldap-prefix],
+  [AS_HELP_STRING([--with-libldap-prefix=DIR], [search for libldap in DIR])],
+  [case "$withval" in
+    yes|no)
+      ;;
+    *)
+      LIBLDAP="$withval/lib/libldap"
+      LIBLDAP_PREFIX="$withval"
+      LIBLDAP_LIBDIR="$withval/lib"
+      ;;
+   esac])
+
+dnl Library name suitable for `dynamic-link'.
+AC_MSG_CHECKING([for libldap shared library name])
+AC_MSG_RESULT([$LIBLDAP])
+AC_SUBST([LIBLDAP])
+AC_SUBST([LIBLDAP_PREFIX])
+AC_SUBST([LIBLDAP_LIBDIR])
 
 dnl Check for presence of 'pdflatex'
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)

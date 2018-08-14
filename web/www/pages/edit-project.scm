@@ -36,11 +36,28 @@
 ;;
 
 (define* (page-edit-project request-path #:key (post-data ""))
-  (let* ((name       (last (string-split request-path #\/)))
+
+
+  (define* (deduplicate-alist alist #:optional (name #f) (samples '()))
+    (if (null? alist)
+        `((name    . ,name)
+          (samples . ,samples))
+        (let* ((item  (car alist))
+               (key   (car item))
+               (value (cdr item)))
+          (cond
+           [(eq? key 'name)
+            (deduplicate-alist (cdr alist) value samples)]
+           [(eq? key 'sample)
+            (deduplicate-alist (cdr alist) name (cons value samples))]))))
+
+  (let* ((name (last (string-split request-path #\/)))
          (message
           (if (not (string= post-data ""))
               (receive (success? message)
-                  (let ((alist (post-data->alist (uri-decode post-data))))
+                  (let ((alist (deduplicate-alist
+                                (post-data->alist
+                                 (uri-decode post-data)))))
                     (match alist
                       (((name . a) (samples . b))
                        (project-edit (alist->project alist)))
@@ -59,7 +76,8 @@
        ,(if message message '())
 
        ;; Display the main table.
-       (form (@ (action ,(string-append "/edit-project/" name))
+       (form (@ (autocomplete "off")
+                (action ,(string-append "/edit-project/" name))
                 (method "post"))
              (input (@ (type "hidden")
                        (name "name")
@@ -68,22 +86,46 @@
                      (td "Name")
                      (td (@ (style "width: 90%"))
                          (input (@ (type "text")
-                                      (id "add-name-field")
-                                      (name "name-disabled")
-                                      (value ,(project-name project))
-                                      (placeholder "Name")
-                                      (disabled "disabled")))))
+                                   (id "add-name-field")
+                                   (name "name-disabled")
+                                   (value ,(project-name project))
+                                   (placeholder "Name")
+                                   (disabled "disabled")))))
                     (tr
                      (td "Samples")
-                     (td (input (@ (type "text")
-                                      (id "add-samples-field")
-                                      (name "samples")
-                                      (value ,(project-samples project))
-                                      (placeholder "Wait for autocompletion..")))))
+                     (td (p "Select the samples to include in this project.")
+                         (div (@ (id "samples")))))
                     (tr
                      (td "")
                      (td (@ (class "item-table-right"))
                             (input (@ (id "edit-button")
                                       (type "submit")
-                                      (value "Save modifications"))))))))
+                                      (value "Save modifications")))))))
+       (script "
+$(document).ready(function(){
+  $.get('/samples.json',function(samples) {
+      var samples = JSON.parse(samples);
+      if (samples.length == 0) {
+        $('#insert-samples').text('Could not find any samples in the SPARQL endpoints.');
+      }
+      else {
+        samples.forEach(function(sample){
+          $('#samples').append('"
+               (span (@ (class "sample-field"))
+                 (input (@ (type "checkbox")
+                           (id "sample-'+ sample +'")
+                           (name "sample")
+                           (value "'+ sample +'")) "'+ sample +'")) "');
+          });
+
+          $.get('/project-samples/" ,name ".json',function(samples) {
+              samples = JSON.parse(samples);
+              samples.forEach(function(sample) {
+                $('#sample-'+ sample).prop('checked', true);
+              });
+          });
+      }
+  });
+});
+"))
      #:dependencies '(jquery))))

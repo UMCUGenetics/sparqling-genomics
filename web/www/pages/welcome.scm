@@ -17,11 +17,12 @@
      `((h2 "Overview")
        (p "There " ,(if (= number-of-endpoints 1) "is " "are ")
           ,number-of-endpoints " configured endpoint"
-          ,(if (= number-of-endpoints 1) "" "s") ", which contains:")
+          ,(if (= number-of-endpoints 1) "" "s") ", which contain"
+          ,(if (= number-of-endpoints 1) "s" "") ":")
           (table
            (tr (th "Property")
                (th "Value"))
            (tr (td "Number of samples")
                (td ,(number-of-samples)))
-           (tr (td "Number of variant calls")
+           (tr (td "Number of variant calls (may contain duplicates)")
                (td ,(number-of-variant-calls))))))))

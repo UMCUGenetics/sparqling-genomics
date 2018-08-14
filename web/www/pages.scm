@@ -22,7 +22,8 @@
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
-  #:export (page-root-template))
+  #:export (page-root-template
+            page-empty-template))
 
 (define page-title-prefix (string-append (www-name) " | "))
 
@@ -34,7 +35,8 @@
     ("/projects" "Projects")
     ("/query" "Query")
     ("/getting-started" "Getting started")
-    ("/help" "Help")))
+    ("/help" "Help")
+    ("/logout" "Logout")))
 
 (define (page-partial-main-menu request-path)
   (let ((page-is-ontology (page-is-ontology? request-path)))
@@ -96,6 +98,30 @@
                              (alt ,(www-name)))))
                 (div (@ (class "menu"))
                      ,(page-partial-main-menu request-path)))
+           (div (@ (id "content"))
+                ,content-tree)
+           (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
+                                        "Download the source code of this page."))))))))
+
+(define* (page-empty-template title request-path content-tree #:key (dependencies '(test)))
+  `((html (@ (lang "en"))
+     (head
+      (title ,(string-append page-title-prefix title))
+      (meta (@ (http-equiv "Content-Type") (content "text/html; charset=utf-8")))
+      (link (@ (rel "icon")
+               (type "image/x-icon")
+               (href "/static/favicon.ico")))
+      (link (@ (rel "stylesheet")
+               (href "/static/css/main.css")
+               (type "text/css")
+               (media "screen"))))
+     (body
+      (div (@ (id "wrapper"))
+           (div (@ (id "header"))
+                (div (@ (class "title")
+                        (style "text-align: center"))
+                     (img (@ (src "/static/images/logo.png")
+                             (alt ,(www-name))))))
            (div (@ (id "content"))
                 ,content-tree)
            (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))

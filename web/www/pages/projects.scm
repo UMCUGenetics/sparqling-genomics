@@ -39,19 +39,23 @@
 (define (projects-table)
   `(table (@ (id "item-table"))
      (tr (th "Project")
-         (th (@ (class "item-table-right")) "Actions"))
+         (th (@ (class "item-table-right") (colspan "2")) "Actions"))
      ,(map (lambda (record)
              (let ((name    (project-name    record))
                    (samples (project-samples record)))
                `(tr (td (a (@ (href ,(string-append "/edit-project/" name)))
                            ,name))
-                    (td (form (@ (action "/projects") (method "post"))
+                    (td (@ (class "button-column left-button-column"))
+                        (form (@ (action "/projects") (method "post"))
                               (button (@ (type "submit")
                                          (class "action-btn remove-btn")
                                          (name "remove")
                                          (value ,name))
-                                      "✖")
-                              )))))
+                                      "✖")))
+                    (td (@ (class "button-column right-button-column"))
+                        (div (@ (class "action-btn export-btn"))
+                             (a (@ (href ,(string-append "/project-samples/"
+                                                         name ".n3"))) "✈"))))))
            (reverse (all-projects)))))
 
 ;; ----------------------------------------------------------------------------
@@ -69,6 +73,8 @@
                    (match alist
                      (((name . a) (samples . b))
                       (project-add (alist->project alist)))
+                     (((name . a))
+                      (project-add (alist->project (cons '(samples . "") alist))))
                      (((remove . a))
                       (project-remove a))
                      (else     #f)))
@@ -96,20 +102,17 @@
        (script "
 function ui_insert_project_form () {
   $('#item-table tbody:last-child').append('"
-               (tr (td (@ (colspan "2"))
-                       (form (@ (action "/projects") (method "post"))
-                         (table (tr (td (input (@ (type "text")
-                                                  (id "add-name-field")
-                                                  (name "name")
-                                                  (placeholder "Name"))))
-                                    (td (input (@ (type "text")
-                                                  (id "add-samples-field")
-                                                  (name "samples")
-                                                  (placeholder "Wait for autocompletion.."))))
-                                    (td (@ (class "item-table-right"))
-                                        (input (@ (id "add-field-button")
-                                                  (type "submit")
-                                                  (value "↵"))))))))) "');
+         (tr (td (@ (colspan "2"))
+                 (form (@ (action "/projects") (method "post"))
+                       (table (tr (td (@ (style "width: 100%"))
+                                      (input (@ (type "text")
+                                                (id "add-name-field")
+                                                (name "name")
+                                                (placeholder "Name"))))
+                                  (td (@ (class "item-table-right"))
+                                      (input (@ (id "add-field-button")
+                                                (type "submit")
+                                                (value "↵"))))))))) "');
   $('#add-field').focus();
   $('#add-project').remove();
 }
