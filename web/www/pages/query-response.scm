@@ -57,9 +57,7 @@
                          (lambda (token)
                            (let* ((td-object-raw (string-trim-both token #\"))
                                   (td-object
-                                   (if (and (> (string-length td-object-raw) 7)
-                                            ;; Detect both HTTP and HTTPS URLs.
-                                            (string= "http" (string-take td-object-raw 4)))
+                                   (if (string-prefix? "http" td-object-raw)
                                        `(a (@ (href ,td-object-raw)) ,td-object-raw)
                                        td-object-raw)))
                              `(td ,td-object)))
