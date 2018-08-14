@@ -8,6 +8,7 @@ SUBDIRS                 = .
 
 doc_NAME                = sparqling-genomics
 doc_PDF                 = $(doc_NAME).pdf
+doc_HTML                = $(doc_NAME).html
 doc_TEX                 = $(doc_NAME).tex
 doc_STYLE		= umcu.sty
 
@@ -21,21 +22,40 @@ $(doc_PDF):
 	$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
 endif
 
+if HAVE_HTLATEX
+dist_doc_DATA           = $(doc_NAME).html $(doc_NAME)*.html $(doc_NAME).css
+$(doc_HTML):
+	$(HTLATEX) $(doc_TEX)
+endif
+
 EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
 			  introduction.tex		\
+			  command-line-tools.tex	\
+			  web-interface.tex		\
+			  information-retrieval.tex	\
+			  programming-with-sparql.tex	\
 			  figures/logo.pdf		\
+			  figures/logo.png		\
 			  figures/web-connections.png	\
 			  figures/web-query.png
 
 docs-clean:
-	$(RM) -f $(doc_NAME).aux \
-                 $(doc_NAME).log \
-                 $(doc_NAME).out \
-                 $(doc_NAME).toc
+	$(RM) -rf $(doc_NAME).aux			\
+		  $(doc_NAME).log			\
+		  $(doc_NAME).out			\
+		  $(doc_NAME).toc			\
+		  $(doc_NAME).xref			\
+		  $(doc_NAME).4ct			\
+		  $(doc_NAME).4tc			\
+		  $(doc_NAME).dvi			\
+		  $(doc_NAME).idv			\
+		  $(doc_NAME).tmp			\
+		  $(doc_NAME).lg			\
+		  texput.log
 
 clean-local: docs-clean
 
 # Make sure there is something to run.
-if HAVE_PDFLATEX
-all: $(doc_PDF)
-endif
+all: $(doc_PDF) $(doc_HTML)
+
+.PHONY: $(doc_PDF) $(doc_HTML)

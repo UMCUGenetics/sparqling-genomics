@@ -342,7 +342,7 @@ WHERE {
   FILTER (?position >= 202950000)
   FILTER (?position <= 202960000)
 
-  # Exclude variants that actually don't deviate from hg19.
+  # Exclude variants that actually do not deviate from hg19.
   FILTER (?genotype != v:HomozygousReferenceGenotype)
 }
 LIMIT 2

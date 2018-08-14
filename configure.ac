@@ -91,6 +91,13 @@ if test "x$PDFLATEX" = "x"; then
   AC_MSG_WARN([Unable to create PDF version of the user manual.])
 fi
 
+dnl Check for presence of 'htlatex'
+AC_CHECK_PROG(HTLATEX, htlatex, htlatex)
+
+if test "x$HTLATEX" = "x"; then
+  AC_MSG_WARN([Unable to create HTML version of the user manual.])
+fi
+
 AC_SUBST(ENABLE_MTRACE_OPTION)
 AC_ARG_ENABLE([mtrace],
 AC_HELP_STRING([--enable-mtrace],
@@ -98,5 +105,6 @@ AC_HELP_STRING([--enable-mtrace],
 AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [true]), AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [false]))
 
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
+AM_CONDITIONAL([HAVE_HTLATEX], test -n "$HTLATEX")
 
 AC_OUTPUT
