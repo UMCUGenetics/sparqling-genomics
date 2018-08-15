@@ -67,11 +67,11 @@
              (receive (success? message)
                  (let ((alist (post-data->alist (uri-decode post-data))))
                    (match alist
-                     (((name . a) (uri . b) (username . c) (password . d))
+                     ((('name . a) ('password . d) ('uri . b) ('username . c) )
                       (connection-add (alist->connection alist)))
-                     (((name . a) (uri . b))
+                     ((('name . a) ('uri . b))
                       (connection-add (alist->connection alist)))
-                     (((remove . a))
+                     ((('remove . a))
                       (connection-remove a))
                      (else     #f)))
                (if success?

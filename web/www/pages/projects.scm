@@ -71,11 +71,11 @@
              (receive (success? message)
                  (let ((alist (post-data->alist (uri-decode post-data))))
                    (match alist
-                     (((name . a) (samples . b))
+                     ((('name . a) ('samples . b))
                       (project-add (alist->project alist)))
-                     (((name . a))
+                     ((('name . a))
                       (project-add (alist->project (cons '(samples . "") alist))))
-                     (((remove . a))
+                     ((('remove . a))
                       (project-remove a))
                      (else     #f)))
                (if success?

@@ -42,9 +42,9 @@
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
-                      (((name . a) (uri . b) (password . c) (username . d))
+                      ((('name . a) ('password . c) ('uri . b) ('username . d))
                        (connection-edit (alist->connection alist)))
-                      (((name . a) (uri . b))
+                      ((('name . a) ('uri . b))
                        (connection-edit (alist->connection alist)))
                       (else
                        (values #f "Invalid form data."))))
