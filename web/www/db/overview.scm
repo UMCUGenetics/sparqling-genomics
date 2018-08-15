@@ -93,12 +93,11 @@ WHERE
                                          #f))
                        #t)))
         results)
-      (sort (delete-duplicates
-             (apply append
-                    (delete #f
-                            (apply append
-                                   (par-map all-samples (all-connections))))))
-            string<?)))
+      (delete-duplicates
+       (apply append
+              (apply append
+                     (delete #f
+                             (par-map all-samples (all-connections))))))))
 
 
 ;; Wrapper around ‘merge’ that accepts multiple sorted input lists.
