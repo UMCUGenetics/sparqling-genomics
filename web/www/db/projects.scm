@@ -192,9 +192,13 @@
 
 (define* (all-projects #:key (filter #f))
   "Returns a list of project records, applying FILTER to the records."
-  (if filter
-      (map filter %db-projects)
-      %db-projects))
+  (let ((projects (sort (delete #f %db-projects)
+                           (lambda (first second)
+                             (string<? (project-name first)
+                                       (project-name second))))))
+    (if filter
+        (map filter projects)
+        projects)))
 
 (define (project-by-name name)
   (let ((item (filter (lambda (project)

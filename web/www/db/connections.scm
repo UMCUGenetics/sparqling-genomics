@@ -191,9 +191,13 @@
 
 (define* (all-connections #:key (filter #f))
   "Returns a list of connection records, applying FILTER to the records."
-  (if filter
-      (map filter %db-connections)
-      %db-connections))
+  (let ((connections (sort (delete #f %db-connections)
+                           (lambda (first second)
+                             (string<? (connection-name first)
+                                       (connection-name second))))))
+    (if filter
+        (map filter connections)
+        connections)))
 
 (define (connection-by-name name)
   (let ((item (filter (lambda (connection)

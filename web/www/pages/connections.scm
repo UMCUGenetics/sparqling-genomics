@@ -52,7 +52,7 @@
                                          (value ,name))
                                       "✖")
                               )))))
-           (reverse (all-connections)))))
+           (all-connections))))
 
 ;; ----------------------------------------------------------------------------
 ;; PAGE-CONNECTIONS

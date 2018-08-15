@@ -56,7 +56,7 @@
                         (div (@ (class "action-btn export-btn"))
                              (a (@ (href ,(string-append "/project-samples/"
                                                          name ".n3"))) "✈"))))))
-           (reverse (all-projects)))))
+           (all-projects))))
 
 ;; ----------------------------------------------------------------------------
 ;; PAGE-PROJECTS
