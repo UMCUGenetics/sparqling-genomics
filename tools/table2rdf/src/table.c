@@ -253,7 +253,35 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
                   break;
 
               if (trans_index < config.transformer_len)
-                stmt->object = term (trans_index + config.ontology->prefixes_static_length, trimmed_token);
+                {
+                  /* The ontology can either use a '/' or a '#' as separator.
+                   * In Redland, an '#' behaves different than a '/'.  We have
+                   * to deal with that here. */
+                  char *end_token = trimmed_token;
+                  bool end_token_allocated = false;
+                  uint32_t uri_len = strlen (config.transformer_values[trans_index]);
+                  if (config.transformer_values[trans_index][uri_len - 1] == '#')
+                    {
+                      uint32_t token_len = strlen (trimmed_token);
+                      end_token = calloc (token_len + 2, sizeof (char));
+                      end_token_allocated = true;
+                      if (end_token == NULL)
+                        {
+                          ui_print_general_memory_error ();
+                          return;
+                        }
+
+                      snprintf (end_token, (token_len + 2) * sizeof (char),
+                                "#%s", trimmed_token);
+                    }
+
+                  stmt->object = term (trans_index +
+                                       config.ontology->prefixes_static_length,
+                                       end_token);
+
+                  if (end_token_allocated)
+                    free (end_token);
+                }
               else
                 {
                   /* Determine the actual type this data represents.
