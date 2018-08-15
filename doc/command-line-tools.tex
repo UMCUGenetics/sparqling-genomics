@@ -115,6 +115,79 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
   \texttt{-{}-header-line} argument.  When using this command-line argument, the
   delimiter must be a semicolon (\texttt{;}).
 
+\subsection{Transformers}
+
+  Furthermore, \texttt{table2rdf} knows nothing about ontologies.  So when the
+  input table has a column ``Chromosome'', by default \texttt{table2rdf} will
+  treat these cells as literal values.  Sometimes we would like to express a
+  column as an \emph{individual} in RDF.  To do that, a transformer can be
+  used.  An example follows.
+
+  Take the following input file:
+\begin{siderules}
+\begin{verbatim}
+$ cat test.tsv
+Chromosome      Position
+chr1    1500000
+chrMT   11000
+\end{verbatim}
+\end{siderules}
+
+  Running \texttt{table2rdf} with its default settings will produce:
+
+\begin{siderules}
+\begin{verbatim}
+$ table2rdf -i test.tsv
+...
+<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000000>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome "chr1"^^xsd:string ;
+    col:position 1500000 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000001>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome "chrMT"^^xsd:string ;
+    col:position 11000 ;
+    a :Row .
+...
+\end{verbatim}
+\end{siderules}
+
+  When we know that the chromosomes refer to items in an ontology, like
+  \href{<http://rdf.biosemantics.org/data/genomeassemblies/hg19>}%
+  {http://rdf.biosemantics.org/data/genomeassemblies/hg19}, it would be better
+  if \texttt{table2rdf} would use that ontology to describe the chromosomes.
+
+  To do so, we can use the \texttt{-{}-transform} option, or \texttt{-t} for
+  short:
+
+\begin{siderules}
+\begin{verbatim}
+$ table2rdf     \
+    -i test.tsv \
+    -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
+...
+@prefix p0000000000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
+...
+<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000000>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome p0000000000:chr1 ;
+    col:position 1500000 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000001>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome p0000000000:chrMT ;
+    col:position 11000 ;
+    a :Row .
+...
+\end{verbatim}
+\end{siderules}
+
+  After the transformation, the output produced by \texttt{table2rdf} uses
+  URIs pointing to the ontology instead of literal values for chromosomes.
+
 \subsection{Knowledge extracted by \texttt{table2rdf}}
 
   The \texttt{table2rdf} program extracts all fields in the table.  In addition
