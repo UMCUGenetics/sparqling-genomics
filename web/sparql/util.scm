@@ -68,9 +68,11 @@
       query
     (if (= (response-code header) 200)
         (query-results-to-list port skip-first-line?)
-        (format #t "Error (~a): ~a~%"
-                (response-code header)
-                (read-line port)))))
+        (begin
+          (format #t "Error (~a): ~a~%"
+                  (response-code header)
+                  (read-line port))
+          #f))))
 
 (define* (split-line line #:optional (delimiter #\,))
   "Splits LINE where DELIMITER is the separator, properly handling quotes."
