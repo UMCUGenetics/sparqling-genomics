@@ -230,16 +230,6 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
               trimmed_token = trim_quotes (token, strlen (token));
               trimmed_length = strlen (trimmed_token);
 
-              /* Determine the actual type this data represents.
-               * TODO: Also detect booleans. */
-              int32_t data_type;
-              if (is_integer (trimmed_token, trimmed_length))
-                data_type = XSD_INTEGER;
-              else if (is_float (trimmed_token, trimmed_length))
-                data_type = XSD_FLOAT;
-              else
-                data_type = XSD_STRING;
-
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
               stmt->predicate = term (PREFIX_RDF, "#type");
@@ -255,9 +245,31 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
               stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
-              stmt->object    = literal (trimmed_token, data_type);
-              register_statement (stmt);
 
+              int32_t trans_index = 0;
+              for (; trans_index < config.transformer_len; trans_index++)
+                if (!strcmp (hdr->column_ids[column_index],
+                             config.transformer_keys[trans_index]))
+                  break;
+
+              if (trans_index < config.transformer_len)
+                stmt->object = term (trans_index + config.ontology->prefixes_static_length, trimmed_token);
+              else
+                {
+                  /* Determine the actual type this data represents.
+                   * TODO: Also detect booleans. */
+                  int32_t data_type;
+                  if (is_integer (trimmed_token, trimmed_length))
+                    data_type = XSD_INTEGER;
+                  else if (is_float (trimmed_token, trimmed_length))
+                    data_type = XSD_FLOAT;
+                  else
+                    data_type = XSD_STRING;
+
+                  stmt->object    = literal (trimmed_token, data_type);
+                }
+
+              register_statement (stmt);
               free (trimmed_token);
               trimmed_token = NULL;
             }

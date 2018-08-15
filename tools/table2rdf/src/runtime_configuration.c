@@ -21,6 +21,7 @@
 #include "ontology.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 bool
 runtime_configuration_init (void)
@@ -31,8 +32,16 @@ runtime_configuration_init (void)
   config.header_line = NULL;
   config.sample_name = NULL;
   config.output_format = NULL;
+  config.transformers_buffer = NULL;
+  config.transformer_keys = NULL;
+  config.transformer_values = NULL;
+  config.transformers_buffer_len = 0;
+  config.transformer_len = 0;
+  config.transformers_buffer_alloc_len = 0;
+  config.transformer_alloc_len = 0;
   config.column_counter = 0;
   config.row_counter = 0;
+  config.prefix_name_counter = 0;
   config.show_progress_info = false;
   config.skip_first_line = false;
   config.input_from_stdin = false;
@@ -57,6 +66,9 @@ runtime_configuration_redland_init (void)
   if (!ontology_init (&(config.ontology)))
     return (ui_print_redland_error () == 0);
 
+  if (!register_transformers ())
+    return (ui_print_redland_error () == 0);
+
   return true;
 }
 
@@ -65,6 +77,22 @@ runtime_configuration_redland_free (void)
 {
   /* Free the Redland-allocated memory. */
   ontology_free (config.ontology);
+
+  uint32_t index = 0;
+  for (; index < config.transformer_len; index++)
+    {
+      /* We do not have to clean up transformer_values,
+       * because it was allocated in one go. */
+      free (config.transformer_keys[index]);
+    }
+
+  free (config.transformer_keys);
+  free (config.transformer_values);
+
+  for (index = 0; index < config.transformers_buffer_len; index++)
+    free (config.transformers_buffer[index]);
+
+  free (config.transformers_buffer);
 }
 
 void
@@ -99,4 +127,110 @@ generate_row_id (const unsigned char *origin, char *row_id)
 
   config.row_counter++;
   return (bytes_written > 0);
+}
+
+bool
+generate_prefix_name (unsigned char *prefix_name)
+{
+  int32_t bytes_written;
+  bytes_written = snprintf ((char *)prefix_name, 12, "p%010u",
+                            config.prefix_name_counter);
+
+  config.prefix_name_counter++;
+  return (bytes_written > 0);
+}
+
+bool
+preregister_transformer (const char *pair)
+{
+  /* Always make sure there are enough indexes. */
+  if (config.transformers_buffer_alloc_len == 0 ||
+      config.transformers_buffer_len == config.transformers_buffer_alloc_len - 1)
+    {
+      char **buffer = realloc (config.transformers_buffer,
+                               config.transformers_buffer_alloc_len +
+                               sizeof (char *) * 32);
+      if (buffer == NULL) return false;
+      config.transformers_buffer = buffer;
+    }
+
+  char *duplicate = strdup (pair);
+  if (duplicate == NULL)
+    return false;
+
+  config.transformers_buffer[config.transformers_buffer_len] = duplicate;
+  config.transformers_buffer_len += 1;
+
+  return true;
+}
+
+bool
+register_transformers ()
+{
+  uint32_t index = 0;
+  for (; index < config.transformers_buffer_len; index++)
+    {
+      char *trans = config.transformers_buffer[index];
+      char *separator = strchr (trans, '=');
+      if (separator == NULL)
+        {
+          fprintf (stderr, "Warning: Ignoring invalid transformer separator: '%s'\n", trans);
+          continue;
+        }
+
+      char *value = separator + sizeof (char);
+      *separator = '\0';
+
+      /* Always make sure there are enough indexes. */
+      if (config.transformer_alloc_len == 0 ||
+          config.transformer_len == config.transformer_alloc_len - 1)
+        {
+          char **keys = realloc (config.transformer_keys,
+                                 config.transformer_alloc_len +
+                                 sizeof (char *) * 32);
+          if (keys == NULL) return false;
+          config.transformer_keys = keys;
+
+          char **values = realloc (config.transformer_values,
+                                   config.transformer_alloc_len +
+                                   sizeof (char *) * 32);
+
+          if (values == NULL) return false;
+          config.transformer_values = values;
+
+          if (config.transformer_keys == NULL ||
+              config.transformer_values == NULL)
+            return false;
+        }
+
+      config.ontology->prefixes_length += 1;
+      raptor_uri **temp = realloc (config.ontology->prefixes,
+                                   config.ontology->prefixes_length * sizeof (raptor_uri*));
+      if (temp == NULL)
+        {
+          config.ontology->prefixes_length -= 1;
+          return false;
+        }
+
+      config.ontology->prefixes = temp;
+
+      unsigned char prefix_name[12];
+      if (!generate_prefix_name (prefix_name))
+        return false;
+
+      config.transformer_keys[config.transformer_len] =
+        sanitize_string (trans, ((separator - trans) * sizeof (char)));
+
+      config.transformer_values[config.transformer_len] = value;
+      config.ontology->prefixes[config.ontology->prefixes_length - 1] =
+        raptor_new_uri (config.raptor_world, (unsigned char *)value);
+
+      raptor_serializer_set_namespace (config.raptor_serializer,
+                                       config.ontology->prefixes[config.ontology->prefixes_length - 1],
+                                       prefix_name);
+
+      config.transformer_len += 1;
+    }
+
+  return true;
 }

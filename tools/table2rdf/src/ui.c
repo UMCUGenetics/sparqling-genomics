@@ -45,6 +45,11 @@ ui_show_help (void)
         "                               the header line must use ';' as the "
                                        "delimiter.\n"
         "  --skip-first-line=ARG,   -S  Ignore the first line in the file.\n"
+        "  --transform=ARG          -t  A pair in the form colname=uri-prefix "
+                                       "where the column identified by colname "
+                                       "is transformed into a URI for which "
+                                       "uri-prefix is the prefix.  This argument "
+                                       "may be repeated."
         "  --input-file=ARG,        -i  The input file to process.\n"
         "  --stdin,                 -I  Read input from a pipe instead of a "
                                        "file.\n"
@@ -78,6 +83,7 @@ ui_process_command_line (int argc, char **argv)
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
       { "skip-first-line",       no_argument,       0, 'S' },
+      { "transform",             required_argument, 0, 't' },
       { "version",               no_argument,       0, 'v' },
       { 0,                       0,                 0, 0   }
     };
@@ -85,7 +91,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:i:O:H:s:SIophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:i:O:H:s:St:Iophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -97,6 +103,7 @@ ui_process_command_line (int argc, char **argv)
         case 'H': config.header_line = optarg;                   break;
         case 's': config.sample_name = optarg;                   break;
         case 'S': config.skip_first_line = true;                 break;
+        case 't': preregister_transformer (optarg);              break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }

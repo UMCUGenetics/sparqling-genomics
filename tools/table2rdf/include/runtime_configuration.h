@@ -88,6 +88,13 @@ typedef struct
   char              *delimiter;
   char              *header_line;
   char              *sample_name;
+  char              **transformers_buffer;
+  char              **transformer_keys;
+  char              **transformer_values;
+  uint32_t          transformers_buffer_len;
+  uint32_t          transformers_buffer_alloc_len;
+  uint32_t          transformer_alloc_len;
+  uint32_t          transformer_len;
   bool              show_progress_info;
   bool              skip_first_line;
   bool              input_from_stdin;
@@ -95,6 +102,7 @@ typedef struct
   /* Raptor-specifics */
   raptor_world      *raptor_world;
   raptor_serializer *raptor_serializer;
+  raptor_uri        **prefix;
 
   /* Application-specific ontology. */
   ontology_t        *ontology;
@@ -102,6 +110,7 @@ typedef struct
   /* Shared buffers. */
   uint32_t          column_counter;
   uint32_t          row_counter;
+  uint32_t          prefix_name_counter;
   char              id_buf[77];
   char              number_buffer[32];
 } RuntimeConfiguration;
@@ -117,5 +126,8 @@ void runtime_configuration_redland_free (void);
 
 bool generate_column_id (const unsigned char *origin, char *column_id);
 bool generate_row_id (const unsigned char *origin, char *row_id);
+bool generate_prefix_name (unsigned char *prefix_name);
+bool preregister_transformer (const char *pair);
+bool register_transformers ();
 
 #endif  /* RUNTIMECONFIGURATION_H */

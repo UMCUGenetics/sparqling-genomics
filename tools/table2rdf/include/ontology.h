@@ -67,6 +67,7 @@ typedef struct
   raptor_uri **xsds;
   int32_t     classes_length;
   int32_t     prefixes_length;
+  int32_t     prefixes_static_length;
   int32_t     xsds_length;
 } ontology_t;
 
