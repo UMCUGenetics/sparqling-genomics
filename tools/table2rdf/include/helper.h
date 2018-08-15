@@ -27,4 +27,7 @@ bool get_pretty_hash (unsigned char *hash,
 
 unsigned char *helper_get_hash_from_file (const char *filename);
 
+char *trim_quotes (const char *string, uint32_t length);
+char *sanitize_string (const char *string, uint32_t length);
+
 #endif /* HELPER_H */

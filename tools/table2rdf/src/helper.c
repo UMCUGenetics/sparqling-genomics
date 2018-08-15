@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <gcrypt.h>
+#include <ctype.h>
 
 #include "ui.h"
 
@@ -141,4 +142,56 @@ helper_get_hash_from_file (const char *filename)
 
   gcry_md_close (handler);
   return pretty_digest;
+}
+
+/* This function replaces non-alphanumeric characters with
+ * underscores, and all uppercase characters with their lowercase
+ * equivalent. */
+char *
+sanitize_string (const char *string, uint32_t length)
+{
+  if (string == NULL || length < 1)
+    return NULL;
+
+  char *output = strdup (string);
+  if (output == NULL)
+    return NULL;
+
+  uint32_t index = 0;
+  for (; index < length; index++)
+    {
+      if (! isalnum(output[index]))
+        output[index] = '_';
+      else
+        output[index] = tolower (output[index]);
+    }
+
+  return output;
+}
+
+/* This function removes single quotes and double quotes
+ * in the first, and last position of a string. */
+char *
+trim_quotes (const char *string, uint32_t length)
+{
+  if (string == NULL || length < 1)
+    return NULL;
+
+  char *output = strdup (string);
+  if (output == NULL)
+    return NULL;
+
+  if (output[length - 1] == '"' || output[length - 1] == '\'')
+    output[length - 1] = '\0';
+
+  if (output[0] == '"' || output[0] == '\'')
+    {
+      uint32_t index = 1;
+      for (; index < length; index++)
+        output[index - 1] = output[index];
+
+      output[length - 1] = '\0';
+    }
+
+  return output;
 }
