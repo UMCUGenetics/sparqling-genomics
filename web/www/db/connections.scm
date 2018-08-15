@@ -70,7 +70,7 @@
         (when (and (string? (connection-username obj))
                    (string= (connection-username obj) ""))
           (set-connection-username! obj #f))
-        (when (and (string? (connection-username obj))
+        (when (and (string? (connection-password obj))
                    (string= (connection-password obj) ""))
           (set-connection-password! obj #f))
         obj))
