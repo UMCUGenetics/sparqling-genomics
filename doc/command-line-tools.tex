@@ -154,10 +154,13 @@ $ table2rdf -i test.tsv
 \end{verbatim}
 \end{siderules}
 
-  When we know that the chromosomes refer to items in an ontology, like
-  \href{<http://rdf.biosemantics.org/data/genomeassemblies/hg19>}%
-  {http://rdf.biosemantics.org/data/genomeassemblies/hg19}, it would be better
-  if \texttt{table2rdf} would use that ontology to describe the chromosomes.
+  \begin{sloppypar}
+  When we know that the data in a column refers to items in an ontology, like
+  chromosomes defined in
+  \href{http://rdf.biosemantics.org/data/genomeassemblies/hg19}%
+  {<http://rdf.biosemantics.org/data/genomeassemblies/hg19>}, \texttt{table2rdf}
+  can be told to use that ontology to describe that column.
+  \end{sloppypar}
 
   To do so, we can use the \texttt{-{}-transform} option, or \texttt{-t} for
   short:
@@ -168,17 +171,17 @@ $ table2rdf     \
     -i test.tsv \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
 ...
-@prefix p0000000000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
+@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
 ...
 <http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000000>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
-    col:chromosome p0000000000:chr1 ;
+    col:chromosome p00000:chr1 ;
     col:position 1500000 ;
     a :Row .
 
 <http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000001>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
-    col:chromosome p0000000000:chrMT ;
+    col:chromosome p00000:chrMT ;
     col:position 11000 ;
     a :Row .
 ...
