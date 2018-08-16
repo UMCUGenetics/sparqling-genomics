@@ -41,7 +41,7 @@
               (h3 "Query editor")
               (p "Use " (strong "Ctrl + Enter") " to execute the query.")
               (div (@ (id "editor"))
-                   ,(format #f "~a~%SELECT ?s, ?p, ?o { ?s ?p ?o }~%"
+                   ,(format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
                             (apply string-append
                                    (map (lambda (uri)
                                           (format #f "PREFIX ~a: <~a>~%"
