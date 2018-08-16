@@ -197,6 +197,76 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
 }
 
 void
+process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
+{
+  uint32_t trimmed_length = 0;
+  char *trimmed_token     = NULL;
+  raptor_statement *stmt  = NULL;
+
+  trimmed_token = trim_quotes (token, strlen (token));
+  trimmed_length = strlen (trimmed_token);
+
+  stmt = raptor_new_statement (config.raptor_world);
+  stmt->subject   = term (PREFIX_ROW, config.id_buf);
+  stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
+
+  int32_t trans_index = 0;
+  for (; trans_index < config.transformer_len; trans_index++)
+    if (!strcmp (hdr->column_ids[column_index],
+                 config.transformer_keys[trans_index]))
+      break;
+
+  if (trans_index < config.transformer_len)
+    {
+      /* The ontology can either use a '/' or a '#' as separator.
+       * In Redland, an '#' behaves different than a '/'.  We have
+       * to deal with that here. */
+      char *end_token = trimmed_token;
+      bool end_token_allocated = false;
+      uint32_t uri_len = strlen (config.transformer_values[trans_index]);
+      if (config.transformer_values[trans_index][uri_len - 1] == '#')
+        {
+          uint32_t token_len = strlen (trimmed_token);
+          end_token = calloc (token_len + 2, sizeof (char));
+          end_token_allocated = true;
+          if (end_token == NULL)
+            {
+              ui_print_general_memory_error ();
+              return;
+            }
+
+          snprintf (end_token, (token_len + 2) * sizeof (char),
+                    "#%s", trimmed_token);
+        }
+
+      stmt->object = term (trans_index +
+                           config.ontology->prefixes_static_length,
+                           end_token);
+
+      if (end_token_allocated)
+        free (end_token);
+    }
+  else
+    {
+      /* Determine the actual type this data represents.
+       * TODO: Also detect booleans. */
+      int32_t data_type;
+      if (is_integer (trimmed_token, trimmed_length))
+        data_type = XSD_INTEGER;
+      else if (is_float (trimmed_token, trimmed_length))
+        data_type = XSD_FLOAT;
+      else
+        data_type = XSD_STRING;
+
+      stmt->object    = literal (trimmed_token, data_type);
+    }
+
+  register_statement (stmt);
+  free (trimmed_token);
+  trimmed_token = NULL;
+}
+
+void
 process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const char *filename)
 {
   char *line      = NULL;
@@ -211,7 +281,6 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
         line[line_strlen - 1] = '\0';
 
       char *token            = NULL;
-      char *trimmed_token    = NULL;
       raptor_statement *stmt = NULL;
 
       if (! generate_row_id (origin, config.id_buf))
@@ -233,73 +302,37 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
       register_statement (stmt);
 
       token = strtok (line, config.delimiter);
-      uint32_t trimmed_length = 0;
       uint32_t column_index = 0;
       for (; column_index < hdr->keys_len; column_index++)
         {
           if (token != NULL)
             {
-              trimmed_token = trim_quotes (token, strlen (token));
-              trimmed_length = strlen (trimmed_token);
+              char *secondary_delim = (config.secondary_delimiter)
+                ? strstr (token, config.secondary_delimiter)
+                : NULL;
 
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = term (PREFIX_ROW, config.id_buf);
-              stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
-
-              int32_t trans_index = 0;
-              for (; trans_index < config.transformer_len; trans_index++)
-                if (!strcmp (hdr->column_ids[column_index],
-                             config.transformer_keys[trans_index]))
-                  break;
-
-              if (trans_index < config.transformer_len)
+              if (config.secondary_delimiter && secondary_delim)
                 {
-                  /* The ontology can either use a '/' or a '#' as separator.
-                   * In Redland, an '#' behaves different than a '/'.  We have
-                   * to deal with that here. */
-                  char *end_token = trimmed_token;
-                  bool end_token_allocated = false;
-                  uint32_t uri_len = strlen (config.transformer_values[trans_index]);
-                  if (config.transformer_values[trans_index][uri_len - 1] == '#')
+                  char *previous_position = token;
+                  uint32_t delimiter_length = strlen (config.secondary_delimiter);
+                  while (secondary_delim != NULL)
                     {
-                      uint32_t token_len = strlen (trimmed_token);
-                      end_token = calloc (token_len + 2, sizeof (char));
-                      end_token_allocated = true;
-                      if (end_token == NULL)
-                        {
-                          ui_print_general_memory_error ();
-                          return;
-                        }
+                      *secondary_delim = '\0';
+                      process_column (hdr, previous_position, column_index);
 
-                      snprintf (end_token, (token_len + 2) * sizeof (char),
-                                "#%s", trimmed_token);
+                      /*  Move on to the next token. */
+                      previous_position = secondary_delim + (delimiter_length * sizeof (char));
+                      secondary_delim = strstr (previous_position,
+                                                config.secondary_delimiter);
                     }
 
-                  stmt->object = term (trans_index +
-                                       config.ontology->prefixes_static_length,
-                                       end_token);
-
-                  if (end_token_allocated)
-                    free (end_token);
+                  /* Also process the last column that doesn't have the
+                   * secondary delimiter at its end. */
+                  process_column (hdr, previous_position, column_index);
+                  previous_position = NULL;
                 }
               else
-                {
-                  /* Determine the actual type this data represents.
-                   * TODO: Also detect booleans. */
-                  int32_t data_type;
-                  if (is_integer (trimmed_token, trimmed_length))
-                    data_type = XSD_INTEGER;
-                  else if (is_float (trimmed_token, trimmed_length))
-                    data_type = XSD_FLOAT;
-                  else
-                    data_type = XSD_STRING;
-
-                  stmt->object    = literal (trimmed_token, data_type);
-                }
-
-              register_statement (stmt);
-              free (trimmed_token);
-              trimmed_token = NULL;
+                process_column (hdr, token, column_index);
             }
 
           token = strtok (NULL, config.delimiter);

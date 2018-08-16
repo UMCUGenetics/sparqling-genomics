@@ -119,9 +119,8 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
 
   Furthermore, \texttt{table2rdf} knows nothing about ontologies.  So when the
   input table has a column ``Chromosome'', by default \texttt{table2rdf} will
-  treat these cells as literal values.  Sometimes we would like to express a
-  column as an \emph{individual} in RDF.  To do that, a transformer can be
-  used.  An example follows.
+  treat these cells as literal values.  A \emph{transformer} can be used to
+  express a column as an \emph{individual} in RDF.  An example follows.
 
   Take the following input file:
 \begin{siderules}
@@ -139,13 +138,13 @@ chrMT   11000
 \begin{verbatim}
 $ table2rdf -i test.tsv
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000000>
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
     col:chromosome "chr1"^^xsd:string ;
     col:position 1500000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000001>
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
     col:chromosome "chrMT"^^xsd:string ;
     col:position 11000 ;
@@ -173,13 +172,13 @@ $ table2rdf     \
 ...
 @prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000000>
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
     col:chromosome p00000:chr1 ;
     col:position 1500000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Column/...-R0000000001>
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
     col:chromosome p00000:chrMT ;
     col:position 11000 ;
@@ -190,6 +189,97 @@ $ table2rdf     \
 
   After the transformation, the output produced by \texttt{table2rdf} uses
   URIs pointing to the ontology instead of literal values for chromosomes.
+
+\subsection{Delimiters}
+
+  Tabular data consists of rows and columns.  A field is a specific place in
+  a table, having a column-coordinate, and a row-coordinate.  To distinguish
+  fields from one another we use a delimiter.  Which delimiter to use (a tab,
+  a comma, or a semicolon are common ones) is up to the dataset.  The delimiter
+  can be chosen using the \texttt{-{}-delimiter} option, or \texttt{-d} for
+  short.
+
+  Sometimes a single field can consist of multiple ``subfields''.  To
+  distinguish subfields, we use a secondary delimiter.  In RDF, we can split
+  those subfields by using the same predicate as we would use for the entire
+  field.  Using the \texttt{-{}-secondary-delimiter} option, we can invoke
+  this behavior.
+
+  The following example demonstrates the usage of \texttt{-{}-delimiter} and
+  \texttt{-{}-secondary-delimiter}.
+
+  Take the following input file:
+\begin{siderules}
+\begin{verbatim}
+$ cat multi.tsv
+Chromosome	Position	Filter
+1	10000	A;B;C;D
+1	10010	A
+1	11000	
+\end{verbatim}
+\end{siderules}
+
+  Without using the secondary delimiter, we get:
+
+\begin{siderules}
+\begin{verbatim}
+$ table2rdf -i multi.tsv
+...
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:filter "A;B;C;D"^^xsd:string ;
+    col:position 10000 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:filter "A"^^xsd:string ;
+    col:position 10010 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000002>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:position 11000 ;
+    a :Row .
+...
+\end{verbatim}
+\end{siderules}
+
+  Using the secondary delimiter, we get:
+
+\begin{siderules}
+\begin{verbatim}
+$ table2rdf -i multi.tsv -D ":"
+...
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:filter "A"^^xsd:string, "B"^^xsd:string, "C"^^xsd:string,
+               "D"^^xsd:string ;
+    col:position 10000 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:filter "A"^^xsd:string ;
+    col:position 10010 ;
+    a :Row .
+
+<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000002>
+    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+    col:chromosome 1 ;
+    col:position 11000 ;
+    a :Row .
+...
+\end{verbatim}
+\end{siderules}
+
+  Notice how the \texttt{col:filter} predicate now describes a
+  connection to four objects instead of one.
 
 \subsection{Knowledge extracted by \texttt{table2rdf}}
 
@@ -227,7 +317,7 @@ $ table2rdf     \
 
   The following snippet is an example of the extra data in Turtle-format:
 
-  \begin{siderules}
+\begin{siderules}
 \begin{verbatim}
 <http://rdf.umcutrecht.nl/table2rdf/1jka8923i4>
     :convertedBy :table2rdf ;

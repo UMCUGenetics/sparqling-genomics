@@ -38,6 +38,8 @@ ui_show_help (void)
                                        "data belongs.\n"
 	"  --delimiter,             -d  The delimiter to distinguish fields "
                                        "in the file.\n"
+	"  --secondary-delimiter,   -D  A secondary delimiter to distinguish "
+                                       "fields in a field.\n"
 	"  --header-line,           -H  When the input file does not contain a "
                                        "header\n"
         "                               line, provide it here. When using this "
@@ -75,6 +77,7 @@ ui_process_command_line (int argc, char **argv)
     {
       { "caller",                required_argument, 0, 'c' },
       { "delimiter",             required_argument, 0, 'd' },
+      { "secondary-delimiter",   required_argument, 0, 'D' },
       { "header-line",           required_argument, 0, 'H' },
       { "sample-name",           required_argument, 0, 's' },
       { "help",                  no_argument,       0, 'h' },
@@ -91,11 +94,12 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:i:O:H:s:St:Iophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:Iophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
         case 'd': config.delimiter = optarg;                     break;
+        case 'D': config.secondary_delimiter = optarg;           break;
         case 'i': config.input_file = optarg;                    break;
         case 'I': config.input_from_stdin = true;                break;
         case 'O': config.output_format = optarg;                 break;

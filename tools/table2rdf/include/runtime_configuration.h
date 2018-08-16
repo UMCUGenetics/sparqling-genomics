@@ -86,6 +86,7 @@ typedef struct
   char              *caller;
   char              *output_format;
   char              *delimiter;
+  char              *secondary_delimiter;
   char              *header_line;
   char              *sample_name;
   char              **transformers_buffer;
