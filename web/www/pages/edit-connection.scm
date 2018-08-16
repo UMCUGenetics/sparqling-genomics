@@ -20,6 +20,7 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db connections)
+  #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (ice-9 receive)
@@ -42,7 +43,7 @@
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
-                      ((('name . a) ('password . c) ('uri . b) ('username . d))
+                      ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e))
                        (connection-edit (alist->connection alist)))
                       ((('name . a) ('uri . b))
                        (connection-edit (alist->connection alist)))
@@ -98,6 +99,19 @@
                                       ,(if (connection-password connection)
                                           `(value ,(connection-password connection))
                                           `(placeholder "Password (optional)"))))))
+                    (tr
+                     (td "Back-end")
+                     (td (select
+                          (@ (name "backend"))
+                          ,(map (lambda (backend)
+                                  (if (eq? (connection-backend connection)
+                                           (string->symbol backend))
+                                      `(option (@ (value ,backend)
+                                                  (selected "selected"))
+                                               ,backend)
+                                      `(option (@ (value ,backend))
+                                               ,backend)))
+                                (map symbol->string (sparql-available-backends))))))
                     (tr
                      (td "")
                      (td (@ (class "item-table-right"))

@@ -40,6 +40,8 @@
                          (receive (header port)
                              (sparql-query query
                                            #:uri (connection-uri connection)
+                                           #:store-backend
+                                           (connection-backend connection)
                                            #:digest-auth
                                            (if (and (connection-username connection)
                                                     (connection-password connection))
@@ -84,6 +86,8 @@ WHERE
              (results (query-results->list
                        (sparql-query query
                                      #:uri (connection-uri connection)
+                                     #:store-backend
+                                     (connection-backend connection)
                                      #:digest-auth
                                      (if (and (connection-username connection)
                                               (connection-password connection))
@@ -130,10 +134,12 @@ WHERE
           (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
 
-SELECT COUNT(?variant) WHERE { ?variant rdf:type sg:VariantCall }")
+SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }")
                  (results (query-results->list
                            (sparql-query query
                                          #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
                                          #:digest-auth
                                          (if (and (connection-username connection)
                                                   (connection-password connection))
@@ -163,6 +169,8 @@ ORDER BY DESC(?variant)")
                  (results (query-results->list
                            (sparql-query query
                                          #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
                                          #:digest-auth
                                          (if (and (connection-username connection)
                                                   (connection-password connection))

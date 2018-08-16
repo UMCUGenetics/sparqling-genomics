@@ -75,6 +75,7 @@
       '(p "Please send a POST request with a SPARQL query.")
       (let* ((parsed-data (json-string->scm post-data))
              (connection  (connection-by-name (hash-ref parsed-data "connection")))
+             (backend     (connection-backend connection))
              (query       (hash-ref parsed-data "query"))
              (result
              (catch 'system-error
@@ -82,6 +83,7 @@
                  (receive (header port)
                      (sparql-query query
                                    #:type "text/csv"
+                                   #:store-backend backend
                                    #:uri (connection-uri connection)
                                    #:digest-auth
                                    (if (and (connection-username connection)

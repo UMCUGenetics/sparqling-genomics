@@ -19,6 +19,7 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db connections)
+  #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (ice-9 receive)
@@ -67,7 +68,7 @@
              (receive (success? message)
                  (let ((alist (post-data->alist (uri-decode post-data))))
                    (match alist
-                     ((('name . a) ('password . d) ('uri . b) ('username . c) )
+                     ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e) )
                       (connection-add (alist->connection alist)))
                      ((('name . a) ('uri . b))
                       (connection-add (alist->connection alist)))
@@ -116,6 +117,11 @@ function ui_insert_connection_form () {
                                                   (id "add-password-field")
                                                   (name "password")
                                                   (placeholder "Password (optional)"))))
+                                    (td (select
+                                         (@ (name "backend"))
+                                         ,(map (lambda (backend)
+                                                 `(option (@ (value ,backend)) ,backend))
+                                               (map symbol->string (sparql-available-backends)))))
                                     (td (@ (class "item-table-right"))
                                         (input (@ (id "add-field-button")
                                                   (type "submit")

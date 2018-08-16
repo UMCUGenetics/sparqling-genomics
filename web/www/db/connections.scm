@@ -35,6 +35,7 @@
             make-connection
             connection-name
             connection-uri
+            connection-backend
             connection-username
             connection-password
             connection?
@@ -49,10 +50,11 @@
 ;; CONNECTION RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <connection>
-  (make-connection name uri username password)
+  (make-connection name uri backend username password)
   connection?
   (name      connection-name       set-connection-name!)
   (uri       connection-uri        set-connection-uri!)
+  (backend   connection-backend    set-connection-backend!)
   (username  connection-username   set-connection-username!)
   (password  connection-password   set-connection-password!))
 
@@ -65,14 +67,23 @@
     (lambda _
       (let ((obj (make-connection (assoc-ref input 'name)
                                   (assoc-ref input 'uri)
+                                  (assoc-ref input 'backend)
                                   (assoc-ref input 'username)
                                   (assoc-ref input 'password))))
-        (when (and (string? (connection-username obj))
-                   (string= (connection-username obj) ""))
+        (unless (and (string? (connection-username obj))
+                     (not (string= (connection-username obj) "")))
           (set-connection-username! obj #f))
-        (when (and (string? (connection-password obj))
-                   (string= (connection-password obj) ""))
+        (unless (and (string? (connection-password obj))
+                     (not (string= (connection-password obj) "")))
           (set-connection-password! obj #f))
+        (let ((backend (connection-backend obj)))
+          (cond
+           [(symbol? backend)
+            (set-connection-backend! obj backend)]
+           [(and (string? backend) (not (string= backend "")))
+            (set-connection-backend! obj (string->symbol backend))]
+           [else
+            (set-connection-backend! obj 'virtuoso)]))
         obj))
     (lambda (key . args)
        #f)))
@@ -80,6 +91,7 @@
 (define (connection->alist record)
   `((name     . ,(connection-name     record))
     (uri      . ,(connection-uri      record))
+    (backend  . ,(connection-backend  record))
     (username . ,(connection-username record))
     (password . ,(connection-password record))))
 
