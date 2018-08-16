@@ -28,6 +28,7 @@
             www-listen-port
             www-max-file-size
             www-name
+            www-version
             www-hostname
             www-root
             www-cache-root
@@ -62,6 +63,9 @@
   ;; --------------------------------------------------------------------------
   (www-name                 #:init-value "sparqling-genomics"
                             #:getter get-www-name)
+
+  (www-version              #:init-value "@VERSION@"
+                            #:getter get-www-version)
 
   (www-hostname             #:init-value "http://sparqling-genomics/"
                             #:getter get-www-hostname)
@@ -151,6 +155,10 @@
 (define-syntax-rule
   (www-name)
   (get-www-name %runtime-configuration))
+
+(define-syntax-rule
+  (www-version)
+  (get-www-version %runtime-configuration))
 
 (define-syntax-rule
   (www-hostname)

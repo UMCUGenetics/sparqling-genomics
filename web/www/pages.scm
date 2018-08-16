@@ -100,8 +100,10 @@
                      ,(page-partial-main-menu request-path)))
            (div (@ (id "content"))
                 ,content-tree)
-           (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
-                                        "Download the source code of this page."))))))))
+           (div (@ (id "footer"))
+                (p "v" ,(www-version) " | "
+                   (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
+                      "Download the source code of this page."))))))))
 
 (define* (page-empty-template title request-path content-tree #:key (dependencies '(test)))
   `((html (@ (lang "en"))
@@ -124,5 +126,7 @@
                              (alt ,(www-name))))))
            (div (@ (id "content"))
                 ,content-tree)
-           (div (@ (id "footer")) (p (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
-                                        "Download the source code of this page."))))))))
+           (div (@ (id "footer"))
+                (p "v" ,(www-version) " | "
+                   (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
+                      "Download the source code of this page."))))))))
