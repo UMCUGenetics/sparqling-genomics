@@ -213,8 +213,7 @@
                       (format #f "http://~a:~a/blazegraph/namespace/~a/sparql"
                               host port namespace))))
     (http-post post-url
-               #:body (string-append "query=" (old-url-encoding
-                                               (uri-encode query)))
+               #:body (string-append "query=" (uri-encode query))
                #:streaming? #t
                #:headers
                `((user-agent   . "GNU Guile")
