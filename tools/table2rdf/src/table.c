@@ -220,6 +220,18 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
           return;
         }
 
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = term (PREFIX_ROW, config.id_buf);
+      stmt->predicate = term (PREFIX_RDF, "#type");
+      stmt->object    = class (CLASS_ROW);
+      register_statement (stmt);
+
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = term (PREFIX_ROW, config.id_buf);
+      stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
+      stmt->object    = term (PREFIX_MASTER, (char *)origin);
+      register_statement (stmt);
+
       token = strtok (line, config.delimiter);
       uint32_t trimmed_length = 0;
       uint32_t column_index = 0;
@@ -231,19 +243,7 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
               trimmed_length = strlen (trimmed_token);
 
               stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
-              stmt->predicate = term (PREFIX_RDF, "#type");
-              stmt->object    = class (CLASS_ROW);
-              register_statement (stmt);
-
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
-              stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-              stmt->object    = term (PREFIX_MASTER, (char *)origin);
-              register_statement (stmt);
-
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = term (PREFIX_COLUMN, config.id_buf);
+              stmt->subject   = term (PREFIX_ROW, config.id_buf);
               stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
 
               int32_t trans_index = 0;

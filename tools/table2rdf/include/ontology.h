@@ -31,6 +31,7 @@
 #define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
 #define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
+#define STR_PREFIX_ROW                 URI_ONTOLOGY "/Row/"
 #define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
 #define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
 #define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"
@@ -44,6 +45,7 @@ typedef enum
   PREFIX_SAMPLE,
   PREFIX_ORIGIN,
   PREFIX_COLUMN,
+  PREFIX_ROW,
   PREFIX_RDF,
   PREFIX_RDFS,
   PREFIX_OWL,
