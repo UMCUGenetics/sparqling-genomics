@@ -39,7 +39,8 @@
                             available-connections))
 
               (h3 "Query editor")
-              (p "Use " (strong "Ctrl + Enter") " to execute the query.")
+              (p "Use " (strong "Ctrl + Enter") " to execute the query. ("
+                 (strong "Cmd + Enter") " for the unfortunate MacOS users.)")
               (div (@ (id "editor"))
                    ,(format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
                             (apply string-append
