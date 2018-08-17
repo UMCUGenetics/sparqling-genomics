@@ -83,7 +83,9 @@ table tr:nth-child(even) {
   \vspace*{\fill}
   \begin{center}
     \ifdefined\HCode
-    \includegraphics[width=0.75\textwidth]{figures/logo.png}~\\
+    % The build system copies the logo to the same directory as the HTML files.
+    % Therefore we must not specify the actual path towards ‘logo.png’.
+    \includegraphics[width=0.75\textwidth]{logo.png}~\\
     \else
     \includegraphics[width=0.75\textwidth]{figures/logo.pdf}
     \fi

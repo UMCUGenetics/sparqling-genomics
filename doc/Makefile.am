@@ -11,9 +11,10 @@ doc_PDF                 = $(doc_NAME).pdf
 doc_HTML                = $(doc_NAME).html
 doc_TEX                 = $(doc_NAME).tex
 doc_STYLE		= umcu.sty
+dist_doc_DATA =
 
 if HAVE_PDFLATEX
-dist_doc_DATA           = $(doc_PDF)
+dist_doc_DATA           += $(doc_PDF)
 
 # Run pdflatex twice, so that the table of contents and references are
 # properly set up.
@@ -23,12 +24,19 @@ $(doc_PDF):
 endif
 
 if HAVE_HTLATEX
-dist_doc_DATA           = $(doc_NAME).html $(doc_NAME)*.html $(doc_NAME).css
+dist_doc_DATA		+= $(doc_NAME).html		\
+			   $(doc_NAME)2.html		\
+			   $(doc_NAME)3.html		\
+			   $(doc_NAME)4.html		\
+			   $(doc_NAME).css		\
+			   figures/logo.png
+
 $(doc_HTML):
 	$(HTLATEX) $(doc_TEX)
 endif
 
 EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
+			  version.tex			\
 			  introduction.tex		\
 			  command-line-tools.tex	\
 			  web-interface.tex		\
