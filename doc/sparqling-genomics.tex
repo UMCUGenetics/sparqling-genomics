@@ -10,6 +10,9 @@
 \Configure{@/BODY}{\ifvmode\IgnorePar\fi\EndP\HCode{</div>}}
 \fi
 
+%% Create a variable that holds the current version of sparqling-genomics.
+\newcommand{\sgversion}{\input{version}}
+
 \begin{document}
 
 %% Some style rules for HTML output
@@ -88,7 +91,7 @@ table tr:nth-child(even) {
     \rule{0.75\textwidth}{1.0pt}~\\
     %\Large Roel Janssen~\\~\\
     \url{https://github.com/UMCUGenetics/sparqling-genomics}~\\
-    \large v0.99.5, \today{}
+    \large v\sgversion{}, \today{}
     % Put it a little bit above the center of the page.
     \ifdefined\HCode
     \else

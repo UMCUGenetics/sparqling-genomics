@@ -74,6 +74,7 @@ AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
+  doc/version.tex
   tools/vcf2rdf/Makefile
   tools/table2rdf/Makefile
   web/www/config.scm
