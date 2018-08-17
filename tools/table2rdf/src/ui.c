@@ -51,7 +51,7 @@ ui_show_help (void)
                                        "where the column identified by colname "
                                        "is transformed into a URI for which "
                                        "uri-prefix is the prefix.  This argument "
-                                       "may be repeated."
+                                       "may be repeated.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
         "  --stdin,                 -I  Read input from a pipe instead of a "
                                        "file.\n"
