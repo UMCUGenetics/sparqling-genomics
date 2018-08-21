@@ -24,77 +24,9 @@
  */
 
 #include "ontology.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <raptor2.h>
-#include <htslib/vcf.h>
-
-/* The program uses a base ontology for everything that cannot be
- * expressed using an existing ontology.  We store the base ontology URI
- * in this constant, so that it can be used as a macro in the remainder
- * of the code. */
-#define ONTOLOGY_URI "http://rdf.umcutrecht.nl/vcf2rdf/"
-
-/* In this program, a couple of URI prefixes are stored in
- * 'program_config.uris'.  To get an idea of which URI is which, the
- * following named index can be used.  So for example,
- * program_config.uris[URI_FALDO_PREFIX] contains the URI prefix for FALDO. */
-#define URI_ONTOLOGY_PREFIX           0
-#define URI_RDF_PREFIX                1
-#define URI_RDFS_PREFIX               2
-#define URI_OWL_PREFIX                3
-#define URI_XSD_PREFIX                4
-#define URI_FALDO_PREFIX              5
-#define URI_HG19_PREFIX               6
-#define URI_HG19_CHR_PREFIX           7
-#define URI_VCF_HEADER_GENERIC_PREFIX 8
-#define URI_VCF_HEADER_INFO_PREFIX    9
-#define URI_VCF_HEADER_FORMAT_PREFIX  10
-#define URI_VCF_HEADER_FILTER_PREFIX  11
-#define URI_VCF_HEADER_ALT_PREFIX     12
-#define URI_VCF_HEADER_CONTIG_PREFIX  13
-#define URI_SAMPLE_PREFIX             14
-#define URI_VCF_VC_PREFIX             15
-
-/* The following integer is used to determine the size of the constants.
- * Please adjust accordingly when you change the first or the last
- * constant.
- */
-#define NUMBER_OF_URIS           (URI_VCF_VC_PREFIX + 1)
-
-/* In addition to URIs, we also have NODEs that are commonly used throughout
- * the remainder of the program.  We use a similar approach as the URIs to
- * accomodate common nodes. */
-#define NODE_RDF_TYPE                 0
-#define NODE_ORIGIN_CLASS             1
-#define NODE_VCF_HEADER_GENERIC_CLASS 2
-#define NODE_VCF_HEADER_INFO_CLASS    3
-#define NODE_VCF_HEADER_FORMAT_CLASS  4
-#define NODE_VCF_HEADER_FILTER_CLASS  5
-#define NODE_VCF_HEADER_ALT_CLASS     6
-#define NODE_VCF_HEADER_CONTIG_CLASS  7
-#define NODE_SAMPLE_CLASS             8
-#define NODE_HETEROZYGOUS_CLASS       9
-#define NODE_HOMOZYGOUS_CLASS         10
-#define NODE_HOMOZYGOUS_REF_CLASS     11
-#define NODE_HOMOZYGOUS_ALT_CLASS     12
-#define NODE_VARIANT_CLASS            13
-
-#define NUMBER_OF_NODES          (NODE_VARIANT_CLASS + 1)
-
-/* In addition to URIs and nodes, “datatype property nodes” can contain literal
- * values.  These have a type, which is often described in the xsd namespace.
- *
- * HTSlib has constants for valid datatypes in the variant call format (VCF).
- * Keeping them in sync makes life easier.
- */
-#define TYPE_STRING              BCF_HT_STR
-#define TYPE_INTEGER             BCF_HT_INT
-#define TYPE_FLOAT               BCF_HT_REAL
-#define TYPE_BOOLEAN             BCF_HT_FLAG
-
-#define NUMBER_OF_TYPES          4
 
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
