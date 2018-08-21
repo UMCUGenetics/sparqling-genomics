@@ -473,8 +473,24 @@ input[type=submit].login-field {
     cursor: pointer;
 }
 
+.is-active {
+    background: #aa00aa;
+    text-transform: uppercase;
+    font-size: smaller;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 2pt;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    margin-left: 5pt;
+}
+
 .remove-btn { background: #880000; }
 .remove-btn:hover { background: #aa0000; }
+
+.active-btn { background: #880088 }
+.active-btn:hover { background: #aa00aa; }
 
 .insert-btn { background: #008800 }
 .insert-btn:hover { background: #00aa00; }

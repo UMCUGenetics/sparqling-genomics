@@ -27,6 +27,7 @@
   #:export (project-add
             project-edit
             project-remove
+            project-is-active?
             all-projects
             project-by-name
             load-projects
@@ -41,7 +42,8 @@
             project?
 
             set-project-name!
-            set-project-samples!))
+            set-project-samples!
+            project-set-as-active!))
 
 (define %db-projects '())
 (define %db-projects-username "")
@@ -49,10 +51,11 @@
 ;; PROJECT RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <project>
-  (make-project name samples)
+  (make-project is-active? name samples)
   project?
-  (name      project-name       set-project-name!)
-  (samples   project-samples    set-project-samples!))
+  (is-active?  project-is-active?  set-project-active!)
+  (name        project-name        set-project-name!)
+  (samples     project-samples     set-project-samples!))
 
 
 ;; ALIST->PROJECT AND PROJECT->ALIST
@@ -61,7 +64,8 @@
   "Turns the association list INPUT into a project record."
   (catch #t
     (lambda _
-      (let ((obj (make-project (assoc-ref input 'name)
+      (let ((obj (make-project (assoc-ref input 'is-active?)
+                               (assoc-ref input 'name)
                                (assoc-ref input 'samples))))
         (when (and (string? (project-samples obj))
                    (string= (project-samples obj) ""))
@@ -71,8 +75,9 @@
       #f)))
 
 (define (project->alist record)
-  `((name     . ,(project-name     record))
-    (samples  . ,(project-samples  record))))
+  `((is-active? . ,(project-is-active? record))
+    (name       . ,(project-name       record))
+    (samples    . ,(project-samples    record))))
 
 ;; PROJECT->NTRIPLES
 ;; ----------------------------------------------------------------------------
@@ -144,6 +149,7 @@
       (values #f (format #f "The project name cannot contain whitespace characters.")))
      (#t (begin
            (set! %db-projects (cons record %db-projects))
+           (project-set-as-active! record)
            (persist-projects)
            (values #t ""))))))
 
@@ -186,6 +192,19 @@
     (persist-projects)
     (values #t (format #f "Removed “~a”." name))))
 
+;; PROJECT-SET-AS-ACTIVE!
+;; ----------------------------------------------------------------------------
+(define (project-set-as-active! project)
+  "Sets PROJECT as the active project."
+  (let ((name (if (string? project) project (project-name project))))
+    (set! %db-projects
+          (map (lambda (record)
+                 (set-project-active! record
+                                      (string= (project-name record) name))
+                 record)
+               %db-projects))
+    (persist-projects)
+    (values #t (format #f "Set “~a” as active project." name))))
 
 ;; ALL-PROJECTS
 ;; ----------------------------------------------------------------------------
