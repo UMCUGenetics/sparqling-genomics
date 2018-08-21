@@ -39,9 +39,11 @@
         ;; When all data has been processed, we can assemble
         ;; the table by wrapping the HEADER and BODY into a
         ;; table construct.
-        `(table (@ (id "query-output"))
-                ,(cons 'thead header)
-                ,(cons 'tbody (reverse body)))
+        (begin
+          (close-port port)
+          `(table (@ (id "query-output"))
+                  ,(cons 'thead header)
+                  ,(cons 'tbody (reverse body))))
         (let ((tokens (csv-split-line line #\,)))
           ;; The first line in the output is the table header.
           (if read-header?
@@ -66,10 +68,12 @@
 (define* (page-query-response request-path #:key (post-data ""))
 
   (define (respond-with-error port)
-    `(div (@ (class "query-error"))
-          (div (@ (class "title")) "Error")
-          (div (@ (class "content"))
-               ,(read-line port))))
+    (let ((message (read-line port)))
+      (close-port port)
+      `(div (@ (class "query-error"))
+            (div (@ (class "title")) "Error")
+            (div (@ (class "content"))
+                 ,message))))
 
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
