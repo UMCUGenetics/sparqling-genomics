@@ -29,52 +29,6 @@
 #include <stdint.h>
 #include <raptor2.h>
 
-/* The program uses a base ontology for everything that cannot be
- * expressed using an existing ontology.  We store the base ontology URI
- * in this constant, so that it can be used as a macro in the remainder
- * of the code. */
-#define ONTOLOGY_URI "http://rdf.umcutrecht.nl/table2rdf/"
-
-/* In this program, a couple of URI prefixes are stored in
- * 'program_config.uris'.  To get an idea of which URI is which, the
- * following named index can be used.  So for example,
- * program_config.uris[URI_FALDO_PREFIX] contains the URI prefix for FALDO. */
-#define URI_ONTOLOGY_PREFIX           0
-#define URI_RDF_PREFIX                1
-#define URI_RDFS_PREFIX               2
-#define URI_OWL_PREFIX                3
-#define URI_XSD_PREFIX                4
-#define URI_FALDO_PREFIX              5
-#define URI_SAMPLE_PREFIX             6
-
-/* The following integer is used to determine the size of the constants.
- * Please adjust accordingly when you change the first or the last
- * constant.
- */
-#define NUMBER_OF_URIS           (URI_SAMPLE_PREFIX + 1)
-
-/* In addition to URIs, we also have NODEs that are commonly used throughout
- * the remainder of the program.  We use a similar approach as the URIs to
- * accomodate common nodes. */
-#define NODE_RDF_TYPE                 0
-#define NODE_ORIGIN_CLASS             1
-#define NODE_SAMPLE_CLASS             2
-
-#define NUMBER_OF_NODES          (NODE_SAMPLE_CLASS + 1)
-
-/* In addition to URIs and nodes, “datatype property nodes” can contain literal
- * values.  These have a type, which is often described in the xsd namespace.
- *
- * HTSlib has constants for valid datatypes in the variant call format (VCF).
- * Keeping them in sync makes life easier.
- */
-#define TYPE_STRING              0
-#define TYPE_INTEGER             1
-#define TYPE_FLOAT               2
-#define TYPE_BOOLEAN             3
-
-#define NUMBER_OF_TYPES          4
-
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
  * to these values, other than in the runtime_configuration_init() and
