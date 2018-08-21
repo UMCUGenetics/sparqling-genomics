@@ -161,15 +161,15 @@ WHERE {
     \oddrow
     \texttt{http://biohackathon.org/resource/faldo\#reference}\\
     \evenrow
-    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/filename}\\
+    \texttt{http://sparqling-genomics/vcf2rdf/filename}\\
     \oddrow
-    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/foundIn}\\
+    \texttt{http://sparqling-genomics/vcf2rdf/foundIn}\\
     \evenrow
-    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/sample}\\
+    \texttt{http://sparqling-genomics/vcf2rdf/sample}\\
     \oddrow
-    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/ALT}\\
+    \texttt{http://sparqling-genomics/vcf2rdf/VariantCall/ALT}\\
     \evenrow
-    \texttt{http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/FILTER}\\
+    \texttt{http://sparqling-genomics/vcf2rdf/VariantCall/FILTER}\\
     \oddrow
     $\ldots$\\
   \end{tabularx}
@@ -185,7 +185,7 @@ samples and their originating filenames from the output of \texttt{vcf2rdf}:
 
 \begin{siderules}
 \begin{verbatim}
-PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 
 SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample ?filename
 FROM <graph-name>
@@ -217,11 +217,11 @@ Which may yield the following table:
 
   Notice how most predicates for \texttt{vcf2rdf} in table
   \ref{table:query-output-3} start with
-  \texttt{http://rdf.umcutrecht.nl/vcf2rdf/}.  In the above query, we used
+  \texttt{http://sparqling-genomics/vcf2rdf/}.  In the above query, we used
   this to shorten the query.  We started the query by writing a \texttt{PREFIX}
-  rule for \texttt{http://rdf.umcutrecht.nl/vcf2rdf/}, which we called
+  rule for \texttt{http://sparqling-genomics/vcf2rdf/}, which we called
   \texttt{vcf2rdf:}.  This means that whenever we write \texttt{vcf2rdf:FOO}, the SPARQL endpoint interprets
-  it as if we would write\\\texttt{<http://rdf.umcutrecht.nl/vcf2rdf/FOO>}.
+  it as if we would write\\\texttt{<http://sparqling-genomics/vcf2rdf/FOO>}.
 
   We will use more prefixes in the upcoming queries.  We can look up prefixes
   for common ontologies using \href{http://prefix.cc}{http://prefix.cc}.
@@ -234,7 +234,7 @@ include the number of variants for each sample, in each file.
 
 \begin{siderules}
 \begin{verbatim}
-PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample
@@ -287,8 +287,8 @@ WHERE
 
 \begin{siderules}
 \begin{verbatim}
-PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc:      <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
+PREFIX vc:      <http://sparqling-genomics/vcf2rdf/VariantCall/>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX faldo:   <http://biohackathon.org/resource/faldo#>
 
@@ -324,9 +324,9 @@ PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 PREFIX hg19:  <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
-PREFIX v:     <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc:    <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
-PREFIX seq:   <http://rdf.umcutrecht.nl/vcf2rdf/Sequence/>
+PREFIX v:     <http://sparqling-genomics/vcf2rdf/>
+PREFIX vc:    <http://sparqling-genomics/vcf2rdf/VariantCall/>
+PREFIX seq:   <http://sparqling-genomics/vcf2rdf/Sequence/>
 
 SELECT COUNT(DISTINCT ?variant) AS ?occurrences ?sample
 FROM <http://example>
@@ -356,9 +356,9 @@ Which may yield the following table:
     \headrow
     \textbf{occurrences} & \textbf{sample}\\
     \evenrow
-    \texttt{5} & \texttt{http://rdf.umcutrecht.nl/vcf2rdf/Sample/REF0047}\\
+    \texttt{5} & \texttt{http://sparqling-genomics/vcf2rdf/Sample/REF0047}\\
     \oddrow
-    \texttt{5} & \texttt{http://rdf.umcutrecht.nl/vcf2rdf/Sample/TUMOR0047}\\
+    \texttt{5} & \texttt{http://sparqling-genomics/vcf2rdf/Sample/TUMOR0047}\\
   \end{tabularx}
   \caption{\small Query results of the above query.}
   \label{table:query-output-6}
@@ -386,8 +386,8 @@ Which may yield the following table:
 \begin{verbatim}
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX faldo:   <http://biohackathon.org/resource/faldo#>
-PREFIX vcf2rdf: <http://rdf.umcutrecht.nl/vcf2rdf/>
-PREFIX vc:      <http://rdf.umcutrecht.nl/vcf2rdf/VariantCall/>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
+PREFIX vc:      <http://sparqling-genomics/vcf2rdf/VariantCall/>
 
 SELECT DISTINCT
   STRAFTER(STR(?chromosome), "hg19#") AS ?chromosome

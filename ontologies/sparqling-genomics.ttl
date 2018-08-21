@@ -5,13 +5,13 @@
 @prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
-@prefix vcf2rdf:   <http://rdf.op.umcutrecht.nl/vcf2rdf> .
-@prefix table2rdf: <http://rdf.op.umcutrecht.nl/table2rdf> .
-@prefix :          <http://rdf.op.umcutrecht.nl/> .
+@prefix vcf2rdf:   <http://sparqling-genomics/vcf2rdf/> .
+@prefix table2rdf: <http://sparqling-genomics/table2rdf/> .
+@prefix :          <http://sparqling-genomics/> .
 
 # sequence_variant = obo:SO_0001060
 
-<http://rdf.umcutrecht.nl/sparqling-genomics>
+<http://sparqling-genomics/sparqling-genomics>
     rdf:type        owl:Ontology ;
     dc:title        "Ontology describing the output of sparqling-genomics tools." ;
     rdfs:comment    "This ontology describes the structure exported by tools in sparqling-genomics." ;

@@ -1,5 +1,5 @@
-
 \chapter{Command-line programs}
+\label{chap:command-line}
 
   The project provides programs to create a complete pipeline including
   data conversion, data importing and data exploration.  The tasks we can
@@ -65,17 +65,17 @@
 
 \begin{siderules}
 \begin{verbatim}
-<http://rdf.umcutrecht.nl/vcf2rdf/14f2b609b>
+<http://sparqling-genomics/vcf2rdf/14f2b609b>
     :convertedBy :vcf2rdf ;
     :filename "clone_ref_tumor.vcf.gz"^^xsd:string ;
     a :Origin .
 
 sample:CLONE_REF
-    :foundIn <http://rdf.umcutrecht.nl/vcf2rdf/14f2b609b3> ;
+    :foundIn <http://sparqling-genomics/vcf2rdf/14f2b609b3> ;
     a :Sample .
 
 sample:CLONE_TUMOR
-    :foundIn <http://rdf.umcutrecht.nl/vcf2rdf/14f2b609b3> ;
+    :foundIn <http://sparqling-genomics/vcf2rdf/14f2b609b3> ;
     a :Sample .
 \end{verbatim}
 \end{siderules}
@@ -138,14 +138,14 @@ chrMT   11000
 \begin{verbatim}
 $ table2rdf -i test.tsv
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome "chr1"^^xsd:string ;
     col:position 1500000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome "chrMT"^^xsd:string ;
     col:position 11000 ;
     a :Row .
@@ -172,14 +172,14 @@ $ table2rdf     \
 ...
 @prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome p00000:chr1 ;
     col:position 1500000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome p00000:chrMT ;
     col:position 11000 ;
     a :Row .
@@ -225,22 +225,22 @@ Chromosome	Position	Filter
 \begin{verbatim}
 $ table2rdf -i multi.tsv
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:filter "A;B;C;D"^^xsd:string ;
     col:position 10000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:filter "A"^^xsd:string ;
     col:position 10010 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000002>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000002>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:position 11000 ;
     a :Row .
@@ -254,23 +254,23 @@ $ table2rdf -i multi.tsv
 \begin{verbatim}
 $ table2rdf -i multi.tsv -D ":"
 ...
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000000>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:filter "A"^^xsd:string, "B"^^xsd:string, "C"^^xsd:string,
                "D"^^xsd:string ;
     col:position 10000 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:filter "A"^^xsd:string ;
     col:position 10010 ;
     a :Row .
 
-<http://rdf.umcutrecht.nl/table2rdf/Row/...-R0000000002>
-    sg:originatedFrom <http://rdf.umcutrecht.nl/...> ;
+<http://sparqling-genomics/table2rdf/Row/...-R0000000002>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     col:position 11000 ;
     a :Row .
@@ -319,13 +319,13 @@ $ table2rdf -i multi.tsv -D ":"
 
 \begin{siderules}
 \begin{verbatim}
-<http://rdf.umcutrecht.nl/table2rdf/1jka8923i4>
+<http://sparqling-genomics/table2rdf/1jka8923i4>
     :convertedBy :table2rdf ;
     :filename "grch37.bed"^^xsd:string ;
     a :Origin .
 
 sample:grch37
-    :foundIn <http://rdf.umcutrecht.nl/table2rdf/1jka8923i4> ;
+    :foundIn <http://sparqling-genomics/table2rdf/1jka8923i4> ;
     a :Sample .
 \end{verbatim}
 \end{siderules}
@@ -412,17 +412,17 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
 
 %%   \begin{siderules}
 %% \begin{verbatim}
-%% <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b>
+%% <http://sparqling-genomics/fasta2rdf/14f2b609b>
 %%     :convertedBy :vcf2rdf ;
 %%     :filename "grch37.fasta.gz"^^xsd:string ;
 %%     a :Origin .
 
 %% sample:grch37
-%%     :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+%%     :foundIn <http://sparqling-genomics/fasta2rdf/14f2b609b3> ;
 %%     a :Sample .
 
 %% sample:CLONE_TUMOR
-%%     :foundIn <http://rdf.umcutrecht.nl/fasta2rdf/14f2b609b3> ;
+%%     :foundIn <http://sparqling-genomics/fasta2rdf/14f2b609b3> ;
 %%     a :Sample .
 %% \end{verbatim}
 %% \end{siderules}

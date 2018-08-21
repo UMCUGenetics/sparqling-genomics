@@ -79,9 +79,9 @@
 (define (project->ntriples input)
   (with-output-to-string
     (lambda _
-      (let ((sg  (prefix "http://rdf.umcutrecht.nl/"))
-            (sam (prefix "http://rdf.umcutrecht.nl/Sample/"))
-            (pro (prefix "http://rdf.umcutrecht.nl/Project/"))
+      (let ((sg  (prefix "http://sparqling-genomics/"))
+            (sam (prefix "http://sparqling-genomics/Sample/"))
+            (pro (prefix "http://sparqling-genomics/Project/"))
             (rdf (prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns#")))
         (format #t "~a ~a ~a .~%"
                 (pro (project-name input))

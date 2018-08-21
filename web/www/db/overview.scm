@@ -76,7 +76,7 @@
 (define* (all-samples #:optional (connection #f))
   (if connection
       (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://rdf.umcutrecht.nl/>
+PREFIX sg: <http://sparqling-genomics/>
 
 SELECT DISTINCT ?sample
 WHERE
@@ -132,7 +132,7 @@ WHERE
     (lambda _
       (if connection
           (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX sg: <http://sparqling-genomics/vcf2rdf/>
 
 SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }")
                  (results (query-results->list
@@ -162,7 +162,7 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
     (lambda _
       (if connection
           (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://rdf.umcutrecht.nl/vcf2rdf/>
+PREFIX sg: <http://sparqling-genomics/vcf2rdf/>
 
 SELECT STRAFTER(STR(?variant), 'vcf2rdf/') WHERE { ?variant rdf:type sg:VariantCall }
 ORDER BY DESC(?variant)")
