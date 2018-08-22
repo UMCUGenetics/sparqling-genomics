@@ -129,6 +129,17 @@ sg-web --configuration-file=file.xml
   When providing a username and password for a connection, it will attempt
   to connect using \emph{digest authentication}.
 
+\section{Managing projects}
+
+  When interacting with large datasets, it may be useful to confine queries to
+  a subset of the dataset.  On the \emph{projects} page, subsets can be made
+  based on \emph{sample names}.  These sample names are automatically extracted
+  from VCF files, and can also be extracted from tabular data.
+
+  Marking a project as ``active'' indicates that queries executed using the web
+  interface relate to that project.  See also section \ref{sec:query-history}
+  {\color{LinkGray}`\nameref{sec:query-history}'}.
+
 \section{Executing queries}
 
   After configuring at least one endpoint, it can be chosen on the \emph{query}
@@ -143,3 +154,14 @@ sg-web --configuration-file=file.xml
       can be chosen from the drop-down menu.}
     \label{fig:web-query}
   \end{figure}
+
+\subsection{Query history}
+\label{sec:query-history}
+
+  When prototyping SPARQL queries, better known as ``SPARQLing around'', it's
+  good to know that all queries that yielded a result are stored in the
+  \emph{query history}.  The history is shown on the \emph{query} page below the
+  query editor.
+
+  Each \emph{project} has its own query history, and newly executed queries are
+  added to the current \emph{active} project.
