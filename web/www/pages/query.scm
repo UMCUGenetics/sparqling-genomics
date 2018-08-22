@@ -17,15 +17,26 @@
 (define-module (www pages query)
   #:use-module (www pages)
   #:use-module (www db connections)
+  #:use-module (www db queries)
+  #:use-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (srfi srfi-1)
   #:export (page-query))
 
-(define* (page-query request-path #:key (post-data '()))
+(define* (page-query request-path #:key (post-data #f))
   (page-root-template "Query" request-path
    `((h2 "Query the database")
-     ,(let ((available-connections (all-connections #:filter connection-name)))
+     ,(let* ((available-connections (all-connections #:filter connection-name))
+             (alist       (if post-data (post-data->alist post-data) '()))
+             (query       (assoc-ref alist 'query))
+             (endpoint    (if (assoc-ref alist 'endpoint)
+                              (assoc-ref alist 'endpoint)
+                              ""))
+             (project     (active-project)))
+        ;; Handle removal instructions.
+        (when (assoc-ref alist 'remove)
+          (query-remove (query-by-id (string->number (assoc-ref alist 'remove)))))
         (if (null? available-connections)
             ;; Before we can query, there must be a connection that we can query on.
             ;; The best we can do is refer to creating a connection at this point.
@@ -35,21 +46,46 @@
             ;; to select the appropriate connection.
             `((h3 "Select a connection")
               (select (@ (id "connection"))
-                      ,(map (lambda (connection) `(option (@ (value ,connection)) ,connection))
+                      ,(map (lambda (connection)
+                              `(option (@ (value ,connection)
+                                          ,(if (string= endpoint connection)
+                                               `(selected "selected")
+                                               '(class "not-selected")))
+                                       ,connection))
                             available-connections))
 
               (h3 "Query editor")
               (p "Use " (strong "Ctrl + Enter") " to execute the query. ("
                  (strong "Cmd + Enter") " for the unfortunate MacOS users.)")
               (div (@ (id "editor"))
-                   ,(format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
-                            (apply string-append
-                                   (map (lambda (uri)
-                                          (format #f "PREFIX ~a: <~a>~%"
-                                                  (car uri) (cdr uri)))
-                                        default-uri-strings))))
+                   ,(if query
+                        query
+                        (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
+                                (apply string-append
+                                       (map (lambda (uri)
+                                              (format #f "PREFIX ~a: <~a>~%"
+                                                      (car uri) (cdr uri)))
+                                            default-uri-strings)))))
+
+              ,(if project
+                   `((h3 "History")
+
+                     (p "The table below contains queries that were previously "
+                        "executed. For compactness, all " (code "PREFIX") " "
+                        "declarations and empty lines are not shown.")
+
+                     (div (@ (class "history-data-loader"))
+                          (div (@ (class "title")) "Loading history ...")
+                          (div (@ (class "content")) "Please wait for the results to appear.")))
+                   '())
               (script "
 $(document).ready(function(){
+
+  $.get('/query-history', function (data){
+      $('.history-data-loader').after(data);
+      $('.history-data-loader').remove();
+  });
+
   var editor = ace.edit('editor');
   var session = editor.getSession();
   editor.setTheme('ace/theme/github');
@@ -106,6 +142,11 @@ $(document).ready(function(){
           $('#query-output').addClass('display');
           var dt = $('#query-output').DataTable({ sDom: 'lrtip' });
           dt.draw();
+
+          $.get('/query-history', function (data){
+            $('#item-table').replaceWith(data);
+          });
+
         }
       });
       }, readOnly: true

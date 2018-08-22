@@ -31,6 +31,7 @@ SOURCES =                                               \
   www/db/connections.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
+  www/db/queries.scm                                    \
   www/db/sessions.scm                                   \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
@@ -42,6 +43,7 @@ SOURCES =                                               \
   www/pages/login.scm                                   \
   www/pages/project-samples.scm                         \
   www/pages/projects.scm                                \
+  www/pages/query-history.scm                           \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
   www/pages/samples.scm                                 \

@@ -28,6 +28,7 @@
             project-edit
             project-remove
             project-is-active?
+            active-project
             all-projects
             project-by-name
             load-projects
@@ -226,3 +227,19 @@
     (if (null? item)
         #f
         (car item))))
+
+(define (active-project)
+  (let ((projects (delete #f
+                   (all-projects #:filter
+                                 (lambda (project)
+                                   (if (project-is-active? project)
+                                       project
+                                       #f))))))
+    (if (= (length projects) 1)
+        (car projects)
+        ;; Upon creating a project, it's set as default.  So when
+        ;; there is no active project, that means there is no project at all.
+        ;; Automatically create a project when there isn't one.
+        (begin
+          (project-add (alist->project '((name . "Default"))))
+          (active-project)))))

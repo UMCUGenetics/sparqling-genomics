@@ -244,6 +244,25 @@ code {
     border-radius: 0pt 0pt 4pt 4pt;
 }
 
+#content .history-data-loader .title {
+    margin-top: 10pt;
+    padding: 5pt;
+    font-weight: bold;
+    background: #000000;
+    color: #ffffff;
+    -webkit-border-radius: 4pt 4pt 0pt 0pt;
+    -moz-border-radius: 4pt 4pt 0pt 0pt;
+    border-radius: 4pt 4pt 0pt 0pt;
+}
+
+#content .history-data-loader .content {
+    padding: 5pt;
+    background: #e8e8e8;
+    -webkit-border-radius: 0pt 0pt 4pt 4pt;
+    -moz-border-radius: 0pt 0pt 4pt 4pt;
+    border-radius: 0pt 0pt 4pt 4pt;
+}
+
 #content .query-data-loader .title {
     margin-top: 10pt;
     padding: 5pt;
@@ -435,7 +454,7 @@ select#connection {
 }
 
 .left-button-column {
-    max-width: 1px;
+    max-width: 30px;
     text-align: right;
 }
 .right-button-column {

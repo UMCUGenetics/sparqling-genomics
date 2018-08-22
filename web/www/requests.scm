@@ -31,6 +31,7 @@
   #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db sessions)
+  #:use-module (www db queries)
   #:use-module (www pages error)
   #:use-module (www pages welcome)
   #:use-module (www pages project-samples)
@@ -309,6 +310,7 @@
           ;; at this point is local to the thread handling the HTTP request.
           (load-connections username)
           (load-projects username)
+          (load-queries username)
           (request-scheme-page-handler request request-body request-path))]
        [(or (string-prefix? "/login" request-path)
             (string-prefix? "/static/" request-path))

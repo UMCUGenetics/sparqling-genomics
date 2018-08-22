@@ -19,6 +19,8 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db connections)
+  #:use-module (www db projects)
+  #:use-module (www db queries)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
@@ -97,7 +99,12 @@
                                         (connection-password connection))
                                        #f))
                    (if (= (response-code header) 200)
-                       (response->sxml port)
+                       (begin
+                         (query-add (alist->query
+                                     `((endpoint . ,(connection-name connection))
+                                       (content  . ,query)
+                                       (project  . ,(project-name (active-project))))))
+                         (response->sxml port))
                        (respond-with-error port))))
                (lambda (key . args)
                  (if (find (lambda (item)
