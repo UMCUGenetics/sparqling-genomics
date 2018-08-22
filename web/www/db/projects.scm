@@ -186,12 +186,15 @@
 (define (project-remove project)
   "Removes the reference in the internal graph for PROJECT."
   (let ((name (if (string? project) project (project-name project))))
-    (set! %db-projects
-          (filter (lambda (record)
-                    (not (string= (project-name record) name)))
-                  %db-projects))
-    (persist-projects)
-    (values #t (format #f "Removed “~a”." name))))
+    (if (project-is-active? (project-by-name name))
+        (values #f "Cannot remove the active project.")
+        (begin
+          (set! %db-projects
+                (filter (lambda (record)
+                          (not (string= (project-name record) name)))
+                        %db-projects))
+          (persist-projects)
+          (values #t (format #f "Removed “~a”." name))))))
 
 ;; PROJECT-SET-AS-ACTIVE!
 ;; ----------------------------------------------------------------------------
