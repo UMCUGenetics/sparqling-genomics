@@ -32,6 +32,7 @@
             query-by-id
             queries-by-endpoint
             queries-by-project
+            query-by-record
             load-queries
             persist-queries
 
@@ -42,10 +43,12 @@
             query-id
             query-content
             query-endpoint
+            query-execution-time
             query?
 
             set-query-id!
             set-query-endpoint!
+            set-query-execution-time!
             set-query-content!))
 
 (define %db-queries '())
@@ -54,12 +57,13 @@
 ;; QUERY RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <query>
-  (make-query id content endpoint project)
+  (make-query id content endpoint execution-time project)
   query?
-  (id            query-id         set-query-id!)
-  (content       query-content    set-query-content!)
-  (endpoint      query-endpoint   set-query-endpoint!)
-  (project       query-project    set-query-project!))
+  (id             query-id             set-query-id!)
+  (content        query-content        set-query-content!)
+  (endpoint       query-endpoint       set-query-endpoint!)
+  (execution-time query-execution-time set-query-execution-time!)
+  (project        query-project        set-query-project!))
 
 (define* (generate-unique-query-id #:optional (id 1))
   (let ((existing-ids (map query-id %db-queries)))
@@ -76,6 +80,7 @@
       (let ((obj (make-query (assoc-ref input 'id)
                              (assoc-ref input 'content)
                              (assoc-ref input 'endpoint)
+                             (assoc-ref input 'execution-time)
                              (assoc-ref input 'project))))
         ;; Neither the endpoint nor the content may be unset.
         (when (not (query-id obj))
@@ -89,10 +94,11 @@
       #f)))
 
 (define (query->alist record)
-  `((id       . ,(query-id record))
-    (content  . ,(query-content record))
-    (endpoint . ,(query-endpoint record))
-    (project  . ,(query-project record))))
+  `((id             . ,(query-id record))
+    (content        . ,(query-content record))
+    (endpoint       . ,(query-endpoint record))
+    (execution-time . ,(query-execution-time record))
+    (project        . ,(query-project record))))
 
 ;; QUERIES PERSISTENCE
 ;; ----------------------------------------------------------------------------
@@ -137,6 +143,9 @@
       (values #f (format #f "The query must have an endpoint.")))
      ((string= project "")
       (values #f (format #f "The query must have a project.")))
+     ;; Don't store exact duplicates.
+     ((query-by-record record)
+      (values #f (format #t "")))
      (#t (begin
            (set! %db-queries (cons record %db-queries))
            (persist-queries)
@@ -184,3 +193,15 @@
   (filter (lambda (query)
             (string= (query-project query) project))
           %db-queries))
+
+(define (query-by-record record)
+  (let ((item (filter
+               (lambda (query)
+                 (and
+                  (string= (query-content query)  (query-content record))
+                  (string= (query-endpoint query) (query-endpoint record))
+                  (string= (query-project query)  (query-project record))))
+               %db-queries)))
+    (if (null? item)
+        #f
+        (car item))))

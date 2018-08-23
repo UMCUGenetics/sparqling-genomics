@@ -26,6 +26,7 @@
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-19)
   #:use-module (json)
   #:use-module (sxml simple)
 
@@ -83,6 +84,7 @@
              (connection  (connection-by-name (hash-ref parsed-data "connection")))
              (backend     (connection-backend connection))
              (query       (hash-ref parsed-data "query"))
+             (start-time  (current-time))
              (result
              (catch 'system-error
                (lambda _
@@ -99,11 +101,16 @@
                                         (connection-password connection))
                                        #f))
                    (if (= (response-code header) 200)
-                       (begin
+                       (let* ((end-time (current-time))
+                              (time-spent (time-difference end-time start-time))
+                              (seconds (+ (time-second time-spent)
+                                          (* (time-nanosecond time-spent)
+                                             (expt 10 -9) 1.0))))
                          (query-add (alist->query
-                                     `((endpoint . ,(connection-name connection))
-                                       (content  . ,query)
-                                       (project  . ,(project-name (active-project))))))
+                                     `((endpoint       . ,(connection-name connection))
+                                       (content        . ,query)
+                                       (execution-time . ,seconds)
+                                       (project        . ,(project-name (active-project))))))
                          (response->sxml port))
                        (respond-with-error port))))
                (lambda (key . args)
