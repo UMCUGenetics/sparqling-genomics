@@ -61,12 +61,15 @@
         ;; Handle options
         ;; --------------------------------------------------------------------
         (let ((fork?             (assoc-ref config 'fork))
+              (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (authentication    (assoc-ref config 'authentication)))
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
           (when port
             (set-www-listen-port! (string->number (car port))))
+          (when address
+            (set-www-listen-address! (car address)))
           (when authentication
             (cond
              ;; LDAP is preferred over single-user authentication.
@@ -177,7 +180,10 @@
       #t)
     (set! *random-state* (seed->random-state (base64-encode random-state))))
 
-  (format #t "sparqling-genomics is running at http://127.0.0.1:~a~%" (www-listen-port))
+  (format #t "sparqling-genomics is running at http://~a:~a~%"
+          (inet-ntop (www-listen-address-family)
+                     (www-listen-address))
+          (www-listen-port))
   (load-sessions)
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
@@ -186,8 +192,10 @@
               (lambda _
                 (run-server request-handler
                             #:port (www-listen-port)
-                            #:addr INADDR_ANY)
+                            #:family (www-listen-address-family)
+                            #:addr (www-listen-address))
                 (primitive-exit)))))
       (run-server request-handler
                   #:port (www-listen-port)
-                  #:addr INADDR_ANY)))
+                  #:family (www-listen-address-family)
+                  #:addr (www-listen-address))))

@@ -22,9 +22,12 @@
             fork-on-startup?
             initialize-internal-rdf
             set-fork-on-startup!
+            set-www-listen-address!
             set-www-listen-port!
             graph-name-max-length
             uri-string
+            www-listen-address
+            www-listen-address-family
             www-listen-port
             www-max-file-size
             www-name
@@ -95,6 +98,14 @@
 
   (www-max-file-size        #:init-value 250000000
                             #:getter get-www-max-file-size)
+
+  (www-listen-address-family #:init-value AF_INET
+                            #:getter get-www-listen-address-family
+                            #:setter set-www-listen-address-family-private!)
+
+  (www-listen-address       #:init-value INADDR_LOOPBACK
+                            #:getter get-www-listen-address
+                            #:setter set-www-listen-address-private!)
 
   (www-listen-port          #:init-value 5000
                             #:getter get-www-listen-port
@@ -183,6 +194,14 @@
   (get-www-max-file-size %runtime-configuration))
 
 (define-syntax-rule
+  (www-listen-address-family)
+  (get-www-listen-address-family %runtime-configuration))
+
+(define-syntax-rule
+  (www-listen-address)
+  (get-www-listen-address %runtime-configuration))
+
+(define-syntax-rule
   (www-listen-port)
   (get-www-listen-port %runtime-configuration))
 
@@ -197,6 +216,25 @@
 (define-syntax-rule
   (set-fork-on-startup! arg)
   (set-fork-on-startup-private! %runtime-configuration arg))
+
+(define (set-www-listen-address! arg)
+  (if (string? arg)
+      (set-www-listen-address-private!
+       %runtime-configuration
+       (cond
+        [(string= arg "INADDR_ANY")       INADDR_ANY]
+        [(string= arg "INADDR_LOOPBACK")  INADDR_LOOPBACK]
+        [(string-contains arg ":")
+         (begin
+           (set-www-listen-address-family-private!
+            %runtime-configuration AF_INET6)
+           (inet-pton AF_INET6 arg))]
+        [(string-contains arg ".")
+         (begin
+           (set-www-listen-address-family-private!
+            %runtime-configuration AF_INET)
+           (inet-pton AF_INET arg))]))
+      #f))
 
 (define-syntax-rule
   (set-www-listen-port! arg)
