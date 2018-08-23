@@ -41,6 +41,7 @@ SOURCES =                                               \
   www/pages/getting-started.scm                         \
   www/pages/help.scm                                    \
   www/pages/login.scm                                   \
+  www/pages/overview-table.scm                          \
   www/pages/project-samples.scm                         \
   www/pages/projects.scm                                \
   www/pages/query-history.scm                           \

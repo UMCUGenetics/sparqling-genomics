@@ -29,7 +29,8 @@
 
   #:export (number-of-samples
             all-samples
-            number-of-variant-calls))
+            number-of-variant-calls
+            number-of-copynumber-calls))
 
 ;; SINGLE-VALUE-QUERY
 ;; ----------------------------------------------------------------------------
@@ -154,6 +155,39 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
     (lambda (key . args)
       (format #t "Thrown exception: ~a: ~a~%" key args)
       0)))
+
+
+;; NUMBER-OF-COPYNUMBER-CALLS
+;; ----------------------------------------------------------------------------
+
+(define* (number-of-copynumber-calls #:optional (connection #f))
+  (catch #t
+    (lambda _
+      (if connection
+          ;; XXX: This query may not be accurate.  It only “works” when only
+          ;; table2rdf is used to import copy number variants.
+          (let* ((query "PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
+SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
+                                              (connection-password connection))
+                                             #f))
+                           #t)))
+            (string->number (caar results)))
+          (let* ((variants (par-map number-of-copynumber-calls (all-connections))))
+            (apply + variants))))
+    (lambda (key . args)
+      (format #t "Thrown exception: ~a: ~a~%" key args)
+      0)))
+
 
 (define* (number-of-variant-calls-deduplicated #:optional (connection #f))
   (format #t "Pre-executed time:   ~a~%"

@@ -19,10 +19,13 @@
           ,number-of-endpoints " configured endpoint"
           ,(if (= number-of-endpoints 1) "" "s") ", which contain"
           ,(if (= number-of-endpoints 1) "s" "") ":")
-          (table
-           (tr (th "Property")
-               (th "Value"))
-           (tr (td "Number of samples")
-               (td ,(number-of-samples)))
-           (tr (td "Number of variant calls (may contain duplicates)")
-               (td ,(number-of-variant-calls))))))))
+       (div (@ (class "history-data-loader"))
+            (div (@ (class "title")) "Loading overview ...")
+            (div (@ (class "content")) "Please wait for the results to appear."))
+       (script "
+$(document).ready(function(){
+  $.get('/overview-table', function(data){
+    $('.history-data-loader').replaceWith(data);
+  });
+});"))
+     #:dependencies '(jquery))))
