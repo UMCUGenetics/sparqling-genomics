@@ -150,11 +150,10 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
                                              #f))
                            #t)))
             (string->number (caar results)))
-          (let* ((variants (par-map number-of-variant-calls (all-connections))))
+          (let* ((variants (delete #f (par-map number-of-variant-calls
+                                               (all-connections)))))
             (apply + variants))))
-    (lambda (key . args)
-      (format #t "Thrown exception: ~a: ~a~%" key args)
-      0)))
+    (lambda (key . args) 0)))
 
 
 ;; NUMBER-OF-COPYNUMBER-CALLS
@@ -182,12 +181,10 @@ SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
                                              #f))
                            #t)))
             (string->number (caar results)))
-          (let* ((variants (par-map number-of-copynumber-calls (all-connections))))
+          (let* ((variants (delete #f (par-map number-of-copynumber-calls
+                                               (all-connections)))))
             (apply + variants))))
-    (lambda (key . args)
-      (format #t "Thrown exception: ~a: ~a~%" key args)
-      0)))
-
+    (lambda (key . args) 0)))
 
 (define* (number-of-variant-calls-deduplicated #:optional (connection #f))
   (format #t "Pre-executed time:   ~a~%"
