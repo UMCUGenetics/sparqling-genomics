@@ -173,7 +173,7 @@
                      #:headers
                      `((Location   . "/")
                        (Set-Cookie . ,(string-append
-                                       "Session=" (session-token session)))))
+                                       "SGSession=" (session-token session)))))
                     (call-with-output-string
                       (lambda (port) (display "")))))
           (values '((content-type . (text/html)))
@@ -196,7 +196,7 @@
                    #:code 303
                    #:headers `((Location . "/")
                                (Set-Cookie  . ,(string-append
-                                                "Session=deleted; expires=Thu,"
+                                                "SGSession=deleted; expires=Thu,"
                                                 " Jan 01 1970 00:00:00 UTC;"))))
             (call-with-output-string
               (lambda (port) (display ""))))]
@@ -298,13 +298,25 @@
 (define (request-handler request request-body)
   (let ((request-path (uri-path (request-uri request)))
         (headers      (request-headers request)))
-    (let ((token (assoc-ref headers 'cookie)))
+    ;; There can be multiple cookies on the top-level domain, so we have
+    ;; to pick the right one;  the one with session name 'SGSession'.
+    (let* ((cookies-str (assoc-ref headers 'cookie))
+           (cookies (if (string? cookies-str)
+                        (delete #f (map (lambda (cookie)
+                                          (if (string-prefix? "SGSession=" cookie)
+                                              cookie #f))
+                                        (map string-trim-both
+                                             (string-split cookies-str #\;))))
+                        #f))
+           (token (if (and (list? cookies) (not (null? cookies)))
+                      (car cookies)
+                      #f)))
       (cond
        [(and (string? token)
-             ;; The token starts with 'Session=', we have to strip that
+             ;; The token starts with 'SGSession=', we have to strip that
              ;; off to get the actual token.
-             (is-valid-session-token? (substring token 8)))
-        (let* ((real-token (substring token 8))
+             (is-valid-session-token? (substring token 10)))
+        (let* ((real-token (substring token 10))
                (username (session-username (session-by-token real-token))))
           ;; Load the user's configuration.  We do this here because the memory
           ;; at this point is local to the thread handling the HTTP request.
