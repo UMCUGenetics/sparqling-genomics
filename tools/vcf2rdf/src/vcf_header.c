@@ -97,6 +97,10 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
       stmt = NULL;
     }
 
+  /* Skip the rest of the triplets when metadata-only mode is enabled. */
+  if (config.metadata_only)
+    return;
+
   /* Process header fields.
    * ----------------------------------------------------------------------- */
 

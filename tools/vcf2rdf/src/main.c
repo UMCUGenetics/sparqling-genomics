@@ -145,7 +145,7 @@ main (int argc, char **argv)
       /* Process the header. */
       process_header (vcf_header, file_hash);
 
-      if (!config.header_only)
+      if (!config.header_only && !config.metadata_only)
         {
           /* Process variant calls. */
           bcf1_t *buffer = bcf_init ();

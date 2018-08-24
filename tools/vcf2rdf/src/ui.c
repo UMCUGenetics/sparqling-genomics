@@ -28,7 +28,9 @@ void
 ui_show_help (void)
 {
   puts ("\nAvailable options:\n"
-	"  --header-only  ,         -o  Only process the VCF header.\n"
+	"  --header-only,           -o  Only process the VCF header.\n"
+	"  --metadata-only          -m  Output only metadata.  This mode "
+                                       "can be used to find samples.\n"
 	"  --help,                  -h  Show this message.\n"
 	"  --progress-info,         -p  Show progress information.\n"
 	"  --version,               -v  Show versioning information.\n"
@@ -70,6 +72,7 @@ ui_process_command_line (int argc, char **argv)
       { "keep",                  required_argument, 0, 'k' },
       { "reference",             required_argument, 0, 'r' },
       { "header-only",           no_argument,       0, 'o' },
+      { "metadata-only",         no_argument,       0, 'm' },
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
       { "without-info-fields",   no_argument,       0, 'x' },
@@ -83,7 +86,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:O:oxyphv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:O:omxyphv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -92,6 +95,7 @@ ui_process_command_line (int argc, char **argv)
         case 'k': config.keep = optarg;                          break;
         case 'r': config.reference = optarg;                     break;
         case 'o': config.header_only = true;                     break;
+        case 'm': config.metadata_only = true;                   break;
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
         case 'x': config.process_info_fields = false;            break;

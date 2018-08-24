@@ -43,6 +43,7 @@ typedef struct
   char              *output_format;
   uint32_t          non_unique_variant_counter;
   bool              header_only;
+  bool              metadata_only;
   bool              show_progress_info;
   bool              process_info_fields;
   bool              process_format_fields;
