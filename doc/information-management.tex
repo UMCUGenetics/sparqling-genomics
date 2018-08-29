@@ -46,10 +46,10 @@ WHERE { ?s ?p ?o }
   triples to remove from a graph by filling in one of the variables.
 
 \section{Storing inferences in new graphs}
-
+\label{sec:storing-inferences-in-new-graphs}
   Calculating inferences from a large amount of data can take a lot of time.
   To avoid calculating inferences over and over again, we can store the
-  inferred information as triplets.  The following example attempts to infer
+  inferred information as triples.  The following example attempts to infer
   the gender related to a sample by looking at whether there's a mutation in
   the Y-chromosome.
 
@@ -60,7 +60,7 @@ PREFIX sg:  <http://sparqling-genomics/>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
 PREFIX hg19:  <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
 
-SELECT ?sample
+SELECT DISTINCT ?sample
 FROM <http://hmf/variant_calling>
 WHERE {
   ?sample   rdf:type        sg:Sample .
@@ -136,3 +136,97 @@ WHERE {
 %  Inferences can be drawn from inferences, which can be classified as
 %  ``layer 2'' or up.  The dependency graph of individial inference programs
 %  can be used as a measure for the complexity of the knowledge graph.
+
+\section{Foreign information gathering and SPARQL}
+
+  The inference example in section \ref{sec:storing-inferences-in-new-graphs}
+  {\color{LinkGray}`\nameref{sec:storing-inferences-in-new-graphs}'} was able
+  to create information without needing additional data that isn't described
+  as triples.
+
+  Additional insights may require a combination of RDF triples and foreign
+  data.  In such cases, a general-purpose programming language and SPARQL can
+  form a symbiosis.  To display such a symbiosis, the following example uses
+  the output of \texttt{vcf2rdf} to find out which samples belong to which
+  user, by looking at the originating filenames.
+
+  Furthermore, the example uses \texttt{guile-sparql} to interact with the
+  SPARQL endpoint and GNU Guile as general-purpose programming language.
+
+\begin{siderules}
+\begin{verbatim}
+(use-modules (sparql driver)
+             (sparql util)
+             (sparql lang))
+
+(define %output-directory "/data/output")
+(define %query "
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sg: <http://sparqling-genomics/>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
+
+SELECT ?origin ?filename
+WHERE {
+  ?sample rdf:type         sg:Sample ; sg:foundIn  ?origin .
+  ?origin vcf2rdf:filename ?filename .
+}")
+
+(define (gather-ownership-info)
+  (let* (;; Gather the origins and filenames from the SPARQL endpoint.
+         (origins (query-results->list (sparql-query %query)))
+
+         ;; We are going to store triples in this file.
+         (ownership-file (string-append %output-directory "/ownership.n3"))
+
+         ;; Define ontology prefixes.
+         (rdf        (prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+         (sg         (prefix "http://sparqling-genomics/"))
+         (vcf2rdf    (prefix "http://sparqling-genomics/vcf2rdf/"))
+         (user       (prefix "http://sparqling-genomics/User/"))
+         (user-class "<http://sparqling-genomics/User>")
+         (owner-pred "<http://sparqling-genomics/owner>"))
+
+  ;; Generate triples for each entry.
+  (call-with-output-file ownership-file
+    (lambda (port)
+      (for-each (lambda (entry)
+                  ;; Extract the username of a file.
+                  (let ((owner-name (passwd:name
+                                      (getpwuid
+                                        (stat:uid (stat (cadr entry)))))))
+                  ;; Write RDF triples to the file.
+                  (format port "~a ~a ~a .~%"
+                               (user owner-name) (rdf "type") user-class)
+                  (format port "<~a> ~a ~a .~%"
+                               (car entry) owner-pred user-class)))
+                (cdr origins))))))
+
+(gather-ownership-info)
+\end{verbatim}
+\end{siderules}
+
+  For a small amount of files, we could directly execute an \texttt{INSERT}
+  query on the SPARQL endpoint, however, for a large amount of files we may
+  want to use the RDF store's data loader for better performance.
+
+  This program provides the triples that enables us to find which user
+  contributed which variant call data in the graph:
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sg:  <http://sparqling-genomics/>
+PREFIX vcf2rdf:  <http://sparqling-genomics/vcf2rdf/>
+
+SELECT DISTINCT ?sample ?filename ?user
+FROM <http://hmf/variant_calling>
+FROM <http://ownership> # Assuming we the imported data into this graph
+WHERE {
+  ?sample   rdf:type         sg:Sample ;
+            sg:foundIn       ?origin   .
+
+  ?origin   vcf2rdf:filename ?filename ;
+            sg:owner         ?user     .
+}
+\end{verbatim}
+\end{siderules}
