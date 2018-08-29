@@ -77,13 +77,8 @@
 (define* (all-samples #:optional (connection #f))
   (if connection
       (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://sparqling-genomics/>
-
 SELECT DISTINCT ?sample
-WHERE
-{
-  ?sample rdf:type sg:Sample .
-}")
+WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
              (results (query-results->list
                        (sparql-query query
                                      #:uri (connection-uri connection)
@@ -98,11 +93,11 @@ WHERE
                                          #f))
                        #t)))
         results)
-      (delete-duplicates
-       (apply append
-              (apply append
-                     (delete #f
-                             (par-map all-samples (all-connections))))))))
+      (let* ((samples (par-map all-samples (all-connections)))
+             (simplified-list (stable-sort
+                               (apply append (apply append (delete #f samples)))
+                               string>?)))
+        (delete-duplicates-sorted simplified-list string=))))
 
 
 ;; Wrapper around ‘merge’ that accepts multiple sorted input lists.
