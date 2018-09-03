@@ -51,16 +51,18 @@
 \definecolor{EvenRowColor}{rgb}{0.97, 0.97, 0.97}
 \definecolor{OddRowColor}{rgb}{0.93, 0.93, 0.93}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
+\definecolor{ShadowGray}{rgb}{0.8, 0.8, 0.8}
 \definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
 \definecolor{DarkGray}{rgb}{0.40, 0.40, 0.40}
 \newmdenv[
-  topline=false,
-  bottomline=false,
-  leftmargin=10pt,
-  rightline=false,
+  linewidth=1pt,
+  topline=true,
+  bottomline=true,
+  rightline=true,
+  leftline=true,
+  leftmargin=0pt,
   backgroundcolor=CodeGray,
-  linecolor=DarkGray,
-  linewidth=3pt,
+  linecolor=ShadowGray,
   innertopmargin=10pt,
   innerbottommargin=10pt,
   skipabove=5pt,
