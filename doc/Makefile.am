@@ -40,6 +40,7 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
 			  introduction.tex		\
 			  command-line-tools.tex	\
 			  web-interface.tex		\
+			  information-management.tex	\
 			  information-retrieval.tex	\
 			  programming-with-sparql.tex	\
 			  figures/logo.pdf		\
