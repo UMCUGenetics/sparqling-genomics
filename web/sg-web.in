@@ -135,7 +135,7 @@
   (exit 0))
 
 (define (show-version)
-  (display "sparqling-genomics 0.99.4")
+  (display "sparqling-genomics @VERSION@")
   (newline)
   (exit 0))
 
