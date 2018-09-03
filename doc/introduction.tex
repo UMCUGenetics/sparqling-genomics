@@ -5,46 +5,50 @@
 
   In addition to the tools provided by this project, a RDF store is required.
   In the manual we use \href{https://virtuoso.openlinksw.com/}{Virtuoso}, but
-  \href{https://github.com/4store/4store}{4store},
-  \href{https://www.blazegraph.com/}{BlazeGraph}, or
-  \href{https://allegrograph.com/}{AllegroGraph} may also be used.
+  \href{https://github.com/4store/4store}{4store} and
+  \href{https://www.blazegraph.com/}{BlazeGraph} are equally well supported.
 
   Before we can use the programs provided by this project, we need to build
-  them first.
-
-  The build system needs \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
+  them first.  The build system needs
+  \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
   \href{https://www.gnu.org/software/automake}{GNU Automake},
   \href{https://www.gnu.org/software/make}{GNU Make} and
   \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config}.
   Additionally, for building the documentation, a working \LaTeX{} distribution is
   required including the \texttt{pdflatex} program.  Because \LaTeX{} distributions
-  are rather large, this is optional.
+  are rather large, this is dependency is optional, at the cost of not being able
+  to (re)generate the documentation.
 
   Each component in the repository has its own dependencies.  Table
   \ref{table:dependencies} provides an overview for each tool.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ X X X X }
+    \begin{tabularx}{\textwidth}{ X X X X X }
       \headrow
-      \textbf{vcf2rdf} & \textbf{table2rdf} & \textbf{Web interface} & \textbf{Documentation}\\
+      \textbf{vcf2rdf} & \textbf{table2rdf} & \textbf{folder2rdf} &
+      \textbf{Web interface} & \textbf{Documentation}\\
       \evenrow
       \href{https://gcc.gnu.org/}{GNU C compiler}
+      & \href{https://gcc.gnu.org/}{GNU C compiler}
       & \href{https://gcc.gnu.org/}{GNU C compiler}
       & \href{https://www.gnu.org/software/guile}{GNU Guile}
       & \href{https://tug.org/texlive/}{\LaTeX{} distribtion}\\
       \oddrow
       \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
       & \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
+      & \href{https://www.gnu.org/software/guile}{GNU Guile}
       & \href{https://github.com/wingo/fibers}{Fibers}
       & \\
       \evenrow
       \href{http://www.librdf.org/}{\texttt{raptor2}}
       & \href{http://www.librdf.org/}{\texttt{raptor2}}
+      & \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
       &
       & \\
       \oddrow
       \href{http://www.htslib.org/}{HTSLib}
+      &
       &
       &
       & \\
@@ -72,8 +76,6 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt-dev     \
                 curl
 \end{verbatim}
 \end{siderules}
-
-  The command has been tested on Debian 9.
 
 \subsection{CentOS}
 
@@ -135,12 +137,12 @@ download/0.99.7/sparqling-genomics-0.99.7.tar.gz
 \end{verbatim}
 \end{siderules}
 
-  After obtaining the tarball, it can be unpacked using the following commands:
+  After obtaining the tarball, it can be unpacked using the \texttt{tar}
+  command:
 
 \begin{siderules}
 \begin{verbatim}
 tar zxvf sparqling-genomics-0.99.7.tar.gz
-cd sparqling-genomics-0.99.7
 \end{verbatim}
 \end{siderules}
 
@@ -154,6 +156,7 @@ cd sparqling-genomics-0.99.7
 
 \begin{siderules}
 \begin{verbatim}
+cd sparqling-genomics-0.99.7
 autoreconf -vif # Only needed if the "./configure" step does not work.
 ./configure
 make
@@ -161,15 +164,17 @@ make install
 \end{verbatim}
 \end{siderules}
 
-  To run the \texttt{make install} command, super user privileges are possibly
+  To run the \texttt{make install} command, super user privileges may be
   required.  This step can be ignored, but will keep the tools in the project's
-  directory.  So, invoking \texttt{vcf2rdf} must be done using
+  directory.  So in that case, invoking \texttt{vcf2rdf} must be done using
   \texttt{tools/vcf2rdf/vcf2rdf} when inside the project's root directory,
   instead of ``just'' \texttt{vcf2rdf}.
 
-Alternatively, the individual components can be built by replacing
-\texttt{make \&\& make install} with \texttt{make -C <component-directory>}.
-So, to only build \texttt{vcf2rdf}, the following command could be used:
+  Alternatively, the individual components can be built by replacing
+  \texttt{make} with the more specific \texttt{make -C <component-directory>}.
+  So, to \emph{only} build \texttt{vcf2rdf}, the following command could be
+  used:
+
 \begin{siderules}
 \begin{verbatim}
 make -C tools/vcf2rdf
