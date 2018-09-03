@@ -2,13 +2,9 @@
 \label{chap:command-line}
 
   The project provides programs to create a complete pipeline including
-  data conversion, data importing and data exploration.  The tasks we can
-  perform with the command-line programs are:
-  \begin{itemize}
-    \item Extract triples from VCF files;
-    \item Extract triples from tabular data files;
-    \item Push data to a SPARQL endpoint.
-  \end{itemize}
+  data conversion, data importing and data exploration.  These tools
+  provide the ``layer 0'' for the knowledge graph, and the tools to
+  discover the data in this layer.
 
 \section{Preparing variant call data with \texttt{vcf2rdf}}
 \label{sec:vcf2rdf}
@@ -30,8 +26,8 @@
   a guide.  All fields described in the header of the VCF file will be
   translated into triples.
 
-  In addition to the knowledge from the VCF file, \texttt{vcf2rdf} stores the
-  following metadata:
+  In addition to the knowledge from the VCF file, \texttt{vcf2rdf} provides the
+  following triples:
 
     \begin{table}[H]
     \begin{tabularx}{\textwidth}{ l l l L }
@@ -39,25 +35,25 @@
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      :Origin & rdf:type & owl:Class
-      & \texttt{:Origin} is used to identify a data origin (which
-      is usually a file).\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      :Sample & rdf:type & owl:Class
-      & \texttt{:Sample} is used to identify a sample name.\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:filename} &
+      \emph{filename}
+      & This triple states the originating filename.\\
       \evenrow
-      :filename & rdf:type & xsd:string
-      & \texttt{:filename} contains the path to the file that \texttt{:Origin}
-      represents.\\
+      \texttt{:Sample/}\emph{sample name} & \texttt{rdf:type} & \texttt{:Sample}
+      & This states that there is a sample with \emph{sample name}.\\
       \oddrow
-      :convertedBy & rdf:type & owl:AnnotationProperty
-      & \texttt{:convertedBy} is used to identify the program that performed
-      the VCF->RDF conversion.\\
+      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
+      & \texttt{:Origin/}\emph{SHA256 hash}
+      & This triple states that a sample can be found in a file identified by
+      the \texttt{:Origin} with a specific SHA256 hash.\\
       \evenrow
-      :foundIn & rdf:type & owl:AnnotationProperty
-      & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:convertedBy} & \texttt{:vcf2rdf}
+      & This triple states that the file was converted with \texttt{vcf2rdf}.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns described by \texttt{vcf2rdf}.}
+    \caption{\small The additional triple patterns provided by \texttt{vcf2rdf}.}
     \label{table:vcf2rdf-ontology}
   \end{table}
 
@@ -65,17 +61,17 @@
 
 \begin{siderules}
 \begin{verbatim}
-<http://sparqling-genomics/vcf2rdf/14f2b609b>
+<http://sparqling-genomics/Origin/14f2b609b>
     :convertedBy :vcf2rdf ;
     :filename "clone_ref_tumor.vcf.gz"^^xsd:string ;
     a :Origin .
 
-sample:CLONE_REF
-    :foundIn <http://sparqling-genomics/vcf2rdf/14f2b609b3> ;
+<http://sparqling-genomics/Sample/CLONE_REF>
+    :foundIn <http://sparqling-genomics/Origin/14f2b609b3> ;
     a :Sample .
 
-sample:CLONE_TUMOR
-    :foundIn <http://sparqling-genomics/vcf2rdf/14f2b609b3> ;
+<http://sparqling-genomics/Sample/CLONE_TUMOR>
+    :foundIn <http://sparqling-genomics/Origin/14f2b609b3> ;
     a :Sample .
 \end{verbatim}
 \end{siderules}
@@ -117,10 +113,11 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
 
 \subsection{Transformers}
 
-  Furthermore, \texttt{table2rdf} knows nothing about ontologies.  So when the
-  input table has a column ``Chromosome'', by default \texttt{table2rdf} will
-  treat these cells as literal values.  A \emph{transformer} can be used to
-  express a column as an \emph{individual} in RDF.  An example follows.
+  Unfortunately, \texttt{table2rdf} knows nothing about ontologies.  So when
+  the input table has a column ``Chromosome'', by default \texttt{table2rdf}
+  will treat these cells as literal values (as a \texttt{string}).  A
+  \emph{transformer} can be used to express a column as an \emph{individual} in
+  RDF.  An example might explain this best.
 
   Take the following input file:
 \begin{siderules}
@@ -195,7 +192,7 @@ $ table2rdf     \
   Tabular data consists of rows and columns.  A field is a specific place in
   a table, having a column-coordinate, and a row-coordinate.  To distinguish
   fields from one another we use a delimiter.  Which delimiter to use (a tab,
-  a comma, or a semicolon are common ones) is up to the dataset.  The delimiter
+  a comma, or a semicolon, etc.) is up to the dataset.  The delimiter
   can be chosen using the \texttt{-{}-delimiter} option, or \texttt{-d} for
   short.
 
@@ -252,7 +249,7 @@ $ table2rdf -i multi.tsv
 
 \begin{siderules}
 \begin{verbatim}
-$ table2rdf -i multi.tsv -D ":"
+$ table2rdf -i multi.tsv --secondary-delimiter ";"
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
@@ -287,31 +284,34 @@ $ table2rdf -i multi.tsv -D ":"
   to the knowledge from the table file, \texttt{table2rdf} stores the following
   metadata:
 
-  \begin{table}[H]
+    \begin{table}[H]
     \begin{tabularx}{\textwidth}{ l l l L }
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      :Origin & rdf:type & owl:Class
-      & \texttt{:Origin} is used to identify a data origin (which
-      is usually a file).\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      & This defines a uniquely identifiable reference to the originating
+        file.\\
       \oddrow
-      :Sample & rdf:type & owl:Class
-      & \texttt{:Sample} is used to identify a sample name.\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:filename} &
+      \emph{filename}
+      & This triple states the originating filename.\\
       \evenrow
-      :filename & rdf:type & xsd:string
-      & \texttt{:filename} contains the path to the file that \texttt{:Origin}
-      represents.\\
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:convertedBy} &
+      \texttt{:table2rdf}
+      & This triple states that the file was converted with
+        \texttt{table2rdf}.\\
       \oddrow
-      :convertedBy & rdf:type & owl:AnnotationProperty
-      & \texttt{:convertedBy} is used to identify the program that performed
-      the VCF->RDF conversion.\\
+      \texttt{:Sample/}\emph{sample name} & \texttt{rdf:type} & \texttt{:Sample}
+      & This states that there is a sample with \emph{sample name}.\\
       \evenrow
-      :foundIn & rdf:type & owl:AnnotationProperty
-      & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
+      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
+      & \texttt{:Origin/}\emph{SHA256 hash}
+      & This triple states that a sample can be found in a file identified by
+      the \texttt{:Origin} with a specific SHA256 hash.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns described by \texttt{table2rdf}.}
+    \caption{\small The additional triple patterns provided by \texttt{table2rdf}.}
     \label{table:table2rdf-ontology}
   \end{table}
 

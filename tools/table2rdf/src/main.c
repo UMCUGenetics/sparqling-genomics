@@ -104,7 +104,7 @@ main (int argc, char **argv)
       raptor_statement *stmt;
       raptor_term *node_filename;
 
-      node_filename = term (PREFIX_MASTER, (char *)file_hash);
+      node_filename = term (PREFIX_ORIGIN, (char *)file_hash);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
