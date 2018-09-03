@@ -49,7 +49,8 @@
               "1lmjvglbjiq4n9a56ic0kwwwip3y1f6wsksdjylf5hggaf5bhmpr"))))
    (build-system gnu-build-system)
    (arguments
-    `(#:phases
+    `(#:parallel-build? #f
+      #:phases
       (modify-phases %standard-phases
         (add-after 'install 'setup-static-resources
           (lambda* (#:key outputs #:allow-other-keys)
