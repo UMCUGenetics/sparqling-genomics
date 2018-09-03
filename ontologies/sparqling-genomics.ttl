@@ -169,6 +169,18 @@ vcf2rdf:VcfHeaderContigItem
     rdf:label  "" ;
     rdfs:range :Origin .
 
+:fileOwner
+    rdf:type  owl:AnnotationProperty ;
+    rdfs:label "file owner" .
+
+:fileSize
+    rdf:type  owl:AnnotationProperty ;
+    rdfs:label "file size" .
+
+:inProject
+    rdf:type  owl:AnnotationProperty ;
+    rdfs:label "in project" .
+
 ## Individuals
 ## ----------------------------------------------------------------------------
 
@@ -179,6 +191,10 @@ vcf2rdf:VcfHeaderContigItem
 :table2rdf rdf:type :SoftwareProgram ;
     rdfs:label   "table2rdf" ;
     rdfs:comment "Tool to convert tabular data to RDF." .
+
+:folder2rdf rdf:type :SoftwareProgram ;
+    rdfs:label   "folder2rdf" ;
+    rdfs:comment "Tool to extract RDF from files in a directory." .
 
 :sg-web rdf:type :SoftwareProgram ;
     rdfs:label   "SPARQLing genomics web interface" ;
