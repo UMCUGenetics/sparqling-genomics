@@ -85,7 +85,7 @@
               (values `((content-type . ,(response-content-type full-path)))
                       (with-input-from-file full-path
                         (lambda _
-                          (setvbuf (current-input-port) 'block)
+                          (setvbuf (current-input-port) 'block (expt 2 24))
                           (get-bytevector-all (current-input-port))))))))))
 
 (define (request-scheme-page-handler request request-body request-path)
@@ -263,6 +263,8 @@
             (call-with-output-string
               (lambda (port)
                 (set-port-encoding! port "utf8")
+                ;; Use block-buffering for a higher I/O throughput.
+                (setvbuf port 'block (expt 2 24))
                 (let* ((path          (substring request-path 1))
                        (page-function (resolve-module-function path))
                        (sxml-tree     (if page-function
