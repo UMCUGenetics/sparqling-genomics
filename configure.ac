@@ -71,12 +71,15 @@ AC_DEFINE_DIR([WEB_ROOT], [datarootdir], [Data directory for web resources.])
 
 AC_CONFIG_FILES([env], [chmod +x env])
 AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
+AC_CONFIG_FILES([tools/folder2rdf/folder2rdf],
+                [chmod +x tools/folder2rdf/folder2rdf])
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   doc/version.tex
   tools/vcf2rdf/Makefile
   tools/table2rdf/Makefile
+  tools/folder2rdf/Makefile
   web/www/config.scm
   web/ldap/authenticate.scm
   web/Makefile

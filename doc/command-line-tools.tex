@@ -427,6 +427,54 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
 %% \end{verbatim}
 %% \end{siderules}
 
+\section{Converting folders with \texttt{folder2rdf}}
+\label{sec:folder2rdf}
+
+  The \texttt{folder2rdf} program finds files in a directory to extract
+  knowledge from.  It attempts to convert files with extensions
+  \texttt{.vcf}, \texttt{.vcf.gz}, \texttt{.bcf}, and \texttt{.bcf.gz}
+  using \texttt{vcf2rdf}.
+
+\subsection{Example usage}
+
+\begin{siderules}
+\begin{verbatim}
+folder2rdf --input-directory=/vcf-data   \
+           --output-directory=/rdf-data  \
+           --project-name Example        \
+           --recursive                   \
+           --compress                    \
+           --threads=4
+\end{verbatim}
+\end{siderules}
+
+  $\ldots{}$ where \texttt{/vcf-data} is a directory containing VCF files,
+  and \texttt{/rdf-data} is the directory to store the converted files.
+
+\subsection{Knowledge extracted by \texttt{folder2rdf}}
+
+  In addition to the knowledge extracted by \texttt{vcf2rdf}, this program
+  extracts the following data:
+
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l l L }
+      \headrow
+      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      & \textbf{Description}\\
+      \evenrow
+      \texttt{:Project/}\emph{project-name} & \texttt{rdf:type} & \texttt{:Project}
+      & This defines the identifier for the project.\\
+      \oddrow
+      \texttt{:User/}\emph{username} & \texttt{rdf:type} & \texttt{:User}
+      & This defines the identifier for the file owner (username).\\
+      \evenrow
+      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      & This defines a uniquely identifiable reference to the originating file.\\
+    \end{tabularx}
+    \caption{\small The additional triple patterns produced by \texttt{folder2rdf}.}
+    \label{table:folder2rdf-ontology}
+  \end{table}
+
 \section{Importing data with \texttt{curl}}
 \label{sec:curl}
 
