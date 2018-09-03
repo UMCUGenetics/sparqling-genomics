@@ -183,49 +183,50 @@ make -C tools/vcf2rdf
 
 \chapter{The knowledge graph}
 
-  The tools provided by \texttt{sparqling-genomics} are designed to build a
-  common format to express genomic information.  Each program reads data in
-  a domain-specific format, and translates it into a common format; the
-  Resource Description Framework (RDF).
+  The tools provided by SPARQLing genomics are designed to build a
+  common format to express genomic information.  The programs from chapter
+  \ref{chap:command-line} {\color{LinkGray}`\nameref{chap:command-line}'}
+  read data in a domain-specific format, and translate it into \emph{facts}
+  in the form \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
+  \emph{object}.
 
-  Programs can be categorized in layers.  A program belongs to the first
-  layer (layer 0) when it translates a non-RDF format into RDF.  In the
-  second layer (layer 1), we find programs that read RDF and generate more
-  RDF.  Higher-level layers depend on the knowledge added by programs from
-  the previous layer.
+  Programs can operate on multiple layers of knowledge.  A program operates
+  on the first layer (layer 0) when it translates a non-RDF format into RDF.
+  These programs (re)state observations.  In the second layer (layer 1) and
+  up, we find programs that operate on facts and generate inferences.
 
-  In \texttt{sparqling-genomics}, the knowledge graph created by the programs
-  is more important than the programs themselves.  When designing and
-  implementing new programs, we should consider the added knowledge first.
-
-  Furthermore, programs should not depend on programs, but on the knowledge
-  produced by programs.  For example, the \texttt{vcf2rdf} program always
-  writes genomic positions by using the \emph{FALDO} ontology.  An annotation
-  program needs not to know about the existence of \texttt{vcf2rdf}, but it
-  needs to know about the \emph{FALDO} ontology.  Therefore, the common
-  interface between programs dealing with genomic positions is the \emph{FALDO}
-  ontology.  This enables developers of the knowledge graph to understand
-  the bigger picture without needing to understand the details of each
-  program, or each individual data format.
-
-  The next challenge is to describe knowledge in an integrative manner.  Again,
-  \emph{FALDO} serves a good example: it describes a way of expressing knowledge
-  that multiple programs can use; locations in a genome.  Developing effective
-  ontologies means extracting common patterns in how information is described.
-  This is an ever-ongoing process of refinement that changes over time with the
-  knowledge that is most valuable to the researcher.
-
-  With \texttt{sparqling-genomics}, we attempt to design a knowledge graph and
-  provide the tools to practically implement it.  When improving
-  \texttt{sparqling-genomics}, please always keep an eye out for the knowledge
-  graph.
-
-\section{Knowledge expressed by SPARQLing genomics tools}
+  From a computational perspective, these inferences allow programs to take
+  shortcuts, and therefore answer questions (called \emph{querying}) faster.
+  The performance of querying the graph can therefore be tuned by cleverly
+  stating facts (or by simply buying more and faster computing machines ---
+  a fact not described in the knowledge graph).
 
   \begin{sloppypar}
-  The \texttt{vcf2rdf} and \texttt{table2rdf} programs express knowledge using
-  a unified pattern.  This overlap between the programs defines the
-  \emph{ontology} for SPARQling genomics.  We wrote the ontology in the
-  Terse RDF Triple Language (Turtle) format, and it can be found in the release
-  tarball in \mbox{`\texttt{ontologies/sparqling-genomics.ttl}'}.
+  The knowledge graph contains two types of nodes; uniquely identifiable
+  names having a symbolic value (1), and literal values like numbers and
+  text (2).  The symbolic values are written as URIs, for which all symbols
+  defined by programs that are part of SPARQLing genomics share a common
+  prefix: \texttt{<http://sparqling-genomics/>}.  When we describe a node,
+  we shorten the URI with this prefix.  For example, to describe the URI
+  \texttt{<http://sparqling-genomics/Origin/1ec192jh5>}, we could equally
+  write \texttt{:Origin/1ec192jh5}, where the colon means ``use the
+  common prefix \texttt{<http://sparqling-genomics/>}''.
   \end{sloppypar}
+
+  The programs that are part of SPARQLing genomics use a few patterns to
+  come up with identifiers.  For example, to link facts to their original
+  (non-RDF) source, we use the type \texttt{:Origin}.  When describing the
+  originated file of some facts, we use \texttt{:Origin/}%
+  \emph{<SHA256 sum of the file>}, so that we can be sure that when the
+  same identifier occurs, the originating bytes are identical.
+
+  In chapter \ref{chap:command-line}
+  {\color{LinkGray}`\nameref{chap:command-line}'} we define more types,
+  all of them built up from the pattern \texttt{:}\emph{<type name>}%
+  \texttt{/}\emph{<string>}.  This can be used as a guideline to interact
+  and extend the knowledge graph.
+
+  We attempt to provide the practical tools to build and maintain a flexible
+  knowledge graph, and these tools may change over time.  When writing new
+  tools or changing existing ones, please consider the effect on the knowledge
+  graph first.
