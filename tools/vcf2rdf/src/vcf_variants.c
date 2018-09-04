@@ -392,13 +392,19 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
   /* Some reference datasets like dbSNP don't define samples.
    * Accomodating for this use-case is a bit special, so let's deal with
    * it here. */
-  if (number_of_samples == 0)
+  if (number_of_samples == 0 && !(config.sample))
     process_variant_for_sample (header, buffer, origin, -1, number_of_samples);
 
   /* When samples are defined (as usual), we should treat each variant call
    * for a given sample as a unique call.  This makes sure multi-sample VCFs
    * are handled correctly automatically. */
   for (; sample_index < number_of_samples; sample_index++)
-    process_variant_for_sample (header, buffer, origin, sample_index,
-                                number_of_samples);
+    {
+      /* Handle the --sample command-line option. */
+      if (config.sample && strcmp(header->samples[sample_index], config.sample))
+        continue;
+
+      process_variant_for_sample (header, buffer, origin, sample_index,
+                                  number_of_samples);
+    }
 }

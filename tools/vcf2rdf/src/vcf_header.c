@@ -83,6 +83,10 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
 
   for (; index < number_of_samples; index++)
     {
+      /* Handle the --sample command-line option. */
+      if (config.sample && strcmp(vcf_header->samples[index], config.sample))
+        continue;
+
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
       stmt->predicate = term (PREFIX_RDF, "#type");

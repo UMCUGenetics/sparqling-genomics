@@ -38,6 +38,7 @@ ui_show_help (void)
                                        "file.\n"
         "  --filter=ARG,            -f  Omit calls with FILTER=ARG from the "
                                        "output.\n"
+        "  --sample=ARG             -s  Only process variant calls for ARG.\n"
         "  --without-info-fields,   -x  Do not process INFO fields.\n"
         "  --without-format-fields, -y  Do not process FORMAT fields.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
@@ -75,6 +76,7 @@ ui_process_command_line (int argc, char **argv)
       { "metadata-only",         no_argument,       0, 'm' },
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
+      { "sample",                required_argument, 0, 's' },
       { "without-info-fields",   no_argument,       0, 'x' },
       { "without-format-fields", no_argument,       0, 'y' },
       { "progress-info",         no_argument,       0, 'p' },
@@ -86,7 +88,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:O:omxyphv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:O:s:omxyphv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -98,11 +100,16 @@ ui_process_command_line (int argc, char **argv)
         case 'm': config.metadata_only = true;                   break;
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
+        case 's': config.sample = optarg;                        break;
         case 'x': config.process_info_fields = false;            break;
         case 'y': config.process_format_fields = false;          break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }
+
+      /* When a required argument is missing, quit the program.
+       * An error message will be displayed by getopt. */
+      if (arg == '?') exit (1);
     }
 }
 

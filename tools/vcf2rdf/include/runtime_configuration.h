@@ -41,6 +41,7 @@ typedef struct
   char              *reference;
   char              *caller;
   char              *output_format;
+  char              *sample;
   uint32_t          non_unique_variant_counter;
   bool              header_only;
   bool              metadata_only;
