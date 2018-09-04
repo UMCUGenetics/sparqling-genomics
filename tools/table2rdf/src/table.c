@@ -180,10 +180,6 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
           else
             token = strtok (NULL, config.delimiter);
         }
-
-      /* The array length is the index of the last element + 1, because
-       * array index starts at 0.  Here we add one to the last index. */
-      header->keys_len += 1;
     }
   else
     {
@@ -199,11 +195,15 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
 void
 process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 {
+  /* When a column is empty, don't add any triples. */
+  if (token == NULL) return;
+
   uint32_t trimmed_length = 0;
   char *trimmed_token     = NULL;
   raptor_statement *stmt  = NULL;
 
   trimmed_token = trim_quotes (token, strlen (token));
+  if (trimmed_token == NULL) return;
   trimmed_length = strlen (trimmed_token);
 
   stmt = raptor_new_statement (config.raptor_world);
@@ -269,11 +269,17 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 void
 process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const char *filename)
 {
+  char *line_orig = NULL;
   char *line      = NULL;
   size_t line_len = 0;
 
   if (getdelim (&line, &line_len, '\n', stream) != -1)
     {
+      /* We use 'strsep' later on, which will eventually set line to NULL.
+       * To be able to free the memory allocated by 'getdelim', we must store
+       * the memory address.  */
+      line_orig = line;
+
       /* The 'getdelim' function does not remove the delimiter, so let's do
        * that here. */
       size_t line_strlen = strlen (line);
@@ -298,10 +304,10 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_ROW, config.id_buf);
       stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-      stmt->object    = term (PREFIX_MASTER, (char *)origin);
+      stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
       register_statement (stmt);
 
-      token = strtok (line, config.delimiter);
+      token = strsep (&line, config.delimiter);
       uint32_t column_index = 0;
       for (; column_index < hdr->keys_len; column_index++)
         {
@@ -335,11 +341,13 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
                 process_column (hdr, token, column_index);
             }
 
-          token = strtok (NULL, config.delimiter);
+          token = strsep (&line, config.delimiter);
         }
     }
   else if (!feof (stream))
     ui_print_file_read_error ((char *)filename);
+  else
+    line_orig = line;
 
-  free (line);
+  free (line_orig);
 }

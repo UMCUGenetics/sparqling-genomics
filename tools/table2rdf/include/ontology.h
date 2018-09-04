@@ -28,7 +28,7 @@
 
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
 #define STR_PREFIX_MASTER              URI_MASTER "/"
-#define STR_PREFIX_ORIGIN              URI_ONTOLOGY "/Origin/"
+#define STR_PREFIX_ORIGIN              URI_MASTER "/Origin/"
 #define STR_PREFIX_SAMPLE              URI_MASTER "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
 #define STR_PREFIX_ROW                 URI_ONTOLOGY "/Row/"
