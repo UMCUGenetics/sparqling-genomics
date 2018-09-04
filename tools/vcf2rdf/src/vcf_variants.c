@@ -266,6 +266,10 @@ process_variant_for_sample (bcf_hdr_t *header,
           if (!id_str || type == -1)
             continue;
 
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = raptor_term_copy (self);
+          stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
+
           if (!strcmp (id_str, "GT"))
             {
               char **dst = NULL;
@@ -300,21 +304,15 @@ process_variant_for_sample (bcf_hdr_t *header,
               free (genotypes);
               free (dst);
 
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = raptor_term_copy (self);
-              stmt->predicate = term (PREFIX_RDF, "#type");
               stmt->object    = class (genotype_class);
-              register_statement (stmt);
+              if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
+                register_statement (stmt);
             }
           else
             {
               state = bcf_get_format_values (header, buffer, id_str, &value, &value_len, type);
               if (!value || state < 0)
                 goto clean_format_iteration;
-
-              stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = raptor_term_copy (self);
-              stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
 
               if (type == XSD_INTEGER)
                 {
