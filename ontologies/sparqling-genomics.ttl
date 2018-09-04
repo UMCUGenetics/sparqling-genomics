@@ -1,6 +1,7 @@
 @prefix dc:        <http://purl.org/dc/elements/1.1/> .
 @prefix obo:       <http://purl.obolibrary.org/obo/> .
 @prefix faldo:     <http://biohackathon.org/resource/faldo#> .
+@prefix foaf:      <http://xmlns.com/foaf/0.1/> .
 @prefix owl:       <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
@@ -125,11 +126,6 @@ vcf2rdf:VcfHeaderContigItem
     rdfs:range :Sample ;
     rdfs:domain :VariantCall .
 
-:Project
-    rdf:type     owl:Class ;
-    rdfs:label   "Project" ;
-    rdfs:comment "Identifies a project." .
-
 ## Class: Origin
 ## ----------------------------------------------------------------------------
 
@@ -199,3 +195,19 @@ vcf2rdf:VcfHeaderContigItem
 :sg-web rdf:type :SoftwareProgram ;
     rdfs:label   "SPARQLing genomics web interface" ;
     rdfs:comment "Tool for querying multiple SPARQL endpoints using a web interface" .
+
+## Compatibility
+## ----------------------------------------------------------------------------
+
+## The following classes are already available on other ontologies.
+## However, they have been part of sparqling-genomics, so to retain
+## backwards compatibility, we simply keep the references, stating
+## that it is equivalent (owl:equivalentClass) the other ontology's
+## class.
+:Project
+    rdf:type owl:Class ;
+    owl:equivalentClass foaf:Project .
+
+:Donor
+    rdf:type owl:Class ;
+    owl:equivalentClass foaf:Agent .
