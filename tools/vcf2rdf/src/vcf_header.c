@@ -96,7 +96,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
       stmt->predicate = term (PREFIX_MASTER, "foundIn");
-      stmt->object    = term (PREFIX_MASTER, (char *)origin);
+      stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
       register_statement (stmt);
       stmt = NULL;
     }
@@ -234,7 +234,7 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
           stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-          stmt->object    = term (PREFIX_MASTER, (char *)origin);
+          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
           register_statement (stmt);
         }
 
