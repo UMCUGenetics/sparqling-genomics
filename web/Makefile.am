@@ -64,9 +64,6 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \
   static/images/sort_desc.png                           \
-  static/highlight/highlight.pack.js                    \
-  static/highlight/styles/androidstudio.css             \
-  static/highlight/styles/github.css                    \
   static/datatables.min.css                             \
   static/jquery.dataTables.min.js                       \
   static/jquery-3.2.1.min.js                            \
