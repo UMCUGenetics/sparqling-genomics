@@ -25,6 +25,8 @@
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
+  #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
   #:use-module (json)
@@ -71,12 +73,12 @@
 (define* (page-query-response request-path #:key (post-data ""))
 
   (define (respond-with-error port)
-    (let ((message (read-line port)))
+    (let ((message (utf8->string (get-bytevector-all port))))
       (close-port port)
       `(div (@ (class "query-error"))
             (div (@ (class "title")) "Error")
             (div (@ (class "content"))
-                 ,message))))
+                 (pre ,message)))))
 
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
