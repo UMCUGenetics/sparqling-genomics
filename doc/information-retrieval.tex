@@ -477,3 +477,94 @@ Which may yield the following table:
   \caption{\small Query results of the above query.}
   \label{table:query-output-7}
 \end{table}
+
+\section{Tips and tricks for writing portable queries}
+\label{sec:portable-queries}
+
+  While SPARQL has a formal standard specification, due to the different
+  implementations of RDF stores, a query may sometimes produce an error
+  on one endpoint, and a perfectly fine answer on another.
+
+  In this chapter we discuss ways to write ``portable'' queries, so that
+  the queries can be run equally on each type of endpoint.
+
+\section{Provide names for aggregated columns}
+
+  When using aggregated results in a column, for example by using the
+  \texttt{COUNT} or \texttt{SUM} functions, always provide a name for
+  the column.  Let's take a look at the following example:
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+
+SELECT DISTINCT ?cause COUNT(?cause)
+WHERE {
+  ?human  wdt:P31    wd:Q5     ;        # Instance of human
+          wdt:P509   ?cid      .        # Cause of death
+  ?cid    wdt:P279*  wd:Q12078 .        # Type of cancer
+
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language "[AUTO_LANGUAGE],nl" .
+    ?cid rdfs:label ?cause .
+  }
+}
+GROUP BY ?cause
+\end{verbatim}
+\end{siderules}
+
+  This query displays number of occurrences, and the causes of
+  death for humans known to Wikipedia, limited to cancer.  The two
+  columns are specified in the following line:
+
+\begin{siderules}
+\begin{verbatim}
+SELECT DISTINCT ?cause COUNT(?cause)
+\end{verbatim}
+\end{siderules}
+
+  The first column will be named ``cause'', but what about the second?
+  Some endpoints will automatically assign a unique name to the column,
+  but others do not, and respond with an error.
+
+  To avoid this, always provide a name for such a column by using the
+  \texttt{AS} keyword.  The following line displays its usage:
+
+\begin{siderules}
+\begin{verbatim}
+SELECT DISTINCT ?cause (COUNT(?cause) AS ?occurrences)
+\end{verbatim}
+\end{siderules}
+
+  In addition to using the \texttt{AS} keyword, also wrap the statement in
+  parentheses, so that the SPARQL interpreter can determine which name
+  should be assigned to which column.
+
+  Our final query looks like this:
+
+\begin{siderules}
+\begin{verbatim}
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+
+SELECT DISTINCT ?cause (COUNT(?cause) AS ?occurrences)
+WHERE {
+  ?human  wdt:P31    wd:Q5     ;        # Instance of human
+          wdt:P509   ?cid      .        # Cause of death
+  ?cid    wdt:P279*  wd:Q12078 .        # Type of cancer
+
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language "[AUTO_LANGUAGE],nl" .
+    ?cid rdfs:label ?cause .
+  }
+}
+GROUP BY ?cause
+\end{verbatim}
+\end{siderules}
