@@ -141,6 +141,12 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           stmt->predicate = term (PREFIX_VCF_HEADER, vcf_header->hrec[index]->key);
           stmt->object    = literal (vcf_header->hrec[index]->value, XSD_STRING);
           register_statement (stmt);
+
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
+          stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
+          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
+          register_statement (stmt);
         }
 
       /* Handle other fields.
