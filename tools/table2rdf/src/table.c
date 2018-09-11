@@ -156,7 +156,7 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_COLUMN, column_id);
           stmt->predicate = term (PREFIX_MASTER, "foundIn");
-          stmt->object    = term (PREFIX_MASTER, (char *)origin);
+          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
           register_statement (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
