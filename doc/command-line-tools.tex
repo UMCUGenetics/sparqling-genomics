@@ -4,7 +4,9 @@
   The project provides programs to create a complete pipeline including
   data conversion, data importing and data exploration.  These tools
   provide the ``layer 0'' for the knowledge graph, and the tools to
-  discover the data in this layer.
+  discover the data in this layer.   All tools described in the remainder
+  of this chapter can be invoked with the \texttt{-{}-help} argument to
+  get a complete overview of options for that particular tool.
 
 \section{Preparing variant call data with \texttt{vcf2rdf}}
 \label{sec:vcf2rdf}
@@ -84,6 +86,13 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
 \end{verbatim}
 \end{siderules}
 
+To get a complete overview of options for this program, use:
+\begin{siderules}
+\begin{verbatim}
+vcf2rdf --help
+\end{verbatim}
+\end{siderules}
+
 \subsection{Run-time properties}
 
   Depending on the serialization format, the program typically uses from two megabytes
@@ -95,7 +104,14 @@ vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
   efficiently, producing compact output at the cost of using more memory.
 
   We recommend using the \texttt{ntriples} format for large input files, and
-  \texttt{turtle} for small input files.
+  \texttt{turtle} for small input files.  The following example illustrates how to
+  use \texttt{ntriples} mode.
+
+\begin{siderules}
+\begin{verbatim}
+vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
+\end{verbatim}
+\end{siderules}
 
 \section{Preparing tabular data with \texttt{table2rdf}}
 \label{sec:table2rdf}
