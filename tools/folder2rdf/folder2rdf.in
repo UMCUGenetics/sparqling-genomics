@@ -79,6 +79,10 @@
   (format #t "Missing required argument --output-directory.~%")
   (exit 0))
 
+(unless (assoc-ref %config 'project-name)
+  (format #t "Missing required argument --project-name.~%")
+  (exit 0))
+
 (define scan-recursively? (assoc-ref %config 'recursively))
 (define metadata-only?    (assoc-ref %config 'metadata-only))
 (define compress?         (assoc-ref %config 'compress))
@@ -176,11 +180,16 @@
 ;; The following section defines ways to find files to process.
 ;;
 
-(define (include-file? entry)
+(define (include-vcf-file? entry)
   (or (string-suffix? ".vcf" entry)
       (string-suffix? ".vcf.gz" entry)
       (string-suffix? ".bcf" entry)
       (string-suffix? ".bcf.gz" entry)))
+
+(define (include-bam-file? entry)
+  (or (string-suffix? ".bam" entry)
+      (string-suffix? ".sam" entry)
+      (string-suffix? ".cram" entry)))
 
 (define (extension entry)
   (cond
@@ -188,7 +197,7 @@
    [(string-suffix? ".bcf.gz" entry) ".bcf.gz"]
    [else (string-append "." (last (string-split entry #\.)))]))
 
-(define (vcf-files directory)
+(define (find-files directory include-file?)
   (if scan-recursively?
       (let ((files '()))
         (ftw directory
@@ -227,13 +236,16 @@
                 "http://sparqling-genomics/Project")))
     (format (current-error-port) "Warning: Not creating project triples.~%"))
 
-;; Create RDF for all VCF files found in the directory.
-(let ((input-files (vcf-files input-directory)))
+;; Create RDF for all VCF and BAM files found in the directory.
+(let ((vcf-input-files (find-files input-directory include-vcf-file?))
+      (bam-input-files (find-files input-directory include-bam-file?)))
+
+  ;; Process VCF files.
   (n-par-for-each (string->number threads)
                   (lambda (vcf-file)
                     (let* ((input-dir-length (string-length input-directory))
                            (file-extension (extension vcf-file))
-                           (destination (string-append output-directory
+                           (destination (string-append output-directory "/"
                              (string-drop
                               (string-drop-right vcf-file
                                                  (string-length file-extension))
@@ -253,4 +265,31 @@
                                     " > " destination))))
                         ;; Silently absorb the input.
                         (close-port port))))
-                  input-files))
+                  vcf-input-files)
+
+  ;; Process BAM files.
+  (n-par-for-each (string->number threads)
+                  (lambda (bam-file)
+                    (let* ((input-dir-length (string-length input-directory))
+                           (file-extension (extension bam-file))
+                           (destination (string-append output-directory "/"
+                             (string-drop
+                              (string-drop-right bam-file
+                                                 (string-length file-extension))
+                              input-dir-length)
+                             ".n3" (if compress? ".gz" ""))))
+                      (mkdir-p (dirname destination))
+                      (let ((port (open-input-pipe
+                                   (string-append
+                                    "bam2rdf"
+                                    (if metadata-only?
+                                        " --metadata-only" "")
+                                    " -i " bam-file
+                                    " -O ntriples"
+                                    " 2> /dev/null"
+                                    (if compress?
+                                        " | gzip --stdout" "")
+                                    " > " destination))))
+                        ;; Silently absorb the input.
+                        (close-port port))))
+                  bam-input-files))
