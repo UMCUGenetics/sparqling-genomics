@@ -77,6 +77,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   doc/version.tex
+  tools/bam2rdf/Makefile
   tools/vcf2rdf/Makefile
   tools/table2rdf/Makefile
   tools/folder2rdf/Makefile
