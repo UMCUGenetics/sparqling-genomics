@@ -110,11 +110,11 @@
   (catch #t
     (lambda _
       (let ((filename (persistence-path username)))
-        (when (file-exists? filename)
-          (call-with-input-file filename
-            (lambda (port)
-              (set! %db-queries
-                    (map alist->query (read port))))))))
+        (if (file-exists? filename)
+            (call-with-input-file filename
+              (lambda (port)
+                (set! %db-queries (map alist->query (read port)))))
+            (set! %db-queries '()))))
     (lambda (key . args)
       #f)))
 
