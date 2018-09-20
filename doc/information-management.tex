@@ -47,10 +47,11 @@ WHERE { ?s ?p ?o }
 
 \section{Storing inferences in new graphs}
 \label{sec:storing-inferences-in-new-graphs}
+
   Calculating inferences from a large amount of data can take a lot of time.
   To avoid calculating inferences over and over again, we can store the
   inferred information as triples.  The following example attempts to infer
-  the gender related to a sample by looking at whether there's a mutation in
+  the gender related to a sample by looking at whether there's a mutation on
   the Y-chromosome.
 
 \begin{siderules}
@@ -76,8 +77,8 @@ WHERE {
  without a mutation on the Y-chromosome with this data, so we cannot accurately
  determine the gender for other samples.
 
- For the samples that definitely originated from a male donor, we can add a
- triplet in the form:
+ For the samples that definitely originated from a male donor (according to
+ this inference rule), we can add a triplet in the form:
 
 \begin{siderules}
 \begin{verbatim}
@@ -129,9 +130,15 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
-  We recommend keeping inferences (layer 1) in separate graphs than observed
-  data (layer 0) because it allows users to turn off inferences by simply not
-  including the inference graph.
+  The meaning of inferences is oftentimes limited in scope.  For example,
+  inferring the gender by looking for mutations on the Y-chromosome works
+  as long as the sequence mapping program did not accidentally map a read
+  to the reference Y-chromosome because the X and Y chromosomes share
+  homologous regions \citep{El-Mogharbel2008}.
+
+  We therefore recommend keeping inferences (layer 1) in separate graphs
+  than observed data (layer 0) because it allows users to choose which
+  inferences are safe to apply in a particular case.
 
 %  Inferences can be drawn from inferences, which can be classified as
 %  ``layer 2'' or up.  The dependency graph of individial inference programs

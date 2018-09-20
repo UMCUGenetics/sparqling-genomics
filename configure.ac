@@ -113,18 +113,20 @@ AC_SUBST([LIBLDAP])
 AC_SUBST([LIBLDAP_PREFIX])
 AC_SUBST([LIBLDAP_LIBDIR])
 
-dnl Check for presence of 'pdflatex'
+dnl Check for presence of 'pdflatex', 'bibtex', and 'htlatex'.
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
-
-if test "x$PDFLATEX" = "x"; then
-  AC_MSG_WARN([Unable to create PDF version of the user manual.])
-fi
-
-dnl Check for presence of 'htlatex'
+AC_CHECK_PROG(BIBTEX, bibtex, bibtex)
 AC_CHECK_PROG(HTLATEX, htlatex, htlatex)
 
-if test "x$HTLATEX" = "x"; then
-  AC_MSG_WARN([Unable to create HTML version of the user manual.])
+if test "x$BIBTEX" = "x"; then
+  AC_MSG_WARN([Unable to create the user manual.])
+else
+  if test "x$PDFLATEX" = "x"; then
+    AC_MSG_WARN([Unable to create PDF version of the user manual.])
+  fi
+  if test "x$HTLATEX" = "x"; then
+    AC_MSG_WARN([Unable to create HTML version of the user manual.])
+  fi
 fi
 
 AC_SUBST(ENABLE_MTRACE_OPTION)
@@ -135,5 +137,6 @@ AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [true]), AM_CONDITIONAL([ENABLE_MTRACE_OP
 
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 AM_CONDITIONAL([HAVE_HTLATEX], test -n "$HTLATEX")
+AM_CONDITIONAL([HAVE_BIBTEX], test -n "$BIBTEX")
 
 AC_OUTPUT

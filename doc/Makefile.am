@@ -10,7 +10,7 @@ doc_NAME                = sparqling-genomics
 doc_PDF                 = $(doc_NAME).pdf
 doc_HTML                = $(doc_NAME).html
 doc_TEX                 = $(doc_NAME).tex
-doc_STYLE		= umcu.sty
+doc_STYLE		= sparqling-genomics.sty
 dist_doc_DATA =
 
 if HAVE_PDFLATEX
@@ -19,8 +19,9 @@ dist_doc_DATA           += $(doc_PDF)
 # Run pdflatex twice, so that the table of contents and references are
 # properly set up.
 $(doc_PDF):
-	$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
-	$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
+	-$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
+	-$(BIBTEX) $(doc_NAME)
+	-$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
 endif
 
 if HAVE_HTLATEX
