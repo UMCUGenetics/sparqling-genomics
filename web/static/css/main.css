@@ -373,6 +373,7 @@ svg { width: 100%; height: 600px; background: #333333; }
     border-radius: 4pt;
 }
 
+.item-table-left { width: 100%; }
 .item-table-right { width: 200px; }
 #add-field { width: 100% }
 #query-output {

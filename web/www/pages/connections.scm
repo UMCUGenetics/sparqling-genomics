@@ -39,8 +39,8 @@
 
 (define (connections-table)
   `(table (@ (id "item-table"))
-     (tr (th "Connection")
-         (th (@ (class "item-table-right")) "Actions"))
+     (tr (th (@ (class "item-table-left")) "Connection")
+         (th (@ (style "min-width: 100px")) "Actions"))
      ,(map (lambda (record)
              (let ((name    (connection-name    record))
                    (uri     (connection-uri     record)))
