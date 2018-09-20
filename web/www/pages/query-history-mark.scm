@@ -19,6 +19,7 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db queries)
+  #:use-module (json)
 
   #:export (page-query-history-mark))
 
