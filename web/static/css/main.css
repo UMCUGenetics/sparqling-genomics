@@ -492,6 +492,41 @@ input[type=submit].login-field {
     cursor: pointer;
 }
 
+.mark-box-wrapper {
+    width: 20px;
+    margin: 0px;
+    position: relative;
+}
+
+.mark-box-wrapper label {
+    cursor: pointer;
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    top: 0;
+    left: 0;
+    background: #eee;
+    border:1px solid #ddd;
+}
+
+.mark-box-wrapper label:after {
+    opacity: 0.1;
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 5px;
+    background: transparent;
+    top: 6px;
+    left: 5px;
+    border: 3px solid #000;
+    border-top: none;
+    border-right: none;
+    transform: rotate(-45deg);
+}
+
+.mark-box-wrapper label:hover::after { opacity: 0.5; }
+.mark-box-wrapper input[type=checkbox]:checked + label:after { opacity: 1; }
+
 .is-active {
     background: #aa00aa;
     text-transform: uppercase;
@@ -528,3 +563,6 @@ input[type=submit].login-field {
 
 .success { background: #33cc33; }
 .failure { background: #cc3333; }
+.table-header-small-text { font-size: small; color: #fff; white-space: nowrap }
+.table-header-small-text a { color: #fff }
+.table-header-small-text a:hover { color: #ccc }

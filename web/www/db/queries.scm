@@ -28,6 +28,7 @@
 
   #:export (query-add
             query-remove
+            query-remove-unmarked
             all-queries
             query-by-id
             queries-by-endpoint
@@ -44,12 +45,14 @@
             query-content
             query-endpoint
             query-execution-time
+            query-marked?
             query?
 
             set-query-id!
             set-query-endpoint!
             set-query-execution-time!
-            set-query-content!))
+            set-query-content!
+            set-query-marked!))
 
 (define %db-queries '())
 (define %db-queries-username "")
@@ -57,13 +60,14 @@
 ;; QUERY RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <query>
-  (make-query id content endpoint execution-time project)
+  (make-query id content endpoint execution-time project marked?)
   query?
   (id             query-id             set-query-id!)
   (content        query-content        set-query-content!)
   (endpoint       query-endpoint       set-query-endpoint!)
   (execution-time query-execution-time set-query-execution-time!)
-  (project        query-project        set-query-project!))
+  (project        query-project        set-query-project!)
+  (marked?        query-marked?        set-query-marked!))
 
 (define* (generate-unique-query-id #:optional (id 1))
   (let ((existing-ids (map query-id %db-queries)))
@@ -81,7 +85,8 @@
                              (assoc-ref input 'content)
                              (assoc-ref input 'endpoint)
                              (assoc-ref input 'execution-time)
-                             (assoc-ref input 'project))))
+                             (assoc-ref input 'project)
+                             (assoc-ref input 'marked))))
         ;; Neither the endpoint nor the content may be unset.
         (when (not (query-id obj))
           (set-query-id! obj (generate-unique-query-id)))
@@ -98,7 +103,8 @@
     (content        . ,(query-content record))
     (endpoint       . ,(query-endpoint record))
     (execution-time . ,(query-execution-time record))
-    (project        . ,(query-project record))))
+    (project        . ,(query-project record))
+    (marked         . ,(query-marked? record))))
 
 ;; QUERIES PERSISTENCE
 ;; ----------------------------------------------------------------------------
@@ -165,6 +171,17 @@
                   %db-queries))
     (persist-queries)
     (values #t (format #f "Removed “~a”." id))))
+
+;; QUERY-REMOVE-UNMARKED
+;; ----------------------------------------------------------------------------
+(define (query-remove-unmarked)
+  "Removes queries for which marked? is #f."
+  (set! %db-queries
+        (filter (lambda (record)
+                  (query-marked? record))
+                %db-queries))
+  (persist-queries)
+  (values #t (format #f "Removed unmarked.")))
 
 
 ;; ALL-QUERIES

@@ -257,6 +257,15 @@
                                 #:post-data (utf8->string request-body))
                                (page-edit-project request-path)) port))))]
 
+   ;; For “/query-history-clean”, we must call a database function and
+   ;; redirect to “/query”.
+   [(string-prefix? "/query-history-clear" request-path)
+    (query-remove-unmarked)
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/query")))
+            "")]
+
    ;; All other requests can be handled as HTML responses.
    [#t
     (values '((content-type . (text/html)))
