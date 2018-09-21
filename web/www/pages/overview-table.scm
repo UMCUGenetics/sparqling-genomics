@@ -36,7 +36,7 @@
   "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://sparqling-genomics/>
 
-SELECT COUNT(DISTINCT ?sample) AS ?samples
+SELECT (COUNT(DISTINCT ?sample) AS ?samples)
 WHERE {
   ?sample rdf:type sg:Sample .
 }
@@ -46,7 +46,7 @@ WHERE {
   "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 
-SELECT (COUNT(?variant) AS ?variants) AS ?variants
+SELECT (COUNT(?variant) AS ?variants)
 WHERE {
   ?variant rdf:type vcf2rdf:VariantCall .
 }")
