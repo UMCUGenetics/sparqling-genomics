@@ -18,12 +18,60 @@
   #:use-module (www pages)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (www db connections)
   #:use-module (www db overview)
   #:use-module (ice-9 threads)
   #:use-module (srfi srfi-1)
   #:use-module (sxml simple)
 
   #:export (page-overview-table))
+
+(define %query-endpoint
+  (let ((connections (all-connections)))
+    (if (null? connections)
+        #f
+        (connection-name (car connections)))))
+
+(define %number-of-samples-query
+  "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sg: <http://sparqling-genomics/>
+
+SELECT COUNT(DISTINCT ?sample) AS ?samples
+WHERE {
+  ?sample rdf:type sg:Sample .
+}
+")
+
+(define %number-of-variant-calls-query
+  "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
+
+SELECT (COUNT(?variant) AS ?variants) AS ?variants
+WHERE {
+  ?variant rdf:type vcf2rdf:VariantCall .
+}")
+
+(define %number-of-copynumber-calls-query
+  "PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
+
+SELECT COUNT(?cnv)
+WHERE {
+  ?cnv col:copynumber ?o .
+}")
+
+(define (make-query-button text query)
+  (if %query-endpoint
+      `(form (@ (action "/query") (method "post"))
+             (input (@ (type "hidden")
+                       (name "endpoint")
+                       (value ,%query-endpoint)))
+             ,(string-append text " ")
+             (button (@ (type "submit")
+                        (class "small-action-btn question-btn")
+                        (name "query")
+                        (value ,query))
+                     "?"))
+      text))
 
 (define* (page-overview-table request-path #:key (post-data ""))
   (let* ((info (par-map (lambda (func) (func))
@@ -33,9 +81,15 @@
     `(table (@ (id "item-table"))
       (tr (th "Property")
           (th "Value"))
-      (tr (td "Number of samples")
+      (tr (td ,(make-query-button
+                "Number of samples"
+                %number-of-samples-query))
           (td ,(list-ref info 0)))
-      (tr (td "Number of variant calls (may contain duplicates)")
+      (tr (td ,(make-query-button
+                "Number of variant calls (may contain duplicates)"
+                %number-of-variant-calls-query))
           (td ,(list-ref info 1)))
-      (tr (td "Number of copy number calls (may contain duplicates)")
+      (tr (td ,(make-query-button
+                "Number of copy number calls (may contain duplicates)"
+                %number-of-copynumber-calls-query))
           (td ,(list-ref info 2))))))
