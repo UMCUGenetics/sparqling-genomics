@@ -88,10 +88,13 @@ $(document).ready(function(){
 
   var editor = ace.edit('editor');
   var session = editor.getSession();
-  editor.setTheme('ace/theme/github');
+  editor.setTheme('ace/theme/crimson_editor');
   editor.setShowPrintMargin(false);
   editor.setAutoScrollEditorIntoView(true);
-  editor.setOptions({ maxLines: 120, minLines: 2 });
+  editor.setOptions({ maxLines: 120,
+                      minLines: 2,
+                      enableBasicAutocompletion: true,
+                      enableLiveAutocompletion: true });
   session.setMode('ace/mode/sparql');
   session.setTabSize(2);
 
