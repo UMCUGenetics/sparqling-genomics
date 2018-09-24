@@ -54,7 +54,7 @@ WHERE {
 (define %number-of-copynumber-calls-query
   "PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
 
-SELECT COUNT(?cnv)
+SELECT (COUNT(?cnv) AS ?cnvs)
 WHERE {
   ?cnv col:copynumber ?o .
 }")
