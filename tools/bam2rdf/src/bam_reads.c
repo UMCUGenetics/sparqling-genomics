@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <htslib/sam.h>
 #include <raptor2.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

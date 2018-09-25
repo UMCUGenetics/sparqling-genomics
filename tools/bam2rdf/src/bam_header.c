@@ -160,10 +160,6 @@ process_header (bam_hdr_t *bam_header, const unsigned char *origin)
         line = NULL;
     }
 
-  /* Process read group fields.
-   * ----------------------------------------------------------------------- */
-  printf ("Plain text %u: '%s'\n", bam_header->l_text, bam_header->text);
-
   /* Skip the rest of the triplets when metadata-only mode is enabled. */
   if (config.metadata_only)
     return;
