@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License

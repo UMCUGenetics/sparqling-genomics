@@ -1,4 +1,4 @@
-# Copyright © 2017 Roel Janssen <roel@gnu.org>
+# Copyright © 2017, 2018 Roel Janssen <roel@gnu.org>
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License
@@ -45,6 +45,7 @@ SOURCES =                                               \
   www/pages/project-samples.scm                         \
   www/pages/projects.scm                                \
   www/pages/query-history.scm                           \
+  www/pages/query-history-mark.scm                      \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
   www/pages/samples.scm                                 \
@@ -68,8 +69,9 @@ WWW_STATIC_RESOURCES =                                  \
   static/jquery.dataTables.min.js                       \
   static/jquery-3.2.1.min.js                            \
   static/ace/ace.js                                     \
+  static/ace/ext-language_tools.js                      \
   static/ace/mode-sparql.js                             \
-  static/ace/theme-github.js
+  static/ace/theme-crimson_editor.js
 
 bin_SCRIPTS     = sg-web
 webdir          = $(pkgdatadir)/web
