@@ -36,24 +36,25 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-edit-connection request-path #:key (post-data ""))
+(define* (page-edit-connection request-path username #:key (post-data ""))
   (let* ((name       (last (string-split request-path #\/)))
+         (connections (all-connections username))
          (message
           (if (not (string= post-data ""))
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
                       ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e))
-                       (connection-edit (alist->connection alist)))
+                       (connection-edit (alist->connection alist) connections username))
                       ((('name . a) ('uri . b))
-                       (connection-edit (alist->connection alist)))
+                       (connection-edit (alist->connection alist) connections username))
                       (else
                        (values #f "Invalid form data."))))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))
-         (connection (connection-by-name name))
+         (connection (connection-by-name name username))
          (title (string-append "Edit “" name "”")))
     (page-root-template title request-path
      `((h2 ,title)

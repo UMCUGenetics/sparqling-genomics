@@ -36,7 +36,7 @@
 ;; equivalent for a HTML table that can be inserted into the page.
 ;;
 
-(define (projects-table)
+(define (projects-table username)
   `(table (@ (id "item-table"))
      (tr (th (@ (class "item-table-left")) "Project")
          (th (@ (class "item-table-right")
@@ -69,7 +69,7 @@
                                                (value ,name))
                                             "✔"))
                              '())))))
-           (all-projects))))
+           (all-projects username))))
 
 ;; ----------------------------------------------------------------------------
 ;; PAGE-PROJECTS
@@ -78,25 +78,30 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-projects request-path #:key (post-data ""))
-  (let ((message
-         (if (not (string= post-data ""))
-             (receive (success? message)
-                 (let ((alist (post-data->alist (uri-decode post-data))))
-                   (match alist
-                     ((('name . a) ('samples . b))
-                      (project-add (alist->project alist)))
-                     ((('name . a))
-                      (project-add (alist->project (cons '(samples . "") alist))))
-                     ((('set-active . a))
-                      (project-set-as-active! a))
-                     ((('remove . a))
-                      (project-remove a))
-                     (else     #f)))
-               (if success?
-                   #f ; No need to display a message.
-                   `(div (@ (class "message-box failure")) (p ,message))))
-             #f)))
+(define* (page-projects request-path username #:key (post-data ""))
+  (let* ((projects (all-projects username))
+         (message
+          (if (not (string= post-data ""))
+              (receive (success? message)
+                  (let ((alist (post-data->alist (uri-decode post-data))))
+                    (match alist
+                      [(('name . a) ('samples . b))
+                       (project-add (alist->project alist) projects username)]
+                      [(('name . a))
+                       (project-add (alist->project (cons '(samples . "") alist))
+                                    projects username)]
+                      [(('set-active . a))
+                       (begin
+                         (persist-projects
+                          (project-set-as-active! a projects) username)
+                         (values #t ""))]
+                      [(('remove . a))
+                       (project-remove a projects username)]
+                      [else #f]))
+                (if success?
+                    #f ; No need to display a message.
+                    `(div (@ (class "message-box failure")) (p ,message))))
+              #f)))
     (page-root-template "Projects" request-path
      `((h2 "Projects"
            ;; The “Add project” button is on the same line as the title.
@@ -111,13 +116,13 @@
        ,(if message message '())
 
        ;; Display the main table.
-       ,(projects-table)
+       ,(projects-table username)
 
        ;; The following javascript code adds the form fields to the table.
        (script "
 function ui_insert_project_form () {
   $('#item-table tbody:last-child').append('"
-         (tr (td (@ (colspan "2"))
+         (tr (td (@ (colspan "4"))
                  (form (@ (action "/projects") (method "post"))
                        (table (tr (td (@ (style "width: 100%"))
                                       (input (@ (type "text")

@@ -35,7 +35,7 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-edit-project request-path #:key (post-data ""))
+(define* (page-edit-project request-path username #:key (post-data ""))
 
 
   (define* (deduplicate-alist alist #:optional (name #f) (samples '()))
@@ -52,6 +52,7 @@
             (deduplicate-alist (cdr alist) name (cons value samples))]))))
 
   (let* ((name (last (string-split request-path #\/)))
+         (projects (all-projects username))
          (message
           (if (not (string= post-data ""))
               (receive (success? message)
@@ -60,14 +61,14 @@
                                  (uri-decode post-data)))))
                     (match alist
                       (((name . a) (samples . b))
-                       (project-edit (alist->project alist)))
+                       (project-edit (alist->project alist) projects username))
                       (else
                        (values #f "Invalid form data."))))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))
-         (project (project-by-name name))
+         (project (project-by-name name projects))
          (title (string-append "Edit “" name "”")))
     (page-root-template title request-path
      `((h2 ,title)

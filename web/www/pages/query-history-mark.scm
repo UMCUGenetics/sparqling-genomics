@@ -23,13 +23,14 @@
 
   #:export (page-query-history-mark))
 
-(define* (page-query-history-mark request-path #:key (post-data ""))
+(define* (page-query-history-mark request-path username #:key (post-data ""))
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
-      (let* ((parsed-data (json-string->scm post-data))
+      (let* ((queries     (all-queries username))
+             (parsed-data (json-string->scm post-data))
              (state       (hash-ref parsed-data "state"))
              (query-id    (hash-ref parsed-data "query-id"))
-             (query (query-by-id query-id)))
+             (query       (query-by-id query-id queries)))
         (set-query-marked! query state)
-        (persist-queries)
+        (persist-queries queries username)
         (string-append "[{\"state\": " (if state "true" "false") "}]"))))

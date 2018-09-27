@@ -85,10 +85,11 @@
               (values `((content-type . ,(response-content-type full-path)))
                       (with-input-from-file full-path
                         (lambda _
-                          (setvbuf (current-input-port) 'block (expt 2 24))
+                          (setvbuf (current-input-port) 'block 4096)
                           (get-bytevector-all (current-input-port))))))))))
 
-(define (request-scheme-page-handler request request-body request-path)
+(define* (request-scheme-page-handler request request-body request-path
+                                      #:key (username #f))
 
   (define (module-path prefix elements)
     "Returns the module path so it can be loaded."
@@ -119,33 +120,12 @@
               (lambda (port)
                 (set-port-encoding! port "utf8")
                 (format port "<!DOCTYPE html>~%")
-                (sxml->xml (page-welcome "/") port))))]
+                (sxml->xml (page-welcome "/" username) port))))]
 
    ;; Static resources can be served directly using the ‘request-file-handler’.
    ;; -------------------------------------------------------------------------
    [(string-prefix? "/static/" request-path)
     (request-file-handler request-path)]
-
-   ;; When the URI begins with “/project-samples/”, use the project-samples
-   ;; page to construct a suitable output.
-   [(string-prefix? "/project-samples" request-path)
-    (cond
-     [(string-suffix? ".json" request-path)
-      (values '((content-type . (application/javascript)))
-              (call-with-output-string
-                (lambda (port)
-                  (set-port-encoding! port "utf8")
-                  (put-string port (page-project-samples
-                                    (basename request-path ".json")
-                                    'json)))))]
-     [(string-suffix? ".n3" request-path)
-      (values '((content-type . (application/javascript)))
-              (call-with-output-string
-                (lambda (port)
-                  (set-port-encoding! port "utf8")
-                  (put-string port (page-project-samples
-                                    (basename request-path ".n3")
-                                    'ntriples)))))])]
 
    ;; The POST request of the login page is special, because it must set
    ;; a Set-Cookie HTTP header.  This is something out of the control of
@@ -191,6 +171,23 @@
                           (lambda (key . args) #f))
                         (sxml->xml sxml-tree port)))))))]
 
+   ;; The regular login page is special because the username
+   ;; isn't known at this point.
+   [(and (string-prefix? "/login" request-path)
+         (eq? (request-method request) 'GET))
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (let* ((page-function (resolve-module-function "login"))
+                       (sxml-tree     (page-function request-path)))
+                  (catch 'wrong-type-arg
+                    (lambda _
+                      (when (eq? (car (car sxml-tree)) 'html)
+                        (format port "<!DOCTYPE html>~%")))
+                    (lambda (key . args) #f))
+                  (sxml->xml sxml-tree port)))))]
+
    [(string-prefix? "/logout" request-path)
     (values (build-response
                    #:code 303
@@ -200,6 +197,29 @@
                                                 " Jan 01 1970 00:00:00 UTC;"))))
             (call-with-output-string
               (lambda (port) (display ""))))]
+
+   ;; ;; When the URI begins with “/project-samples/”, use the project-samples
+   ;; ;; page to construct a suitable output.
+   [(string-prefix? "/project-samples" request-path)
+    (cond
+     [(string-suffix? ".json" request-path)
+      (values '((content-type . (application/javascript)))
+              (call-with-output-string
+                (lambda (port)
+                  (set-port-encoding! port "utf8")
+                  (put-string port (page-project-samples
+                                    (basename request-path ".json")
+                                    username
+                                    'json)))))]
+     [(string-suffix? ".n3" request-path)
+      (values '((content-type . (text/plain)))
+              (call-with-output-string
+                (lambda (port)
+                  (set-port-encoding! port "utf8")
+                  (put-string port (page-project-samples
+                                    (basename request-path ".n3")
+                                    username
+                                    'ntriples)))))])]
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
@@ -214,22 +234,10 @@
                       (if (eq? (request-method request) 'POST)
                           (put-string port
                                       (page-function
-                                       request-path
+                                       request-path username
                                        #:post-data (utf8->string request-body)))
-                          (put-string port (page-function request-path)))
+                          (put-string port (page-function request-path username)))
                       (put-string port "[]"))))))]
-
-   
-   ;; When the URI begins with “/ontology/”, use the internal ontology viewer.
-   [(string-prefix? "/ontology/" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (page-ontology-or-error-404
-                            (substring request-path 10)
-                            #:is-ontology? #t) port))))]
 
    ;; When the URI begins with “/edit-connection/”, use the edit-connection
    ;; page.
@@ -240,9 +248,10 @@
                 (set-port-encoding! port "utf8")
                 (format port "<!DOCTYPE html>~%")
                 (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-connection request-path
+                               (page-edit-connection request-path username
                                 #:post-data (utf8->string request-body))
-                               (page-edit-connection request-path)) port))))]
+                               (page-edit-connection request-path username))
+                           port))))]
 
    ;; When the URI begins with “/edit-project/”, use the edit-project
    ;; page.
@@ -253,18 +262,32 @@
                 (set-port-encoding! port "utf8")
                 (format port "<!DOCTYPE html>~%")
                 (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-project request-path
+                               (page-edit-project request-path username
                                 #:post-data (utf8->string request-body))
-                               (page-edit-project request-path)) port))))]
+                               (page-edit-project request-path username))
+                           port))))]
 
    ;; For “/query-history-clean”, we must call a database function and
    ;; redirect to “/query”.
    [(string-prefix? "/query-history-clear" request-path)
-    (query-remove-unmarked)
+    (query-remove-unmarked (all-queries username) username)
     (values (build-response
              #:code 303
              #:headers `((Location   . "/query")))
             "")]
+
+   [(string-prefix? "/query-response" request-path)
+    (begin
+      (values '((content-type . (text/html)))
+              (lambda (port)
+                (let* ((path          (substring request-path 1))
+                       (page-function (resolve-module-function path)))
+                  (if page-function
+                      (if (eq? (request-method request) 'POST)
+                          ((page-function request-path username
+                                          #:post-data
+                                          (utf8->string request-body)) port)
+                          (page-function request-path username)))))))]
 
    ;; All other requests can be handled as HTML responses.
    [#t
@@ -278,10 +301,10 @@
                        (page-function (resolve-module-function path))
                        (sxml-tree     (if page-function
                                           (if (eq? (request-method request) 'POST)
-                                              (page-function request-path
+                                              (page-function request-path username
                                                              #:post-data
                                                              (utf8->string request-body))
-                                              (page-function request-path))
+                                              (page-function request-path username))
                                           (page-ontology-or-error-404
                                            request-path))))
                   (catch 'wrong-type-arg
@@ -327,14 +350,10 @@
              ;; The token starts with 'SGSession=', we have to strip that
              ;; off to get the actual token.
              (is-valid-session-token? (substring token 10)))
-        (let* ((real-token (substring token 10))
-               (username (session-username (session-by-token real-token))))
-          ;; Load the user's configuration.  We do this here because the memory
-          ;; at this point is local to the thread handling the HTTP request.
-          (load-connections username)
-          (load-projects username)
-          (load-queries username)
-          (request-scheme-page-handler request request-body request-path))]
+        (let* ((real-token  (substring token 10))
+               (username    (session-username (session-by-token real-token))))
+          (request-scheme-page-handler
+           request request-body request-path #:username username))]
        [(or (string-prefix? "/login" request-path)
             (string-prefix? "/static/" request-path))
         (request-scheme-page-handler request request-body request-path)]

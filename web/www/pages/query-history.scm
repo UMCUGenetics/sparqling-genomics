@@ -41,9 +41,10 @@
                     (format port "~a~%" line)))
                 (string-split query #\newline)))))
 
-(define* (page-query-history request-path #:key (post-data ""))
-  (let* ((project     (active-project))
-         (queries     (queries-by-project (project-name project))))
+(define* (page-query-history request-path username #:key (post-data ""))
+  (let* ((project     (active-project username))
+         (queries     (queries-by-project (project-name project)
+                                          (all-queries username))))
     `((table (@ (id "item-table"))
              (tr (th "Query")
                  (th "Connection")

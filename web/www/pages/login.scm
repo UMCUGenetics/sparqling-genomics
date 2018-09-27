@@ -32,21 +32,20 @@
 (define* (page-login request-path #:key (post-data ""))
   (if (string= post-data "")
       ;; Handle non-POST requests.
-      (let ((number-of-endpoints (length (all-connections))))
-        (page-empty-template "Log in" request-path
-         `((div (@ (id "login-wrapper"))
-                (form (@ (action "/login") (method "POST"))
-                      (input (@ (type "text")
-                                (class "login-field")
-                                (name "username")
-                                (placeholder "Username")))
-                      (input (@ (type "password")
-                                (class "login-field")
-                                (name "password")
-                                (placeholder "Password")))
-                      (input (@ (class "login-field")
-                                (type "submit")
-                                (value "Log in"))))))))
+      (page-empty-template "Log in" request-path
+       `((div (@ (id "login-wrapper"))
+              (form (@ (action "/login") (method "POST"))
+                    (input (@ (type "text")
+                              (class "login-field")
+                              (name "username")
+                              (placeholder "Username")))
+                    (input (@ (type "password")
+                              (class "login-field")
+                              (name "password")
+                              (placeholder "Password")))
+                    (input (@ (class "login-field")
+                              (type "submit")
+                              (value "Log in")))))))
       ;; Handle POST-requests.
       ;; When we get here, the login as failed, because otherwise the
       ;; page handler would've redirected us already.

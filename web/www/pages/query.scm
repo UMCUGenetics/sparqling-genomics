@@ -24,20 +24,23 @@
   #:use-module (srfi srfi-1)
   #:export (page-query))
 
-(define* (page-query request-path #:key (post-data #f))
+(define* (page-query request-path username #:key (post-data #f))
   (page-root-template "Query" request-path
    `((h2 "Query the database")
-     ,(let* ((available-connections (all-connections #:filter connection-name))
+     ,(let* ((connections (all-connections username #:filter connection-name))
+             (queries     (all-queries username))
              (alist       (if post-data (post-data->alist post-data) '()))
              (query       (assoc-ref alist 'query))
              (endpoint    (if (assoc-ref alist 'endpoint)
                               (assoc-ref alist 'endpoint)
                               ""))
-             (project     (active-project)))
+             (project     (active-project username)))
         ;; Handle removal instructions.
         (when (assoc-ref alist 'remove)
-          (query-remove (query-by-id (string->number (assoc-ref alist 'remove)))))
-        (if (null? available-connections)
+          (query-remove (query-by-id (string->number (assoc-ref alist 'remove)) queries)
+                        queries
+                        username))
+        (if (null? connections)
             ;; Before we can query, there must be a connection that we can query on.
             ;; The best we can do is refer to creating a connection at this point.
             `((h3 "Create a connection")
@@ -52,7 +55,7 @@
                                                `(selected "selected")
                                                '(class "not-selected")))
                                        ,connection))
-                            available-connections))
+                            connections))
 
               (h3 "Query editor")
               (p "Use " (strong "Ctrl + Enter") " to execute the query. ("

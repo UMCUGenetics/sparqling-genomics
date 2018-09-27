@@ -37,7 +37,7 @@
 ;; equivalent for a HTML table that can be inserted into the page.
 ;;
 
-(define (connections-table)
+(define (connections-table username)
   `(table (@ (id "item-table"))
      (tr (th (@ (class "item-table-left")) "Connection")
          (th (@ (style "min-width: 100px")) "Actions"))
@@ -53,7 +53,7 @@
                                          (value ,name))
                                       "✖")
                               )))))
-           (all-connections))))
+           (all-connections username))))
 
 ;; ----------------------------------------------------------------------------
 ;; PAGE-CONNECTIONS
@@ -62,18 +62,19 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-connections request-path #:key (post-data ""))
-  (let ((message
+(define* (page-connections request-path username #:key (post-data ""))
+  (let* ((connections (all-connections username))
+         (message
          (if (not (string= post-data ""))
              (receive (success? message)
                  (let ((alist (post-data->alist (uri-decode post-data))))
                    (match alist
                      ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e) )
-                      (connection-add (alist->connection alist)))
+                      (connection-add (alist->connection alist) connections username))
                      ((('name . a) ('uri . b))
-                      (connection-add (alist->connection alist)))
+                      (connection-add (alist->connection alist) connections username))
                      ((('remove . a))
-                      (connection-remove a))
+                      (connection-remove a connections username))
                      (else     #f)))
                (if success?
                    #f ; No need to display a message.
@@ -93,7 +94,7 @@
        ,(if message message '())
 
        ;; Display the main table.
-       ,(connections-table)
+       ,(connections-table username)
 
        ;; The following javascript code adds the form fields to the table.
        (script "
@@ -101,31 +102,32 @@ function ui_insert_connection_form () {
   $('#item-table tbody:last-child').append('"
                (tr (td (@ (colspan "2"))
                        (form (@ (action "/connections") (method "post"))
-                         (table (tr (td (input (@ (type "text")
-                                                  (id "add-name-field")
-                                                  (name "name")
-                                                  (placeholder "Name"))))
-                                    (td (input (@ (type "text")
-                                                  (id "add-uri-field")
-                                                  (name "uri")
-                                                  (placeholder "http://example.com:8890/sparql"))))
-                                    (td (input (@ (type "text")
-                                                  (id "add-username-field")
-                                                  (name "username")
-                                                  (placeholder "Username (optional)"))))
-                                    (td (input (@ (type "password")
-                                                  (id "add-password-field")
-                                                  (name "password")
-                                                  (placeholder "Password (optional)"))))
-                                    (td (select
-                                         (@ (name "backend"))
-                                         ,(map (lambda (backend)
-                                                 `(option (@ (value ,backend)) ,backend))
-                                               (map symbol->string (sparql-available-backends)))))
-                                    (td (@ (class "item-table-right"))
-                                        (input (@ (id "add-field-button")
-                                                  (type "submit")
-                                                  (value "↵"))))))))) "');
+                         (table
+                          (tr (td (input (@ (type "text")
+                                            (id "add-name-field")
+                                            (name "name")
+                                            (placeholder "Name"))))
+                              (td (input (@ (type "text")
+                                            (id "add-uri-field")
+                                            (name "uri")
+                                            (placeholder "http://example.com:8890/sparql"))))
+                              (td (input (@ (type "text")
+                                            (id "add-username-field")
+                                            (name "username")
+                                            (placeholder "Username (optional)"))))
+                              (td (input (@ (type "password")
+                                            (id "add-password-field")
+                                            (name "password")
+                                            (placeholder "Password (optional)"))))
+                              (td (select
+                                   (@ (name "backend"))
+                                   ,(map (lambda (backend)
+                                           `(option (@ (value ,backend)) ,backend))
+                                         (map symbol->string (sparql-available-backends)))))
+                              (td (@ (style "width: 32px"))
+                                  (input (@ (id "add-field-button")
+                                            (type "submit")
+                                            (value "↵"))))))))) "');
   $('#add-field').focus();
   $('#add-connection').remove();
 }
