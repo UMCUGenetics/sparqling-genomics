@@ -7,6 +7,7 @@
 @prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
 @prefix vcf2rdf:   <http://sparqling-genomics/vcf2rdf/> .
+@prefix variant:   <http://sparqling-genomics/vcf2rdf/VariantCall/> .
 @prefix table2rdf: <http://sparqling-genomics/table2rdf/> .
 @prefix :          <http://sparqling-genomics/> .
 
@@ -52,7 +53,7 @@ vcf2rdf:HomozygousAlternativeGenotype
 ## Variant Call Format Header
 ## ----------------------------------------------------------------------------
 
-vcf2rdf:Variant
+vcf2rdf:VariantCall
     rdf:type     owl:Class ;
     rdfs:label   "Variant call" ;
     rdfs:comment "Describes a variant call." .
@@ -63,51 +64,51 @@ vcf2rdf:variantId
     rdfs:comment "A non-unique identifier provided by the variant caller or annotation program to identify a variant call." ;
     rdfs:domain  :Variant .
 
-vcf2rdf:REF
+variant:REF
     rdf:type     owl:Class ;
     rdfs:label   "Reference sequence" ;
     rdfs:comment "The value of the reference genome at the position of the variant call." ;
     rdfs:domain  :Variant .
 
-vcf2rdf:ALT
+variant:ALT
     rdf:type     owl:Class ;
     rdfs:label   "Alternative sequence" ;
     rdfs:comment "The canonical value of the sample genome at the position of the variant call." ;
     rdfs:domain  :Variant .
 
-vcf2rdf:QUAL
+variant:QUAL
     rdf:type     owl:Class ;
     rdfs:label   "Quality" ;
     rdfs:comment "A quality score of the variant call." ;
     rdfs:domain  :Variant .
 
-vcf2rdf:FILTER
+variant:FILTER
     rdf:type     owl:Class ;
     rdfs:label   "Filter" ;
     rdfs:comment "A filter (tag) field for a variant call." ;
     rdfs:domain  :Variant .
 
-vcf2rdf:VcfHeaderGenericItem
+vcf2rdf:HeaderItem
     rdf:type   owl:Class ;
     rdfs:label "Generic VCF header item" .
 
-vcf2rdf:VcfHeaderInfoItem
+vcf2rdf:InfoItem
     rdf:type   owl:Class ;
     rdfs:label "INFO VCF header item" .
 
-vcf2rdf:VcfHeaderFormatItem
+vcf2rdf:FormatItem
     rdf:type   owl:Class ;
     rdfs:label "FORMAT VCF header item" .
 
-vcf2rdf:VcfHeaderFilterItem
+vcf2rdf:FilterItem
     rdf:type   owl:Class ;
     rdfs:label "Filter VCF header item" .
 
-vcf2rdf:VcfHeaderAltItem
+vcf2rdf:AltItem
     rdf:type   owl:Class ;
     rdfs:label "Alternative VCF header item" .
 
-vcf2rdf:VcfHeaderContigItem
+vcf2rdf:ContigItem
     rdf:type   owl:Class ;
     rdfs:label "Contig VCF header item" .
 
