@@ -32,49 +32,19 @@
             number-of-variant-calls
             number-of-copynumber-calls))
 
-;; SINGLE-VALUE-QUERY
-;; ----------------------------------------------------------------------------
-(define* (single-value-query query #:key (connection #f))
-  (if connection
-      (let* ((result (catch 'system-error
-                       (lambda _
-                         (receive (header port)
-                             (sparql-query query
-                                           #:uri (connection-uri connection)
-                                           #:store-backend
-                                           (connection-backend connection)
-                                           #:digest-auth
-                                           (if (and (connection-username connection)
-                                                    (connection-password connection))
-                                               (string-append
-                                                (connection-username connection) ":"
-                                                (connection-password connection))
-                                               #f))
-                           (if (= (response-code header) 200)
-                               (begin
-                                 (read-line port) ; Header line)
-                                 (read-line port))
-                               #f)))
-                       (lambda (key . args)
-                         #f))))
-        result)
-      (map (lambda (conn)
-             (single-value-query query #:connection conn))
-           (all-connections))))
-
 
 ;; NUMBER-OF-SAMPLES
 ;; ----------------------------------------------------------------------------
 
-(define* (number-of-samples #:optional (connection #f))
+(define* (number-of-samples username #:optional (connection #f))
   (catch #t
     (lambda _
-      (length (all-samples connection)))
+      (length (all-samples username connection)))
     (lambda (key . args)
       (format #t "Thrown exception: ~a: ~a~%" key args)
       0)))
 
-(define* (all-samples #:optional (connection #f))
+(define* (all-samples username #:optional (connection #f))
   (if connection
       (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT DISTINCT ?sample
@@ -93,7 +63,9 @@ WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
                                          #f))
                        #t)))
         results)
-      (let* ((samples (par-map all-samples (all-connections)))
+      (let* ((samples (par-map (lambda (connection)
+                                 (all-samples username connection))
+                               (all-connections username)))
              (simplified-list (stable-sort
                                (apply append (apply append (delete #f samples)))
                                string>?)))
@@ -123,7 +95,7 @@ WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
 ;; NUMBER-OF-VARIANT-CALLS
 ;; ----------------------------------------------------------------------------
 
-(define* (number-of-variant-calls #:optional (connection #f))
+(define* (number-of-variant-calls username #:optional (connection #f))
   (catch #t
     (lambda _
       (if connection
@@ -145,8 +117,10 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
                                              #f))
                            #t)))
             (string->number (caar results)))
-          (let* ((variants (delete #f (par-map number-of-variant-calls
-                                               (all-connections)))))
+          (let* ((variants (delete #f (par-map (lambda (connection)
+                                                 (number-of-variant-calls
+                                                  username connection))
+                                               (all-connections username)))))
             (apply + variants))))
     (lambda (key . args) 0)))
 
@@ -154,7 +128,7 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
 ;; NUMBER-OF-COPYNUMBER-CALLS
 ;; ----------------------------------------------------------------------------
 
-(define* (number-of-copynumber-calls #:optional (connection #f))
+(define* (number-of-copynumber-calls username #:optional (connection #f))
   (catch #t
     (lambda _
       (if connection
@@ -176,54 +150,9 @@ SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
                                              #f))
                            #t)))
             (string->number (caar results)))
-          (let* ((variants (delete #f (par-map number-of-copynumber-calls
-                                               (all-connections)))))
+          (let* ((variants (delete #f (par-map (lambda (connection)
+                                                 (number-of-copynumber-calls
+                                                  username connection))
+                                               (all-connections username)))))
             (apply + variants))))
     (lambda (key . args) 0)))
-
-(define* (number-of-variant-calls-deduplicated #:optional (connection #f))
-  (format #t "Pre-executed time:   ~a~%"
-          (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
-  (catch #t
-    (lambda _
-      (if connection
-          (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX sg: <http://sparqling-genomics/vcf2rdf/>
-
-SELECT STRAFTER(STR(?variant), 'vcf2rdf/') WHERE { ?variant rdf:type sg:VariantCall }
-ORDER BY DESC(?variant)")
-                 (results (query-results->list
-                           (sparql-query query
-                                         #:uri (connection-uri connection)
-                                         #:store-backend
-                                         (connection-backend connection)
-                                         #:digest-auth
-                                         (if (and (connection-username connection)
-                                                  (connection-password connection))
-                                             (string-append
-                                              (connection-username connection) ":"
-                                              (connection-password connection))
-                                             #f))
-                           #t)))
-            (map car (delete #f results)))
-          ;; To get grand total numbers we need to query each “connection”,
-          ;; and remove duplicated entries.  We assume it's faster to let
-          ;; the RDF store(s) sort and deduplicate its own results.
-          (let* ((variants  (begin
-                              (format #t "Executing queries:     ~a~%"
-                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
-                              (par-map number-of-variant-calls (all-connections))))
-                 (merged    (begin
-                              (format #t "Merging results:       ~a~%"
-                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
-                              (merge-multiple string>? variants)))
-                 (dedupped  (begin
-                              (format #t "Deduplicating results: ~a~%"
-                                      (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
-                              (delete-duplicates-sorted merged string=))))
-            (format #t "Post-executed time: ~a~%"
-                    (date->string (current-date) "~Y-~m-~d ~H:~M:~S"))
-            (length dedupped))))
-    (lambda (key . args)
-      (format #t "Thrown exception: ~a: ~a~%" key args)
-      0)))

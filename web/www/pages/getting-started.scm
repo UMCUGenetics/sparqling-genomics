@@ -19,7 +19,7 @@
   #:use-module (www config)
   #:export (page-getting-started))
 
-(define (page-getting-started request-path)
+(define (page-getting-started request-path username)
   (page-root-template "Getting started" request-path
    `((h2 "Getting started")
      (h3 "Configure a connection")

@@ -26,8 +26,8 @@
 
   #:export (page-overview-table))
 
-(define %query-endpoint
-  (let ((connections (all-connections)))
+(define (%query-endpoint username)
+  (let ((connections (all-connections username)))
     (if (null? connections)
         #f
         (connection-name (car connections)))))
@@ -59,12 +59,12 @@ WHERE {
   ?cnv col:copynumber ?o .
 }")
 
-(define (make-query-button text query)
-  (if %query-endpoint
+(define (make-query-button text query username)
+  (if (%query-endpoint username)
       `(form (@ (action "/query") (method "post"))
              (input (@ (type "hidden")
                        (name "endpoint")
-                       (value ,%query-endpoint)))
+                       (value ,(%query-endpoint username))))
              ,(string-append text " ")
              (button (@ (type "submit")
                         (class "small-action-btn question-btn")
@@ -73,8 +73,8 @@ WHERE {
                      "?"))
       text))
 
-(define* (page-overview-table request-path #:key (post-data ""))
-  (let* ((info (par-map (lambda (func) (func))
+(define* (page-overview-table request-path username #:key (post-data ""))
+  (let* ((info (par-map (lambda (func) (func username))
                         (list number-of-samples
                               number-of-variant-calls
                               number-of-copynumber-calls))))
@@ -83,13 +83,16 @@ WHERE {
           (th "Value"))
       (tr (td ,(make-query-button
                 "Number of samples"
-                %number-of-samples-query))
+                %number-of-samples-query
+                username))
           (td ,(list-ref info 0)))
       (tr (td ,(make-query-button
                 "Number of variant calls (may contain duplicates)"
-                %number-of-variant-calls-query))
+                %number-of-variant-calls-query
+                username))
           (td ,(list-ref info 1)))
       (tr (td ,(make-query-button
                 "Number of copy number calls (may contain duplicates)"
-                %number-of-copynumber-calls-query))
+                %number-of-copynumber-calls-query
+                username))
           (td ,(list-ref info 2))))))

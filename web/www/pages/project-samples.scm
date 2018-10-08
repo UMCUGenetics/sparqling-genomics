@@ -27,11 +27,13 @@
   #:use-module (json)
   #:export (page-project-samples))
 
-(define* (page-project-samples request-path #:optional (format 'json)
-                                            #:key (post-data ""))
-  (let ((project (project-by-name request-path)))
+(define* (page-project-samples request-path username
+                               #:optional (fmt 'json)
+                               #:key (post-data ""))
+  (let* ((projects (all-projects username))
+         (project  (project-by-name request-path projects)))
     (cond
-     [(eq? format 'json)
+     [(eq? fmt 'json)
       (scm->json-string (project-samples project))]
-     [(eq? format 'ntriples)
+     [(eq? fmt 'ntriples)
       (project->ntriples project)])))

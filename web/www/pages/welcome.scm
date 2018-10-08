@@ -27,8 +27,8 @@
   #:use-module (srfi srfi-1)
   #:export (page-welcome))
 
-(define* (page-welcome request-path #:key (post-data ""))
-  (let ((number-of-endpoints (length (all-connections))))
+(define* (page-welcome request-path username #:key (post-data ""))
+  (let ((number-of-endpoints (length (all-connections username))))
     (page-root-template "Overview" request-path
      `((h2 "Overview")
        (p "There " ,(if (= number-of-endpoints 1) "is " "are ")

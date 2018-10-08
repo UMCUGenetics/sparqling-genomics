@@ -18,7 +18,7 @@
   #:use-module (www pages)
   #:export (page-help))
 
-(define (page-help request-path)
+(define (page-help request-path username)
   (page-root-template "Help" request-path
    `((h2 "Help")
      (p "Please use the project's "
