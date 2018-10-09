@@ -34,6 +34,7 @@
     ("/connections" "Connections")
     ("/projects" "Projects")
     ("/query" "Query")
+    ("/exploratory" "Exploratory")
     ("/getting-started" "Getting started")
     ("/help" "Help")
     ("/logout" "Logout")))

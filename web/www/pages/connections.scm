@@ -26,6 +26,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
+  #:use-module (json)
   #:export (page-connections
             connections-table))
 
@@ -62,7 +63,7 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-connections request-path username #:key (post-data ""))
+(define* (html-page request-path username #:key (post-data ""))
   (let* ((connections (all-connections username))
          (message
          (if (not (string= post-data ""))
@@ -136,3 +137,12 @@ $(document).ready(function(){
   $('add-connection').focus();
 });
 ")) #:dependencies '(jquery))))
+
+(define* (page-connections request-path username
+                           #:key (post-data "")
+                                 (type 'html))
+  (cond
+   [(eq? type 'html)
+    (html-page request-path username #:post-data post-data)]
+   [(eq? type 'json)
+    (scm->json-string (map connection-name (all-connections username)))]))

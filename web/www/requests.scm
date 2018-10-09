@@ -235,8 +235,10 @@
                           (put-string port
                                       (page-function
                                        request-path username
+                                       #:type 'json
                                        #:post-data (utf8->string request-body)))
-                          (put-string port (page-function request-path username)))
+                          (put-string port (page-function request-path username
+                                                          #:type 'json)))
                       (put-string port "[]"))))))]
 
    ;; When the URI begins with “/edit-connection/”, use the edit-connection

@@ -502,6 +502,11 @@ input[type=submit].login-field {
     cursor: pointer;
 }
 
+.multiple-selector {
+    height: 400px;
+    width: 100%;
+}
+
 .mark-box-wrapper {
     width: 20px;
     margin: 0px;

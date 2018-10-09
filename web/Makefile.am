@@ -29,6 +29,7 @@ SOURCES =                                               \
   www/base64.scm                                        \
   www/config.scm                                        \
   www/db/connections.scm                                \
+  www/db/exploratory.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
   www/db/queries.scm                                    \
@@ -38,10 +39,13 @@ SOURCES =                                               \
   www/pages/edit-connection.scm                         \
   www/pages/edit-project.scm                            \
   www/pages/error.scm                                   \
+  www/pages/exploratory.scm                             \
   www/pages/getting-started.scm                         \
+  www/pages/graphs.scm                                  \
   www/pages/help.scm                                    \
   www/pages/login.scm                                   \
   www/pages/overview-table.scm                          \
+  www/pages/predicates.scm                              \
   www/pages/project-samples.scm                         \
   www/pages/projects.scm                                \
   www/pages/query-history.scm                           \
@@ -49,6 +53,7 @@ SOURCES =                                               \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
   www/pages/samples.scm                                 \
+  www/pages/types.scm                                   \
   www/pages/welcome.scm                                 \
   www/requests.scm                                      \
   www/util.scm
