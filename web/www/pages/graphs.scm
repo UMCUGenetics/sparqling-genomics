@@ -45,6 +45,6 @@
              (name (hash-ref data "connection")))
         (cond
          [(eq? type 'json)
-          (scm->json-string (all-graphs #:connection
-                                        (connection-by-name name username)))]))
+          (scm->json-string (all-graphs-in-connection
+                             (connection-by-name name username)))]))
       "[]"))

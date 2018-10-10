@@ -27,11 +27,11 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
 
-  #:export (all-graphs
+  #:export (all-graphs-in-connection
             all-predicates-in-graph
             all-types-in-graph))
 
-(define* (all-graphs #:key (connection #f))
+(define* (all-graphs-in-connection connection)
   (if connection
       (apply append
              (query-results->list
@@ -46,7 +46,7 @@
                                     (connection-password connection))
                                    #f))
               #t))
-      (apply append (par-map all-graphs (all-connections username)))))
+      #f))
 
 (define (all-predicates-in-graph graph connection type)
   (if connection
