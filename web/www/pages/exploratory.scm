@@ -167,4 +167,4 @@ $(document).ready(function(){
   });
 
 });"))
-     #:dependencies '(jquery d3))))
+     #:dependencies '(jquery))))
