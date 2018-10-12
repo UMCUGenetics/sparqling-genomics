@@ -23,7 +23,9 @@
 
   #:export (page-query-history-mark))
 
-(define* (page-query-history-mark request-path username #:key (post-data ""))
+(define* (page-query-history-mark request-path username
+                                  #:key (post-data "")
+                                        (type 'json))
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
       (let* ((queries     (all-queries username))

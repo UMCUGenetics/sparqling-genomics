@@ -29,7 +29,9 @@
 
   #:export (page-samples))
 
-(define* (page-samples request-path username #:key (post-data ""))
+(define* (page-samples request-path username
+                       #:key (post-data "")
+                             (type 'json))
   (catch #t
     (lambda _
       (scm->json-string (map uri-suffix (all-samples username))))
