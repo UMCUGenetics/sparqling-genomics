@@ -67,5 +67,3 @@ clean-local: docs-clean
 
 # Make sure there is something to run.
 all: $(doc_PDF) $(doc_HTML)
-
-.PHONY: $(doc_PDF) $(doc_HTML)
