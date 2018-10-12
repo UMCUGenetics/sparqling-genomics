@@ -507,6 +507,11 @@ input[type=submit].login-field {
     width: 100%;
 }
 
+.multiple-selector option { padding: 4px; }
+.multiple-selector:disabled {
+    background: #eee;
+    border: solid 1px #ccc;
+}
 .mark-box-wrapper {
     width: 20px;
     margin: 0px;

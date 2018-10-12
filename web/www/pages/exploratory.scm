@@ -36,33 +36,48 @@
        (form
         (table
          (thead
-          (tr (th (@ (style "width: 25%")) "Connections")
-              (th (@ (style "width: 25%")) "Graphs")
-              (th (@ (style "width: 25%")) "Types")
-              (th (@ (style "width: 25%")) "Predicates")))
+          (tr (th (@ (style "width: 25%; padding-left: 5px")) "Connections")
+              (th (@ (style "width: 25%; padding-left: 5px")) "Graphs")
+              (th (@ (style "width: 25%; padding-left: 5px")) "Types")
+              (th (@ (style "width: 25%; padding-left: 5px")) "Predicates")))
          (tbody
           (tr (td (select (@ (name "connections")
                              (id "connections")
                              (class "connection-selector multiple-selector")
-                             (size "2")
-                             (multiple "multiple"))))
+                             (size "100"))))
               (td (select (@ (name "graphs")
                              (id "graphs")
                              (class "graphs-selector multiple-selector")
-                             (multiple "multiple")
-                             (disabled "disabled")))
+                             (size "100")
+                             (disabled "disabled"))))
               (td (select (@ (name "types")
                              (id "types")
                              (class "types-selector multiple-selector")
-                             (multiple "multiple")
+                             (size "100")
                              (disabled "disabled"))))
               (td (select (@ (name "predicates")
                              (id "predicates")
                              (class "predicates-selector multiple-selector")
-                             (multiple "multiple")
-                             (disabled "disabled")))))))))
-              
-       (script "
+                             (size "100")
+                             (disabled "disabled")))))
+          (tr (@ (style "background: #fff"))
+              (td (@ (style "vertical-align: top"))
+                  (p "A list of connections is stored internally."))
+              (td (@ (style "vertical-align: top"))
+                  (p "To get the graphs, the following query is used:")
+                  (pre (@ (id "graph-query"))
+                       "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"))
+              (td (@ (style "vertical-align: top"))
+                  (p "Types are determined using the following query:")
+                  (pre (@ (id "type-query"))
+                       "SELECT DISTINCT ?type WHERE { ?s rdf:type ?type }"))
+              (td (@ (style "vertical-align: top"))
+                  (p "Predicates are found using the following query:")
+                  (pre (@ (id "predicate-query"))
+                       "SELECT DISTINCT ?predicate WHERE { ?s rdf:type ?type "
+                       "; ?predicate ?o . }"))))))
+
+     (script "
 $(document).ready(function(){
   $.get('/connections.json', function(data){
     var connections = JSON.parse(data);
@@ -72,16 +87,22 @@ $(document).ready(function(){
     });
   });
 
+  var st = jQuery.parseHTML('<')[0].nodeValue;
+  var gt = jQuery.parseHTML('>')[0].nodeValue;
+
   $('#connections').on('change', function(){
-    $('#graphs').prop('disabled', false);
     $('#graphs').find('option').remove()
+    $('#graphs').prop('disabled', true);
     $('#types').find('option').remove()
+    $('#types').prop('disabled', true);
     $('#predicates').find('option').remove()
+    $('#predicates').prop('disabled', true);
 
     var connection = $('#connections option:selected' ).val();
     post_data = { connection: connection };
     $.post('/graphs.json', JSON.stringify(post_data), function(data){
       var graphs = JSON.parse(data);
+      $('#graphs').prop('disabled', false);
       graphs.map(function (graph){
         $('#graphs').append('" (option (@ (value "'+ graph +'"))
                                             "'+ graph +'") "');
@@ -90,34 +111,58 @@ $(document).ready(function(){
   });
 
   $('#graphs').on('change', function(){
-    $('#types').prop('disabled', false);
     $('#types').find('option').remove()
+    $('#types').prop('disabled', true);
     $('#predicates').find('option').remove()
+    $('#predicates').prop('disabled', true);
     var connection = $('#connections option:selected' ).val();
     var graph      = $('#graphs option:selected' ).val();
     post_data = { connection: connection, graph: graph };
     $.post('/types.json', JSON.stringify(post_data), function(data){
       var types = JSON.parse(data);
+      $('#types').prop('disabled', false);
       types.map(function (type){
         $('#types').append('" (option (@ (value "'+ type +'"))
                                       "'+ type +'") "');
       });
+      $('#type-query').text(
+       'PREFIX rdf: '+ st +'http://www.w3.org/1999/02/22-rdf-syntax-ns#'+ gt +'\\n' +
+       '\\n'                                                          +
+       'SELECT DISTINCT ?type\\n'                                     +
+       'WHERE {\\n'                                                   +
+       '  GRAPH '+ st + graph + gt + ' {\\n'                          +
+       '    ?s rdf:type ?type .\\n'                                   +
+       '  }\\n'                                                       +
+       '}');
     });
   });
 
   $('#types').on('change', function(){
-    $('#predicates').prop('disabled', false);
     $('#predicates').find('option').remove()
+    $('#predicates').prop('disabled', true);
     var connection = $('#connections option:selected' ).val();
     var graph      = $('#graphs option:selected' ).val();
     var type       = $('#types option:selected' ).val();
     post_data = { connection: connection, graph: graph, type: type };
     $.post('/predicates.json', JSON.stringify(post_data), function(data){
       var predicates = JSON.parse(data);
+      $('#predicates').prop('disabled', false);
       predicates.map(function (predicate){
         $('#predicates').append('" (option (@ (value "'+ predicate +'"))
                                       "'+ predicate +'") "');
       });
+
+      $('#predicate-query').text(
+       'PREFIX rdf: '+ st +'http://www.w3.org/1999/02/22-rdf-syntax-ns#'+ gt +'\\n' +
+       '\\n'                                                          +
+       'SELECT DISTINCT ?predicate\\n'                                +
+       'WHERE {\\n'                                                   +
+       '  GRAPH '+ st + graph + gt + ' {\\n'                          +
+       '    ?s rdf:type   '+ st + type + gt +' ;\\n'                  +
+       '       ?predicate ?o .\\n'                                    +
+       '  }\\n'                                                       +
+       '}');
+
     });
   });
 
