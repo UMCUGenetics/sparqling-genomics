@@ -64,9 +64,11 @@
           (lambda* (#:key outputs #:allow-other-keys)
             (let* ((out  (assoc-ref outputs "out"))
                    (guile-load-path
-                    (string-append out "/share/guile/site/2.2"))
+                    (string-append out "/share/guile/site/2.2:"
+                                   (getenv "GUILE_LOAD_PATH")))
                    (guile-load-compiled-path
-                    (string-append out "/lib/guile/2.2/site-ccache"))
+                    (string-append out "/lib/guile/2.2/site-ccache:"
+                                   (getenv "GUILE_LOAD_COMPILED_PATH")))
                    (web-root (string-append
                               out "/share/sparqing-genomics/sg-web")))
               (wrap-program (string-append out "/bin/sg-web")
