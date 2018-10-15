@@ -31,8 +31,6 @@
   (let ((number-of-endpoints (length (all-connections username))))
     (page-root-template "Exploratory" request-path
      `((h2 "Exploratory")
-       (p "The exploratory provides a structured way of finding predicates.")
-       (p "")
        (form
         (table
          (thead
@@ -59,7 +57,9 @@
                              (id "predicates")
                              (class "predicates-selector multiple-selector")
                              (size "100")
-                             (disabled "disabled")))))
+                             (disabled "disabled")
+                             (onkeydown "keydown(event)")
+                             (onchange "updateClipboard(this)")))))
           (tr (@ (style "background: #fff"))
               (td (@ (style "vertical-align: top"))
                   (p "A list of connections is stored internally."))
@@ -75,9 +75,38 @@
                   (p "Predicates are found using the following query:")
                   (pre (@ (id "predicate-query"))
                        "SELECT DISTINCT ?predicate WHERE { ?s rdf:type ?type "
-                       "; ?predicate ?o . }"))))))
-
+                       "; ?predicate ?o . }")))))
+        (input (@ (type "text")
+                  (id "clipboard")
+                  (onkeyup "keyup(event)")
+                  ;; This input field is used to store clipboard data.  With the following
+                  ;; style rules we move it out-of-sight.
+                  (style "position: absolute; width: 1px; height: 1px; padding:0; left: -9999px;"))))
      (script "
+function updateClipboard(selectBox) {
+    var clipboard = document.getElementById('clipboard');
+    var text = '';
+    for (i = 0; i != selectBox.length; i++) {
+        if (selectBox.options[i].selected)
+          text = selectBox.options[i].value;
+    }
+    clipboard.value = text;
+}
+
+function keydown(e) {
+    if(e.keyCode === 17) {
+        var clipboard = document.getElementById('clipboard');
+        clipboard.select();
+    }
+}
+
+function keyup(e) {
+    if(e.keyCode === 17) {
+        var selectBox = document.getElementById('predicates');
+        selectBox.focus();
+    }
+}
+
 $(document).ready(function(){
   $.get('/connections.json', function(data){
     var connections = JSON.parse(data);
@@ -91,7 +120,7 @@ $(document).ready(function(){
   var gt = jQuery.parseHTML('>')[0].nodeValue;
 
   $('#connections').on('change', function(){
-    $('#graphs').find('option').remove()
+    $('#graphs').find('option').remove();
     $('#graphs').prop('disabled', true);
     $('#types').find('option').remove()
     $('#types').prop('disabled', true);
@@ -111,7 +140,7 @@ $(document).ready(function(){
   });
 
   $('#graphs').on('change', function(){
-    $('#types').find('option').remove()
+    $('#types').find('option').remove();
     $('#types').prop('disabled', true);
     $('#predicates').find('option').remove()
     $('#predicates').prop('disabled', true);
@@ -138,7 +167,7 @@ $(document).ready(function(){
   });
 
   $('#types').on('change', function(){
-    $('#predicates').find('option').remove()
+    $('#predicates').find('option').remove();
     $('#predicates').prop('disabled', true);
     var connection = $('#connections option:selected' ).val();
     var graph      = $('#graphs option:selected' ).val();
