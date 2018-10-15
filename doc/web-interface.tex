@@ -113,6 +113,7 @@ sg-web --configuration-file=file.xml
   {\color{LinkGray}`\nameref{sec:configuring-sg-web}'}.
 
 \section{Configuring connections}
+\label{sec:configure-connections}
 
   The first useful step is to configure a connection to a SPARQL endpoint.
 
@@ -165,3 +166,47 @@ sg-web --configuration-file=file.xml
 
   Each \emph{project} has its own query history, and newly executed queries are
   added to the current \emph{active} project.
+
+\section{Explore graphs with the Exploratory}
+
+  Another utility aimed at SPARQLing around faster is the \emph{exploratory}.
+
+  \begin{figure}[h]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/web-exploratory.png}
+    \end{center}
+    \caption{The \emph{exploratory} page enables users to learn about the
+      structure of the triplets in a graph.}
+    \label{fig:web-exploratory}
+  \end{figure}
+
+  The exploratory uses a common pattern in RDF to help writing queries.  Its
+  interface provides a four-step selection process to find \emph{predicates}
+  associated with an \texttt{rdf:type}.  The programs described in chapter
+  \ref{chap:command-line} {\color{LinkGray}`\nameref{chap:command-line}'}
+  automatically add the \texttt{rdf:type} annotations.
+
+\subsection{Connections and graphs}
+
+  The first step in finding predicates involves choosing a connection
+  (see section \ref{sec:configure-connections} {\color{LinkGray}%
+    `\nameref{sec:configure-connections}'}).  The second step involves
+  choosing a graph.  If the connection does not support the use of graphs,
+  the journey ends here.
+
+\subsection{Types}
+
+  The third step looks for triplets that match the pattern \emph{subject}
+  $\rightarrow$ \texttt{rdf:type} $\rightarrow$ \emph{type}.  All matches for
+  \emph{type} are displayed.  For data imported with \texttt{vcf2rdf} (see
+  section \ref{sec:vcf2rdf} {\color{LinkGray}`\nameref{sec:vcf2rdf}'}), this
+  will display (among other types) the \texttt{VariantCall} type.
+
+\subsection{Predicates}
+
+  Staying with the \texttt{VariantCall} example;  All data properties extracted
+  from a VCF file can be found under this type.  A predicate displayed in this
+  column occurs in \emph{at least} one triplet.  It not necessarily occurs in
+  \emph{every} triplet.  Especially when using \texttt{INFO} and \texttt{FORMAT}
+  fields in a VCF file, we recommend using them in a query inside an
+  \texttt{OPTIONAL} clause.
