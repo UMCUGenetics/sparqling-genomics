@@ -181,6 +181,22 @@ make -C tools/vcf2rdf
 \end{verbatim}
 \end{siderules}
 
+\section{Using a pre-built Docker image}
+
+  A pre-built Docker container can be obtained from the release page.  It
+  can be imported into docker using the following commands:
+
+\begin{siderules}
+\begin{verbatim}
+curl -O https://github.com/UMCUGenetics/sparqling-genomics/releases/\
+download/0.99.9/sparqling-genomics-0.99.9-docker.tar.gz
+docker load < sparqling-genomics-0.99.9-docker.tar.gz
+\end{verbatim}
+\end{siderules}
+
+  The container contains both SPARQLing genomics and Virtuoso (open source
+  edition).
+
 \chapter{The knowledge graph}
 
   The tools provided by SPARQLing genomics are designed to build a
