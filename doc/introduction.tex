@@ -204,7 +204,7 @@ docker load < sparqling-genomics-0.99.9-docker.tar.gz
   \ref{chap:command-line} {\color{LinkGray}`\nameref{chap:command-line}'}
   read data in a domain-specific format, and translate it into \emph{facts}
   in the form \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
-  \emph{object}.
+  \emph{object}, which is the form of an RDF triplet.
 
   Programs can operate on multiple layers of knowledge.  A program operates
   on the first layer (layer 0) when it translates a non-RDF format into RDF.
@@ -222,8 +222,9 @@ docker load < sparqling-genomics-0.99.9-docker.tar.gz
   names having a symbolic value (1), and literal values like numbers and
   text (2).  The symbolic values are written as URIs, for which all symbols
   defined by programs that are part of SPARQLing genomics share a common
-  prefix: \texttt{<http://sparqling-genomics/>}.  When we describe a node,
-  we shorten the URI with this prefix.  For example, to describe the URI
+  prefix: \texttt{<http://sparqling-genomics/>}.  When we describe a node
+  in the remainder of the manual, we shorten the URI with this prefix.
+  For example, to describe the URI
   \texttt{<http://sparqling-genomics/Origin/1ec192jh5>}, we could equally
   write \texttt{:Origin/1ec192jh5}, where the colon means ``use the
   common prefix \texttt{<http://sparqling-genomics/>}''.
