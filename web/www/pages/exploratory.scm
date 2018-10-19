@@ -28,60 +28,59 @@
   #:export (page-exploratory))
 
 (define* (page-exploratory request-path username #:key (post-data ""))
-  (let ((number-of-endpoints (length (all-connections username))))
-    (page-root-template "Exploratory" request-path
-     `((h2 "Exploratory")
-       (form
-        (table
-         (thead
-          (tr (th (@ (style "width: 25%; padding-left: 5px")) "Connections")
-              (th (@ (style "width: 25%; padding-left: 5px")) "Graphs")
-              (th (@ (style "width: 25%; padding-left: 5px")) "Types")
-              (th (@ (style "width: 25%; padding-left: 5px")) "Predicates")))
-         (tbody
-          (tr (td (select (@ (name "connections")
-                             (id "connections")
-                             (class "connection-selector multiple-selector")
-                             (size "100"))))
-              (td (select (@ (name "graphs")
-                             (id "graphs")
-                             (class "graphs-selector multiple-selector")
-                             (size "100")
-                             (disabled "disabled"))))
-              (td (select (@ (name "types")
-                             (id "types")
-                             (class "types-selector multiple-selector")
-                             (size "100")
-                             (disabled "disabled"))))
-              (td (select (@ (name "predicates")
-                             (id "predicates")
-                             (class "predicates-selector multiple-selector")
-                             (size "100")
-                             (disabled "disabled")
-                             (onkeydown "keydown(event)")
-                             (onchange "updateClipboard(this)")))))
-          (tr (@ (style "background: #fff"))
-              (td (@ (style "vertical-align: top"))
-                  (p "A list of connections is stored internally."))
-              (td (@ (style "vertical-align: top"))
-                  (p "To get the graphs, the following query is used:")
-                  (pre (@ (id "graph-query"))
-                       "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"))
-              (td (@ (style "vertical-align: top"))
-                  (p "Types are determined using the following query:")
-                  (pre (@ (id "type-query"))
-                       "SELECT DISTINCT ?type WHERE { ?s rdf:type ?type }"))
-              (td (@ (style "vertical-align: top"))
-                  (p "Predicates are found using the following query:")
-                  (pre (@ (id "predicate-query"))
-                       "SELECT DISTINCT ?predicate WHERE { ?s rdf:type ?type "
-                       "; ?predicate ?o . }")))))
-        (input (@ (type "text")
-                  (id "clipboard")
-                  (onkeyup "keyup(event)")
-                  ;; This input field is used to store clipboard data.  With the following
-                  ;; style rules we move it out-of-sight.
-                  (style "position: absolute; width: 1px; height: 1px; padding:0; left: -9999px;"))))
+  (page-root-template "Exploratory" request-path
+   `((h2 "Exploratory")
+     (form
+      (table
+       (thead
+        (tr (th (@ (style "width: 25%; padding-left: 5px")) "Connections")
+            (th (@ (style "width: 25%; padding-left: 5px")) "Graphs")
+            (th (@ (style "width: 25%; padding-left: 5px")) "Types")
+            (th (@ (style "width: 25%; padding-left: 5px")) "Predicates")))
+       (tbody
+        (tr (td (select (@ (name "connections")
+                           (id "connections")
+                           (class "connection-selector multiple-selector")
+                           (size "100"))))
+            (td (select (@ (name "graphs")
+                           (id "graphs")
+                           (class "graphs-selector multiple-selector")
+                           (size "100")
+                           (disabled "disabled"))))
+            (td (select (@ (name "types")
+                           (id "types")
+                           (class "types-selector multiple-selector")
+                           (size "100")
+                           (disabled "disabled"))))
+            (td (select (@ (name "predicates")
+                           (id "predicates")
+                           (class "predicates-selector multiple-selector")
+                           (size "100")
+                           (disabled "disabled")
+                           (onkeydown "keydown(event)")
+                           (onchange "updateClipboard(this)")))))
+        (tr (@ (style "background: #fff"))
+            (td (@ (style "vertical-align: top"))
+                (p "A list of connections is stored internally."))
+            (td (@ (style "vertical-align: top"))
+                (p "To get the graphs, the following query is used:")
+                (pre (@ (id "graph-query"))
+                     "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"))
+            (td (@ (style "vertical-align: top"))
+                (p "Types are determined using the following query:")
+                (pre (@ (id "type-query"))
+                     "SELECT DISTINCT ?type WHERE { ?s rdf:type ?type }"))
+            (td (@ (style "vertical-align: top"))
+                (p "Predicates are found using the following query:")
+                (pre (@ (id "predicate-query"))
+                     "SELECT DISTINCT ?predicate WHERE { ?s rdf:type ?type "
+                     "; ?predicate ?o . }")))))
+      (input (@ (type "text")
+                (id "clipboard")
+                (onkeyup "keyup(event)")
+                ;; This input field is used to store clipboard data.  With the following
+                ;; style rules we move it out-of-sight.
+                (style "position: absolute; width: 1px; height: 1px; padding:0; left: -9999px;"))))
      (script "
 function updateClipboard(selectBox) {
     var clipboard = document.getElementById('clipboard');
@@ -196,4 +195,4 @@ $(document).ready(function(){
   });
 
 });"))
-     #:dependencies '(jquery))))
+   #:dependencies '(jquery)))
