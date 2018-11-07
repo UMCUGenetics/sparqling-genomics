@@ -169,7 +169,11 @@
           (format port "<http://sparqling-genomics/Origin/~a> <~a> <http://sparqling-genomics/Project/~a> .~%"
                   origin-hash
                   "http://sparqling-genomics/inProject"
-                  project)))
+                  project)
+          (format port "<http://sparqling-genomics/Origin/~a> <~a> \"~a\"^^xsd:dateTimeStamp .~%"
+                  origin-hash
+                  "http://purl.org/dc/terms/modified"
+                  (strftime "%Y-%m-%dT%H-%M-%SZ" (gmtime (stat:mtime fs-stat))))))
       (lambda (key . args) #f))
     (close-port port)))
 
