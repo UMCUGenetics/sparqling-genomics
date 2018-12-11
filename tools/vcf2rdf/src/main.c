@@ -23,6 +23,7 @@
 #include <time.h>
 #include <raptor2.h>
 #include <htslib/vcf.h>
+#include <gcrypt.h>
 
 #ifdef ENABLE_MTRACE
 #include <mcheck.h>
@@ -42,6 +43,18 @@ main (int argc, char **argv)
   mtrace ();
 #endif
 
+  /* Initialize libgcrypt. */
+  if (!gcry_check_version (GCRYPT_VERSION))
+    {
+      fputs ("libgcrypt version mismatch\n", stderr);
+      exit (2);
+    }
+
+  /* We are not dealing with passwords or confidential crypto in this
+   * program. Therefore we don't need "secure memory". */
+  gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
+  gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
+
   /* Initialize the run-time configuration.
    * ------------------------------------------------------------------------ */
   if (!runtime_configuration_init ()) return 1;
@@ -55,7 +68,7 @@ main (int argc, char **argv)
 
   /* Read the input file.
    * ------------------------------------------------------------------------ */
-  if (config.input_file)
+  if (config.input_file || config.input_from_stdin)
     {
       /* Initialize the Redland run-time configuration.
        * -------------------------------------------------------------------- */
@@ -66,11 +79,18 @@ main (int argc, char **argv)
 
       /* Determine whether the input file is a VCF or compressed VCF.
        * -------------------------------------------------------------------- */
-      int32_t input_file_len = strlen (config.input_file);
+
+      int32_t input_file_len = 0;
+      if (!(config.input_from_stdin || config.input_file == NULL))
+        input_file_len = strlen (config.input_file);
+
       bool is_vcf = false;
       bool is_gzip_vcf = false;
       bool is_bcf = false;
       bool is_gzip_bcf = false;
+
+      if (input_file_len == 0)
+        config.input_from_stdin = true;
 
       if (input_file_len > 3)
         {
@@ -84,7 +104,8 @@ main (int argc, char **argv)
           is_gzip_bcf = !strcmp (config.input_file + input_file_len - 6, "bcf.gz");
         }
 
-      if (!(is_bcf || is_gzip_bcf || is_vcf || is_gzip_vcf))
+      if (!(is_bcf || is_gzip_bcf || is_vcf || is_gzip_vcf ||
+            config.input_from_stdin))
         return ui_print_file_format_error ();
 
       /* Prepare the buffers needed to read the VCF file.
@@ -96,6 +117,7 @@ main (int argc, char **argv)
       else if (is_gzip_vcf) vcf_stream = hts_open (config.input_file, "rz");
       else if (is_bcf)      vcf_stream = hts_open (config.input_file, "rbu");
       else if (is_gzip_bcf) vcf_stream = hts_open (config.input_file, "rb");
+      else if (config.input_from_stdin) vcf_stream = hts_open ("-", "r");
 
       if (!vcf_stream)
         return ui_print_vcf_file_error (config.input_file);
@@ -109,7 +131,23 @@ main (int argc, char **argv)
           return ui_print_vcf_header_error (config.input_file);
         }
 
-      unsigned char *file_hash = helper_get_hash_from_file (config.input_file);
+      unsigned char *file_hash = NULL;
+      if (!config.user_hash && !config.input_from_stdin)
+        file_hash = helper_get_hash_from_file (config.input_file);
+      else if (!config.user_hash && config.input_from_stdin)
+        {
+          unsigned char buf[32];
+          memset (buf, '\0', 32);
+          file_hash = calloc (65, sizeof (unsigned char));
+          if (!file_hash) return 1;
+
+          gcry_randomize (buf, 32, GCRY_VERY_STRONG_RANDOM);
+          if (! get_pretty_hash (buf, 32, file_hash))
+            return 1;
+        }
+      else
+        file_hash = (unsigned char *)config.user_hash;
+
       if (!file_hash) return 1;
 
       raptor_statement *stmt;
@@ -190,7 +228,7 @@ main (int argc, char **argv)
       raptor_free_term (node_filename);
       runtime_configuration_free ();
 
-      free (file_hash);
+      if (!config.user_hash) free (file_hash);
       bcf_hdr_destroy (vcf_header);
       hts_close (vcf_stream);
     }

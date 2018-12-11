@@ -31,6 +31,7 @@ runtime_configuration_init (void)
   config.reference = NULL;
   config.caller = NULL;
   config.output_format = NULL;
+  config.user_hash = NULL;
   config.non_unique_variant_counter = 0;
   config.info_field_indexes = NULL;
   config.info_field_indexes_len = 0;
@@ -43,6 +44,7 @@ runtime_configuration_init (void)
   config.show_progress_info = false;
   config.process_info_fields = true;
   config.process_format_fields = true;
+  config.input_from_stdin = false;
 
   return true;
 }

@@ -42,12 +42,14 @@ typedef struct
   char              *caller;
   char              *output_format;
   char              *sample;
+  char              *user_hash;
   uint32_t          non_unique_variant_counter;
   bool              header_only;
   bool              metadata_only;
   bool              show_progress_info;
   bool              process_info_fields;
   bool              process_format_fields;
+  bool              input_from_stdin;
 
   /* Raptor-specifics */
   raptor_world      *raptor_world;

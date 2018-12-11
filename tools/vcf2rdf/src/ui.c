@@ -31,6 +31,7 @@ ui_show_help (void)
 	"  --header-only,           -o  Only process the VCF header.\n"
 	"  --metadata-only          -m  Output only metadata.  This mode "
                                        "can be used to find samples.\n"
+        "  --hash=ARG,              -H  Use ARG as file identification hash.\n"
 	"  --help,                  -h  Show this message.\n"
 	"  --progress-info,         -p  Show progress information.\n"
 	"  --version,               -v  Show versioning information.\n"
@@ -42,6 +43,8 @@ ui_show_help (void)
         "  --without-info-fields,   -x  Do not process INFO fields.\n"
         "  --without-format-fields, -y  Do not process FORMAT fields.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
+        "  --stdin                  -I  Read input from a pipe instead of a "
+                                       "file.\n"
         "  --keep=ARG,              -k  Omit calls without FILTER=ARG from the "
                                        "output.\n"
         "  --output-format          -O  The output format to serialize to.\n"
@@ -70,6 +73,7 @@ ui_process_command_line (int argc, char **argv)
       { "caller",                required_argument, 0, 'c' },
       { "filter",                required_argument, 0, 'f' },
       { "input-file",            required_argument, 0, 'i' },
+      { "stdin",                 no_argument,       0, 'I' },
       { "keep",                  required_argument, 0, 'k' },
       { "reference",             required_argument, 0, 'r' },
       { "header-only",           no_argument,       0, 'o' },
@@ -80,6 +84,7 @@ ui_process_command_line (int argc, char **argv)
       { "without-info-fields",   no_argument,       0, 'x' },
       { "without-format-fields", no_argument,       0, 'y' },
       { "progress-info",         no_argument,       0, 'p' },
+      { "hash",                  required_argument, 0, 'H' },
       { "help",                  no_argument,       0, 'h' },
       { "version",               no_argument,       0, 'v' },
       { 0,                       0,                 0, 0   }
@@ -88,12 +93,13 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:O:s:omxyphv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:O:s:H:Iomxyphv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
         case 'f': config.filter = optarg;                        break;
         case 'i': config.input_file = optarg;                    break;
+        case 'I': config.input_from_stdin = true;                break;
         case 'k': config.keep = optarg;                          break;
         case 'r': config.reference = optarg;                     break;
         case 'o': config.header_only = true;                     break;
@@ -103,6 +109,7 @@ ui_process_command_line (int argc, char **argv)
         case 's': config.sample = optarg;                        break;
         case 'x': config.process_info_fields = false;            break;
         case 'y': config.process_format_fields = false;          break;
+        case 'H': config.user_hash = optarg;                     break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }
