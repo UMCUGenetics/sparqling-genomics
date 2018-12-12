@@ -38,23 +38,29 @@
             connection-backend
             connection-username
             connection-password
+            connection-is-default?
             connection?
 
+            connection-set-as-default!
             set-connection-name!
             set-connection-username!
-            set-connection-password!))
+            set-connection-password!
+
+            persist-connections
+            default-connection))
 
 
 ;; CONNECTION RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <connection>
-  (make-connection name uri backend username password)
+  (make-connection name uri backend username password is-default?)
   connection?
-  (name      connection-name       set-connection-name!)
-  (uri       connection-uri        set-connection-uri!)
-  (backend   connection-backend    set-connection-backend!)
-  (username  connection-username   set-connection-username!)
-  (password  connection-password   set-connection-password!))
+  (name         connection-name        set-connection-name!)
+  (uri          connection-uri         set-connection-uri!)
+  (backend      connection-backend     set-connection-backend!)
+  (username     connection-username    set-connection-username!)
+  (password     connection-password    set-connection-password!)
+  (is-default?  connection-is-default? set-connection-default!))
 
 
 ;; ALIST->CONNECTION AND CONNECTION->ALIST
@@ -67,7 +73,8 @@
                                   (assoc-ref input 'uri)
                                   (assoc-ref input 'backend)
                                   (assoc-ref input 'username)
-                                  (assoc-ref input 'password))))
+                                  (assoc-ref input 'password)
+                                  (assoc-ref input 'is-default?))))
         (unless (and (string? (connection-username obj))
                      (not (string= (connection-username obj) "")))
           (set-connection-username! obj #f))
@@ -87,11 +94,12 @@
        #f)))
 
 (define (connection->alist record)
-  `((name     . ,(connection-name     record))
-    (uri      . ,(connection-uri      record))
-    (backend  . ,(connection-backend  record))
-    (username . ,(connection-username record))
-    (password . ,(connection-password record))))
+  `((name        . ,(connection-name     record))
+    (uri         . ,(connection-uri      record))
+    (backend     . ,(connection-backend  record))
+    (username    . ,(connection-username record))
+    (password    . ,(connection-password record))
+    (is-default? . ,(connection-is-default? record))))
 
 
 ;; CONNECTIONS PERSISTENCE
@@ -144,8 +152,9 @@
       (values #f (format #f "The connection URI cannot empty.")))
      ((string-contains name " ")
       (values #f (format #f "The connection name cannot contain whitespace characters.")))
-     (#t (begin
-           (persist-connections (cons record connections) username)
+     (#t (let ((new-state (cons record connections)))
+           (persist-connections
+            (connection-set-as-default! record new-state) username)
            (values #t ""))))))
 
 
@@ -193,6 +202,15 @@
      username)
     (values #t (format #f "Removed “~a”." name))))
 
+;; CONNECTION-SET-AS-DEFAULT!
+;; ----------------------------------------------------------------------------
+(define (connection-set-as-default! connection connections)
+  "Sets CONNECTION as the default connection."
+  (let ((name (if (string? connection) connection (connection-name connection))))
+    (map (lambda (record)
+           (set-connection-default! record (string= (connection-name record) name))
+           record)
+         connections)))
 
 ;; ALL-CONNECTIONS
 ;; ----------------------------------------------------------------------------
@@ -218,3 +236,19 @@
     (if (null? item)
         #f
         (car item))))
+
+;; DEFAULT-CONNECTION
+;; ----------------------------------------------------------------------------
+
+(define (default-connection username)
+  (let ((default (delete #f
+                         (all-connections username
+                                          #:filter
+                                          (lambda (connection)
+                                            (if (connection-is-default?
+                                                 connection)
+                                                connection
+                                                #f))))))
+    (if (> (length default) 0)
+        (car default)
+        #f)))

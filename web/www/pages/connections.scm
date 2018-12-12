@@ -41,19 +41,30 @@
 (define (connections-table username)
   `(table (@ (id "item-table"))
      (tr (th (@ (class "item-table-left")) "Connection")
-         (th (@ (style "min-width: 100px")) "Actions"))
+         (th (@ (style "min-width: 100px")
+                (colspan "2")) "Actions"))
      ,(map (lambda (record)
              (let ((name    (connection-name    record))
                    (uri     (connection-uri     record)))
                `(tr (td (a (@ (href ,(string-append "/edit-connection/" name)))
                            ,(string-append name " (" uri ")")))
-                    (td (form (@ (action "/connections") (method "post"))
+                    (td (@ (class "button-column"))
+                        (form (@ (action "/connections") (method "post"))
                               (button (@ (type "submit")
                                          (class "action-btn remove-btn")
                                          (name "remove")
                                          (value ,name))
                                       "✖")
-                              )))))
+                              ))
+                    (td (@ (class "button-column"))
+                        ,(if (not (connection-is-default? record))
+                             `(form (@ (action "/connections") (method "post"))
+                                    (button (@ (type "submit")
+                                               (class "action-btn active-btn")
+                                               (name "set-default")
+                                               (value ,name))
+                                            "✔"))
+                             '())))))
            (all-connections username))))
 
 ;; ----------------------------------------------------------------------------
@@ -70,13 +81,18 @@
              (receive (success? message)
                  (let ((alist (post-data->alist (uri-decode post-data))))
                    (match alist
-                     ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e) )
-                      (connection-add (alist->connection alist) connections username))
-                     ((('name . a) ('uri . b))
-                      (connection-add (alist->connection alist) connections username))
-                     ((('remove . a))
-                      (connection-remove a connections username))
-                     (else     #f)))
+                     [(('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e) )
+                      (connection-add (alist->connection alist) connections username)]
+                     [(('name . a) ('uri . b))
+                      (connection-add (alist->connection alist) connections username)]
+                     [(('remove . a))
+                      (connection-remove a connections username)]
+                     [(('set-default . a))
+                       (begin
+                         (persist-connections
+                          (connection-set-as-default! a connections) username)
+                         (values #t ""))]
+                     [else     #f]))
                (if success?
                    #f ; No need to display a message.
                    `(div (@ (class "message-box failure")) (p ,message))))
