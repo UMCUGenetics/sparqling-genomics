@@ -18,6 +18,7 @@
   #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (www db connections)
+  #:use-module (www db cache)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (web response)
@@ -31,57 +32,117 @@
             all-predicates-in-graph
             all-types-in-graph))
 
-(define* (all-graphs-in-connection connection)
-  (if connection
-      (apply append
-             (query-results->list
-              (sparql-query
-               "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"
-               #:uri           (connection-uri connection)
-               #:store-backend (connection-backend connection)
-               #:digest-auth   (if (and (connection-username connection)
-                                        (connection-password connection))
-                                   (string-append
-                                    (connection-username connection) ":"
-                                    (connection-password connection))
-                                   #f))
-              #t))
-      #f))
+(define (sanitize-graph-name graph)
+  (string-map (lambda (x)
+                (if (or (eq? x #\.)
+                        (eq? x #\/)
+                        (eq? x #\:)
+                        (eq? x #\#))
+                    #\_ x))
+   graph))
 
-(define (all-predicates-in-graph graph connection type)
-  (if connection
-      (apply append
-             (query-results->list
-              (sparql-query
-               (string-append
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-                "SELECT DISTINCT ?predicate WHERE { GRAPH <"
-                graph "> { ?s rdf:type <" type "> . ?s ?predicate ?o } }")
-               #:uri           (connection-uri connection)
-               #:store-backend (connection-backend connection)
-               #:digest-auth   (if (and (connection-username connection)
-                                        (connection-password connection))
-                                   (string-append
-                                    (connection-username connection) ":"
-                                    (connection-password connection))
-                                   #f)) #t))
-      #f))
+(define* (all-graphs-in-connection username connection)
+  (let* ((cache-connection (default-connection username))
+         (property         (string-append
+                            "available-graph-in-"
+                            (if (connection-name connection)
+                                (connection-name connection)
+                                "")))
+         (cached           (if cache-connection
+                               (cached-value username cache-connection property)
+                               #f)))
+    (cond
+     [cached (map car cached)]
+     [connection
+      (let ((result (apply append
+                           (query-results->list
+                            (sparql-query
+                             "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"
+                             #:uri           (connection-uri connection)
+                             #:store-backend (connection-backend connection)
+                             #:digest-auth   (if (and (connection-username connection)
+                                                      (connection-password connection))
+                                                 (string-append
+                                                  (connection-username connection) ":"
+                                                  (connection-password connection))
+                                                 #f))
+                            #t))))
+        (cache-value username cache-connection property result)
+        result)]
+     [else #f])))
 
-(define (all-types-in-graph graph connection)
-  (if connection
-      (apply append
-             (query-results->list
-              (sparql-query
-               (string-append
-                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-                "SELECT DISTINCT ?type WHERE { GRAPH <" graph "> "
-                "{ ?s rdf:type ?type } }")
-               #:uri           (connection-uri connection)
-               #:store-backend (connection-backend connection)
-               #:digest-auth   (if (and (connection-username connection)
-                                        (connection-password connection))
-                                   (string-append
-                                    (connection-username connection) ":"
-                                    (connection-password connection))
-                                   #f)) #t))
-      #f))
+(define (all-predicates-in-graph username graph connection type)
+  (let* ((cache-connection (default-connection username))
+         (property         (string-append
+                            "all-predicates-in-graph-"
+                            (if (connection-name connection)
+                                (connection-name connection)
+                                "")
+                            "-"
+                            (if graph
+                                (sanitize-graph-name graph)
+                                "")
+                            "-"
+                            (if type
+                                (sanitize-graph-name type)
+                                "")))
+         (cached           (if cache-connection
+                               (cached-value username cache-connection property)
+                               #f)))
+    (cond
+     [cached (map car cached)]
+     [connection
+      (let ((result (apply append
+                           (query-results->list
+                            (sparql-query
+                             (string-append
+                              "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+                              "SELECT DISTINCT ?predicate WHERE { GRAPH <"
+                              graph "> { ?s rdf:type <" type "> . ?s ?predicate ?o } }")
+                             #:uri           (connection-uri connection)
+                             #:store-backend (connection-backend connection)
+                             #:digest-auth   (if (and (connection-username connection)
+                                                      (connection-password connection))
+                                                 (string-append
+                                                  (connection-username connection) ":"
+                                                  (connection-password connection))
+                                                 #f)) #t))))
+        (cache-value username cache-connection property result)
+        result)]
+     [else #f])))
+
+(define (all-types-in-graph username graph connection)
+  (let* ((cache-connection (default-connection username))
+         (property         (string-append
+                            "all-types-in-graph-"
+                            (if (connection-name connection)
+                                (connection-name connection)
+                                "")
+                            "-"
+                            (if graph
+                                (sanitize-graph-name graph)
+                                "")))
+         (cached           (if cache-connection
+                               (cached-value username cache-connection property)
+                               #f)))
+    (cond
+     [cached (map car cached)]
+     [connection
+      (let ((result (apply append
+                           (query-results->list
+                            (sparql-query
+                             (string-append
+                              "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+                              "SELECT DISTINCT ?type WHERE { GRAPH <" graph "> "
+                              "{ ?s rdf:type ?type } }")
+                             #:uri           (connection-uri connection)
+                             #:store-backend (connection-backend connection)
+                             #:digest-auth   (if (and (connection-username connection)
+                                                      (connection-password connection))
+                                                 (string-append
+                                                  (connection-username connection) ":"
+                                                  (connection-password connection))
+                                                 #f)) #t))))
+        (cache-value username cache-connection property result)
+        result)]
+     [else #f])))

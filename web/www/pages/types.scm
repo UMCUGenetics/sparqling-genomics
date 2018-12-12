@@ -47,5 +47,5 @@
              (graph      (hash-ref data "graph")))
         (cond
          [(eq? type 'json)
-          (scm->json-string (all-types-in-graph graph conn-name))]))
+          (scm->json-string (all-types-in-graph username graph conn-name))]))
       "[]"))

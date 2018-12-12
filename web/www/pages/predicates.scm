@@ -48,5 +48,5 @@
                (rdf-type   (hash-ref data "type")))
           (cond
            [(eq? type 'json)
-            (scm->json-string (all-predicates-in-graph graph connection rdf-type))])))
+            (scm->json-string (all-predicates-in-graph username graph connection rdf-type))])))
       "[]"))

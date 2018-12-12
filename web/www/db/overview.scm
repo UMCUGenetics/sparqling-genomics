@@ -18,6 +18,7 @@
   #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (www db connections)
+  #:use-module (www db cache)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (web response)
@@ -39,37 +40,50 @@
 (define* (number-of-samples username #:optional (connection #f))
   (catch #t
     (lambda _
-      (length (all-samples username connection)))
+      (let* ((cache-connection (default-connection username))
+             (cached (cached-value username cache-connection
+                                   "numberofsamples")))
+        (cond
+         ;; Return the cached value when it exists.
+         [cached (car cached)]
+         [else
+          (let ((result (length (all-samples username connection))))
+            (cache-value username cache-connection
+                         "numberofsamples" result)
+            result)])))
     (lambda (key . args)
       (format #t "Thrown exception: ~a: ~a~%" key args)
       0)))
 
 (define* (all-samples username #:optional (connection #f))
-  (if connection
-      (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+  (catch #t
+    (lambda _
+      (if connection
+          (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT DISTINCT ?sample
 WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
-             (results (query-results->list
-                       (sparql-query query
-                                     #:uri (connection-uri connection)
-                                     #:store-backend
-                                     (connection-backend connection)
-                                     #:digest-auth
-                                     (if (and (connection-username connection)
+                 (results (query-results->list
+                           (sparql-query query
+                                         #:uri (connection-uri connection)
+                                         #:store-backend
+                                         (connection-backend connection)
+                                         #:digest-auth
+                                         (if (and (connection-username connection)
+                                                  (connection-password connection))
+                                             (string-append
+                                              (connection-username connection) ":"
                                               (connection-password connection))
-                                         (string-append
-                                          (connection-username connection) ":"
-                                          (connection-password connection))
-                                         #f))
-                       #t)))
-        results)
-      (let* ((samples (par-map (lambda (connection)
-                                 (all-samples username connection))
-                               (all-connections username)))
-             (simplified-list (stable-sort
-                               (apply append (apply append (delete #f samples)))
-                               string>?)))
-        (delete-duplicates-sorted simplified-list string=))))
+                                             #f))
+                           #t)))
+            results)
+          (let* ((samples (par-map (lambda (connection)
+                                     (all-samples username connection))
+                                   (all-connections username)))
+                 (simplified-list (stable-sort
+                                   (apply append (apply append (delete #f samples)))
+                                   string>?)))
+            (delete-duplicates-sorted simplified-list string=))))
+    (lambda (key . args) 0)))
 
 
 ;; Wrapper around ‘merge’ that accepts multiple sorted input lists.
@@ -98,7 +112,13 @@ WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
 (define* (number-of-variant-calls username #:optional (connection #f))
   (catch #t
     (lambda _
-      (if connection
+      (let* ((cache-connection (default-connection username))
+             (cached (cached-value username cache-connection "variantcalls")))
+        (cond
+         ;; Return the cached value when it exists.
+         [cached (car cached)]
+         ;; Return the number of variants for the given connection.
+         [connection
           (let* ((query "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg: <http://sparqling-genomics/vcf2rdf/>
 
@@ -116,12 +136,16 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
                                               (connection-password connection))
                                              #f))
                            #t)))
-            (string->number (caar results)))
+            (string->number (caar results)))]
+         ;; Return the number of variants for all connections.
+         [else
           (let* ((variants (delete #f (par-map (lambda (connection)
                                                  (number-of-variant-calls
                                                   username connection))
-                                               (all-connections username)))))
-            (apply + variants))))
+                                               (all-connections username))))
+                 (result   (apply + variants)))
+            (cache-value username cache-connection "variantcalls" result)
+            result)])))
     (lambda (key . args) 0)))
 
 
@@ -131,7 +155,13 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
 (define* (number-of-copynumber-calls username #:optional (connection #f))
   (catch #t
     (lambda _
-      (if connection
+      (let* ((cache-connection (default-connection username))
+             (cached (cached-value username cache-connection "copynumbercalls")))
+        (cond
+         ;; Return the cached value when it exists.
+         [cached (car cached)]
+         ;; Return the number of variants for the given connection.
+         [connection
           ;; XXX: This query may not be accurate.  It only “works” when only
           ;; table2rdf is used to import copy number variants.
           (let* ((query "PREFIX col: <http://sparqling-genomics/table2rdf/Column/>
@@ -149,10 +179,13 @@ SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
                                               (connection-password connection))
                                              #f))
                            #t)))
-            (string->number (caar results)))
+            (string->number (caar results)))]
+         [else
           (let* ((variants (delete #f (par-map (lambda (connection)
                                                  (number-of-copynumber-calls
                                                   username connection))
-                                               (all-connections username)))))
-            (apply + variants))))
+                                               (all-connections username))))
+                 (result   (apply + variants)))
+            (cache-value username cache-connection "copynumbercalls" result)
+            result)])))
     (lambda (key . args) 0)))
