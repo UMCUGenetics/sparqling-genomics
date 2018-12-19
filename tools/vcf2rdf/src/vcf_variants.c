@@ -29,7 +29,8 @@
 #include <string.h>
 
 void
-get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *type)
+get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str,
+                    int32_t *type, int32_t *number)
 {
   int32_t j = 0;
   for (; j < header->hrec[index]->nkeys; j++)
@@ -39,6 +40,12 @@ get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *ty
       if (!key || !value) continue;
       if (!strcmp (key, "ID"))
         *id_str = value;
+      else if (!strcmp (key, "Number"))
+        *number = (!strcmp (value, ".")) ? -2
+          : (!strcmp (value, "A")) ? -3
+          : (!strcmp (value, "R")) ? -4
+          : (!strcmp (value, "G")) ? -5
+          : atoi (value);
       else if (!strcmp (key, "Type"))
         *type = (!strcmp (value, "Integer")) ? XSD_INTEGER
               : (!strcmp (value, "Float"))   ? XSD_FLOAT
@@ -46,7 +53,7 @@ get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str, int32_t *ty
               : (!strcmp (value, "Flag"))    ? XSD_BOOLEAN
               : -1;
 
-      if (*id_str && *type != -1) break;
+      if (*id_str && *type != -1 && *number != -1) break;
     }
 }
 
@@ -198,12 +205,16 @@ process_variant_for_sample (bcf_hdr_t *header,
   int32_t type           = -1;
   int32_t value_len      = 0;
   int32_t index          = 0;
+  int32_t number         = -1;
   uint32_t i             = 0;
 
   /* Process INFO fields.
    * -------------------------------------------------------------------- */
   if (config.process_info_fields)
     {
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (self);
+
       for (i = 0; i < config.info_field_indexes_len; i++)
         {
           id_str    = NULL;
@@ -211,8 +222,9 @@ process_variant_for_sample (bcf_hdr_t *header,
           value     = NULL;
           value_len = 0;
           index     = config.info_field_indexes[i];
+          number    = -1;
 
-          get_field_identity (header, index, &id_str, &type);
+          get_field_identity (header, index, &id_str, &type, &number);
 
           if (!id_str || type == -1)
             goto clean_up_iteration;
@@ -221,32 +233,60 @@ process_variant_for_sample (bcf_hdr_t *header,
           if (!value || state < 0)
             goto clean_up_iteration;
 
-          stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = raptor_term_copy (self);
-          stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
+          /* Each value can be a list of values.  Therefore, we must take the 'number'
+           * of items into account. In the code below, 'k' is used as list index.
+           */
+          if (number < 0)
+            number = state / number_of_samples;
 
-          if (type == XSD_INTEGER)
+          if (type == XSD_INTEGER || type == XSD_FLOAT)
             {
-              snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
-              stmt->object = literal (config.number_buffer, XSD_INTEGER);
-            }
-          else if (type == XSD_FLOAT)
-            {
-              snprintf (config.number_buffer, 32, "%f", *((float *)value));
-              stmt->object = literal (config.number_buffer, XSD_FLOAT);
-            }
-          else if (type == XSD_STRING)
-            stmt->object = literal ((char *)value, XSD_STRING);
-          else if (type == XSD_BOOLEAN && state == 1)
-            stmt->object = literal ("true", XSD_BOOLEAN);
+              int32_t k;
+              for (k = 0; k < number; k++)
+                {
+                  if (type == XSD_INTEGER)
+                    {
+                      snprintf (config.number_buffer, 32, "%d", (((int32_t *)value)[k]));
+                      stmt->object = literal (config.number_buffer, XSD_INTEGER);
+                    }
+                  else if (type == XSD_FLOAT)
+                    {
+                      snprintf (config.number_buffer, 32, "%f", (((float *)value)[k]));
+                      stmt->object = literal (config.number_buffer, XSD_FLOAT);
+                    }
 
-          if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
-            register_statement (stmt);
+                  if (number == 1)
+                    stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
+                  else
+                    {
+                      snprintf (config.number_buffer, 32, "%s%d", id_str, (k + 1));
+                      stmt->predicate = term (PREFIX_VCF_HEADER_INFO, config.number_buffer);
+                    }
+
+                  register_statement (stmt);
+                  stmt = raptor_new_statement (config.raptor_world);
+                  stmt->subject   = raptor_term_copy (self);
+                }
+            }
+          else
+            {
+              stmt->predicate = term (PREFIX_VCF_HEADER_INFO, id_str);
+              if (type == XSD_STRING)
+                stmt->object = literal (((char *)value), XSD_STRING);
+              else if (type == XSD_BOOLEAN && state == 1)
+                stmt->object = literal ("true", XSD_BOOLEAN);
+
+              register_statement (stmt);
+              stmt = raptor_new_statement (config.raptor_world);
+              stmt->subject   = raptor_term_copy (self);
+            }
 
         clean_up_iteration:
           free (value);
           value = NULL;
         }
+
+      raptor_free_statement (stmt);
     }
 
   /* Process FORMAT fields.
@@ -260,15 +300,15 @@ process_variant_for_sample (bcf_hdr_t *header,
           value     = NULL;
           value_len = 0;
           index     = config.format_field_indexes[i];
+          number    = -1;
 
-          get_field_identity (header, index, &id_str, &type);
+          get_field_identity (header, index, &id_str, &type, &number);
 
           if (!id_str || type == -1)
             continue;
 
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = raptor_term_copy (self);
-          stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
 
           if (!strcmp (id_str, "GT"))
             {
@@ -281,10 +321,24 @@ process_variant_for_sample (bcf_hdr_t *header,
 
               int32_t k;
               for (k = 0; k < ploidy; k++)
-                genotypes[k] = (bcf_gt_is_missing (ptr[k]))
-                  ? -1
-                  : bcf_gt_allele (ptr[k]);
+                {
+                  genotypes[k] = (bcf_gt_is_missing (ptr[k]))
+                    ? -1
+                    : bcf_gt_allele (ptr[k]);
 
+                  snprintf (config.number_buffer, 32, "allele_%d", (k + 1));
+                  stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT_GT,
+                                          config.number_buffer);
+
+                  snprintf (config.number_buffer, 32, "%d", genotypes[k]);
+                  stmt->object    = literal (config.number_buffer, XSD_INTEGER);
+                  register_statement (stmt);
+
+                  stmt = raptor_new_statement (config.raptor_world);
+                  stmt->subject   = raptor_term_copy (self);
+                }
+
+              stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
               int32_t genotype_class = -1;
 
               if (ploidy == 2)
@@ -301,12 +355,19 @@ process_variant_for_sample (bcf_hdr_t *header,
               else if (ploidy == 0)
                 genotype_class = CLASS_NULLIZYGOUS;
 
+              stmt->object    = class (genotype_class);
+              register_statement (stmt);
+
+              /* Also output the “raw” genotype information. */
+              snprintf (config.number_buffer, 32, "%d", ploidy);
+              stmt = raptor_new_statement (config.raptor_world);
+              stmt->subject   = raptor_term_copy (self);
+              stmt->predicate = term (PREFIX_BASE, "ploidy");
+              stmt->object    = literal (config.number_buffer, XSD_INTEGER);
+              register_statement (stmt);
+
               free (genotypes);
               free (dst);
-
-              stmt->object    = class (genotype_class);
-              if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
-                register_statement (stmt);
             }
           else
             {
@@ -314,28 +375,74 @@ process_variant_for_sample (bcf_hdr_t *header,
               if (!value || state < 0)
                 goto clean_format_iteration;
 
-              if (type == XSD_INTEGER)
-                {
-                  snprintf (config.number_buffer, 32, "%d", *((int32_t *)value));
-                  stmt->object = literal (config.number_buffer, XSD_INTEGER);
-                }
-              else if (type == XSD_FLOAT)
-                {
-                  snprintf (config.number_buffer, 32, "%f", *((float *)value));
-                  stmt->object = literal (config.number_buffer, XSD_FLOAT);
-                }
-              else if (type == XSD_STRING)
-                stmt->object = literal ((char *)value, XSD_STRING);
-              else if (type == XSD_BOOLEAN && state == 1)
-                stmt->object = literal ("true", XSD_BOOLEAN);
+              /* Each value can be a list of values.  Therefore, we must take the 'number'
+               * of items into account. In the code below, 'k' is used as list index.
+               *
+               * Furthermore, for an unspecified number of values, we can get actual
+               * number by dividing the 'number_of_samples' by the 'state'
+               * (number of values).
+               */
+              if (number < 0)
+                number = state / number_of_samples;
 
-              if (stmt->subject != NULL && stmt->predicate != NULL && stmt->object != NULL)
-                register_statement (stmt);
+              int32_t value_offset = sample_index * number;
+              if (type == XSD_INTEGER || type == XSD_FLOAT)
+                {
+                  int32_t k;
+                  for (k = 0; k < number; k++)
+                    {
+                      if (number == 1)
+                        stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
+                      else
+                        {
+                          snprintf (config.number_buffer, 32, "%s%d", id_str, (k + 1));
+                          stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, config.number_buffer);
+                        }
+
+                      if (type == XSD_INTEGER)
+                        {
+                          snprintf (config.number_buffer, 32, "%d", (((int32_t *)value)[value_offset + k]));
+                          stmt->object = literal (config.number_buffer, XSD_INTEGER);
+                        }
+                      else if (type == XSD_FLOAT)
+                        {
+                          snprintf (config.number_buffer, 32, "%f", (((float *)value)[value_offset + k]));
+                          stmt->object = literal (config.number_buffer, XSD_FLOAT);
+                        }
+
+                      register_statement (stmt);
+                      stmt = raptor_new_statement (config.raptor_world);
+                      stmt->subject   = raptor_term_copy (self);
+                    }
+                }
+              else
+                {
+                  stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
+
+                  if (type == XSD_STRING)
+                    {
+                      char *content = calloc (sizeof (char), (number + 1));
+                      if (content == NULL)
+                        goto clean_format_iteration;
+
+                      strncpy (content, ((char *)(value + value_offset)), number);
+                      content[number] = '\0';
+
+                      stmt->object = literal (content, XSD_STRING);
+                      free (content);
+                    }
+                  else if (type == XSD_BOOLEAN && state == 1)
+                    stmt->object = literal ("true", XSD_BOOLEAN);
+
+                  register_statement (stmt);
+                  stmt = raptor_new_statement (config.raptor_world);
+                  stmt->subject   = raptor_term_copy (self);
+                }
 
             clean_format_iteration:
+              raptor_free_statement (stmt);
               free (value);
               value = NULL;
-
             }
         }
     }

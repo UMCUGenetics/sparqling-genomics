@@ -54,7 +54,7 @@ ontology_init (ontology_t **ontology_ptr)
   ontology_t *ontology = calloc (1, sizeof (ontology_t));
   if (!ontology) return false;
 
-  ontology->prefixes_length = 19;
+  ontology->prefixes_length = 20;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
   register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
@@ -64,6 +64,7 @@ ontology_init (ontology_t **ontology_ptr)
   register_prefix (PREFIX_VCF_HEADER,        STR_PREFIX_VCF_HEADER,        "hdr");
   register_prefix (PREFIX_VCF_HEADER_INFO,   STR_PREFIX_VCF_HEADER_INFO,   "info");
   register_prefix (PREFIX_VCF_HEADER_FORMAT, STR_PREFIX_VCF_HEADER_FORMAT, "fmt");
+  register_prefix (PREFIX_VCF_HEADER_FORMAT_GT, STR_PREFIX_VCF_HEADER_FORMAT_GT, "gt");
   register_prefix (PREFIX_VCF_HEADER_FILTER, STR_PREFIX_VCF_HEADER_FILTER, "flt");
   register_prefix (PREFIX_VCF_HEADER_ALT,    STR_PREFIX_VCF_HEADER_ALT,    "alt");
   register_prefix (PREFIX_VCF_HEADER_CONTIG, STR_PREFIX_VCF_HEADER_CONTIG, "ctg");
