@@ -17,7 +17,7 @@
 (define-module (www config)
   #:use-module (oop goops)
   #:use-module (system foreign)
-  #:use-module ((www util) #:select (mkdir-p))
+  #:use-module (www util)
   #:export (default-uri-strings
             fork-on-startup?
             initialize-internal-rdf

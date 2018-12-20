@@ -24,7 +24,6 @@
              (srfi srfi-1)
              (sxml simple)
              (system foreign)
-             (fibers web server)
              (ldap authenticate)
              (web request)
              (web response)
@@ -42,6 +41,17 @@
              (www pages edit-project)
              (www pages)
              (www util))
+
+;; Fibers is not available for Guile 2.0.  When distributions have picked
+;; up Guile >2.2, we can remove this variable.
+(define %fibers-available?
+  (if (resolve-module '(fibers web server) #:ensure #f)
+      (begin
+        (use-modules (fibers web server))
+        #t)
+      (begin
+        (use-modules (web server))
+        #f)))
 
 ;; ----------------------------------------------------------------------------
 ;; CONFIGURATION READER
@@ -162,23 +172,43 @@
   (format #t "Refused to run without an authentication mechanism.~%")
   (exit 0))
 
+(define (run-sg-server request-handler)
+  (if %fibers-available?
+      ;; Fibers uses a slightly different syntax for run-server.
+      (run-server request-handler
+                  #:port (www-listen-port)
+                  #:family (www-listen-address-family)
+                  #:addr (www-listen-address))
+      ;; When Fibers isn't available, fall back to the built-in
+      ;; implementation of run-server.
+      (run-server request-handler 'http
+                  `(#:port ,(www-listen-port)
+                    #:addr ,(www-listen-address)))))
+
 (begin
-  ;; Seed the random number generator.  We use this to generate session IDs.
-  ;; To get a secure seed, we use the system call 'getrandom'.
-  (let* ((getrandom (pointer->procedure
-                     int
-                     (dynamic-func "getrandom" (dynamic-link))
-                     (list '* size_t uint32)))
-         (random-state (make-bytevector 256))
-         (random-state-pointer (bytevector->pointer random-state)))
-    (do ((bytes 0 (+ bytes (getrandom
-                            (make-pointer
-                             (+ bytes
-                                (pointer-address random-state-pointer)))
-                            (- 256 bytes) 2))))
-        ((= bytes 256))
-      #t)
-    (set! *random-state* (seed->random-state (base64-encode random-state))))
+  (catch #t
+    (lambda _
+      ;; Seed the random number generator.  We use this to generate session IDs.
+      ;; To get a secure seed, we use the system call 'getrandom'.
+      (let* ((getrandom (pointer->procedure
+                         int
+                         (dynamic-func "getrandom" (dynamic-link))
+                         (list '* size_t uint32)))
+             (random-state (make-bytevector 256))
+             (random-state-pointer (bytevector->pointer random-state)))
+        (do ((bytes 0 (+ bytes (getrandom
+                                (make-pointer
+                                 (+ bytes
+                                    (pointer-address random-state-pointer)))
+                                (- 256 bytes) 2))))
+            ((= bytes 256))
+          #t)
+        (set! *random-state* (seed->random-state
+                              (base64-encode random-state)))))
+    (lambda (key . args)
+      ;; If the getrandom syscall is not available, use the default
+      ;; 'random-state-from-platform' to seed the pRNG.
+      (set! *random-state* (random-state-from-platform))))
 
   (format #t "sparqling-genomics is running at http://~a:~a~%"
           (inet-ntop (www-listen-address-family)
@@ -190,12 +220,6 @@
         (if (eq? pid 0)
             (with-output-to-file "web.log"
               (lambda _
-                (run-server request-handler
-                            #:port (www-listen-port)
-                            #:family (www-listen-address-family)
-                            #:addr (www-listen-address))
+                (run-sg-server request-handler)
                 (primitive-exit)))))
-      (run-server request-handler
-                  #:port (www-listen-port)
-                  #:family (www-listen-address-family)
-                  #:addr (www-listen-address))))
+      (run-sg-server request-handler)))

@@ -22,7 +22,6 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (sxml simple)
-  #:use-module (fibers web server)
   #:use-module (ldap authenticate)
   #:use-module (web request)
   #:use-module (web response)
@@ -85,7 +84,10 @@
               (values `((content-type . ,(response-content-type full-path)))
                       (with-input-from-file full-path
                         (lambda _
-                          (setvbuf (current-input-port) 'block 4096)
+                          (setvbuf (current-input-port)
+                                   (if (string= (effective-version) "2.2")
+                                       'block
+                                       _IOFBF) 4096)
                           (get-bytevector-all (current-input-port))))))))))
 
 (define* (request-scheme-page-handler request request-body request-path
@@ -297,8 +299,11 @@
             (call-with-output-string
               (lambda (port)
                 (set-port-encoding! port "utf8")
-                ;; Use block-buffering for a higher I/O throughput.
-                (setvbuf port 'block (expt 2 24))
+                ;; Use block-buffering for a higher I/O throughput, but don't
+                ;; set it on Guile 2.0, because setting it on string ports
+                ;; is not needed/supported.
+                (unless (string= (effective-version) "2.0")
+                  (setvbuf port 'block 4096))
                 (let* ((path          (substring request-path 1))
                        (page-function (resolve-module-function path))
                        (sxml-tree     (if page-function
