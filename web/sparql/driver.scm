@@ -101,53 +101,50 @@
                        `(Authorization . ,(string-append "Bearer " token))
                        #f)
                   ,(if (string? digest-auth)
-                       (catch #t
-                         (lambda _
-                           (receive (header port)
-                               (http-post post-url)
-                             (if (= (response-code header) 401)
-                                 (let* ((tokens    (string-split digest-auth #\:))
-                                        (username  (car tokens))
-                                        (password  (cadr tokens))
-                                        (auth      (response-www-authenticate header))
-                                        (digest    (assoc-ref auth 'digest))
-                                        (realm     (assoc-ref digest 'realm))
-                                        (nonce     (assoc-ref digest 'nonce))
-                                        (opaque    (assoc-ref digest 'opaque))
-                                        (qop       (assoc-ref digest 'qop))
-                                        (algorithm (assoc-ref digest 'algorithm)))
-                                   (if (and (string= algorithm "MD5")
-                                            (string= qop       "auth"))
-                                       (let* ((ha1      (md5-from-string
-                                                         (string-append
-                                                          username ":" realm
-                                                          ":" password)))
-                                              (ha2      (md5-from-string
-                                                         (string-append
-                                                          "POST:" post-uri)))
-                                              (cnonce   (md5-from-string
-                                                         (random-ascii 32)))
-                                              (nc       "00000001")
-                                              (response (md5-from-string
-                                                         (string-append
-                                                          ha1 ":" nonce  ":"
-                                                          nc  ":" cnonce ":"
-                                                          qop ":" ha2)))
-                                              (auth-response
-                                               (string-append
-                                                "Digest username=\"" username
-                                                "\", realm=\"" realm
-                                                "\", nonce=\"" nonce
-                                                "\", uri=\"" post-uri
-                                                "\", qop=\"" qop
-                                                "\", nc=\"" nc
-                                                "\", cnonce=\"" cnonce
-                                                "\", response=\"" response
-                                                "\", opaque=\"" opaque "\"")))
-                                         `(Authorization . ,auth-response))
-                                       #f))
-                                 #f)))
-                         (lambda (key . args) (begin (format #t "Error: ~a: ~a~%" key args) #f)))
+                       (receive (header port)
+                           (http-post post-url)
+                         (if (= (response-code header) 401)
+                             (let* ((tokens    (string-split digest-auth #\:))
+                                    (username  (car tokens))
+                                    (password  (cadr tokens))
+                                    (auth      (response-www-authenticate header))
+                                    (digest    (assoc-ref auth 'digest))
+                                    (realm     (assoc-ref digest 'realm))
+                                    (nonce     (assoc-ref digest 'nonce))
+                                    (opaque    (assoc-ref digest 'opaque))
+                                    (qop       (assoc-ref digest 'qop))
+                                    (algorithm (assoc-ref digest 'algorithm)))
+                               (if (and (string= algorithm "MD5")
+                                        (string= qop       "auth"))
+                                   (let* ((ha1      (md5-from-string
+                                                     (string-append
+                                                      username ":" realm
+                                                      ":" password)))
+                                          (ha2      (md5-from-string
+                                                     (string-append
+                                                      "POST:" post-uri)))
+                                          (cnonce   (md5-from-string
+                                                     (random-ascii 32)))
+                                          (nc       "00000001")
+                                          (response (md5-from-string
+                                                     (string-append
+                                                      ha1 ":" nonce  ":"
+                                                      nc  ":" cnonce ":"
+                                                      qop ":" ha2)))
+                                          (auth-response
+                                           (string-append
+                                            "Digest username=\"" username
+                                            "\", realm=\"" realm
+                                            "\", nonce=\"" nonce
+                                            "\", uri=\"" post-uri
+                                            "\", qop=\"" qop
+                                            "\", nc=\"" nc
+                                            "\", cnonce=\"" cnonce
+                                            "\", response=\"" response
+                                            "\", opaque=\"" opaque "\"")))
+                                     `(Authorization . ,auth-response))
+                                   #f))
+                             #f))
                        #f))))))
 
 ;;;
