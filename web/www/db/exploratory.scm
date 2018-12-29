@@ -54,21 +54,25 @@
     (cond
      [cached (map car cached)]
      [connection
-      (let ((result (apply append
-                           (query-results->list
-                            (sparql-query
-                             "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"
-                             #:uri           (connection-uri connection)
-                             #:store-backend (connection-backend connection)
-                             #:digest-auth   (if (and (connection-username connection)
+      (catch #t
+        (lambda _
+          (let ((result (apply append
+                               (query-results->list
+                                (sparql-query
+                                 "SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }"
+                                 #:uri           (connection-uri connection)
+                                 #:store-backend (connection-backend connection)
+                                 #:digest-auth   (if (and (connection-username connection)
+                                                          (connection-password connection))
+                                                     (string-append
+                                                      (connection-username connection) ":"
                                                       (connection-password connection))
-                                                 (string-append
-                                                  (connection-username connection) ":"
-                                                  (connection-password connection))
-                                                 #f))
-                            #t))))
-        (cache-value username cache-connection property result)
-        result)]
+                                                     #f))
+                                #t))))
+            (cache-value username cache-connection property result)
+            result))
+        (lambda (key . args)
+          #f))]
      [else #f])))
 
 (define (all-predicates-in-graph username graph connection type)
