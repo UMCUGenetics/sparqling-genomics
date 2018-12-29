@@ -39,9 +39,7 @@
   "Read the query response from PORT and turn it into a SXML table."
   (let ((line (read-line input-port)))
     (if (eof-object? line)
-        (begin
-          (format output-port "</tbody></table>")
-          (close-port input-port))
+        (format output-port "</tbody></table>")
         (let ((tokens (csv-split-line line #\,)))
           ;; The first line in the output is the table header.
           (if read-header?

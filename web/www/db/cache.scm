@@ -58,11 +58,8 @@ WHERE {
                         #t)))
           (if (null? results)
               #f
-              (begin
-                (format #t "[INFO]: Retrieved cached value for '~a'~%" property)
-                results))))
+              results)))
       (lambda (key . args)
-        (format #t "[INFO]: Couldn't retrieve cached value for '~a'~%" property)
         #f))))
 
 ;; CACHE-VALUE
@@ -92,10 +89,5 @@ INSERT INTO <http://~a/sg-cache> {
                 (connection-username connection) ":"
                 (connection-password connection))
                #f))
-        (cond
-         [(= (response-code header) 200)
-          (format #t "[INFO]: Added cache value for '~a'~%" property)
-          #t]
-         [else
-          (format #t "[INFO]: Could not add cache value for '~a'~%" property)
-          #f]))))
+        (= (response-code header) 200))))
+

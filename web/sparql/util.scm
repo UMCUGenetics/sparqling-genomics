@@ -29,7 +29,7 @@
   "Writes CSV data from PORT to the standard output port."
   (let* ((line   (read-line port)))
     (if (eof-object? line)
-        (begin (close-port port) #t)
+        #t
         (let ((tokens (map (lambda (item) (string-trim-both item #\"))
                            (string-split line #\,))))
           (format #t "~{~a~/~}~%" tokens)
@@ -56,9 +56,7 @@
   (when skip-first-line? (read-line port))
   (let* ((line   (read-line port)))
     (if (eof-object? line)
-        (begin
-          (close-port port)
-          (reverse output))
+        (reverse output)
         (query-results-to-list port #f
          (cons (map (lambda (item) (string-trim-both item #\"))
                     (string-split line #\,))
