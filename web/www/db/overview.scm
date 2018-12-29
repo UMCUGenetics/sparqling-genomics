@@ -52,8 +52,15 @@
                          "numberofsamples" result)
             result)])))
     (lambda (key . args)
-      (format #t "Thrown exception: ~a: ~a~%" key args)
-      0)))
+      ;; The following cond-construct always returns 0, but
+      ;; allows to silence errors that are fully understood.
+      (cond
+       [(eq? key 'wrong-type-arg) 0]
+       [else
+        (begin
+          (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
+                  "number-of-samples" key args)
+          0)]))))
 
 (define* (all-samples username #:optional (connection #f))
   (catch #t

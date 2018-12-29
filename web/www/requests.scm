@@ -281,17 +281,17 @@
             "")]
 
    [(string-prefix? "/query-response" request-path)
-    (begin
-      (values '((content-type . (text/html)))
-              (lambda (port)
-                (let* ((path          (substring request-path 1))
-                       (page-function (resolve-module-function path)))
-                  (if page-function
-                      (if (eq? (request-method request) 'POST)
-                          ((page-function request-path username
-                                          #:post-data
-                                          (utf8->string request-body)) port)
-                          (page-function request-path username)))))))]
+    (values '((content-type . (text/html)))
+            (lambda (port)
+              (let* ((path          (substring request-path 1))
+                     (page-function (resolve-module-function path)))
+                (when page-function
+                  (if (eq? (request-method request) 'POST)
+                      ((page-function request-path username
+                                      #:post-data
+                                      (utf8->string request-body)) port)
+                      (page-function request-path username))))))]
+
 
    ;; All other requests can be handled as HTML responses.
    [#t

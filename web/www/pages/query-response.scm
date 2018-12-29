@@ -59,15 +59,13 @@
                                                         td-object-raw "</a>")
                                          td-object-raw)))
                                td-object))
-                           tokens))))))
-  (unless (port-closed? input-port)
-    (stream-response input-port output-port #f)))
+                           tokens)))
+          (stream-response input-port output-port #f)))))
 
 (define* (page-query-response request-path username #:key (post-data ""))
 
   (define (respond-with-error port)
     (let ((message (get-string-all port)))
-      (close-port port)
       `(div (@ (class "query-error"))
             (div (@ (class "title")) "Error")
             (div (@ (class "content"))
@@ -81,7 +79,7 @@
              (query       (hash-ref parsed-data "query"))
              (start-time  (current-time))
              (result
-              (catch 'system-error
+              (catch #t
                 (lambda _
                   (receive (header port)
                       (sparql-query query
@@ -118,17 +116,23 @@
                                      respond-with-error) output-port))]
                      [else
                       (lambda (output-port)
-                          (sxml->xml (respond-with-error port) output-port))])))
+                        (sxml->xml (respond-with-error port) output-port))])))
                 (lambda (key . args)
-                  (if (find (lambda (item)
-                              (string= (if (list? item) (car item) item)
-                                       "connect"))
-                            args)
-                      (lambda (output-port)
-                        (sxml->xml (call-with-input-string "Failed to connect to the database."
-                                     respond-with-error) output-port))
-                      (lambda (output-port)
-                        (sxml->xml (call-with-input-string
+                  (cond
+                   [(eq? key 'system-error)
+                    (if (find (lambda (item)
+                                (string= (if (list? item) (car item) item)
+                                         "connect"))
+                              args)
+                        (lambda (output-port)
+                          (sxml->xml (call-with-input-string "Failed to connect to the database."
+                                       respond-with-error) output-port))
+                        (lambda (output-port)
+                          (sxml->xml (call-with-input-string
                                          (format #f "An error occurred with details:~%~a~%" args)
-                                     respond-with-error) output-port)))))))
+                                       respond-with-error) output-port)))]
+                   [else
+                    (begin
+                      (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
+                              "page-query-response" key args))])))))
         result)))
