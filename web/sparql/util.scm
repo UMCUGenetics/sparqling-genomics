@@ -1,4 +1,4 @@
-;;; Copyright © 2018 Roel Janssen <roel@gnu.org>
+;;; Copyright © 2018, 2019 Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by
@@ -17,10 +17,12 @@
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 format)
+  #:use-module (srfi srfi-1)
   #:use-module (web response)
   #:export (display-query-results
             display-query-results-of
             query-results->list
+            query-results->alist
             split-line
             uri-suffix
             uri-base))
@@ -68,6 +70,36 @@
       query
     (if (= (response-code header) 200)
         (query-results-to-list port skip-first-line?)
+        (begin
+          (format #t "Error (~a): ~a~%"
+                  (response-code header)
+                  (read-line port))
+          #f))))
+
+(define* (query-results-to-alist port #:optional (header '())
+                                      (output '()))
+  (let [(line (read-line port))]
+    (if (eof-object? line)
+        (reverse output)
+        (if (null? header)
+            (query-results-to-alist port
+              (map (lambda (item) (string-trim-both item #\"))
+                   (split-line line))
+              output)
+            (query-results-to-alist port header
+              (cons
+               (map (lambda (t) `(,(list-ref t 0) . ,(list-ref t 1)))
+                    (zip header
+                         (map (lambda (item) (string-trim-both item #\"))
+                              (split-line line))))
+               output))))))
+
+(define-syntax-rule
+  (query-results->alist query)
+  (receive (header port)
+      query
+    (if (= (response-code header) 200)
+        (query-results-to-alist port)
         (begin
           (format #t "Error (~a): ~a~%"
                   (response-code header)
