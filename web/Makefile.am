@@ -30,6 +30,7 @@ SOURCES =                                               \
   www/config.scm                                        \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
+  www/db/datasets.scm                                   \
   www/db/exploratory.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
@@ -37,6 +38,7 @@ SOURCES =                                               \
   www/db/sessions.scm                                   \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
+  www/pages/datasets.scm                                \
   www/pages/edit-connection.scm                         \
   www/pages/edit-project.scm                            \
   www/pages/error.scm                                   \

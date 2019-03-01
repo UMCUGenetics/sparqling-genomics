@@ -43,6 +43,7 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
 			  web-interface.tex		\
 			  information-management.tex	\
 			  information-retrieval.tex	\
+			  implemented-ontologies.tex	\
 			  programming-with-sparql.tex	\
 			  figures/logo.pdf		\
 			  figures/logo.png		\

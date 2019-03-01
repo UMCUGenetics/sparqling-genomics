@@ -1,0 +1,143 @@
+\chapter{Use of ontologies}
+\label{chap:implemented-ontologies}
+
+  Throughout \texttt{sparqling-genomics} we use ontologies defined by external
+  working groups to increase interoperability with foreign systems.  In this
+  chapter, we explain which ontologies we use, and how we use them.
+
+\section{Dublin Core Terms}
+
+  In the web interface, we use the Dublin Core Terms ontology \citep{dcmi-terms}
+  to define organizations, collections, datasets, and samples.  Table
+  \ref{table:dcterms-usage} provides an overview of the properties we use.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l X }
+      \headrow
+      \textbf{Term} & \textbf{Used as} & \textbf{Description}\\
+      \evenrow
+      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-Agent}
+           {dcterms:Agent}
+      & Class
+      & Used by the web interface to describe the organization that produced
+      a collection or dataset.\\
+      \oddrow
+      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-BibliographicResource}
+           {dcterms:BibliographicResource}
+      & Class
+      & Used by the web interface to describe papers related to a dataset.\\
+      \evenrow
+      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#elements-publisher}
+           {dcterms:publisher}
+      & Predicate
+      & Used by the web interface to identify the organization that published
+      a collection or dataset.\\
+      \oddrow
+      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-references}
+           {dcterms:references}
+      & Predicate
+      & Used by the web interface to link a paper to a collection or dataset.\\
+    \end{tabularx}
+    \caption{\small Terms used from the Dublic Core Terms ontology.}
+    \label{table:dcterms-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Describing genomic positions with FALDO}
+
+  When describing the position of a nucleotide relative to its reference
+  genome, we use the Feature Annotation Location Description Ontology (FALDO)
+  \citep{Bolleman2016}. Table \ref{table:faldo-usage} provides an overview of
+  the properties we use.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l X }
+      \headrow
+      \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
+      \evenrow
+      \href{http://biohackathon.org/resource/faldo\#position}{faldo:position}
+      & Predicate
+      & Used by \texttt{vcf2rdf} to describe the basepair position within a
+      chromosome or contig.\\
+      \oddrow
+      \href{http://biohackathon.org/resource/faldo\#reference}{faldo:reference}
+      & Predicate
+      & Used by \texttt{vcf2rdf} to describe the chromosome or contig to which
+      the \texttt{faldo:position} is relative to.\\
+    \end{tabularx}
+    \caption{\small Terms used from FALDO.}
+    \label{table:faldo-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Custom terms}
+
+  Sometimes we miss the right term to describe a statement.  In such cases we
+  decide on a new term that is then part of the \emph{SPARQLing-genomics
+    ontology}.  The use of these terms is subject to change in upcoming versions
+  of \texttt{sparqling-genomics}.  Table \ref{table:sg-usage} summarizes the
+  terms that are waiting to be replaced by an external ontology.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l l X }
+      \headrow
+      \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
+      \evenrow
+      \href{http://sparqling-genomics/Origin}{sg:Origin}
+      & Class
+      & Used by \texttt{vcf2rdf} to point to the file or resource from which
+      information was derived.\\
+      \oddrow
+      \href{http://sparqling-genomics/SparqlEndpoint}{sg:SparqlEndpoint}
+      & Class
+      & Used by the web interface to describe the endpoint that contains
+      specific information.\\
+      \evenrow
+      \href{http://sparqling-genomics/inGraph}{sg:inGraph}
+      & Class
+      & Used by \texttt{vcf2rdf} to point to the file or resource from which
+      information was derived.\\
+      \oddrow
+      \href{http://sparqling-genomics/Sample}{sg:Sample}
+      & Class
+      & Used by \texttt{vcf2rdf} to describe a sample.\\
+      \evenrow
+      \href{http://sparqling-genomics/table2rdf/Column}{table2rdf:Column}
+      & Class
+      & Used by \texttt{table2rdf} to describe a column.\\
+      \oddrow
+      \href{http://sparqling-genomics/table2rdf/Row}{table2rdf:Row}
+      & Class
+      & Used by \texttt{table2rdf} to describe a row.\\
+      \evenrow
+      \href{http://sparqling-genomics/vcf2rdf/FilterItem}{vcf2rdf:FilterItem}
+      & Class
+      & \\
+      \oddrow
+      \href{http://sparqling-genomics/vcf2rdf/HeaderItem}{vcf2rdf:HeaderItem}
+      & Class
+      & \\
+      \evenrow
+      \href{http://sparqling-genomics/vcf2rdf/InfoItem}{vcf2rdf:InfoItem}
+      & Class
+      & \\
+      \oddrow
+      \href{http://sparqling-genomics/vcf2rdf/FormatItem}{vcf2rdf:FormatItem}
+      & Class
+      & \\
+      \evenrow
+      \href{http://sparqling-genomics/vcf2rdf/VariantCall}{vcf2rdf:VariantCall}
+      & Class
+      & Used by \texttt{vcf2rdf} to identify a variant call.\\
+      %% \oddrow
+      %% \href{}{sg:}
+      %% & 
+      %% & \\
+    \end{tabularx}
+    \caption{\small Terms made up by us.}
+    \label{table:sg-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}

@@ -32,6 +32,7 @@
 (define pages
   '(("/" "Overview")
     ("/connections" "Connections")
+    ("/datasets" "Datasets")
     ("/projects" "Projects")
     ("/query" "Query")
     ("/exploratory" "Exploratory")
