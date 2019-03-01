@@ -130,7 +130,6 @@
                                          (format #f "An error occurred with details:~%~a~%" args)
                                        respond-with-error) output-port)))]
                    [else
-                    (begin
-                      (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
-                              "page-query-response" key args))])))))
+                    (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
+                            "page-query-response" key args)])))))
         result)))
