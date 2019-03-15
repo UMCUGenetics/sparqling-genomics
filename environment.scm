@@ -21,6 +21,7 @@
              (gnu packages curl)
              (gnu packages gnupg)
              (gnu packages guile)
+             (gnu packages guile-xyz)
              (gnu packages pkg-config)
              (gnu packages rdf)
              (gnu packages tls)
