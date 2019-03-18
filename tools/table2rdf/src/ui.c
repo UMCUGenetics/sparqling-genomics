@@ -29,33 +29,38 @@ void
 ui_show_help (void)
 {
   puts ("\nAvailable options:\n"
-	"  --help,                  -h  Show this message.\n"
-	"  --progress-info,         -p  Show progress information.\n"
-	"  --version,               -v  Show versioning information.\n"
-        "  --caller=ARG,            -c  The program used to produce the input "
-                                       "file.\n"
-        "  --sample-name            -s  The name of the sample to which the "
-                                       "data belongs.\n"
-	"  --delimiter,             -d  The delimiter to distinguish fields "
-                                       "in the file.\n"
-	"  --secondary-delimiter,   -D  A secondary delimiter to distinguish "
-                                       "fields in a field.\n"
-	"  --header-line,           -H  When the input file does not contain a "
-                                       "header\n"
-        "                               line, provide it here. When using this "
-                                       "argument,\n"
-        "                               the header line must use ';' as the "
-                                       "delimiter.\n"
-        "  --skip-first-line=ARG,   -S  Ignore the first line in the file.\n"
-        "  --transform=ARG          -t  A pair in the form colname=uri-prefix "
-                                       "where the column identified by colname "
-                                       "is transformed into a URI for which "
-                                       "uri-prefix is the prefix.  This argument "
-                                       "may be repeated.\n"
-        "  --input-file=ARG,        -i  The input file to process.\n"
-        "  --stdin,                 -I  Read input from a pipe instead of a "
-                                       "file.\n"
-        "  --output-format          -O  The output format to serialize to.\n");
+	"  --help,                   -h  Show this message.\n"
+	"  --progress-info,          -p  Show progress information.\n"
+	"  --version,                -v  Show versioning information.\n"
+        "  --caller=ARG,             -c  The program used to produce the input "
+                                        "file.\n"
+        "  --sample-name             -s  The name of the sample to which the "
+                                        "data belongs.\n"
+	"  --delimiter,              -d  The delimiter to distinguish fields "
+                                        "in the file.\n"
+	"  --secondary-delimiter,    -D  A secondary delimiter to distinguish "
+                                        "fields in a field.\n"
+	"  --header-line,            -H  When the input file does not contain a "
+                                        "header\n"
+        "                                line, provide it here. When using this "
+                                        "argument,\n"
+        "                                the header line must use ';' as the "
+                                        "delimiter.\n"
+        "  --skip-first-line=ARG,    -S  Ignore the first line in the file.\n"
+        "  --transform-object=ARG    -t  A pair in the form colname=uri-prefix "
+                                        "where the value\n"
+        "                                for the column identified by colname "
+                                        "is transformed\n"
+        "                                into a URI for "
+                                        "which uri-prefix is the prefix.  This"
+        "\n                                argument may be repeated.\n"
+        "  --transform-predicate=ARG -T  Same as -t, except this operates on the "
+                                        "column names\n"
+        "                                instead of the values.\n"
+        "  --input-file=ARG,         -i  The input file to process.\n"
+        "  --stdin,                  -I  Read input from a pipe instead of a "
+                                        "file.\n"
+        "  --output-format           -O  The output format to serialize to.\n");
 }
 
 void
@@ -86,7 +91,8 @@ ui_process_command_line (int argc, char **argv)
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
       { "skip-first-line",       no_argument,       0, 'S' },
-      { "transform",             required_argument, 0, 't' },
+      { "transform-object",      required_argument, 0, 't' },
+      { "transform-predicate",   required_argument, 0, 'T' },
       { "version",               no_argument,       0, 'v' },
       { 0,                       0,                 0, 0   }
     };
@@ -94,7 +100,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:Iophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:T:Iophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -107,7 +113,8 @@ ui_process_command_line (int argc, char **argv)
         case 'H': config.header_line = optarg;                   break;
         case 's': config.sample_name = optarg;                   break;
         case 'S': config.skip_first_line = true;                 break;
-        case 't': preregister_transformer (optarg);              break;
+        case 't': preregister_object_transformer (optarg);       break;
+        case 'T': preregister_predicate_transformer (optarg);    break;
         case 'h': ui_show_help ();                               break;
         case 'v': ui_show_version ();                            break;
         }

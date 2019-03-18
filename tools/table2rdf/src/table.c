@@ -83,11 +83,24 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
 
   header->keys = calloc (64, sizeof (char *));
   header->column_ids = calloc (64, sizeof (char *));
+  header->object_transformer_ids = calloc (64, sizeof (int32_t *));
+  header->predicate_transformer_ids = calloc (64, sizeof (int32_t *));
+
   header->keys_alloc_len = 64;
-  if (header->keys == NULL || header->column_ids == NULL)
+  if (header->keys == NULL
+      || header->column_ids == NULL
+      || header->object_transformer_ids == NULL
+      || header->predicate_transformer_ids == NULL)
     {
       ui_print_general_memory_error();
       return NULL;
+    }
+
+  int32_t index;
+  for (index = 0; index < 64; index++)
+    {
+      header->object_transformer_ids[index] = TRANSFORMER_INDEX_UNKNOWN;
+      header->predicate_transformer_ids[index] = TRANSFORMER_INDEX_UNKNOWN;
     }
 
   char *line = NULL;
@@ -127,11 +140,28 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
                                       header->keys_alloc_len * sizeof (char *));
               header->column_ids = realloc (header->column_ids,
                                             header->keys_alloc_len * sizeof (char *));
+              header->object_transformer_ids = realloc (header->object_transformer_ids,
+                                                        header->keys_alloc_len *
+                                                        sizeof (int32_t *));
+              header->predicate_transformer_ids = realloc (header->predicate_transformer_ids,
+                                                           header->keys_alloc_len *
+                                                           sizeof (int32_t *));
 
-              if (header->keys == NULL || header->column_ids == NULL)
+              if (header->keys == NULL
+                  || header->column_ids == NULL
+                  || header->object_transformer_ids == NULL
+                  || header->predicate_transformer_ids == NULL)
                 {
                   ui_print_general_memory_error();
                   return NULL;
+                }
+
+              for (index = header->keys_alloc_len - 64; // The old length
+                   index < header->keys_alloc_len;
+                   index++)
+                {
+                  header->object_transformer_ids[index] = TRANSFORMER_INDEX_UNKNOWN;
+                  header->predicate_transformer_ids[index] = TRANSFORMER_INDEX_UNKNOWN;
                 }
             }
 
@@ -201,6 +231,7 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
   uint32_t trimmed_length = 0;
   char *trimmed_token     = NULL;
   raptor_statement *stmt  = NULL;
+  int32_t trans_index     = 0;
 
   trimmed_token = trim_quotes (token, strlen (token));
   if (trimmed_token == NULL) return;
@@ -208,23 +239,61 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = term (PREFIX_ROW, config.id_buf);
-  stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
 
-  int32_t trans_index = 0;
-  for (; trans_index < config.transformer_len; trans_index++)
-    if (!strcmp (hdr->column_ids[column_index],
-                 config.transformer_keys[trans_index]))
-      break;
+  /* ------------------------------------------------------------------------
+   * PREDICATE TRANSFORMATION
+   * ------------------------------------------------------------------------ */
 
-  if (trans_index < config.transformer_len)
+  trans_index = hdr->predicate_transformer_ids[column_index];
+  if (trans_index == TRANSFORMER_INDEX_UNKNOWN)
+    {
+      trans_index = 0;
+      for (; trans_index < config.predicate_transformer_len; trans_index++)
+        if (!strcmp (hdr->column_ids[column_index],
+                     config.predicate_transformer_keys[trans_index]))
+          break;
+
+      if (trans_index >= config.predicate_transformer_len)
+        trans_index = TRANSFORMER_INDEX_UNAVAILABLE;
+
+      hdr->predicate_transformer_ids[column_index] = trans_index;
+    }
+
+  if (trans_index >= 0 && trans_index < config.predicate_transformer_len)
+    stmt->predicate = raptor_new_term_from_uri_string (config.raptor_world,
+                                                       config.predicate_transformer_values[trans_index]);
+  else
+    stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
+
+  /* ------------------------------------------------------------------------
+   * OBJECT TRANSFORMATION
+   * ------------------------------------------------------------------------ */
+
+  trans_index = hdr->object_transformer_ids[column_index];
+  if (trans_index == TRANSFORMER_INDEX_UNKNOWN)
+    {
+      trans_index = 0;
+      for (; trans_index < config.object_transformer_len; trans_index++)
+        if (!strcmp (hdr->column_ids[column_index],
+                     config.object_transformer_keys[trans_index]))
+          break;
+
+      if (trans_index >= config.object_transformer_len)
+        trans_index = TRANSFORMER_INDEX_UNAVAILABLE;
+
+      hdr->object_transformer_ids[column_index] = trans_index;
+    }
+
+  /* When a transformer is available, we treat the value as a URI. */
+  if (trans_index >= 0 && trans_index < config.object_transformer_len)
     {
       /* The ontology can either use a '/' or a '#' as separator.
        * In Redland, an '#' behaves different than a '/'.  We have
        * to deal with that here. */
       char *end_token = trimmed_token;
       bool end_token_allocated = false;
-      uint32_t uri_len = strlen (config.transformer_values[trans_index]);
-      if (config.transformer_values[trans_index][uri_len - 1] == '#')
+      uint32_t uri_len = strlen (config.object_transformer_values[trans_index]);
+      if (config.object_transformer_values[trans_index][uri_len - 1] == '#')
         {
           uint32_t token_len = strlen (trimmed_token);
           end_token = calloc (token_len + 2, sizeof (char));
@@ -246,6 +315,9 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
       if (end_token_allocated)
         free (end_token);
     }
+
+  /* Without a transformer, the value will be treated as a "literal" instead
+   * of a URI. */
   else
     {
       /* Determine the actual type this data represents.

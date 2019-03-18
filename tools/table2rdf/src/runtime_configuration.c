@@ -33,13 +33,20 @@ runtime_configuration_init (void)
   config.header_line = NULL;
   config.sample_name = NULL;
   config.output_format = NULL;
-  config.transformers_buffer = NULL;
-  config.transformer_keys = NULL;
-  config.transformer_values = NULL;
-  config.transformers_buffer_len = 0;
-  config.transformer_len = 0;
-  config.transformers_buffer_alloc_len = 0;
-  config.transformer_alloc_len = 0;
+  config.object_transformers_buffer = NULL;
+  config.object_transformer_keys = NULL;
+  config.object_transformer_values = NULL;
+  config.object_transformers_buffer_len = 0;
+  config.object_transformer_len = 0;
+  config.object_transformers_buffer_alloc_len = 0;
+  config.object_transformer_alloc_len = 0;
+  config.predicate_transformers_buffer = NULL;
+  config.predicate_transformer_keys = NULL;
+  config.predicate_transformer_values = NULL;
+  config.predicate_transformers_buffer_len = 0;
+  config.predicate_transformer_len = 0;
+  config.predicate_transformers_buffer_alloc_len = 0;
+  config.predicate_transformer_alloc_len = 0;
   config.column_counter = 0;
   config.row_counter = 0;
   config.prefix_name_counter = 0;
@@ -67,7 +74,10 @@ runtime_configuration_redland_init (void)
   if (!ontology_init (&(config.ontology)))
     return (ui_print_redland_error () == 0);
 
-  if (!register_transformers ())
+  if (!register_object_transformers ())
+    return (ui_print_redland_error () == 0);
+
+  if (!register_predicate_transformers ())
     return (ui_print_redland_error () == 0);
 
   return true;
@@ -80,20 +90,36 @@ runtime_configuration_redland_free (void)
   ontology_free (config.ontology);
 
   uint32_t index = 0;
-  for (; index < config.transformer_len; index++)
+  for (; index < config.object_transformer_len; index++)
     {
-      /* We do not have to clean up transformer_values,
+      /* We do not have to clean up 'object_transformer_values',
        * because it was allocated in one go. */
-      free (config.transformer_keys[index]);
+      free (config.object_transformer_keys[index]);
     }
 
-  free (config.transformer_keys);
-  free (config.transformer_values);
+  free (config.object_transformer_keys);
+  free (config.object_transformer_values);
 
-  for (index = 0; index < config.transformers_buffer_len; index++)
-    free (config.transformers_buffer[index]);
+  for (index = 0; index < config.object_transformers_buffer_len; index++)
+    free (config.object_transformers_buffer[index]);
 
-  free (config.transformers_buffer);
+  free (config.object_transformers_buffer);
+
+  for (index = 0; index < config.predicate_transformer_len; index++)
+    {
+      /* We do not have to clean up 'predicate_transformer_values',
+       * because it was allocated in one go. */
+      free (config.predicate_transformer_keys[index]);
+    }
+
+  free (config.predicate_transformer_keys);
+  free (config.predicate_transformer_values);
+
+  for (index = 0; index < config.predicate_transformers_buffer_len; index++)
+    free (config.predicate_transformers_buffer[index]);
+
+  free (config.predicate_transformers_buffer);
+
 }
 
 void
@@ -142,40 +168,40 @@ generate_prefix_name (unsigned char *prefix_name)
 }
 
 bool
-preregister_transformer (const char *pair)
+preregister_object_transformer (const char *pair)
 {
   /* Always make sure there are enough indexes. */
-  if (config.transformers_buffer_alloc_len == 0 ||
-      config.transformers_buffer_len == config.transformers_buffer_alloc_len - 1)
+  if (config.object_transformers_buffer_alloc_len == 0 ||
+      config.object_transformers_buffer_len == config.object_transformers_buffer_alloc_len - 1)
     {
-      char **buffer = realloc (config.transformers_buffer,
-                               config.transformers_buffer_alloc_len +
+      char **buffer = realloc (config.object_transformers_buffer,
+                               config.object_transformers_buffer_alloc_len +
                                sizeof (char *) * 32);
       if (buffer == NULL) return false;
-      config.transformers_buffer = buffer;
+      config.object_transformers_buffer = buffer;
     }
 
   char *duplicate = strdup (pair);
   if (duplicate == NULL)
     return false;
 
-  config.transformers_buffer[config.transformers_buffer_len] = duplicate;
-  config.transformers_buffer_len += 1;
+  config.object_transformers_buffer[config.object_transformers_buffer_len] = duplicate;
+  config.object_transformers_buffer_len += 1;
 
   return true;
 }
 
 bool
-register_transformers ()
+register_object_transformers ()
 {
   uint32_t index = 0;
-  for (; index < config.transformers_buffer_len; index++)
+  for (; index < config.object_transformers_buffer_len; index++)
     {
-      char *trans = config.transformers_buffer[index];
+      char *trans = config.object_transformers_buffer[index];
       char *separator = strchr (trans, '=');
       if (separator == NULL)
         {
-          fprintf (stderr, "Warning: Ignoring invalid transformer separator: '%s'\n", trans);
+          fprintf (stderr, "Warning: Ignoring invalid object_transformer separator: '%s'\n", trans);
           continue;
         }
 
@@ -183,24 +209,24 @@ register_transformers ()
       *separator = '\0';
 
       /* Always make sure there are enough indexes. */
-      if (config.transformer_alloc_len == 0 ||
-          config.transformer_len == config.transformer_alloc_len - 1)
+      if (config.object_transformer_alloc_len == 0 ||
+          config.object_transformer_len == config.object_transformer_alloc_len - 1)
         {
-          char **keys = realloc (config.transformer_keys,
-                                 config.transformer_alloc_len +
+          char **keys = realloc (config.object_transformer_keys,
+                                 config.object_transformer_alloc_len +
                                  sizeof (char *) * 32);
           if (keys == NULL) return false;
-          config.transformer_keys = keys;
+          config.object_transformer_keys = keys;
 
-          char **values = realloc (config.transformer_values,
-                                   config.transformer_alloc_len +
+          char **values = realloc (config.object_transformer_values,
+                                   config.object_transformer_alloc_len +
                                    sizeof (char *) * 32);
 
           if (values == NULL) return false;
-          config.transformer_values = values;
+          config.object_transformer_values = values;
 
-          if (config.transformer_keys == NULL ||
-              config.transformer_values == NULL)
+          if (config.object_transformer_keys == NULL ||
+              config.object_transformer_values == NULL)
             return false;
         }
 
@@ -219,10 +245,10 @@ register_transformers ()
       if (!generate_prefix_name (prefix_name))
         return false;
 
-      config.transformer_keys[config.transformer_len] =
+      config.object_transformer_keys[config.object_transformer_len] =
         sanitize_string (trans, ((separator - trans) * sizeof (char)));
 
-      config.transformer_values[config.transformer_len] = value;
+      config.object_transformer_values[config.object_transformer_len] = value;
       config.ontology->prefixes[config.ontology->prefixes_length - 1] =
         raptor_new_uri (config.raptor_world, (unsigned char *)value);
 
@@ -230,8 +256,105 @@ register_transformers ()
                                        config.ontology->prefixes[config.ontology->prefixes_length - 1],
                                        prefix_name);
 
-      config.transformer_len += 1;
+      config.object_transformer_len += 1;
     }
 
   return true;
 }
+
+bool
+preregister_predicate_transformer (const char *pair)
+{
+  /* Always make sure there are enough indexes. */
+  if (config.predicate_transformers_buffer_alloc_len == 0 ||
+      config.predicate_transformers_buffer_len == config.predicate_transformers_buffer_alloc_len - 1)
+    {
+      char **buffer = realloc (config.predicate_transformers_buffer,
+                               config.predicate_transformers_buffer_alloc_len +
+                               sizeof (char *) * 32);
+      if (buffer == NULL) return false;
+      config.predicate_transformers_buffer = buffer;
+    }
+
+  char *duplicate = strdup (pair);
+  if (duplicate == NULL)
+    return false;
+
+  config.predicate_transformers_buffer[config.predicate_transformers_buffer_len] = duplicate;
+  config.predicate_transformers_buffer_len += 1;
+
+  return true;
+}
+
+bool
+register_predicate_transformers ()
+{
+  uint32_t index = 0;
+  for (; index < config.predicate_transformers_buffer_len; index++)
+    {
+      char *trans = config.predicate_transformers_buffer[index];
+      char *separator = strchr (trans, '=');
+      if (separator == NULL)
+        {
+          fprintf (stderr, "Warning: Ignoring invalid predicate_transformer separator: '%s'\n", trans);
+          continue;
+        }
+
+      char *value = separator + sizeof (char);
+      *separator = '\0';
+
+      /* Always make sure there are enough indexes. */
+      if (config.predicate_transformer_alloc_len == 0 ||
+          config.predicate_transformer_len == config.predicate_transformer_alloc_len - 1)
+        {
+          char **keys = realloc (config.predicate_transformer_keys,
+                                 config.predicate_transformer_alloc_len +
+                                 sizeof (char *) * 32);
+
+          if (keys == NULL) return false;
+          config.predicate_transformer_keys = keys;
+
+          char **values = realloc (config.predicate_transformer_values,
+                                   config.predicate_transformer_alloc_len +
+                                   sizeof (char *) * 32);
+
+          if (values == NULL) return false;
+          config.predicate_transformer_values = values;
+
+          if (config.predicate_transformer_keys == NULL ||
+              config.predicate_transformer_values == NULL)
+            return false;
+        }
+
+      config.ontology->prefixes_length += 1;
+      raptor_uri **temp = realloc (config.ontology->prefixes,
+                                   config.ontology->prefixes_length * sizeof (raptor_uri*));
+      if (temp == NULL)
+        {
+          config.ontology->prefixes_length -= 1;
+          return false;
+        }
+
+      config.ontology->prefixes = temp;
+
+      unsigned char prefix_name[12];
+      if (!generate_prefix_name (prefix_name))
+        return false;
+
+      config.predicate_transformer_keys[config.predicate_transformer_len] =
+        sanitize_string (trans, ((separator - trans) * sizeof (char)));
+
+      config.predicate_transformer_values[config.predicate_transformer_len] = value;
+      config.ontology->prefixes[config.ontology->prefixes_length - 1] =
+        raptor_new_uri (config.raptor_world, (unsigned char *)value);
+
+      raptor_serializer_set_namespace (config.raptor_serializer,
+                                       config.ontology->prefixes[config.ontology->prefixes_length - 1],
+                                       prefix_name);
+
+      config.predicate_transformer_len += 1;
+    }
+
+  return true;
+}
+

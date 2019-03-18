@@ -21,10 +21,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define TRANSFORMER_INDEX_UNKNOWN      -2
+#define TRANSFORMER_INDEX_UNAVAILABLE  -1
+
 typedef struct {
   char *header_line;
   char **column_ids;
   char **keys;
+  int32_t *predicate_transformer_ids;
+  int32_t *object_transformer_ids;
   uint32_t keys_len;
   uint32_t keys_alloc_len;
 } table_hdr_t;
