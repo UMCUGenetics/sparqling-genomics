@@ -185,7 +185,7 @@ vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
   \texttt{-{}-header-line} argument.  When using this command-line argument, the
   delimiter must be a semicolon (\texttt{;}).
 
-\subsection{Transformers}
+\subsection{Transforming objects}
 
   Unfortunately, \texttt{table2rdf} knows nothing about ontologies.  So when
   the input table has a column ``Chromosome'', by default \texttt{table2rdf}
@@ -232,8 +232,8 @@ $ table2rdf -i test.tsv
   can be told to use that ontology to describe that column.
   \end{sloppypar}
 
-  To do so, we can use the \texttt{-{}-transform} option, or \texttt{-t} for
-  short:
+  To do so, we use the \texttt{-{}-transform-object} option, or \texttt{-t}
+  for short:
 
 \begin{siderules}
 \begin{verbatim}
@@ -260,6 +260,40 @@ $ table2rdf     \
 
   After the transformation, the output produced by \texttt{table2rdf} uses
   URIs pointing to the ontology instead of literal values for chromosomes.
+
+\subsection{Transforming predicates}
+
+  Like transforming a cell in a table to a URI instead of a literal value,
+  we can also specify the value for the column name.  By default, the column
+  names are transformed using the \texttt{:table2rdf/Column/} prefix (e.g.
+  \texttt{chromosome} becomes
+  \texttt{http://sparqling-genomics/table2rdf/Column/chromosome}).  By using
+  the \texttt{-{}-transform-predicate} option, or \texttt{-T} for short, a
+  different transformation can be made:
+
+\begin{siderules}
+\begin{verbatim}
+$ table2rdf     \
+    -i test.tsv \
+    -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
+    -T Chromosome=http://biohackathon.org/resource/faldo#reference
+...
+@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
+...
+<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
+    faldo:reference p00000:chr1 ;
+    col:position 1500000 ;
+    a :Row .
+
+<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+    sg:originatedFrom <http://sparqling-genomics/...> ;
+    faldo:reference p00000:chrMT ;
+    col:position 11000 ;
+    a :Row .
+...
+\end{verbatim}
+\end{siderules}
 
 \subsection{Delimiters}
 
