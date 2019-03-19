@@ -131,9 +131,10 @@ fi
 
 AC_SUBST(ENABLE_MTRACE_OPTION)
 AC_ARG_ENABLE([mtrace],
-AC_HELP_STRING([--enable-mtrace],
-[enable mtrace support @<:@default=no@:>@]),
-AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [true]), AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [false]))
+  AC_HELP_STRING([--enable-mtrace],
+  [enable mtrace support @<:@default=no@:>@]),
+  AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [true]),
+  AM_CONDITIONAL([ENABLE_MTRACE_OPTION], [false]))
 
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 AM_CONDITIONAL([HAVE_HTLATEX], test -n "$HTLATEX")

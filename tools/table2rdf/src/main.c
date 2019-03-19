@@ -205,6 +205,8 @@ main (int argc, char **argv)
 
       free (table->keys);
       free (table->column_ids);
+      free (table->object_transformer_ids);
+      free (table->predicate_transformer_ids);
       free (table);
 
       /* Clean up. */

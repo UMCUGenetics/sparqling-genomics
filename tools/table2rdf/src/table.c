@@ -261,7 +261,8 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 
   if (trans_index >= 0 && trans_index < config.predicate_transformer_len)
     stmt->predicate = raptor_new_term_from_uri_string (config.raptor_world,
-                                                       config.predicate_transformer_values[trans_index]);
+                                                       ((unsigned char *)
+                                                        config.predicate_transformer_values[trans_index]));
   else
     stmt->predicate = term (PREFIX_COLUMN, hdr->column_ids[column_index]);
 
