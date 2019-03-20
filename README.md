@@ -1,6 +1,8 @@
 # SPARQLing genomics
 
-More documentation is available in the `doc/` directory.
+This project provides programs to extract RDF triplets from commonly used file formats in genomics.
+It also provides a web-based environment to explore the RDF triplets once inserted in a triple store.
+The complete documentation is available in the `doc/` directory.
 
 ## Dependencies
 
