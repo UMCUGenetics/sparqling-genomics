@@ -236,7 +236,7 @@ process_variant_for_sample (bcf_hdr_t *header,
           /* Each value can be a list of values.  Therefore, we must take the 'number'
            * of items into account. In the code below, 'k' is used as list index.
            */
-          if (number < 0)
+          if (number < 0 && number_of_samples > 0)
             number = state / number_of_samples;
 
           if (type == XSD_INTEGER || type == XSD_FLOAT)
