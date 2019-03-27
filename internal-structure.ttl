@@ -1,0 +1,98 @@
+@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf:      <http://xmlns.com/foaf/0.1/> .
+@prefix dcterms:   <http://purl.org/dc/terms/> .
+@prefix dctype:    <http://purl.org/dc/dcmitype/> .
+@prefix sg:        <http://sparqling-genomics.org/> .
+@prefix project:   <http://sparqling-genomics.org/Project/> .
+@prefix agent:     <http://sparqling-genomics.org/Agents/> .
+
+###############################################################################
+# PROJECT
+###############################################################################
+
+sg:Project
+    rdf:type owl:Class ;
+    rdfs:label "Project"@en ;
+    rdfs:description "The Project class represents a symbolic identifier for a combination of Agents, Datasets, and Queries."@en ;
+    rdfs:comment "A similar class exists within FOAF, but it doesn't provide a means to attach a dcterms:Agent to it."@en .
+
+sg:isMemberOf
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is member of" ;
+    rdfs:description "Describes the relationship between a dcterms:Agent and a Project."@en ;
+    rdfs:range dcterms:Agent ;
+    rdfs:domain sg:Project .
+
+sg:isUsedBy
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is part of" ;
+    rdfs:description "Describes the relationship between a dcterms:Dataset and a Project."@en ;
+    rdfs:range dcterms:Dataset ;
+    rdfs:domain sg:Project .
+
+sg:isRelevantTo
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is relevant to" ;
+    rdfs:description "Describes the relationship between a Query and a Project."@en ;
+    rdfs:range sg:Query ;
+    rdfs:domain sg:Project .
+
+###############################################################################
+# QUERY
+###############################################################################
+
+sg:Query
+    rdf:type owl:Class ;
+    rdfs:label "Query"@en ;
+    rdfs:description "The Query class represents a SPARQL query executed by a dcterms:Agent."@en .
+
+sg:executedBy
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "executed by" ;
+    rdfs:description "Describes the relationship between a dcterms:Agent and a Query."@en ;
+    rdfs:range dcterms:Agent ;
+    rdfs:domain sg:Query .
+
+sg:executedAt
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "executed at" ;
+    rdfs:description "Describes the machine name of the host that the Query was executed at."@en ;
+    rdfs:domain sg:Query .
+
+sg:executionTime
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "known execution time" ;
+    rdfs:description "A floating point number representing the number of seconds it took to get results for a Query."@en ;
+    rdfs:domain sg:Query .
+
+sg:isProtected
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is protected"@en ;
+    rdfs:description "Boolean for whether the query may be cleaned up, where 'True' means the query may not be cleaned up."@en ;
+    rdfs:domain sg:Query .
+
+###############################################################################
+# DATASETS
+###############################################################################
+
+sg:Source
+    rdf:type owl:Class ;
+    rdfs:label "Source"@en ;
+    rdfs:description "The source from which the dcterms:Dataset can be obtained."@en ;
+    rdfs:domain dcterms:Dataset .
+
+sg:sourceUrl
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "source URL"@en ;
+    rdfs:description "The URL from which the dcterms:Dataset can be obtained."@en ;
+    rdfs:range xsd:string ;
+    rdfs:domain sg:Source .
+
+sg:sourceChecksum
+    rdf:type owl:DatatypeProperty ;
+    rdfs:label "checksum" ;
+    rdfs:description "The checksum of a sg:sourceUrl in order to verify the integrity of its content."@en
+    rdfs:range xsd:string ;
+    rdfs:domain sg:Source .
+    
