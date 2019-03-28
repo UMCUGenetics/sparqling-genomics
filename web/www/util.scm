@@ -24,10 +24,9 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
-  #:export (csv-split-line
+  #:export (csv-read-entry
             file-extension
             predicate-label
-            sparql-response->sxml
             string-replace-occurrence
             suffix-iri
             string-is-longer-than
@@ -47,24 +46,29 @@
   "Replaces every OCCURRENCE in STR with ALTERNATIVE."
   (string-map (lambda (x) (if (eq? x occurrence) alternative x)) str))
 
-(define (csv-split-line line delimiter)
-  "Splits LINE where DELIMITER is the separator, properly handling quotes."
-
-  (define (iterator line length token-begin position in-quote tokens)
+(define* (csv-read-entry port delimiter
+                         #:optional
+                         (current-token '())
+                         (tokens '())
+                         (in-quote #f))
+  (let [(character (read-char port))]
     (cond
-     ((= position length)
-      (reverse (cons (string-drop line token-begin) tokens)))
-     ((eq? (string-ref line position) delimiter)
-      (if in-quote
-          (iterator line length token-begin (1+ position) in-quote tokens)
-          (iterator line length (1+ position) (1+ position) in-quote
-                    (cons (substring line token-begin position)
-                          tokens))))
-     ((eq? (string-ref line position) #\")
-      (iterator line length token-begin (1+ position) (not in-quote) tokens))
-     (else (iterator line length token-begin (1+ position) in-quote tokens))))
-
-  (iterator line (string-length line) 0 0 #f '()))
+     [(or (eof-object? character)
+          (and (eq? character #\newline)
+               (not in-quote)))
+      (if (and (null? current-token)
+               (null? tokens))
+          current-token
+          (reverse (cons (list->string (reverse current-token)) tokens)))]
+     [(eq? character #\")
+      (csv-read-entry port delimiter current-token tokens (not in-quote))]
+     [(and (eq? character delimiter)
+           (not in-quote))
+      (csv-read-entry port delimiter '()
+                      (cons (list->string (reverse current-token)) tokens)
+                      in-quote)]
+     [else
+      (csv-read-entry port delimiter (cons character current-token) tokens in-quote)])))
 
 (define (suffix-iri input)
   (if input
@@ -93,44 +97,6 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                     (string-trim-both line #\"))))
             pred)))
     (lambda (key . args) pred)))
-
-(define* (sparql-response->sxml port #:optional (body '())
-                                                (type #f)
-                                                (use-labels? #t))
-  "Read the query response from PORT and turn it into a SXML table."
-
-  (define (rdf:type? predicate)
-    (string= (string-trim-both predicate #\") 
-             "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
-
-  (let ((line (read-line port)))
-    (if (eof-object? line)
-        ;; When all data has been processed, we can assemble
-        ;; the table by wrapping the HEADER and BODY into a
-        ;; table construct.
-        (if (null? body)
-            (values '() type)
-            (values `(table (@ (id "ontology-feature-table"))
-                            ,(cons 'thead '((tr (th "Property") (th "Value"))))
-                            ,(cons 'tbody (reverse body)))
-                    type))
-        (let* ((tokens    (csv-split-line line #\,))
-               (predicate (list-ref tokens 0))
-               (object    (list-ref tokens 1))
-               (td-predicate (string-trim-both predicate #\"))
-               (td-object-raw (string-trim-both object #\"))
-               (td-object (if (string-prefix? "http://" td-object-raw)
-                              `(a (@ (href ,td-object-raw)) ,(suffix-iri td-object-raw))
-                              td-object-raw)))
-          (if (rdf:type? predicate)
-              (sparql-response->sxml port body object)
-              (sparql-response->sxml
-               port (cons body `((tr (td (a (@ (href ,td-predicate))
-                                            ,(if use-labels?
-                                                 (predicate-label td-predicate)
-                                                 td-predicate)))
-                                     (td ,td-object))))
-               type))))))
 
 (define (post-data->alist post-data)
   (catch #t

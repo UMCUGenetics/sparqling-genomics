@@ -17,6 +17,7 @@
 (define-module (www pages query-response)
   #:use-module (www pages)
   #:use-module (www util)
+  #:use-module (www html)
   #:use-module (www config)
   #:use-module (www db connections)
   #:use-module (www db projects)
@@ -37,26 +38,20 @@
 
 (define* (stream-response input-port output-port #:optional (read-header? #t))
   "Read the query response from PORT and turn it into a SXML table."
-  (let ((line (read-line input-port)))
-    (if (eof-object? line)
+  (let ((tokens (csv-read-entry input-port #\,)))
+    (if (null? tokens)
         (format output-port "</tbody></table>")
-        (let ((tokens (csv-split-line line #\,)))
-          ;; The first line in the output is the table header.
+        ;; The first line in the output is the table header.
+        (begin
           (if read-header?
               (format output-port
                       "<table id=\"query-output\"><thead><tr>~{<th>~a</th>~}</tr></thead><tbody>"
-                      (map (lambda (token)
-                             (string-trim-both token #\"))
-                           tokens))
+                      tokens)
               (format output-port "<tr>~{<td>~a</td>~}</tr>"
                       (map (lambda (token)
-                             (let* ((td-object-raw (string-trim-both token #\"))
-                                    (td-object
-                                     (if (string-prefix? "http" td-object-raw)
-                                         (string-append "<a href=\"" td-object-raw "\">"
-                                                        td-object-raw "</a>")
-                                         td-object-raw)))
-                               td-object))
+                             (if (string-prefix? "http" token)
+                                 (string-append "<a href=\"" token "\">" token "</a>")
+                                 (string-append "<pre>" (sxml->html-string token) "</pre>")))
                            tokens)))
           (stream-response input-port output-port #f)))))
 

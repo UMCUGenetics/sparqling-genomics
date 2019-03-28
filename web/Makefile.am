@@ -36,6 +36,7 @@ SOURCES =                                               \
   www/db/projects.scm                                   \
   www/db/queries.scm                                    \
   www/db/sessions.scm                                   \
+  www/html.scm                                          \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
   www/pages/datasets.scm                                \
