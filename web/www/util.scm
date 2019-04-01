@@ -24,8 +24,8 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
-  #:export (csv-read-entry
             file-extension
+  #:export (file-extension
             predicate-label
             string-replace-occurrence
             suffix-iri
@@ -45,30 +45,6 @@
 (define (string-replace-occurrence str occurrence alternative)
   "Replaces every OCCURRENCE in STR with ALTERNATIVE."
   (string-map (lambda (x) (if (eq? x occurrence) alternative x)) str))
-
-(define* (csv-read-entry port delimiter
-                         #:optional
-                         (current-token '())
-                         (tokens '())
-                         (in-quote #f))
-  (let [(character (read-char port))]
-    (cond
-     [(or (eof-object? character)
-          (and (eq? character #\newline)
-               (not in-quote)))
-      (if (and (null? current-token)
-               (null? tokens))
-          current-token
-          (reverse (cons (list->string (reverse current-token)) tokens)))]
-     [(eq? character #\")
-      (csv-read-entry port delimiter current-token tokens (not in-quote))]
-     [(and (eq? character delimiter)
-           (not in-quote))
-      (csv-read-entry port delimiter '()
-                      (cons (list->string (reverse current-token)) tokens)
-                      in-quote)]
-     [else
-      (csv-read-entry port delimiter (cons character current-token) tokens in-quote)])))
 
 (define (suffix-iri input)
   (if input

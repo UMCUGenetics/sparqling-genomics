@@ -23,6 +23,7 @@
   #:use-module (www db projects)
   #:use-module (www db queries)
   #:use-module (sparql driver)
+  #:use-module (sparql util)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)

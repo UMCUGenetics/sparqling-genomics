@@ -23,7 +23,7 @@
             display-query-results-of
             query-results->list
             query-results->alist
-            split-line
+            csv-read-entry
             uri-suffix
             uri-base))
 
@@ -55,14 +55,11 @@
 (define* (query-results-to-list port #:optional (skip-first-line? #f)
                                                 (output '()))
   "Returns a list of data read from PORT."
-  (when skip-first-line? (read-line port))
-  (let* ((line   (read-line port)))
-    (if (eof-object? line)
+  (when skip-first-line? (csv-read-entry port))
+  (let* [(entry (csv-read-entry port))]
+    (if (eof-object? entry)
         (reverse output)
-        (query-results-to-list port #f
-         (cons (map (lambda (item) (string-trim-both item #\"))
-                    (string-split line #\,))
-               output)))))
+        (query-results-to-list port #f (cons entry output)))))
 
 (define-syntax-rule
   (query-results->list query skip-first-line?)
@@ -78,20 +75,15 @@
 
 (define* (query-results-to-alist port #:optional (header '())
                                       (output '()))
-  (let [(line (read-line port))]
-    (if (eof-object? line)
+  (let [(entry (csv-read-entry port))]
+    (if (eof-object? entry)
         (reverse output)
         (if (null? header)
-            (query-results-to-alist port
-              (map (lambda (item) (string-trim-both item #\"))
-                   (split-line line))
-              output)
+            (query-results-to-alist port entry output)
             (query-results-to-alist port header
               (cons
                (map (lambda (t) `(,(list-ref t 0) . ,(list-ref t 1)))
-                    (zip header
-                         (map (lambda (item) (string-trim-both item #\"))
-                              (split-line line))))
+                    (zip header entry))
                output))))))
 
 (define-syntax-rule
@@ -106,24 +98,30 @@
                   (read-line port))
           #f))))
 
-(define* (split-line line #:optional (delimiter #\,))
-  "Splits LINE where DELIMITER is the separator, properly handling quotes."
-
-  (define (iterator line length token-begin position in-quote tokens)
+(define* (csv-read-entry port
+                         #:optional
+                         (delimiter #\,)
+                         (current-token '())
+                         (tokens '())
+                         (in-quote #f))
+  (let [(character (read-char port))]
     (cond
-     ((= position length)
-      (reverse (cons (string-drop line token-begin) tokens)))
-     ((eq? (string-ref line position) delimiter)
-      (if in-quote
-          (iterator line length token-begin (1+ position) in-quote tokens)
-          (iterator line length (1+ position) (1+ position) in-quote
-                    (cons (substring line token-begin position)
-                          tokens))))
-     ((eq? (string-ref line position) #\")
-      (iterator line length token-begin (1+ position) (not in-quote) tokens))
-     (else (iterator line length token-begin (1+ position) in-quote tokens))))
-
-  (iterator line (string-length line) 0 0 #f '()))
+     [(or (eof-object? character)
+          (and (eq? character #\newline)
+               (not in-quote)))
+      (if (and (null? current-token)
+               (null? tokens))
+          current-token
+          (reverse (cons (list->string (reverse current-token)) tokens)))]
+     [(eq? character #\")
+      (csv-read-entry port delimiter current-token tokens (not in-quote))]
+     [(and (eq? character delimiter)
+           (not in-quote))
+      (csv-read-entry port delimiter '()
+                      (cons (list->string (reverse current-token)) tokens)
+                      in-quote)]
+     [else
+      (csv-read-entry port delimiter (cons character current-token) tokens in-quote)])))
 
 (define (uri-suffix input)
   (catch #t
