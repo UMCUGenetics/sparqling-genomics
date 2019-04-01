@@ -20,12 +20,13 @@
   #:use-module (www util)
   #:export (default-uri-strings
             fork-on-startup?
-            initialize-internal-rdf
             set-fork-on-startup!
+            set-system-connection!
             set-www-listen-address!
             set-www-listen-port!
             graph-name-max-length
             uri-string
+            system-connection
             www-listen-address
             www-listen-address-family
             www-listen-port
@@ -146,7 +147,13 @@
                             #:setter set-fork-on-startup-private!)
 
   (graph-name-max-length    #:init-value 128
-                            #:getter get-graph-name-max-length))
+                            #:getter get-graph-name-max-length)
+
+  ;; System connection settings
+  ;; --------------------------------------------------------------------------
+  (system-connection        #:init-value '()
+                            #:getter get-system-connection
+                            #:setter set-system-connection-private!))
 
 
 ;; Create an instance of the <runtime-configuration> environment.
@@ -295,6 +302,14 @@
 (define-syntax-rule
   (set-authentication-password! arg)
   (set-authentication-password-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (set-system-connection! arg)
+  (set-system-connection-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (system-connection)
+  (get-system-connection %runtime-configuration))
 
 ;; ----------------------------------------------------------------------------
 ;; DEFAULT URIS

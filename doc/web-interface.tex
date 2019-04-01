@@ -44,6 +44,54 @@
   Because web services are popular these days, \texttt{sg-web} can be configured
   to bind on an arbitrary address and an arbitrary port.
 
+\subsection{System connection}
+
+  The web interface stores its own information as RDF.  Therefore it needs
+  a connection to an RDF store where it can write to the graphs described
+  in table \ref{table:writable-graphs}.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{ l X }
+      \headrow
+      \textbf{Graph} & \textbf{Reason}\\
+      \evenrow
+      \texttt{http://sparqling-genomics.org/sg-web/state}
+      & In this graph, queries and projects are stored.\\
+      \oddrow
+      \texttt{http://sparqling-genomics.org/sg-web/cache}
+      & This graph is used to speed up the web interface by
+      pre-running various SPARQL queries.\\
+    \end{tabularx}
+    \caption{\small Graphs that need to be writable for the web interface.}
+    \label{table:writable-graphs}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\subsubsection{System connection example}
+
+  To configure the \emph{system connection}, two parameters need to be
+  specified: \texttt{uri}, and \texttt{backend}.  Additionally, when the
+  RDF store requires authentication for writing to it, a \texttt{username}
+  and a \texttt{password} can be provided.
+
+  The following example shows how to configure the \emph{system connection}:
+
+\begin{siderules}
+\begin{verbatim}
+<?xml version="1.0" encoding="utf-8"?>
+<web-interface>
+  ...
+  <system-connection>
+    <uri>http://localhost:8890/sparql-auth</uri>
+    <backend>virtuoso</backend>
+    <username>dba</username>
+    <password>dba</password>
+  </system-connection>
+</web-interface>
+\end{verbatim}
+\end{siderules}
+
 \subsection{Authentication}
 \label{sec:authentication}
 
