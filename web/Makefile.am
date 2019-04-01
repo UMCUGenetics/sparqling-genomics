@@ -28,6 +28,7 @@ SOURCES =                                               \
   sparql/util.scm                                       \
   www/base64.scm                                        \
   www/config.scm                                        \
+  www/config-reader.scm                                 \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
   www/db/datasets.scm                                   \
