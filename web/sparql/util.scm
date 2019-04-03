@@ -57,7 +57,7 @@
   "Returns a list of data read from PORT."
   (when skip-first-line? (csv-read-entry port))
   (let* [(entry (csv-read-entry port))]
-    (if (eof-object? entry)
+    (if (null? entry)
         (reverse output)
         (query-results-to-list port #f (cons entry output)))))
 
@@ -76,7 +76,7 @@
 (define* (query-results-to-alist port #:optional (header '())
                                       (output '()))
   (let [(entry (csv-read-entry port))]
-    (if (eof-object? entry)
+    (if (null? entry)
         (reverse output)
         (if (null? header)
             (query-results-to-alist port entry output)
