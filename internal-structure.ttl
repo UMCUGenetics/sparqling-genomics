@@ -6,6 +6,7 @@
 @prefix sg:        <http://sparqling-genomics.org/> .
 @prefix project:   <http://sparqling-genomics.org/Project/> .
 @prefix agent:     <http://sparqling-genomics.org/Agents/> .
+@prefix auth:      <http://sparqling-genomics.org/Authorization/> .
 
 ###############################################################################
 # PROJECT
@@ -38,6 +39,37 @@ sg:isRelevantTo
     rdfs:range sg:Query ;
     rdfs:domain sg:Project .
 
+sg:hasAssignedGraph
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "has assigned graph" ;
+    rdfs:description "Describes the relationship between a graph and a Project."@en ;
+    rdfs:range sg:Project .
+
+sg:requiresAuthorization
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "requires authorization" ;
+    rdfs:description "Indicates that authorization is required to access a graph."@en ;
+    rdfs:range sg:Project .
+
+sg:hasAuthorization
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "has authorization" ;
+    rdfs:description "Indicates that authorization has been approved to access a graph."@en ;
+    rdfs:domain sg:Project .
+
+sg:isAssignedTo
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is assigned to" ;
+    rdfs:description "Indicates that a dcterms:Agent works on a sg:Project."@en ;
+    rdfs:range dcterms:Agent ;
+    rdfs:domain sg:Project .
+
+sg:isLocked
+    rdf:type owl:AnnotationProperty ;
+    rdfs:label "is locked" ;
+    rdfs:description "Indicates whether a graph may be modified."@en ;
+    rdfs:range xsd:boolean .
+
 ###############################################################################
 # QUERY
 ###############################################################################
@@ -66,6 +98,13 @@ sg:executionTime
     rdfs:description "A floating point number representing the number of seconds it took to get results for a Query."@en ;
     rdfs:domain sg:Query .
 
+sg:queryText
+    rdf:type owl:DatatypeProperty ;
+    rdfs:label "Query text"@en ;
+    rdfs:description "Verbatim copy of the SPARQL query it describes."@en ;
+    rdfs:range xsd:string ;
+    rdfs:domain sg:Query .
+
 sg:isProtected
     rdf:type owl:AnnotationProperty ;
     rdfs:label "is protected"@en ;
@@ -92,7 +131,7 @@ sg:sourceUrl
 sg:sourceChecksum
     rdf:type owl:DatatypeProperty ;
     rdfs:label "checksum" ;
-    rdfs:description "The checksum of a sg:sourceUrl in order to verify the integrity of its content."@en
+    rdfs:description "The checksum of a sg:sourceUrl in order to verify the integrity of its content."@en ;
     rdfs:range xsd:string ;
     rdfs:domain sg:Source .
     
