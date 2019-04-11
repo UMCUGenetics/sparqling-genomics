@@ -58,7 +58,7 @@
            ((or (and (string= (car item) "/connections")
                      (string-prefix? "/edit-connection" request-path))
                 (and (string= (car item) "/projects")
-                     (string-prefix? "/edit-project" request-path)))
+                     (string-prefix? "/project-details" request-path)))
             `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
            (else
             `(li (a (@ (href ,(car item))) ,(cadr item))))))

@@ -78,7 +78,8 @@ WHERE {
                         (list number-of-samples
                               number-of-variant-calls
                               number-of-copynumber-calls))))
-    `(table (@ (id "item-table"))
+    `(table (@ (id "overview-table")
+               (class "item-table"))
       (tr (th "Property")
           (th "Value"))
       (tr (td ,(make-query-button

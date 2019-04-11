@@ -37,16 +37,21 @@
 ;;
 
 (define (projects-table username)
-  `(table (@ (id "item-table"))
+  `(table (@ (id "projects-table")
+             (class "item-table"))
      (tr (th (@ (class "item-table-left")) "Project")
          (th (@ (class "item-table-right")
                 (colspan "3")) "Actions"))
      ,(map (lambda (record)
-             (let ((name    (project-name    record))
-                   (samples (project-samples record)))
-               `(tr (td (p (a (@ (href ,(string-append "/edit-project/" name)))
-                              ,name)
-                           ,(if (project-is-active? record)
+             (let [(is-active? (catch #t
+                                 (lambda _
+                                   (string= (active-project-for-user username)
+                                            (project-id record)))
+                                 (lambda _ #f)))]
+               `(tr (td (p (a (@ (href ,(string-append "/project-details/"
+                                                       (project-hash record))))
+                              ,(project-name record))
+                           ,(if is-active?
                                 `(span (@ (class "is-active")) "Active")
                                 '())))
                     (td (@ (class "button-column"))
@@ -54,22 +59,18 @@
                               (button (@ (type "submit")
                                          (class "action-btn remove-btn")
                                          (name "remove")
-                                         (value ,name))
+                                         (value ,(project-id record)))
                                       "✖")))
                     (td (@ (class "button-column"))
-                        (div (@ (class "action-btn export-btn"))
-                             (a (@ (href ,(string-append "/project-samples/"
-                                                         name ".n3"))) "✈")))
-                    (td (@ (class "button-column"))
-                        ,(if (not (project-is-active? record))
+                        ,(if (not is-active?)
                              `(form (@ (action "/projects") (method "post"))
                                     (button (@ (type "submit")
                                                (class "action-btn active-btn")
                                                (name "set-active")
-                                               (value ,name))
+                                               (value ,(project-id record)))
                                             "✔"))
                              '())))))
-           (all-projects username))))
+           (projects-by-user username))))
 
 ;; ----------------------------------------------------------------------------
 ;; PAGE-PROJECTS
@@ -79,29 +80,25 @@
 ;;
 
 (define* (page-projects request-path username #:key (post-data ""))
-  (let* ((projects (all-projects username))
+  (let* [(projects (projects-by-user username))
          (message
           (if (not (string= post-data ""))
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
-                      [(('name . a) ('samples . b))
-                       (project-add (alist->project alist) projects username)]
                       [(('name . a))
-                       (project-add (alist->project (cons '(samples . "") alist))
-                                    projects username)]
+                       (project-add a username)]
                       [(('set-active . a))
                        (begin
-                         (persist-projects
-                          (project-set-as-active! a projects) username)
+                         (set-active-project-for-user! username a)
                          (values #t ""))]
                       [(('remove . a))
-                       (project-remove a projects username)]
+                       (project-remove a username)]
                       [else #f]))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
-              #f)))
+              #f))]
     (page-root-template "Projects" request-path
      `((h2 "Projects"
            ;; The “Add project” button is on the same line as the title.
@@ -121,7 +118,7 @@
        ;; The following javascript code adds the form fields to the table.
        (script "
 function ui_insert_project_form () {
-  $('#item-table tbody:last-child').append('"
+  $('#projects-table tbody:last-child').append('"
          (tr (td (@ (colspan "4"))
                  (form (@ (action "/projects") (method "post"))
                        (table (tr (td (@ (style "width: 100%"))

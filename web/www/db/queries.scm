@@ -18,37 +18,36 @@
   #:use-module (www util)
   #:use-module (www base64)
   #:use-module (www config)
-  #:use-module (sparql lang)
+  #:use-module (www db connections)
+  #:use-module (sparql driver)
+  #:use-module (sparql util)
   #:use-module (ice-9 format)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports)
+  #:use-module (web response)
 
   #:export (query-add
             query-remove
             query-remove-unmarked
             all-queries
             query-by-id
-            queries-by-endpoint
+            queries-by-username
             queries-by-project
-            query-by-record
-            load-queries
-            persist-queries
 
-            alist->query
-            query->alist
-
-            make-query
+            persist-query
             query-id
+            query-username
             query-content
             query-endpoint
+            query-project
             query-execution-time
             query-marked?
             query?
 
-            set-query-id!
             set-query-endpoint!
             set-query-execution-time!
             set-query-content!
@@ -57,166 +56,219 @@
 
 ;; QUERY RECORD TYPE
 ;; ----------------------------------------------------------------------------
-(define-record-type <query>
-  (make-query id content endpoint execution-time project marked?)
-  query?
-  (id             query-id             set-query-id!)
-  (content        query-content        set-query-content!)
-  (endpoint       query-endpoint       set-query-endpoint!)
-  (execution-time query-execution-time set-query-execution-time!)
-  (project        query-project        set-query-project!)
-  (marked?        query-marked?        set-query-marked!))
+;; (define-record-type <query>
+;;   (make-query id content endpoint execution-time project marked?)
+;;   query?
+;;   (id             query-id             set-query-id!)
+;;   (content        query-content        set-query-content!)
+;;   (endpoint       query-endpoint       set-query-endpoint!)
+;;   (execution-time query-execution-time set-query-execution-time!)
+;;   (project        query-project        set-query-project!)
+;;   (marked?        query-marked?        set-query-marked!))
 
-(define* (generate-unique-query-id queries #:optional (id 1))
-  (let ((existing-ids (map query-id queries)))
-    (if (member id existing-ids =)
-        (generate-unique-query-id queries (1+ id))
-        id)))
-
-
-;; ALIST->QUERY AND QUERY->ALIST
+;; PUBLIC INTERFACE
 ;; ----------------------------------------------------------------------------
-(define (alist->query input queries)
-  "Turns the association list INPUT into a query record."
-  (catch #t
-    (lambda _
-      (let* ((obj (make-query (assoc-ref input 'id)
-                              (assoc-ref input 'content)
-                              (assoc-ref input 'endpoint)
-                              (assoc-ref input 'execution-time)
-                              (assoc-ref input 'project)
-                              (assoc-ref input 'marked))))
-        ;; Neither the endpoint nor the content may be unset.
-        (when (not (query-id obj))
-          (set-query-id! obj (generate-unique-query-id queries)))
-        (if (and (query-content obj)
-                 (query-endpoint obj)
-                 (query-project obj))
-            obj
-            #f)))
-    (lambda (key . args)
-      #f)))
+;;
+;; The following macros implement the same interface as its SRFI-9 record-type
+;; equivalent.  The implementation difference is that this interface operates
+;; directly on the triple store, rather than the Scheme state.
+;;
 
-(define (query->alist record)
-  `((id             . ,(query-id record))
-    (content        . ,(query-content record))
-    (endpoint       . ,(query-endpoint record))
-    (execution-time . ,(query-execution-time record))
-    (project        . ,(query-project record))
-    (marked         . ,(query-marked? record))))
+(define-syntax-rule (query-id query)             (assoc-ref query "queryId"))
+(define-syntax-rule (query-content query)        (assoc-ref query "queryText"))
+(define-syntax-rule (query-endpoint query)       (assoc-ref query "executedAt"))
+(define-syntax-rule (query-username query)       (assoc-ref query "executedBy"))
+(define-syntax-rule (query-execution-time query) (assoc-ref query "executionTime"))
+(define-syntax-rule (query-project query)        (assoc-ref query "isRelevantTo"))
+(define (query-marked? query)
+  (string= (assoc-ref query "isProtected") "1"))
 
+(define (set-query-property! query-id predicate object type)
+  (let [(query (string-append
+                default-prefixes
+                "WITH <" system-state-graph ">
+DELETE { ?query " predicate " ?value . }
+INSERT { ?query " predicate " " (if type
+                                    (if (string= type "xsd:boolean")
+                                        (format #f "~a" (if object "1" "0"))
+                                        (format #f "~s^^~a" object type))
+                                    (format #f "<~a>" object)) " . }
+WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
+        (connection (system-connection))]
+    (receive (header body)
+        (system-sparql-query query)
+      (= (response-code header) 200))))
+
+(define-syntax-rule
+  (set-query-content! query value)
+  (set-query-property! query "sg:queryText" value "xsd:string"))
+
+(define-syntax-rule
+  (set-query-endpoint! query value)
+  (set-query-property! query "sg:executedAt" value "xsd:string"))
+
+(define-syntax-rule
+  (set-query-execution-time! query value)
+  (set-query-property! query "sg:executionTime" value "xsd:float"))
+
+(define-syntax-rule
+  (set-query-project! query value)
+  (set-query-property! query "sg:isRelevantTo" value #f))
+
+(define-syntax-rule
+  (set-query-marked! query value)
+  (set-query-property! query "sg:isProtected" value "xsd:boolean"))
 
 ;; QUERIES PERSISTENCE
 ;; ----------------------------------------------------------------------------
-(define (persistence-path username)
-  (string-append (www-cache-root) "/" username "/queries.scm"))
-
-(define (load-queries username)
-  (catch #t
-    (lambda _
-      (let ((filename (persistence-path username)))
-        (if (file-exists? filename)
-            (call-with-input-file filename
-              (lambda (port)
-                (map (lambda (lst) (alist->query lst '()))
-                     (read port))))
-            '())))
-    (lambda (key . args)
-      #f)))
-
-(define (persist-queries queries username)
-  (let ((filename (persistence-path username)))
-    (call-with-output-file filename
-      (lambda (port)
-        ;; Before writing to the file under 'port', chmod it so that
-        ;; only the user this process runs as can read its contents.
-        (chmod port #o600)
-        (format port ";; This file was generated by sparqling-genomics.~%")
-        (format port ";; Please do not edit this file manually.~%")
-        (write (map query->alist queries) port)))))
-
+(define (persist-query content endpoint username execution-time project-id marked?)
+  (let* [(query-id (generate-id content endpoint username project-id))
+         (query (string-append
+                 default-prefixes
+                 "INSERT INTO <" system-state-graph "> { "
+                 "query:" query-id
+                 " rdf:type sg:Query ;"
+                 " sg:queryText " (format #f "~s^^xsd:string" content) " ;"
+                 " sg:executedAt " (format #f "~s^^xsd:string" endpoint) " ;"
+                 " sg:executedBy agent:" username " ;"
+                 " dcterms:date " (format #f "~s^^xsd:dateTimeStamp"
+                                          (strftime "%Y-%m-%dT%H-%M-%SZ"
+                                                    (gmtime (current-time)))) " ;"
+                 " sg:executionTime " (format #f "\"~a\"^^xsd:float" execution-time) " ;"
+                 " sg:isRelevantTo <" project-id "> ."
+                 "}"))
+         (connection (system-connection))]
+    (receive (header body)
+        (system-sparql-query query)
+      (if (= (response-code header) 200)
+          #t
+          (begin
+            (display (get-string-all body))
+            #f)))))
 
 ;; QUERY-ADD
 ;; ----------------------------------------------------------------------------
-(define (query-add record queries username)
+(define (query-add content endpoint username execution-time project)
   "Adds a reference to the internal graph for the query RECORD."
-  (let ((content  (query-content record))
-        (endpoint (query-endpoint record))
-        (project  (query-project record)))
-    (cond
-     [(string= content "")
-      (values #f (format #f "The query cannot be empty."))]
-     [(string= endpoint "")
-      (values #f (format #f "The query must have an endpoint."))]
-     [(string= project "")
-      (values #f (format #f "The query must have a project."))]
-     ;; Don't store exact duplicates.
-     [(query-by-record record queries)
-      (values #f (format #t ""))]
-     [#t (begin
-           (persist-queries (cons record queries) username)
-           (values #t ""))])))
-
+  (cond
+   [(string= content "")
+    (values #f (format #f "The query cannot be empty."))]
+   [(string= endpoint "")
+    (values #f (format #f "The query must have an endpoint."))]
+   [(string= project "")
+    (values #f (format #f "The query must have a project."))]
+   [#t
+    (begin
+      (persist-query content endpoint username execution-time project #f)
+      (values #t ""))]))
 
 ;; QUERY-REMOVE
 ;; ----------------------------------------------------------------------------
-(define (query-remove query queries username)
+(define (query-remove query-uri username)
   "Removes the reference in the internal graph for QUERY."
-  (let ((id (cond
-             [(string? query)  (string->number query)]
-             [(query? query)   (query-id query)]
-             [else             query])))
-    (persist-queries
-     (filter (lambda (record)
-               (not (= (query-id record) id)))
-             queries)
-     username)
-    (values #t (format #f "Removed “~a”." id))))
-
+  (let [(query (string-append
+                default-prefixes
+                "WITH <" system-state-graph ">"
+                " DELETE { <" query-uri "> ?predicate ?object . }"
+                " WHERE  { <" query-uri "> ?predicate ?object ; "
+                "sg:executedBy agent:" username " . }"))]
+    (receive (header body)
+        (system-sparql-query query)
+      (= (response-code header) 200))))
 
 ;; QUERY-REMOVE-UNMARKED
 ;; ----------------------------------------------------------------------------
-(define (query-remove-unmarked queries username)
+(define (query-remove-unmarked username)
   "Removes queries for which marked? is #f."
-  (persist-queries (filter query-marked? queries) username)
-  (values #t (format #f "Removed unmarked.")))
+  (let [(query (string-append
+                default-prefixes
+                "WITH <" system-state-graph ">
+DELETE { ?query ?p ?o }
+WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
+  OPTIONAL {
+    ?query sg:isProtected ?isProtected .
+  }
+  FILTER (!BOUND(?isProtected) OR ?isProtected = false)
+}
+"))
+        (connection (system-connection))]
+    (receive (header body)
+        (sparql-query query
+                      #:uri (connection-uri connection)
+                      #:digest-auth
+                      (if (and (connection-username connection)
+                               (connection-password connection))
+                          (string-append
+                           (connection-username connection) ":"
+                           (connection-password connection))
+                          #f))
+      (if (= (response-code header) 200)
+          (values #t (format #f "Removed unmarked."))
+          (values #f (get-string-all body))))))
 
 
 ;; ALL-QUERIES
 ;; ----------------------------------------------------------------------------
 
-(define* (all-queries username #:key (filter #f))
+(define (generate-query-with-filters filters)
+  (string-append
+   default-prefixes
+   "
+SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt ?executedBy 
+       AVG(?executionTime) AS ?executionTime
+       ?isRelevantTo ?isProtected
+FROM <" system-state-graph ">
+WHERE {
+  ?query rdf:type sg:Query .
+  OPTIONAL {
+    ?query sg:queryText     ?queryText     ;
+           sg:executedAt    ?executedAt    ;
+           sg:executedBy    ?executedBy    ;
+           sg:executionTime ?executionTime ;
+           sg:isRelevantTo  ?isRelevantTo  .
+    OPTIONAL {
+      ?query sg:isProtected   ?isProtected   ;
+             dcterms:date     ?date          .
+    }
+  }
+"
+   (if filters
+       (format #f "~{  FILTER (~a)~%~}" filters)
+       "")
+   "} ORDER BY DESC(?date)"))
+
+(define* (all-queries #:key (filter #f))
   "Returns a list of query records, applying FILTER to the records."
-  (if filter
-      (map filter (load-queries username))
-      (load-queries username)))
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters '()))))]
+    (if filter
+        (map filter results)
+        results)))
 
-(define (query-by-id id queries)
-  (let ((item (filter (lambda (query)
-                        (= (query-id query) id))
-                      queries)))
-    (if (null? item)
-        #f
-        (car item))))
+(define* (queries-by-username username #:key (filter #f))
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters
+                     `(,(format #f "?executedBy = agent:~a" username))))))]
+    (if filter
+        (map filter results)
+        results)))
 
-(define (queries-by-endpoint endpoint queries)
-  (filter (lambda (query)
-            (string= (query-endpoint query) endpoint))
-          queries))
+(define* (query-by-id id #:key (filter #f))
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters
+                     `(,(format #f "?query = <~a>" id))))))]
+    (if filter
+        (map filter results)
+        results)))
 
-(define (queries-by-project project queries)
-  (filter (lambda (query)
-            (string= (query-project query) project))
-          queries))
-
-(define (query-by-record record queries)
-  (let ((item (filter
-               (lambda (query)
-                 (and
-                  (string= (query-content query)  (query-content record))
-                  (string= (query-endpoint query) (query-endpoint record))
-                  (string= (query-project query)  (query-project record))))
-               queries)))
-    (if (null? item)
-        #f
-        (car item))))
+(define (queries-by-project project)
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters
+                     `(,(format #f "?isRelevantTo = <~a>" project))))))]
+    (if (null? results)
+        '()
+        results)))

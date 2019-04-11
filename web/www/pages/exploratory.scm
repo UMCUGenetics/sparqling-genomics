@@ -31,7 +31,8 @@
   (page-root-template "Exploratory" request-path
    `((h2 "Exploratory")
      (form
-      (table
+      (table (@ (id "exploratory-table")
+                (class "item-table"))
        (thead
         (tr (th (@ (style "width: 25%; padding-left: 5px")) "Connections")
             (th (@ (style "width: 25%; padding-left: 5px")) "Graphs")
@@ -59,8 +60,7 @@
                            (disabled "disabled")
                            (onkeydown "keydown(event)")
                            (onchange "updateClipboard(this)")))))
-        (tr (@ (style "background: #fff"))
-            (td (@ (style "vertical-align: top"))
+        (tr (td (@ (style "vertical-align: top"))
                 (p "A list of connections is stored internally."))
             (td (@ (style "vertical-align: top"))
                 (p "To get the graphs, the following query is used:")

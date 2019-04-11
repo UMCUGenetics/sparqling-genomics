@@ -39,7 +39,8 @@
 ;;
 
 (define (connections-table username)
-  `(table (@ (id "item-table"))
+  `(table (@ (id "connections-table")
+             (class "item-table"))
      (tr (th (@ (class "item-table-left")) "Connection")
          (th (@ (style "min-width: 100px")
                 (colspan "2")) "Actions"))
@@ -116,7 +117,7 @@
        ;; The following javascript code adds the form fields to the table.
        (script "
 function ui_insert_connection_form () {
-  $('#item-table tbody:last-child').append('"
+  $('#connections-table tbody:last-child').append('"
                (tr (td (@ (colspan "2"))
                        (form (@ (action "/connections") (method "post"))
                          (table

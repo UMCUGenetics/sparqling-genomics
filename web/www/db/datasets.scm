@@ -16,6 +16,7 @@
 
 (define-module (www db datasets)
   #:use-module (www util)
+  #:use-module (www config)
   #:use-module (www db connections)
   #:use-module (sparql driver)
   #:use-module (sparql util)
@@ -25,35 +26,19 @@
 (define (all-datasets connection)
   (catch #t
     (lambda _
-      (let* [(query "PREFIX dctype: <http://purl.org/dc/dcmitype/>
-PREFIX dcterm: <http://purl.org/dc/terms/>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-SELECT DISTINCT ?name ?description ?publisher
+      (let* [(query (string-append
+                     default-prefixes
+                     "SELECT DISTINCT ?name ?description ?publisher
 WHERE {
   ?subject rdf:type    dctype:Dataset ;
            rdfs:label  ?name .
   OPTIONAL {
-    ?subject   dc:description   ?description ;
-               dcterm:publisher ?pub .
-    ?pub       rdfs:label       ?publisher .
+    ?subject   dc:description    ?description ;
+               dcterms:publisher ?pub .
+    ?pub       rdfs:label        ?publisher .
   }
-}")
-             (entries
-              (query-results->alist
-               (sparql-query query
-                             #:uri (connection-uri connection)
-                             #:store-backend
-                             (connection-backend connection)
-                             #:digest-auth
-                             (if (and (connection-username connection)
-                                      (connection-password connection))
-                                 (string-append
-                                  (connection-username connection) ":"
-                                  (connection-password connection))
-                                 #f))))]
+}"))
+             (entries (query-results->alist (system-sparql-query query)))]
         entries))
     (lambda (key . args)
       (if (not connection)

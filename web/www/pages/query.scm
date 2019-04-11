@@ -18,7 +18,6 @@
   #:use-module (www pages)
   #:use-module (www db connections)
   #:use-module (www db queries)
-  #:use-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (srfi srfi-1)
@@ -28,18 +27,15 @@
   (page-root-template "Query" request-path
    `((h2 "Query the database")
      ,(let* ((connections (all-connections username #:filter connection-name))
-             (queries     (all-queries username))
+             (queries     (queries-by-username username))
              (alist       (if post-data (post-data->alist post-data) '()))
              (query       (assoc-ref alist 'query))
              (endpoint    (if (assoc-ref alist 'endpoint)
                               (assoc-ref alist 'endpoint)
-                              ""))
-             (project     (active-project username)))
+                              "")))
         ;; Handle removal instructions.
         (when (assoc-ref alist 'remove)
-          (query-remove (query-by-id (string->number (assoc-ref alist 'remove)) queries)
-                        queries
-                        username))
+          (query-remove (assoc-ref alist 'remove) username))
         (if (null? connections)
             ;; Before we can query, there must be a connection that we can query on.
             ;; The best we can do is refer to creating a connection at this point.
@@ -64,23 +60,17 @@
                    ,(if query
                         query
                         (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
-                                (apply string-append
-                                       (map (lambda (uri)
-                                              (format #f "PREFIX ~a: <~a>~%"
-                                                      (car uri) (cdr uri)))
-                                            default-uri-strings)))))
+                                default-prefixes)))
 
-              ,(if project
-                   `((h3 "History")
+              `((h3 "History")
 
-                     (p "The table below contains queries that were previously "
-                        "executed. For compactness, all " (code "PREFIX") " "
-                        "declarations and empty lines are not shown.")
+                (p "The table below contains queries that were previously "
+                   "executed. For compactness, all " (code "PREFIX") " "
+                   "declarations and empty lines are not shown.")
 
-                     (div (@ (class "history-data-loader"))
-                          (div (@ (class "title")) "Loading history ...")
-                          (div (@ (class "content")) "Please wait for the results to appear.")))
-                   '())
+                (div (@ (class "history-data-loader"))
+                     (div (@ (class "title")) "Loading history ...")
+                     (div (@ (class "content")) "Please wait for the results to appear.")))
               (script "
 $(document).ready(function(){
 
@@ -150,7 +140,7 @@ $(document).ready(function(){
           dt.draw();
 
           $.get('/query-history', function (data){
-            $('#item-table').replaceWith(data);
+            $('#query-history-table').replaceWith(data);
           });
 
         }

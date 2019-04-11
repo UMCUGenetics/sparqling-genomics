@@ -33,9 +33,12 @@
   #:use-module (www db queries)
   #:use-module (www pages error)
   #:use-module (www pages welcome)
-  #:use-module (www pages project-samples)
+  #:use-module (www pages project-dependent-graphs)
+  #:use-module (www pages project-assigned-graphs)
+  #:use-module (www pages project-queries)
+  #:use-module (www pages project-members)
   #:use-module (www pages edit-connection)
-  #:use-module (www pages edit-project)
+  #:use-module (www pages project-details)
   #:use-module (www pages)
   #:use-module (www util)
 
@@ -200,28 +203,16 @@
             (call-with-output-string
               (lambda (port) (display ""))))]
 
-   ;; ;; When the URI begins with “/project-samples/”, use the project-samples
+   ;; ;; When the URI begins with “/project-queries/”, use the project-queries
    ;; ;; page to construct a suitable output.
-   [(string-prefix? "/project-samples" request-path)
-    (cond
-     [(string-suffix? ".json" request-path)
-      (values '((content-type . (application/javascript)))
-              (call-with-output-string
-                (lambda (port)
-                  (set-port-encoding! port "utf8")
-                  (put-string port (page-project-samples
-                                    (basename request-path ".json")
-                                    username
-                                    'json)))))]
-     [(string-suffix? ".n3" request-path)
-      (values '((content-type . (text/plain)))
-              (call-with-output-string
-                (lambda (port)
-                  (set-port-encoding! port "utf8")
-                  (put-string port (page-project-samples
-                                    (basename request-path ".n3")
-                                    username
-                                    'ntriples)))))])]
+   [(string-prefix? "/project-queries" request-path)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (sxml->xml
+                 (page-project-queries request-path username #:post-data '())
+                 port))))]
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
@@ -257,24 +248,60 @@
                                (page-edit-connection request-path username))
                            port))))]
 
-   ;; When the URI begins with “/edit-project/”, use the edit-project
+   ;; When the URI begins with “/project-details/”, use the project-details
    ;; page.
-   [(string-prefix? "/edit-project" request-path)
+   [(string-prefix? "/project-details" request-path)
     (values '((content-type . (text/html)))
             (call-with-output-string
               (lambda (port)
                 (set-port-encoding! port "utf8")
                 (format port "<!DOCTYPE html>~%")
                 (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-project request-path username
+                               (page-project-details request-path username
                                 #:post-data (utf8->string request-body))
-                               (page-edit-project request-path username))
+                               (page-project-details request-path username))
+                           port))))]
+
+   [(string-prefix? "/project-members" request-path)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (if (eq? (request-method request) 'POST)
+                               (page-project-members request-path username
+                                #:post-data (utf8->string request-body))
+                               (page-project-members request-path username))
+                           port))))]
+
+   [(string-prefix? "/project-dependent-graphs" request-path)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (if (eq? (request-method request) 'POST)
+                               (page-project-dependent-graphs request-path username
+                                #:post-data (utf8->string request-body))
+                               (page-project-dependent-graphs request-path username))
+                           port))))]
+
+   [(string-prefix? "/project-assigned-graphs" request-path)
+    (values '((content-type . (text/html)))
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (format port "<!DOCTYPE html>~%")
+                (sxml->xml (if (eq? (request-method request) 'POST)
+                               (page-project-assigned-graphs request-path username
+                                #:post-data (utf8->string request-body))
+                               (page-project-assigned-graphs request-path username))
                            port))))]
 
    ;; For “/query-history-clean”, we must call a database function and
    ;; redirect to “/query”.
    [(string-prefix? "/query-history-clear" request-path)
-    (query-remove-unmarked (all-queries username) username)
+    (query-remove-unmarked username)
     (values (build-response
              #:code 303
              #:headers `((Location   . "/query")))

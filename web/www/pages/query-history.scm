@@ -42,12 +42,12 @@
                 (string-split query #\newline)))))
 
 (define* (page-query-history request-path username #:key (post-data ""))
-  (let* ((project     (active-project username))
-         (queries     (queries-by-project (project-name project)
-                                          (all-queries username))))
-    `((table (@ (id "item-table"))
+  (let* [(queries     (queries-by-username username))]
+    `((table (@ (id "query-history-table")
+                (class "item-table"))
              (tr (th "Query")
                  (th "Connection")
+                 (th "Project")
                  (th "Duration (in seconds)")
                  (th (@ (style "width: 200px; text-align: right;")
                         (colspan "4"))
@@ -58,6 +58,7 @@
              ,(map (lambda (query)
                      `(tr (td (pre ,(strip-prefix-lines (query-content query))))
                           (td ,(query-endpoint query))
+                          (td ,(project-name (project-by-id (query-project query))))
                           (td ,(if (query-execution-time query)
                                    (query-execution-time query)
                                    "Unknown"))
@@ -68,19 +69,21 @@
                                          (input (@ (type "checkbox")
                                                    (id ,(string-append
                                                          "mark-"
-                                                         (number->string (query-id query))))
+                                                         (basename (query-id query))))
                                                    (class "mark-box")
                                                    ,(if (query-marked? query)
                                                         '(checked "checked")
                                                         '(name "favorite"))
                                                    (onchange ,(string-append
-                                                               "toggle_marker("
-                                                               (number->string
-                                                                (query-id query)) "); return false"))
-                                                   (value ,(number->string (query-id query)))))
+                                                               "toggle_marker('"
+                                                               (basename (query-id query))
+                                                               "', '"
+                                                               (query-id query)
+                                                               "'); return false"))
+                                                   (value ,(query-id query))))
                                          (label (@ (for ,(string-append
                                                           "mark-"
-                                                          (number->string (query-id query)))))))))
+                                                          (basename (query-id query)))))))))
                           (td (@ (class "button-column left-button-column"))
                               (form (@ (action "/query") (method "post"))
                                     (button (@ (type "submit")
@@ -100,9 +103,9 @@
                                             "⤴")))))
                    queries))
       (script "
-function toggle_marker (id) {
+function toggle_marker (id, queryId) {
   var state = document.getElementById('mark-'+ id).checked;
-  var post_data = { 'query-id': id, 'state': state };
+  var post_data = { 'query-id': queryId, 'state': state };
   $.post('/query-history-mark.json', JSON.stringify(post_data), function(data){
     var message = JSON.parse(data);
     document.getElementById('mark-'+ id).checked = message[0].state;

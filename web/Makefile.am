@@ -42,7 +42,6 @@ SOURCES =                                               \
   www/pages/connections.scm                             \
   www/pages/datasets.scm                                \
   www/pages/edit-connection.scm                         \
-  www/pages/edit-project.scm                            \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \
   www/pages/getting-started.scm                         \
@@ -51,7 +50,11 @@ SOURCES =                                               \
   www/pages/login.scm                                   \
   www/pages/overview-table.scm                          \
   www/pages/predicates.scm                              \
-  www/pages/project-samples.scm                         \
+  www/pages/project-assigned-graphs.scm                 \
+  www/pages/project-dependent-graphs.scm                \
+  www/pages/project-details.scm                         \
+  www/pages/project-members.scm                         \
+  www/pages/project-queries.scm                         \
   www/pages/projects.scm                                \
   www/pages/query-history.scm                           \
   www/pages/query-history-mark.scm                      \

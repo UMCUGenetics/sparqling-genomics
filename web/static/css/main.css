@@ -41,7 +41,7 @@ body,html {
     font-family: 'Roboto', sans-serif;
     line-height: 1.4em;
     color: #000000;
-    background-color: #93ac9d /*#b7c8b7*/  /*#6f8a91*/ /*#2ca05a*/ /*#53676c*/;
+    background-color: #99cccc
 }
 
 #wrapper {
@@ -101,13 +101,46 @@ a:hover { color: #555555; }
     -webkit-box-shadow: 0 0 50px -30px #000000;
     box-shadow: 0 0 50px -30px #000000;
 }
-#content .search-field {
-    border: solid 1px #999;
-    width: 100%;
-    padding: 5pt;
+
+#prompt-wrapper {
+    border: none;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
+    overflow: hidden;
+    margin-top: 10pt;
+    padding: 0pt;
+}
+
+#prompt-wrapper .search-field {
+    display: inline-block;
+    width: 100%;
+    margin: 0pt;
+    padding: 5pt;
+}
+
+#prompt-wrapper table td {
+    margin: 0px;
+    padding: 0px;
+    cellspacing: 0px;
+    cellpadding: 0px;
+}
+
+#prompt-wrapper .prompt {
+    width: auto;
+    font-size: 20px;
+    font-weight: bold;
+    background: #000000;
+    color: #ffffff;
+}
+
+#prompt-wrapper .input-field { width: 100%; background: #eee; }
+
+#prompt-wrapper input[type=text] {
+    background: #eee;
+    padding: 5pt;
+    margin: 0pt;
+    border: none;
 }
 
 #content p { margin: 0pt; padding: 5pt 0pt 5pt 0pt; }
@@ -120,9 +153,6 @@ a:hover { color: #555555; }
 #content table {
     border-spacing: 0pt;
     padding: 0pt;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
 }
 #content table td { padding: 2pt 4pt 2pt 4pt; font-size: 0.85em; height: 25pt; }
 #stand-by {
@@ -134,11 +164,6 @@ a:hover { color: #555555; }
 #stand-by p { padding: 5pt }
 #footer { width: 100% font-size: small; text-align: center; color: #000000 }
 #footer a { color: #000000 }
-
-#packages-table {
-    width: 100%;
-    border-spacing: 0pt;
-}
 
 #workarea {
     border: solid 2pt #000000;
@@ -186,26 +211,24 @@ code {
     right: 0;
     font-family: 'FiraMono', monospace;
     font-size: 16px;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
     border: solid 1px #cccccc;
 }
 
 #query-output {
     width: 100%;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    border: solid 1px #cccccc;
+    border: solid 2px #444444;
 }
 
 #query-output thead {
-    background: #e8e8e8;
+    background: #444444;
+    color: #ffffff;
+    padding: 0pt;
+    margin: 0pt;
 }
 
 #query-output_wrapper {
-    margin-top: 10pt;
+    margin: 10pt 0pt 0pt 0pt;
+    padding: 0pt;
 }
 
 #content .query-error .title {
@@ -248,19 +271,13 @@ code {
     margin-top: 10pt;
     padding: 5pt;
     font-weight: bold;
-    background: #000000;
+    background: #444444;
     color: #ffffff;
-    -webkit-border-radius: 4pt 4pt 0pt 0pt;
-    -moz-border-radius: 4pt 4pt 0pt 0pt;
-    border-radius: 4pt 4pt 0pt 0pt;
 }
 
 #content .history-data-loader .content {
     padding: 5pt;
     background: #e8e8e8;
-    -webkit-border-radius: 0pt 0pt 4pt 4pt;
-    -moz-border-radius: 0pt 0pt 4pt 4pt;
-    border-radius: 0pt 0pt 4pt 4pt;
 }
 
 #content .query-data-loader .title {
@@ -268,39 +285,11 @@ code {
     padding: 5pt;
     font-weight: bold;
     background: #33cc33;
-    -webkit-border-radius: 4pt 4pt 0pt 0pt;
-    -moz-border-radius: 4pt 4pt 0pt 0pt;
-    border-radius: 4pt 4pt 0pt 0pt;
 }
 
 #content .query-data-loader .content {
     padding: 5pt;
     background: #e8e8e8;
-    -webkit-border-radius: 0pt 0pt 4pt 4pt;
-    -moz-border-radius: 0pt 0pt 4pt 4pt;
-    border-radius: 0pt 0pt 4pt 4pt;
-}
-
-#ontology-feature-table th {
-    background: #e8e8e8;
-    text-align: left;
-    padding: 5pt;
-}
-
-#ontology-feature-table thead tr :first-child {
-    -webkit-border-radius: 4pt 0pt 0pt 0pt;
-    -moz-border-radius: 4pt 0pt 0pt 0pt;
-    border-radius: 4pt 0pt 0pt 0pt;
-}
-
-#ontology-feature-table thead tr :last-child {
-    -webkit-border-radius: 0pt 4pt 0pt 0pt;
-    -moz-border-radius: 0pt 4pt 0pt 0pt;
-    border-radius: 0pt 4pt 0pt 0pt;
-}
-
-#ontology-feature-table tr:nth-child(even) {
-    background: #eeeeee;
 }
 
 tr:nth-child(even) {
@@ -381,20 +370,9 @@ svg { width: 100%; height: 600px; background: #333333; }
     min-height: 600px:
 }
 
-#item-table {
-    width: 100%;
-    border: solid 2px #222222;
-}
-
-#item-table th {
-    background: #222222;
-    color: #ffffff;
-    padding: 5px;
-}
-
-#item-table tr:nth-child(even) {
-    background: #eeeeee;
-}
+.item-table { width: 100%; border: solid 2px #444444; }
+.item-table th { background: #444444; color: #ffffff; padding: 5px; }
+.item-table tr:nth-child(even) { background: #f6f6f6; }
 
 select#connection {
     height: 40px;
@@ -409,6 +387,23 @@ select#connection {
 .small-action {
     display: inline-block;
     font-size: 18px;
+    font-weight: normal;
+    background: #ffdd55;
+    border: solid 2px #aa8800;
+    padding: 0px 5px 0px 5px;
+    margin: 5px;
+    -webkit-border-radius: 4pt;
+    -moz-border-radius: 4pt;
+    border-radius: 4pt;
+    width: auto;
+}
+
+.smaller-action a { text-decoration: none; }
+.smaller-action a:hover { color: #000000; }
+.smaller-action:hover { background: #ffeeaa; }
+.smaller-action {
+    display: inline-block;
+    font-size: 16px;
     font-weight: normal;
     background: #ffdd55;
     border: solid 2px #aa8800;
@@ -447,6 +442,7 @@ select#connection {
     -moz-border-radius: 4pt;
     border-radius: 4pt;
     margin-right: 10px;
+    cursor: pointer;
 }
 
 .small-action-btn {
@@ -581,8 +577,8 @@ input[type=submit].login-field {
 .stop-btn { background: #008888; }
 .stop-btn:hover { background: #00aaaa; }
 
-.question-btn { background: #93ac9d; }
-.question-btn:hover { background: #b7c8be; }
+.question-btn { background: #33cccc; }
+.question-btn:hover { background: #66cccc; }
 
 .success { background: #33cc33; }
 .failure { background: #cc3333; }
@@ -591,18 +587,15 @@ input[type=submit].login-field {
 .table-header-small-text a:hover { color: #ccc }
 
 #content .data-collection {
-    border: solid 2px #333333;
+    border: solid 2px #444444;
     margin-bottom: 15pt;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
 }
 
 #content .data-collection h2 {
     font-weight: bold;
     font-size: large;
     color: #ffffff;
-    background: #333333;
+    background: #444444;
     margin: 0px;
     padding: 5pt;
 }

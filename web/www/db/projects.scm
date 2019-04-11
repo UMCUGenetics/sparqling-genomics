@@ -17,12 +17,16 @@
 (define-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
-  #:use-module (sparql lang)
+  #:use-module (sparql driver)
+  #:use-module (sparql util)
+  #:use-module (web response)
   #:use-module (ice-9 format)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 threads)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (rnrs io ports)
 
   #:export (project-add
             project-edit
@@ -30,213 +34,466 @@
             project-is-active?
             active-project
             all-projects
+            active-project-for-user
+            projects-by-user
             project-by-name
-            load-projects
-            persist-projects
+            project-by-id
+            project-by-hash
 
             alist->project
             project->alist
             project->ntriples
 
             make-project
+            project-id
+            project-hash
             project-name
             project-samples
+            project-members
+            project-assigned-graphs
+            project-inferred-graphs
             project?
+            project-exists?
+            project-is-created-by?
+
+            project-assign-graph!
+            project-forget-graph!
+            project-assign-member!
+            project-forget-member!
+
+            project-lock-assigned-graph!
+            project-unlock-assigned-graph!
 
             set-project-name!
             set-project-samples!
-            project-set-as-active!))
+            set-active-project-for-user!))
 
-;; PROJECT RECORD TYPE
+;; PROJECT
 ;; ----------------------------------------------------------------------------
-(define-record-type <project>
-  (make-project is-active? name samples)
-  project?
-  (is-active?  project-is-active?  set-project-active!)
-  (name        project-name        set-project-name!)
-  (samples     project-samples     set-project-samples!))
+;;
+;; Projects are symbolic glue for data, queries, and agents.  The following
+;; functions implement interactions with projects.
+;;
 
-
-;; ALIST->PROJECT AND PROJECT->ALIST
+;; BASE SELECT QUERY
 ;; ----------------------------------------------------------------------------
-(define (alist->project input)
-  "Turns the association list INPUT into a project record."
-  (catch #t
-    (lambda _
-      (let ((obj (make-project (assoc-ref input 'is-active?)
-                               (assoc-ref input 'name)
-                               (assoc-ref input 'samples))))
-        (when (and (string? (project-samples obj))
-                   (string= (project-samples obj) ""))
-          (set-project-samples! obj '()))
-        obj))
-    (lambda (key . args)
-      #f)))
 
-(define (project->alist record)
-  `((is-active? . ,(project-is-active? record))
-    (name       . ,(project-name       record))
-    (samples    . ,(project-samples    record))))
+(define (generate-query-with-filters filters)
+  (string-append
+   default-prefixes
+   "
+SELECT ?project AS ?projectId ?creator ?name ?date
+FROM <" system-state-graph ">
+WHERE {
+  ?project rdf:type sg:Project .
+  OPTIONAL {
+    ?project dcterms:creator ?creator ;
+             dcterms:title   ?name ;
+             dcterms:date    ?date .
+    ?agent   sg:isAssignedTo ?project .
+  }
+"
+   (if filters
+       (format #f "~{  FILTER (~a)~%~}" filters)
+       "")
+   "}"))
 
-;; PROJECT->NTRIPLES
+;; SIMPLE GETTERS
 ;; ----------------------------------------------------------------------------
-(define (project->ntriples input)
-  (with-output-to-string
-    (lambda _
-      (let ((sg  (prefix "http://sparqling-genomics/"))
-            (sam (prefix "http://sparqling-genomics/Sample/"))
-            (pro (prefix "http://sparqling-genomics/Project/"))
-            (rdf (prefix "http://www.w3.org/1999/02/22-rdf-syntax-ns#")))
-        (format #t "~a ~a ~a .~%"
-                (pro (project-name input))
-                (rdf "type")
-                (sg "Project"))
-        (when (project-samples input)
-          (for-each (lambda (sample)
-                      (format #t "~a ~a ~a .~%"
-                              (sam sample)
-                              (sg  "foundIn")
-                              (pro (project-name input))))
-                    (project-samples input)))))))
+
+(define-syntax-rule (project-id project)         (assoc-ref project "projectId"))
+(define-syntax-rule (project-name project)       (assoc-ref project "name"))
+(define-syntax-rule (project-creator project)    (assoc-ref project "creator"))
+(define-syntax-rule (project-created-at project) (assoc-ref project "createdAt"))
+
+(define (project-hash project)
+  (basename (project-id project)))
 
 ;; PROJECTS PERSISTENCE
 ;; ----------------------------------------------------------------------------
-(define (persistence-path username)
-  (string-append (www-cache-root) "/" username "/projects.scm"))
+(define (persist-project username name)
 
-(define (load-projects username)
-  (catch #t
-    (lambda _
-      (let ((filename (persistence-path username)))
-        (if (file-exists? filename)
-          (call-with-input-file filename
-            (lambda (port)
-              (map alist->project (read port))))
-          '())))
-    (lambda (key . args)
-      #f)))
-
-(define (persist-projects connections username)
-  (let ((filename (persistence-path username)))
-    (unless (file-exists? (dirname filename))
-      (mkdir-p (dirname filename)))
-    (call-with-output-file filename
-      (lambda (port)
-        ;; Before writing to the file under 'port', chmod it so that
-        ;; only the user this process runs as can read its contents.
-        (chmod port #o600)
-        (format port ";; This file was generated by sparqling-genomics.~%")
-        (format port ";; Please do not edit this file manually.~%")
-        (write (map project->alist connections) port)))))
+  (let* [(project-id (generate-id username name))
+         (timestamp (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time))))
+         (query (string-append
+                 default-prefixes
+                 "INSERT INTO <" system-state-graph "> { "
+                 "project:" project-id
+                 " rdf:type sg:Project ;"
+                 " dcterms:creator agent:" username " ;"
+                 " dcterms:title " (format #f "~s^^xsd:string" name) " ;"
+                 " dcterms:date \"" timestamp "\"^^xsd:dateTime ."
+                 " agent:" username " sg:isAssignedTo project:" project-id " ."
+                 "}"))
+         (connection (system-connection))]
+    (receive (header body)
+        (system-sparql-query query)
+      (if (= (response-code header) 200)
+          (begin
+            (set-active-project-for-user!
+             username
+             (string-append
+              (assoc-ref default-uri-strings 'project)
+              project-id))
+            #t)
+          (begin
+            (display (get-string-all body))
+            #f)))))
 
 ;; PROJECT-ADD
 ;; ----------------------------------------------------------------------------
-(define (project-add record projects username)
-  "Adds a reference to the internal graph for the project RECORD."
-  (let ((name    (project-name    record))
-        (samples (project-samples record)))
-    (cond
-     ((string-is-longer-than name (graph-name-max-length))
-      (values #f (format #f "The project name cannot be longer than ~a characters."
-                         (graph-name-max-length))))
-     ((string= name "")
-      (values #f (format #f "The project name cannot empty.")))
-     ((project-by-name (project-name record) projects)
-      (values #f (format #f "There already exists a project with this name.")))
-     ((string-contains name " ")
-      (values #f (format #f "The project name cannot contain whitespace characters.")))
-     (#t (let ((new-state (cons record projects)))
-           (persist-projects
-            (project-set-as-active! record new-state) username)
-           (values #t "The project has been added."))))))
-
-;; PROJECT-EDIT
-;; ----------------------------------------------------------------------------
-(define (project-edit record projects username)
-  "Updates RECORD for which NAME equals the name of an existing record."
-  (let ((name    (project-name    record))
-        (samples (project-samples record)))
-    (cond
-     ((string-is-longer-than name (graph-name-max-length))
-      (values #f (format #f "The project name cannot be longer than ~a characters."
-                         (graph-name-max-length))))
-     ((string= name "")
-      (values #f (format #f "An empty project name is not allowed.")))
-     ((not (project-by-name name projects))
-      (values #f (format #f "There is no project with this name.")))
-     ((string-contains name " ")
-      (values #f (format #f "The project name cannot contain whitespace characters.")))
-     (#t (begin
-           (persist-projects
-            (cons record
-                  (delete #f
-                          (map (lambda (project)
-                                 (if (string= (project-name project) name)
-                                     #f
-                                     project))
-                               projects)))
-            username)
-           (values #t "The project has been modified."))))))
+(define (project-add name username)
+  "Adds a project to the system state."
+  (cond
+   [(string-is-longer-than name (graph-name-max-length))
+    (values #f (format #f "The project name cannot be longer than ~a characters."
+                       (graph-name-max-length)))]
+   [(string= name "")
+    (values #f (format #f "The project name cannot empty."))]
+   [(project-exists? name username)
+    (values #f (format #f "There already exists a project with this name."))]
+   [#t (if (persist-project username name)
+           (values #t "The project has been added.")
+           (values #f "The project could not be added."))]))
 
 ;; PROJECT-REMOVE
 ;; ----------------------------------------------------------------------------
-(define (project-remove record projects username)
+(define (project-remove project-uri username)
   "Removes the reference in the internal graph for PROJECT."
-  (let ((name (if (string? record) record (project-name record))))
-    (if (project-is-active? (project-by-name name projects))
-        (values #f "Cannot remove the active project.")
-        (begin
-          (persist-projects
-           (filter (lambda (project)
-                     (not (string= (project-name project) name)))
-                   projects)
-           username)
-          (values #t (format #f "Removed “~a”." name))))))
+  (if (string= project-uri (active-project-for-user username))
+      (values #f "Cannot remove active project.")
+      ;; TODO: Should we also remove the queries related to a project?
+      (let [(query (string-append
+                    default-prefixes
+                    "WITH <" system-state-graph ">
+DELETE { <" project-uri "> ?predicate ?object . }
+WHERE  { <" project-uri "> ?predicate ?object . }"))
+            (connection (system-connection))]
+        (receive (header body)
+            (system-sparql-query query)
+          (if (= (response-code header) 200)
+              (values #t "")
+              (values #f
+                      (format #f "Could not remove project (error code ~a)"
+                              (response-code header))))))))
 
-;; PROJECT-SET-AS-ACTIVE!
+(define (set-project-property! project-id predicate object type)
+  (let [(query (string-append
+                default-prefixes
+                "WITH <" system-state-graph ">
+DELETE { ?project " predicate " ?value . }
+INSERT { ?project " predicate " " (if type
+                                    (if (string= type "xsd:boolean")
+                                        (format #f "~a" (if object "1" "0"))
+                                        (format #f "~s^^~a" object type))
+                                    (format #f "<~a>" object)) " . }
+WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))
+        (connection (system-connection))]
+    (receive (header body)
+        (system-sparql-query query)
+      (= (response-code header) 200))))
+
+;; GET FUNCTIONS
 ;; ----------------------------------------------------------------------------
-(define (project-set-as-active! project projects)
-  "Sets PROJECT as the active project."
-  (let ((name (if (string? project) project (project-name project))))
-    (map (lambda (record)
-           (set-project-active! record (string= (project-name record) name))
-           record)
-         projects)))
 
-;; ALL-PROJECTS
-;; ----------------------------------------------------------------------------
-
-(define* (all-projects username #:key (filter #f))
+(define* (all-projects #:key (filter #f))
   "Returns a list of project records, applying FILTER to the records."
-  (let ((projects (sort (delete #f (load-projects username))
-                        (lambda (first second)
-                          (string<? (project-name first)
-                                    (project-name second))))))
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters '()))))]
     (if filter
-        (map filter projects)
-        projects)))
+        (map filter results)
+        results)))
 
-(define (project-by-name name projects)
-  (let ((item (filter (lambda (project)
-                        (string= (project-name project) name))
-                      projects)))
-    (if (null? item)
+(define* (projects-by-user username #:key (filter #f))
+  "Returns a list of project records, applying FILTER to the records."
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                   (generate-query-with-filters
+                    (list (format #f "?agent = agent:~a" username))))))]
+    (if filter
+        (map filter results)
+        results)))
+
+(define (project-by-name name)
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters
+                     `(,(format #f "?name = ~s^^xsd:string" name))))))]
+    (if (null? results)
         #f
-        (car item))))
+        (car results))))
 
-(define (active-project username)
-  (let ((projects (delete #f
-                    (all-projects username
-                                  #:filter
-                                  (lambda (project)
-                                    (if (project-is-active? project)
-                                        project
-                                        #f))))))
-    (if (= (length projects) 1)
-        (car projects)
-        ;; Upon creating a project, it's set as default.  So when
-        ;; there is no active project, that means there is no project at all.
-        ;; Automatically create a project when there isn't one.
-        (begin
-          (project-add (alist->project '((name . "Default"))) '() username)
-          (active-project username)))))
+(define (project-by-id id)
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                    (generate-query-with-filters
+                     `(,(format #f "?project = <~a>" id))))))]
+    (if (null? results)
+        #f
+        (car results))))
+
+(define (project-by-hash hash)
+  (let [(results (query-results->alist
+                  (system-sparql-query
+                   (generate-query-with-filters
+                    (list (format #f "?project = project:~a" hash))))))]
+    (if (null? results)
+        #f
+        (car results))))
+
+(define (project-exists? name username)
+  (let* [(project-id (generate-id username name))
+         (query (string-append
+                 default-prefixes
+                 "SELECT (COUNT(?project) AS ?projects) "
+                 "FROM <" system-state-graph "> "
+                 "WHERE { ?project ?p ?o . "
+                 "FILTER (?project = project:" project-id ") }"))
+         (results (query-results->alist (system-sparql-query query)))]
+    (not (string= (assoc-ref (car results) "projects") "0"))))
+
+(define (set-active-project-for-user! username project-id)
+  (let [(delete-query (string-append
+                       default-prefixes
+                       "WITH <" system-state-graph ">
+DELETE { agent:" username " sg:currentlyWorksOn ?project . }
+WHERE  { agent:" username " sg:currentlyWorksOn ?project . }"))
+        (insert-query (string-append
+                       default-prefixes
+                       "WITH <" system-state-graph ">
+INSERT { agent:" username " sg:currentlyWorksOn <" project-id "> . }"))]
+    (receive (header body) (system-sparql-query delete-query)
+      (if (= (response-code header) 200)
+          #t
+          (begin
+            (format #t "Error:~%~a~%" (get-string-all body))
+            #f)))
+    (receive (header body) (system-sparql-query insert-query)
+      (= (response-code header) 200))))
+
+(define (active-project-for-user username)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT ?project "
+                 "FROM <" system-state-graph "> "
+                 "WHERE { agent:" username " sg:currentlyWorksOn ?project . }"))
+         (results (query-results->alist (system-sparql-query query)))]
+    (if (> (length results) 0)
+        (assoc-ref (car results) "project")
+        '())))
+
+;; PROJECT -> MEMBERS
+;; ----------------------------------------------------------------------------
+;;
+;; Agents/People/Robots are the functional units of a project.  The following
+;; functions implement the interactions between projects and its members.
+;;
+
+(define (project-members project-id)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT DISTINCT STRAFTER(STR(?agent), STR(agent:)) AS ?user"
+                 " COUNT(DISTINCT ?query) AS ?queries"
+                 " FROM <" system-state-graph ">"
+                 " WHERE { ?agent sg:isAssignedTo ?project ."
+                 " OPTIONAL {"
+                 " ?query sg:executedBy ?agent ; sg:isRelevantTo ?project ."
+                 " }"
+                 " FILTER (?project = <" project-id ">)"
+                 " }"
+                 " ORDER BY DESC(?queries)"))]
+    (query-results->alist (system-sparql-query query))))
+
+(define (project-assign-member! project-id username auth-user)
+  (let [(query (string-append
+                default-prefixes
+                "INSERT INTO <" system-state-graph "> {"
+                " agent:" username " sg:isAssignedTo ?project ."
+                " } WHERE {"
+                " agent:" auth-user " sg:isAssignedTo ?project ."
+                " FILTER (?project = <" project-id ">) }"))]
+    (receive (header body) (system-sparql-query query)
+      (if (= (response-code header) 200)
+          (values #t "")
+          (values #f (format #f "Could not assign ~a to the project." username))))))
+
+(define (project-has-member project-id username)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT DISTINCT ?agent"
+                 " FROM <" system-state-graph ">"
+                 " WHERE { ?agent sg:isAssignedTo <" project-id "> . }"))
+         (results (query-results->alist (system-sparql-query query)))]
+    (not (null? results))))
+
+(define (project-auto-assign-authorization-for-graph project-id graph-uri)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT ?auth FROM <" system-state-graph "> WHERE {"
+                 " <" graph-uri "> sg:requiresAuthorization ?auth ."
+                 " }"))
+         (results (query-results->alist (system-sparql-query query)))]
+    (if (null? results)
+        (let* [(auth-id (generate-id graph-uri))
+               (query (string-append
+                       default-prefixes
+                       "INSERT INTO <" system-state-graph "> {"
+                       " <" project-id "> sg:hasAuthorization ?auth ."
+                       " <" graph-uri "> sg:requiresAuthorization ?auth ."
+                       " } WHERE { BIND(auth:" auth-id " AS ?auth) }"))]
+          (receive (header body) (system-sparql-query query)
+            (= (response-code header) 200)))
+        #f)))
+
+(define (project-forget-member! project-id username)
+  (if (project-is-created-by? project-id username)
+      (values #f "Cannot remove the owner of the project.")
+      (let* [(query (string-append
+                     default-prefixes
+                     "WITH <" system-state-graph "> "
+                     "DELETE {"
+                     " agent:" username " sg:isAssignedTo <" project-id "> ."
+                     " }"))]
+        (receive (header body)
+            (system-sparql-query query)
+          (if (= (response-code header) 200)
+              (values #t "")
+              (values #f "Could not remove graph."))))))
+
+(define (project-is-created-by? project-id username)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT ?creator FROM <" system-state-graph "> WHERE {"
+                 " <" project-id "> dcterms:creator ?creator ."
+                 " FILTER (?creator = agent:" username ")}"))
+         (results (query-results->alist (system-sparql-query query)))]
+    (not (null? results))))
+
+;; PROJECT -> GRAPH
+;; ----------------------------------------------------------------------------
+;;
+;; Graphs contain datasets, and projects use graphs.  The following functions
+;; implement the interactions between projects and graphs.
+;;
+
+(define (project-assigned-graphs project-id)
+  (let* [(query (string-append
+                 default-prefixes
+                 "SELECT DISTINCT ?graph ?isLocked"
+                 " FROM <" system-state-graph ">"
+                 " WHERE { <" project-id "> sg:hasAssignedGraph ?graph ."
+                 " OPTIONAL { ?graph sg:isLocked ?lockState . }"
+                 " BIND(IF(BOUND(?lockState), ?lockState, \"false\"^^xsd:boolean)"
+                 " AS ?isLocked)"
+                 " }"))]
+    (query-results->alist
+     (system-sparql-query query))))
+
+(define (project-assign-graph! project-id graph-uri username)
+  ;; Attempt to authorize the project for the graph.
+  ;; This only works if the graph hasn't been claimed yet.
+  (project-auto-assign-authorization-for-graph project-id graph-uri)
+  (let [(query (string-append
+                default-prefixes
+                "INSERT INTO <" system-state-graph "> {"
+                " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
+                " } WHERE {"
+                " <" project-id "> sg:hasAuthorization ?auth ."
+                " <" graph-uri "> sg:requiresAuthorization ?auth ."
+                " }"))]
+    (receive (header body) (system-sparql-query query)
+      (if (= (response-code header) 200)
+          (values #t "")
+          (values #f "The project doesn't have the required authorization.")))))
+
+(define (project-forget-graph! project-id graph-uri)
+  (let* [(query (string-append
+                 default-prefixes
+                 "WITH <" system-state-graph "> "
+                 "DELETE { "
+                 "<" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
+                 "}"))]
+    (receive (header body)
+        (system-sparql-query query)
+      (if (= (response-code header) 200)
+          (values #t "")
+          (values #f "Could not remove graph.")))))
+
+(define (project-lock-or-unlock-assigned-graph! project-id graph-uri lock?)
+  (let* [(delete-query
+          (string-append
+           default-prefixes
+           "WITH <" system-state-graph "> "
+           "DELETE { <" graph-uri "> sg:isLocked \""
+           (if lock? "false" "true") "\"^^xsd:boolean . } "
+           "WHERE { <" graph-uri "> sg:isLocked \""
+           (if lock? "false" "true")"\"^^xsd:boolean . }"))
+         (insert-query
+          (string-append
+           default-prefixes
+           "WITH <" system-state-graph "> "
+           "INSERT { <" graph-uri ">  sg:isLocked \""
+           (if lock? "true" "false") "\"^^xsd:boolean . }"))]
+    (receive (header body) (system-sparql-query delete-query)
+      (if (= (response-code header) 200)
+          #t
+          (begin
+            (format #t "Error:~%~a~%" (get-string-all body))
+            #f)))
+    (receive (header body) (system-sparql-query insert-query)
+      (if (= (response-code header) 200)
+          (values #t "")
+          (values #f (string-append
+                      "Could not " (if lock? "lock" "unlock")
+                      " the graph."))))))
+
+(define-syntax-rule
+  (project-lock-assigned-graph! project-id graph-uri)
+  (project-lock-or-unlock-assigned-graph! project-id graph-uri #t))
+
+(define-syntax-rule
+  (project-unlock-assigned-graph! project-id graph-uri)
+  (project-lock-or-unlock-assigned-graph! project-id graph-uri #f))
+
+(define (project-inferred-graphs project-id)
+  ;; There are three ways to scope a triplet in a quad.  The following function
+  ;; is agnostic to the scope keyword.
+  (define* (graphs-from-query-for-keyword query clause #:optional (graphs '()))
+    (let* [(clause-length (+ (string-length clause) 2))
+           (from-start (string-contains-ci query (string-append clause " <")))
+           (from-end   (if from-start
+                           (string-contains query ">" from-start)
+                           #f))]
+      (if (and from-start from-end)
+          (graphs-from-query-for-keyword
+           (substring query from-end) clause
+           (cons
+            (substring query (+ from-start clause-length) from-end) graphs))
+          (reverse graphs))))
+
+  ;; The following function extracts the three ways of scoping a triplet.
+  (define (graphs-from-query query)
+     (append (graphs-from-query-for-keyword query "with")
+             (graphs-from-query-for-keyword query "from")
+             (graphs-from-query-for-keyword query "graph")
+             (graphs-from-query-for-keyword query "insert into")))
+
+  (catch #t
+    (lambda _
+      (let* [(query (string-append
+                     default-prefixes
+                     "SELECT ?queryText"
+                     " FROM <" system-state-graph ">"
+                     " WHERE { ?query sg:queryText ?queryText ;"
+                     "                sg:isRelevantTo <" project-id "> . }"))
+             (results (query-results->list (system-sparql-query query) #t))]
+        (if (null? results)
+            '()
+            (delete-duplicates
+             (apply append
+                    (delete '()
+                            (map graphs-from-query (apply append results))))
+             string=))))
+    (lambda (key . args)
+      '())))

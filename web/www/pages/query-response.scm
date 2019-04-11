@@ -93,16 +93,12 @@
                              (time-spent (time-difference end-time start-time))
                              (seconds (+ (time-second time-spent)
                                          (* (time-nanosecond time-spent)
-                                            (expt 10 -9) 1.0)))
-                             (queries (all-queries username)))
-                        (query-add (alist->query
-                                    `((endpoint       . ,(connection-name connection))
-                                      (content        . ,query)
-                                      (execution-time . ,seconds)
-                                      (project        . ,(project-name (active-project username))))
-                                    queries)
-                                   queries
-                                   username)
+                                            (expt 10 -9) 1.0))))
+                        (query-add query
+                                   (connection-name connection)
+                                   username
+                                   seconds
+                                   (active-project-for-user username))
                         (lambda (output-port) (stream-response port output-port)))]
                      [(= (response-code header) 401)
                       (lambda (output-port)
