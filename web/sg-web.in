@@ -18,30 +18,14 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (use-modules (ice-9 getopt-long)
-             (ice-9 rdelim)
-             (rnrs bytevectors)
-             (rnrs io ports)
-             (sparql driver)
              (srfi srfi-1)
              (sxml simple)
-             (system foreign)
              (ldap authenticate)
-             (web request)
-             (web response)
-             (web uri)
              (www base64)
              (www config)
              (www config-reader)
              (www requests)
-             (www db connections)
-             (www db projects)
              (www db sessions)
-             (www pages error)
-             (www pages welcome)
-             (www pages project-samples)
-             (www pages edit-connection)
-             (www pages edit-project)
-             (www pages)
              (www util))
 
 ;; Fibers is not available for Guile 2.0.  When distributions have picked
@@ -76,7 +60,7 @@
   (exit 0))
 
 (define (show-version)
-  (display "sparqling-genomics @VERSION@")
+  (display "SPARQLing-genomics @VERSION@")
   (newline)
   (exit 0))
 
@@ -141,7 +125,7 @@
       ;; 'random-state-from-platform' to seed the pRNG.
       (set! *random-state* (random-state-from-platform))))
 
-  (format #t "sparqling-genomics is running at http://~a:~a~%"
+  (format #t "SPARQLing-genomics is running at http://~a:~a~%"
           (inet-ntop (www-listen-address-family)
                      (www-listen-address))
           (www-listen-port))

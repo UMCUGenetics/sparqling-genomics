@@ -15,10 +15,19 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www config)
+  #:use-module (ice-9 format)
   #:use-module (oop goops)
   #:use-module (system foreign)
   #:use-module (www util)
+  #:use-module (sparql driver)
+  #:use-module ((www db connections)
+                #:select (connection-uri
+                          connection-username
+                          connection-password))
   #:export (default-uri-strings
+            default-prefixes
+            system-state-graph
+            system-sparql-query
             fork-on-startup?
             set-fork-on-startup!
             set-system-connection!
@@ -319,12 +328,43 @@
 ;;
 
 (define default-uri-strings
-  '((rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-    (xsd          . "http://www.w3.org/2001/XMLSchema#")
-    (sg           . "http://sparqling-genomics/")
+  '((agent        . "http://sparqling-genomics.org/Agent/")
+    (auth         . "http://sparqling-genomics.org/Authorization/")
+    (col          . "http://sparqling-genomics/table2rdf/Column/")
+    (dc           . "http://purl.org/dc/elements/1.1/")
+    (dcterms      . "http://purl.org/dc/terms/")
+    (dctype       . "http://purl.org/dc/dcmitype/")
+    (project      . "http://sparqling-genomics.org/Project/")
+    (query        . "http://sparqling-genomics.org/Query/")
+    (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+    (rdfs         . "http://www.w3.org/2000/01/rdf-schema#")
+    (row          . "http://sparqling-genomics/table2rdf/Row/")
+    (sg           . "http://sparqling-genomics.org/")
+    (table2rdf    . "http://sparqling-genomics/table2rdf/")
     (vcf2rdf      . "http://sparqling-genomics/vcf2rdf/")
-    (col          . "http://sparqling-genomics/table2rdf/Column/")))
+    (xsd          . "http://www.w3.org/2001/XMLSchema#")))
+
+(define default-prefixes
+  (format #f "~{PREFIX ~a~%~}" (map (lambda (item)
+                                      (format #f "~12a <~a>"
+                                              (symbol-append (car item) ':)
+                                              (cdr item)))
+                                    default-uri-strings)))
+
+(define system-state-graph "http://sparqling-genomics.org/sg-web/state")
 
 (define-syntax-rule
   (uri-string key)
   (assoc-ref default-uri-strings key))
+
+(define (system-sparql-query query)
+  (let [(connection (system-connection))]
+    (sparql-query query
+                  #:uri (connection-uri connection)
+                  #:digest-auth
+                  (if (and (connection-username connection)
+                           (connection-password connection))
+                      (string-append
+                       (connection-username connection) ":"
+                       (connection-password connection))
+                      #f))))

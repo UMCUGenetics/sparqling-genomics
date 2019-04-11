@@ -16,15 +16,16 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www util)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 match)
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
-            file-extension
   #:export (file-extension
             predicate-label
             string-replace-occurrence
@@ -32,7 +33,9 @@
             string-is-longer-than
             post-data->alist
             alist-symbol-key<?
-            mkdir-p))
+            mkdir-p
+            string->sha256sum
+            generate-id))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -111,3 +114,13 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                  (loop tail path)
                  (apply throw args))))))
       (() #t))))
+
+(define (string->sha256sum input)
+  (let* [(command (format #f "printf ~s | sha256sum" input))
+         (port    (open-pipe command OPEN_READ))
+         (result  (read-delimited " " port))]
+    (close-pipe port)
+    result))
+
+(define (generate-id . arguments)
+  (string->sha256sum (format #f "~{~a~}" arguments)))
