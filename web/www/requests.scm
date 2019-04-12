@@ -235,20 +235,6 @@
                                                           #:type 'json)))
                       (put-string port "[]"))))))]
 
-   ;; When the URI begins with “/edit-connection/”, use the edit-connection
-   ;; page.
-   [(string-prefix? "/edit-connection" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-connection request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-edit-connection request-path username))
-                           port))))]
-
    ;; When the URI begins with “/project-details/”, use the project-details
    ;; page.
    [(string-prefix? "/project-details" request-path)
