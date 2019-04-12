@@ -68,10 +68,6 @@
        ;; display the success or error message accordingly.
        ,(if message message '())
 
-       ;; Display the main table.
-       (h3 "Queries")
-       (div (@ (id "project-queries")) "")
-
        (h3 "Members"
            (div (@ (id "add-assigned-member")
                    (class "smaller-action"))
@@ -92,6 +88,9 @@
        (h3 "Inferred associated graphs")
        (p "The following graphs are used in one of the queries associated with this project.")
        (div (@ (id "project-dependent-graphs")) "")
+
+       (h3 "Queries")
+       (div (@ (id "project-queries")) "")
 
        (script "
 function ui_insert_assigned_graph_form () {
