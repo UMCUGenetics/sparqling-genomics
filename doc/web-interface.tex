@@ -103,9 +103,8 @@
 \subsubsection{Single-user configuration}
 
   The simplest form of authentication is the ``single-user configuration''.
-  Make sure the configuration file is only readable by yourself, as the
-  credentials are stored in plain text.  The following example shows how
-  to configure ``single-user authentication'':
+  Configuring it involves providing a username and the SHA256 sum of a password.
+  The following example shows how to configure ``single-user authentication'':
 
 \begin{siderules}
 \begin{verbatim}
@@ -115,7 +114,9 @@
   <authentication>
     <single-user>
       <username>user</username>
-      <password>test</password>
+      <!-- The password field must contain the SHA256 sum of the
+           plaintext password -->
+      <password>9f86d08...0f00a08</password>
     </single-user>>
   </authentication>
 </web-interface>

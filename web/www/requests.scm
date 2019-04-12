@@ -145,7 +145,8 @@
               (and (not (ldap-enabled?))
                    (authentication-enabled?)
                    (string= (authentication-username) (assoc-ref data 'username))
-                   (string= (authentication-password) (assoc-ref data 'password))))
+                   (string= (authentication-password) (string->sha256sum
+                                                       (assoc-ref data 'password)))))
           (let ((session (session-by-username (assoc-ref data 'username))))
             (unless session
               (set! session (alist->session
