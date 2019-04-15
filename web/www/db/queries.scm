@@ -132,7 +132,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
                  " sg:executedAt " (format #f "~s^^xsd:string" endpoint) " ;"
                  " sg:executedBy agent:" username " ;"
                  " dcterms:date " (format #f "~s^^xsd:dateTimeStamp"
-                                          (strftime "%Y-%m-%dT%H-%M-%SZ"
+                                          (strftime "%Y-%m-%dT%H:%M:%SZ"
                                                     (gmtime (current-time)))) " ;"
                  " sg:executionTime " (format #f "\"~a\"^^xsd:float" execution-time) " ;"
                  " sg:isRelevantTo <" project-id "> ."
