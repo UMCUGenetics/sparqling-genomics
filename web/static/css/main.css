@@ -339,16 +339,17 @@ select#connection {
 .small-action:hover { background: #ffeeaa; } 
 .small-action {
     display: inline-block;
-    font-size: 18pt;
+    font-size: 16pt;
     font-weight: normal;
     background: #ffdd55;
     border: solid 2pt #aa8800;
-    padding: 0pt 5pt 0pt 5pt;
+    padding: 0pt 3pt 0pt 3pt;
     margin: 3pt;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    width: auto;
+    width: 16pt;
+    text-align: center;
 }
 
 .smaller-action a { text-decoration: none; }
