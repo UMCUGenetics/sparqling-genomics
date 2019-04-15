@@ -70,7 +70,7 @@ WHERE {
                         (class "small-action-btn question-btn")
                         (name "query")
                         (value ,query))
-                     "?"))
+                     "SHOW ME"))
       text))
 
 (define* (page-overview-table request-path username #:key (post-data ""))

@@ -49,7 +49,7 @@
                  (th "Connection")
                  (th "Project")
                  (th "Duration (in seconds)")
-                 (th (@ (style "width: 200px; text-align: right;")
+                 (th (@ (style "width: 150pt; text-align: right;")
                         (colspan "4"))
                      "Actions "
                      (span (@ (class "table-header-small-text"))

@@ -43,7 +43,7 @@
                  (tr (th "Name")
                      (th "# Queries")
                      ,(if is-creator?
-                          '(th (@ (style "width: 200px; text-align: right;"))
+                          '(th (@ (style "width: 150pt; text-align: right;"))
                                "Actions")
                           '(th "")))
                  ,(map (lambda (item)

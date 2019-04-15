@@ -52,7 +52,7 @@
                      (th "Connection")
                      (th "Duration (in seconds)")
                      (th "Executed by")
-                     (th (@ (style "width: 200px; text-align: right;")
+                     (th (@ (style "width: 150pt; text-align: right;")
                             (colspan "4"))
                          "Actions"))
                  ,(map (lambda (query)

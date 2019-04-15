@@ -42,7 +42,7 @@
   `(table (@ (id "connections-table")
              (class "item-table"))
      (tr (th (@ (class "item-table-left")) "Connection")
-         (th (@ (style "min-width: 100px")
+         (th (@ (style "min-width: 30pt")
                 (colspan "2")) "Actions"))
      ,(map (lambda (record)
              (let ((name    (connection-name    record))

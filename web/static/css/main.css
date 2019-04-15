@@ -58,7 +58,7 @@ body,html {
 #header .logo { vertical-align: bottom; }
 #header .title { padding: 25pt 5pt 5pt 5pt; }
 #header .title h1 { padding: 0pt; margin: 0pt; }
-#header .title-text { margin-left: -20px; }
+#header .title-text { margin-left: -20pt; }
 #header img {
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -75,9 +75,7 @@ body,html {
     -webkit-border-radius: 4pt 4pt 0pt 0pt;
     -moz-border-radius: 4pt 4pt 0pt 0pt;
     border-radius: 4pt 4pt 0pt 0pt;
-    text-transform: uppercase;
     text-decoration: none;
-    font-size: 0.9em;
     color: #000000;
 }
 
@@ -97,9 +95,9 @@ a:hover { color: #555555; }
     line-height: 1.5;
     text-align: justify;
     text-justify: inter-word;
-    -moz-box-shadow: 0 0 50px -30px #000000;
-    -webkit-box-shadow: 0 0 50px -30px #000000;
-    box-shadow: 0 0 50px -30px #000000;
+    -moz-box-shadow: 0 0 30pt -20pt #000000;
+    -webkit-box-shadow: 0 0 30pt -20pt #000000;
+    box-shadow: 0 0 30pt -20pt #000000;
 }
 
 #prompt-wrapper {
@@ -120,17 +118,17 @@ a:hover { color: #555555; }
 }
 
 #prompt-wrapper table td {
-    margin: 0px;
-    padding: 0px;
-    cellspacing: 0px;
-    cellpadding: 0px;
+    margin: 0pt;
+    padding: 0pt;
+    cellspacing: 0pt;
+    cellpadding: 0pt;
 }
 
 #prompt-wrapper .prompt {
     width: auto;
-    font-size: 20px;
+    font-size: 20pt;
     font-weight: bold;
-    background: #000000;
+    background: #444444;
     color: #ffffff;
 }
 
@@ -155,39 +153,10 @@ a:hover { color: #555555; }
     padding: 0pt;
 }
 #content table td { padding: 2pt 4pt 2pt 4pt; font-size: 0.85em; height: 25pt; }
-#stand-by {
-    background: #decd87;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-}
-#stand-by p { padding: 5pt }
+
 #footer { width: 100% font-size: small; text-align: center; color: #000000 }
 #footer a { color: #000000 }
 
-#workarea {
-    border: solid 2pt #000000;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    background-image: url('/static/images/grid.png');
-    background-repeat: repeat;
-    background-color: #eeeeee;
-    width: 100%;
-    text-align: center;
-}
-
-div.figure {
-    text-align: center;
-    font-style: italic;
-    font-size: smaller;
-    text-indent: 0;
-    border: thin #cccccc solid;
-    margin: 0.5em;
-    padding: 0.5em;
-}
-
-.nobg { background-color: transparent; border: none; }
 .h2-title { font-size: large; }
 
 code {
@@ -210,13 +179,13 @@ code {
     left: 0;
     right: 0;
     font-family: 'FiraMono', monospace;
-    font-size: 16px;
-    border: solid 1px #cccccc;
+    font-size: 12pt;
+    border: solid 1pt #cccccc;
 }
 
 #query-output {
     width: 100%;
-    border: solid 2px #444444;
+    border: solid 2pt #444444;
 }
 
 #query-output thead {
@@ -296,22 +265,6 @@ tr:nth-child(even) {
     background: #eeeeee;
 }
 
-#ontology-feature-table {
-    width: 100%;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    background: #ccc;
-}
-#samples {
-    text-align: left;
-    background: #cccccc;
-    -webkit-border-radius: 4pt;
-    -moz-border-radius: 4pt;
-    border-radius: 4pt;
-    padding: 5pt;
-    margin: 5pt;
-}
 input[type=text],input[type=submit],input[type=password] {
     width: 100%;
     height: 20pt;
@@ -320,7 +273,7 @@ input[type=text],input[type=submit],input[type=password] {
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    border: solid 2px #cccccc;
+    border: solid 2pt #cccccc;
 }
 .sample-field {
     display: inline-block;
@@ -331,15 +284,15 @@ table {
     width: 100%;
 }
 
-svg { width: 100%; height: 600px; background: #333333; }
+svg { width: 100%; height: 600pt; background: #333333; }
 
 #add-field { width: 100% }
 #add-field-button {
-    width: 28px;
-    height: 28px;
-    padding: 0px;
+    width: 22pt;
+    height: 22pt;
+    padding: 0pt;
     font-weight: bold;
-    margin: 0px;
+    margin: 0pt;
     text-align: center;
     background: #008800;
     border: none;
@@ -349,10 +302,10 @@ svg { width: 100%; height: 600px; background: #333333; }
     border-radius: 4pt;
 }
 #edit-button {
-    height: 28px;
-    padding: 0px;
+    height: 22pt;
+    padding: 0pt;
     font-weight: bold;
-    margin: 0px;
+    margin: 0pt;
     text-align: center;
     background: #aa8800;
     border: none;
@@ -363,22 +316,22 @@ svg { width: 100%; height: 600px; background: #333333; }
 }
 
 .item-table-left { width: 100%; }
-.item-table-right { width: 200px; }
+.item-table-right { width: 200pt; }
 #add-field { width: 100% }
 #query-output {
     width: 100%;
-    min-height: 600px:
+    min-height: 600pt:
 }
 
-.item-table { width: 100%; border: solid 2px #444444; }
-.item-table th { background: #444444; color: #ffffff; padding: 5px; }
+.item-table { width: 100%; border: solid 2pt #444444; }
+.item-table th { background: #444444; color: #ffffff; padding: 5pt; }
 .item-table tr:nth-child(even) { background: #f6f6f6; }
 
 select#connection {
-    height: 40px;
-    width: 250px;
-    margin: 10px 0px 0px 0px;
-    padding: 0px;
+    height: 30pt;
+    width: 250pt;
+    margin: 10pt 0pt 0pt 0pt;
+    padding: 0pt;
 }
 
 .small-action a { text-decoration: none; }
@@ -386,12 +339,12 @@ select#connection {
 .small-action:hover { background: #ffeeaa; } 
 .small-action {
     display: inline-block;
-    font-size: 18px;
+    font-size: 18pt;
     font-weight: normal;
     background: #ffdd55;
-    border: solid 2px #aa8800;
-    padding: 0px 5px 0px 5px;
-    margin: 5px;
+    border: solid 2pt #aa8800;
+    padding: 0pt 5pt 0pt 5pt;
+    margin: 3pt;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
@@ -403,22 +356,24 @@ select#connection {
 .smaller-action:hover { background: #ffeeaa; }
 .smaller-action {
     display: inline-block;
-    font-size: 16px;
+    font-size: 14pt;
     font-weight: normal;
     background: #ffdd55;
-    border: solid 2px #aa8800;
-    padding: 0px 5px 0px 5px;
-    margin: 5px;
+    border: solid 2pt #aa8800;
+    padding: 0pt 3pt 0pt 3pt;
+    margin: 2pt;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    width: auto;
+    width: 14pt;
+    text-align: center;
+    cursor: pointer;
 }
 
 .message-box {
     width: auto;
-    margin: 0px 0px 1em 0px;
-    padding: 0px 10px 0px 10px;
+    margin: 0pt 0pt 1em 0pt;
+    padding: 0pt 10pt 0pt 10pt;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
@@ -431,44 +386,49 @@ select#connection {
 }
 .action-btn {
     display: inline-block;
-    width: 28px;
-    height: 28px;
-    font-size: 22px;
+    width: 20pt;
+    height: 20pt;
+    font-size: 16pt;
     text-align: center;
-    padding: 0px;
+    padding: 0pt;
     border: none;
     color: #ffffff;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    margin-right: 10px;
+    margin-right: 10pt;
     cursor: pointer;
+}
+
+.action-btn-lock {
+    background: none;
 }
 
 .small-action-btn {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
+    width: auto;
+    height: 16pt;
+    font-size: 8pt;
     text-align: center;
-    padding: 0px;
+    padding: 0pt 5pt 0pt 5pt;
     border: none;
     color: #ffffff;
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
+    cursor: pointer;
 }
 
 .left-button-column {
-    max-width: 30px;
-    text-align: right;
+    max-width: 20pt;
+    text-align: gright;
 }
 .right-button-column {
     width: auto;
     text-align: left;
 }
 .button-column {
-    width: 30px;
+    width: 20pt;
 }
 
 #login-wrapper {
@@ -488,7 +448,7 @@ input[type=submit].login-field,input[type=password].login-field,input[type=text]
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    border: solid 2px #ccc;
+    border: solid 2pt #ccc;
 }
 
 input[type=submit].login-field {
@@ -499,42 +459,42 @@ input[type=submit].login-field {
 }
 
 .multiple-selector {
-    height: 400px;
+    height: 400pt;
     width: 100%;
 }
 
-.multiple-selector option { padding: 4px; }
+.multiple-selector option { padding: 4pt; }
 .multiple-selector:disabled {
     background: #eee;
-    border: solid 1px #ccc;
+    border: solid 1pt #ccc;
 }
 .mark-box-wrapper {
-    width: 20px;
-    margin: 0px;
+    width: 16pt;
+    margin: 0pt;
     position: relative;
 }
 
 .mark-box-wrapper label {
     cursor: pointer;
     position: absolute;
-    width: 22px;
-    height: 22px;
+    width: 16pt;
+    height: 16pt;
     top: 0;
     left: 0;
     background: #eee;
-    border:1px solid #ddd;
+    border:1pt solid #ddd;
 }
 
 .mark-box-wrapper label:after {
     opacity: 0.1;
     content: '';
     position: absolute;
-    width: 9px;
-    height: 5px;
+    width: 9pt;
+    height: 5pt;
     background: transparent;
-    top: 6px;
-    left: 5px;
-    border: 3px solid #000;
+    top: 3pt;
+    left: 2pt;
+    border: 3pt solid #000;
     border-top: none;
     border-right: none;
     transform: rotate(-45deg);
@@ -577,8 +537,8 @@ input[type=submit].login-field {
 .stop-btn { background: #008888; }
 .stop-btn:hover { background: #00aaaa; }
 
-.question-btn { background: #33cccc; }
-.question-btn:hover { background: #66cccc; }
+.question-btn { background: #33cccc; color: #000000; }
+.question-btn:hover { background: #66eeee; color: #222222; }
 
 .success { background: #33cc33; }
 .failure { background: #cc3333; }
@@ -587,7 +547,7 @@ input[type=submit].login-field {
 .table-header-small-text a:hover { color: #ccc }
 
 #content .data-collection {
-    border: solid 2px #444444;
+    border: solid 2pt #444444;
     margin-bottom: 15pt;
 }
 
@@ -596,7 +556,7 @@ input[type=submit].login-field {
     font-size: large;
     color: #ffffff;
     background: #444444;
-    margin: 0px;
+    margin: 0pt;
     padding: 5pt;
 }
 
