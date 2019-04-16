@@ -339,7 +339,7 @@ select#connection {
 .small-action:hover { background: #ffeeaa; } 
 .small-action {
     display: inline-block;
-    font-size: 16pt;
+    font-size: 14pt;
     font-weight: normal;
     background: #ffdd55;
     border: solid 2pt #aa8800;
@@ -348,7 +348,7 @@ select#connection {
     -webkit-border-radius: 4pt;
     -moz-border-radius: 4pt;
     border-radius: 4pt;
-    width: 16pt;
+    width: 14pt;
     text-align: center;
 }
 
@@ -373,6 +373,8 @@ select#connection {
 
 .action-btn-clear-cache { background: #aa00aa; border: solid 2pt #880088; }
 .action-btn-clear-cache:hover { background: #cc00cc; }
+.action-btn-remove { background: #aa0000; border: solid 2pt #880000; }
+.action-btn-remove:hover { background: #990000; }
 
 .message-box {
     width: auto;
@@ -561,13 +563,19 @@ input[type=submit].login-field {
     color: #ffffff;
     background: #444444;
     margin: 0pt;
-    padding: 5pt;
+    padding: 3pt;
+    font-size: 12pt;
 }
 
+#content .data-collection h2 a { color: #ffffff; }
+#content .data-collection h2 a:hover { color: #cccccc; }
 #content .data-collection p {
     padding: 5pt;
+    font-size: 0.85em;
     background: #fafafa;
     -webkit-border-radius: 0pt 0pt 4pt 4pt;
     -moz-border-radius: 0pt 0pt 4pt 4pt;
     border-radius: 0pt 0pt 4pt 4pt;
 }
+
+.side-info { color: #999999; }
