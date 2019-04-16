@@ -34,9 +34,9 @@
    `((h2 "Data collections")
      ,(map (lambda (collection)
              `(div (@ (class "data-collection"))
-                   (h2 ,(assoc-ref collection "name") " ("
-                       ,(assoc-ref collection "publisher") ")")
+                   (h2 ,(assoc-ref collection "name")
+                       (span (@ (class "side-info")) " by "
+                             ,(assoc-ref collection "publisher")))
                    (p ,(assoc-ref collection "description"))))
-           (all-datasets (default-connection username))))
+           (all-datasets (system-connection))))
    #:dependencies '()))
-
