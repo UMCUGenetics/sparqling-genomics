@@ -55,6 +55,7 @@
             project?
             project-exists?
             project-is-created-by?
+            project-has-member?
 
             project-assign-graph!
             project-forget-graph!
@@ -318,12 +319,14 @@ INSERT { agent:" username " sg:currentlyWorksOn <" project-id "> . }"))]
           (values #t "")
           (values #f (format #f "Could not assign ~a to the project." username))))))
 
-(define (project-has-member project-id username)
+(define (project-has-member? project-id username)
   (let* [(query (string-append
                  default-prefixes
                  "SELECT DISTINCT ?agent"
                  " FROM <" system-state-graph ">"
-                 " WHERE { ?agent sg:isAssignedTo <" project-id "> . }"))
+                 " WHERE { ?agent sg:isAssignedTo <" project-id "> . "
+                 " FILTER (?agent = agent:" username ")"
+                 " }"))
          (results (query-results->alist (system-sparql-query query)))]
     (not (null? results))))
 

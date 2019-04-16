@@ -255,16 +255,30 @@
    ;; When the URI begins with “/project-details/”, use the project-details
    ;; page.
    [(string-prefix? "/project-details" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-project-details request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-project-details request-path username))
-                           port))))]
+    (catch #t
+      (lambda _
+        (let* [(hash    (last (string-split request-path #\/)))
+               (project (project-by-hash hash))]
+          (if (project-has-member? (project-id project) username)
+              (values
+               '((content-type . (text/html)))
+               (call-with-output-string
+                 (lambda (port)
+                   (set-port-encoding! port "utf8")
+                   (format port "<!DOCTYPE html>~%")
+                   (sxml->xml (if (eq? (request-method request) 'POST)
+                                  (page-project-details request-path username
+                                   #:post-data (utf8->string request-body))
+                                  (page-project-details request-path username))
+                              port))))
+              (throw 'no-access))))
+      (lambda (key . args)
+        (values
+         (build-response
+          #:code 404
+          #:headers '((content-type . (text/html))))
+         (with-output-to-string
+           (lambda _ (sxml->xml (page-error-404 request-path)))))))]
 
    [(string-prefix? "/project-members" request-path)
     (values '((content-type . (text/html)))
