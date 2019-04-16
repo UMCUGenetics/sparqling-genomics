@@ -36,8 +36,6 @@
     ("/projects" "Projects")
     ("/query" "Query")
     ("/exploratory" "Exploratory")
-    ("/getting-started" "Getting started")
-    ("/help" "Help")
     ("/logout" "Logout")))
 
 (define (page-partial-main-menu request-path)

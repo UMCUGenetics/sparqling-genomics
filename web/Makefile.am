@@ -44,9 +44,7 @@ SOURCES =                                               \
   www/pages/edit-connection.scm                         \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \
-  www/pages/getting-started.scm                         \
   www/pages/graphs.scm                                  \
-  www/pages/help.scm                                    \
   www/pages/login.scm                                   \
   www/pages/overview-table.scm                          \
   www/pages/predicates.scm                              \
