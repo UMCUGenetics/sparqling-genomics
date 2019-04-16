@@ -27,6 +27,7 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
+  #:use-module (www db cache)
   #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db sessions)
@@ -300,6 +301,13 @@
                                 #:post-data (utf8->string request-body))
                                (page-project-assigned-graphs request-path username))
                            port))))]
+
+   [(string-prefix? "/clear-cache" request-path)
+    (cache-clear username)
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/exploratory")))
+            "")]
 
    ;; For “/query-history-clean”, we must call a database function and
    ;; redirect to “/query”.

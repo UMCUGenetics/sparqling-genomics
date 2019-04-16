@@ -371,6 +371,9 @@ select#connection {
     cursor: pointer;
 }
 
+.action-btn-clear-cache { background: #aa00aa; border: solid 2pt #880088; }
+.action-btn-clear-cache:hover { background: #cc00cc; }
+
 .message-box {
     width: auto;
     margin: 0pt 0pt 1em 0pt;

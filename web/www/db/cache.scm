@@ -24,7 +24,8 @@
   #:use-module (www db connections)
   #:use-module (www util)
 
-  #:export (cache-value
+  #:export (cache-clear
+            cache-value
             cached-value))
 
 ;; CACHED-VALUE
@@ -44,17 +45,7 @@ WHERE {
     (catch #t
       (lambda _
         (let ((results (query-results->list
-                        (sparql-query query
-                                      #:uri (connection-uri connection)
-                                      #:store-backend
-                                      (connection-backend connection)
-                                      #:digest-auth
-                                      (if (and (connection-username connection)
-                                               (connection-password connection))
-                                          (string-append
-                                           (connection-username connection) ":"
-                                           (connection-password connection))
-                                          #f))
+                        (system-sparql-query query)
                         #t)))
           (if (null? results)
               #f
@@ -74,20 +65,22 @@ WHERE {
              (cache-value username connection property item))
            value)
       (receive (header port)
-          (sparql-query
+          (system-sparql-query
            (format #f "PREFIX : <http://sparqling-genomics/web/cache/>
 INSERT INTO <http://~a/sg-cache> {
   <http://sparqling-genomics/web/cache> :~a ~s .
-}" username property value)
-           #:uri (connection-uri connection)
-           #:store-backend
-           (connection-backend connection)
-           #:digest-auth
-           (if (and (connection-username connection)
-                    (connection-password connection))
-               (string-append
-                (connection-username connection) ":"
-                (connection-password connection))
-               #f))
+}" username property value))
         (= (response-code header) 200))))
 
+;; CACHE-CLEAR
+;; ----------------------------------------------------------------------------
+;;
+;; This function removes all cached items.
+;;
+
+(define (cache-clear username)
+  (receive (header port)
+      (system-sparql-query
+       (format #f "DEFINE sql:log-enable 3
+CLEAR GRAPH <http://~a/sg-cache>" username))
+    (= (response-code header) 200)))

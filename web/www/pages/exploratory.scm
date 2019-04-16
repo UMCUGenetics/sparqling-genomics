@@ -29,7 +29,9 @@
 
 (define* (page-exploratory request-path username #:key (post-data ""))
   (page-root-template "Exploratory" request-path
-   `((h2 "Exploratory")
+   `((h2 "Exploratory"
+         (div (@ (id "add-project") (class "small-action action-btn-clear-cache"))
+              (a (@ (href "/clear-cache")) "⭯")))
      (form
       (table (@ (id "exploratory-table")
                 (class "item-table"))
