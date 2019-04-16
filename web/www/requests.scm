@@ -75,7 +75,9 @@
 
   (let ((full-path (string-append (www-root) "/" path)))
     (if (not (file-exists? full-path))
-        (values '((content-type . (text/html)))
+        (values (build-response
+                 #:code 404
+                 #:headers '((content-type . (text/html))))
                 (with-output-to-string (lambda _ (sxml->xml (page-error-404 path)))))
         ;; Do not handle files larger than (maximum-file-size).
         ;; Please increase the file size if your server can handle it.
