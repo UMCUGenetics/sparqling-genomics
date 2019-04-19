@@ -163,8 +163,7 @@
                      `((Location   . "/")
                        (Set-Cookie . ,(string-append
                                        "SGSession=" (session-token session)))))
-                    (call-with-output-string
-                      (lambda (port) (display "")))))
+                    ""))
           (values '((content-type . (text/html)))
                   (call-with-output-string
                     (lambda (port)
@@ -204,8 +203,7 @@
                                (Set-Cookie  . ,(string-append
                                                 "SGSession=deleted; expires=Thu,"
                                                 " Jan 01 1970 00:00:00 UTC;"))))
-            (call-with-output-string
-              (lambda (port) (display ""))))]
+            "")]
 
    ;; ;; When the URI begins with “/project-queries/”, use the project-queries
    ;; ;; page to construct a suitable output.
@@ -420,5 +418,4 @@
         (values (build-response
                  #:code 303
                  #:headers '((Location . "/login")))
-                (call-with-output-string
-                  (lambda (port) (display ""))))]))))
+                "")]))))
