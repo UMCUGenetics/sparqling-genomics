@@ -17,6 +17,9 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
+(use-modules (ice-9 suspendable-ports))
+(install-suspendable-ports!)
+
 (use-modules (ice-9 getopt-long)
              (srfi srfi-1)
              (sxml simple)
@@ -27,17 +30,6 @@
              (www requests)
              (www db sessions)
              (www util))
-
-;; Fibers is not available for Guile 2.0.  When distributions have picked
-;; up Guile >2.2, we can remove this variable.
-(define %fibers-available?
-  (if (resolve-module '(fibers web server) #:ensure #f)
-      (begin
-        (use-modules (fibers web server))
-        #t)
-      (begin
-        (use-modules (web server))
-        #f)))
 
 ;; ---------------------------------------------------------------------------
 ;; COMMAND-LINE PARSING
@@ -88,17 +80,23 @@
   (exit 0))
 
 (define (run-sg-server request-handler)
-  (if %fibers-available?
-      ;; Fibers uses a slightly different syntax for run-server.
-      (run-server request-handler
-                  #:port (www-listen-port)
-                  #:family (www-listen-address-family)
-                  #:addr (www-listen-address))
+  (if (fibers-available?)
+      (begin
+        (format #t "Using Fibers for multi-threaded connection handling.~%")
+        (use-modules (fibers web server))
+        ;; Fibers uses a slightly different syntax for run-server.
+        (run-server request-handler
+                    #:port (www-listen-port)
+                    #:family (www-listen-address-family)
+                    #:addr (www-listen-address)))
       ;; When Fibers isn't available, fall back to the built-in
       ;; implementation of run-server.
-      (run-server request-handler 'http
-                  `(#:port ,(www-listen-port)
-                    #:addr ,(www-listen-address)))))
+      (begin
+        (format #t "Using single-threaded connection handling.~%")
+        (use-modules (web server))
+        (run-server request-handler 'http
+                    `(#:port ,(www-listen-port)
+                      #:addr ,(www-listen-address))))))
 
 (begin
   (catch #t

@@ -29,14 +29,60 @@
   #:use-module (srfi srfi-1)
   #:export (page-datasets))
 
+(define (%query-endpoint username)
+  (let ((connections (all-connections username)))
+    (if (null? connections)
+        #f
+        (connection-name (car connections)))))
+
+(define %default-filter-query
+  (string-append
+   default-prefixes
+   "SELECT ?s ?p ?o WHERE { ?s ?p ?o }"))
+
+(define (make-query-button text query username)
+  (if (%query-endpoint username)
+      `(div (@ (class "show-me-in-h2 small-action-btn"))
+            (form (@ (action "/query") (method "post"))
+                  (input (@ (type "hidden")
+                            (name "endpoint")
+                            (value ,(%query-endpoint username))))
+                  (button (@ (type "submit")
+                             (class "small-action-btn question-btn")
+                             (name "query")
+                             (value ,query))
+                          ,text)))
+      text))
+
 (define* (page-datasets request-path username #:key (post-data ""))
-  (page-root-template "Data collections" request-path
-   `((h2 "Data collections")
-     ,(map (lambda (collection)
-             `(div (@ (class "data-collection"))
-                   (h2 ,(assoc-ref collection "name")
-                       (span (@ (class "side-info")) " by "
-                             ,(assoc-ref collection "publisher")))
-                   (p ,(assoc-ref collection "description"))))
-           (all-datasets (system-connection))))
+  (page-root-template username "Data collections" request-path
+   `((h2 "Portal")
+     (div (@ (id "two-column"))
+          (div (@ (id "two-column-left-side"))
+               (h3 "Filter"
+                   ,(if username
+                        (make-query-button "SHOW ME"
+                                           %default-filter-query
+                                           username)
+                        '()))
+               (p "")
+               (div (@ (id "sidebar"))
+                    (form
+                     (table (@ (class "sidebar"))
+                            (tr (th "Collections"))
+                            ,(map (lambda (collection)
+                                    `(tr (td (label (input (@ (type "checkbox")))
+                                                    ,(assoc-ref collection "title")))))
+                                  (all-collections))))))
+
+          (div (@ (id "two-column-right-side"))
+               (h3 "Datasets")
+               (p "")
+               ,(map (lambda (collection)
+                       `(div (@ (class "data-collection"))
+                             (h2 ,(assoc-ref collection "name")
+                                 (span (@ (class "side-info")) " by "
+                                       ,(assoc-ref collection "publisher")))
+                             (p ,(assoc-ref collection "description"))))
+                     (all-datasets)))))
    #:dependencies '()))

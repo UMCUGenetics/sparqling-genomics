@@ -34,12 +34,15 @@
   #:use-module (srfi srfi-19)
   #:use-module (json)
   #:use-module (sxml simple)
+  #:use-module ((fibers) #:prefix fibers:)
 
   #:export (page-query-response))
 
-(define* (stream-response input-port output-port #:optional (read-header? #t))
+(define* (stream-response input-port output-port
+                          #:optional (read-header? #t)
+                          (number-of-rows 0))
   "Read the query response from PORT and turn it into a SXML table."
-  (let ((tokens (csv-read-entry input-port #\,)))
+  (let [(tokens (csv-read-entry input-port #\,))]
     (if (null? tokens)
         (format output-port "</tbody></table>")
         ;; The first line in the output is the table header.
@@ -54,7 +57,11 @@
                                  (string-append "<a href=\"" token "\">" token "</a>")
                                  (string-append "<pre>" (sxml->html-string token) "</pre>")))
                            tokens)))
-          (stream-response input-port output-port #f)))))
+          (unless (>= number-of-rows 5000)
+            ;; A call to "sleep" will create a "yield point" for Fibers (the
+            ;; threading library).
+            (fibers:sleep 0)
+            (stream-response input-port output-port #f (+ number-of-rows 1)))))))
 
 (define* (page-query-response request-path username #:key (post-data ""))
 

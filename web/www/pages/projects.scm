@@ -55,12 +55,14 @@
                                 `(span (@ (class "is-active")) "Active")
                                 '())))
                     (td (@ (class "button-column"))
-                        (form (@ (action "/projects") (method "post"))
-                              (button (@ (type "submit")
-                                         (class "action-btn remove-btn")
-                                         (name "remove")
-                                         (value ,(project-id record)))
-                                      "✖")))
+                        ,(if is-active?
+                             '()
+                             `(form (@ (action "/projects") (method "post"))
+                                    (button (@ (type "submit")
+                                               (class "action-btn remove-btn")
+                                               (name "remove")
+                                               (value ,(project-id record)))
+                                            "✖"))))
                     (td (@ (class "button-column"))
                         ,(if (not is-active?)
                              `(form (@ (action "/projects") (method "post"))
@@ -99,7 +101,7 @@
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
-    (page-root-template "Projects" request-path
+    (page-root-template username "Projects" request-path
      `((h2 "Projects"
            ;; The “Add project” button is on the same line as the title.
            ;; The corresponding CSS makes sure it looks like a button.

@@ -19,6 +19,7 @@
   #:use-module (www base64)
   #:use-module (www config)
   #:use-module (www db connections)
+  #:use-module (www db projects)
   #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (ice-9 format)
@@ -29,6 +30,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (web response)
+  #:use-module (sxml simple)
 
   #:export (query-add
             query-remove
@@ -155,6 +157,10 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
     (values #f (format #f "The query cannot be empty."))]
    [(string= endpoint "")
     (values #f (format #f "The query must have an endpoint."))]
+   [(not (string? project))
+    (values #f (sxml->xml '("Please make one of your "
+                            (a (@ (href "/projects")) "projects")
+                            " active.")))]
    [(string= project "")
     (values #f (format #f "The query must have a project."))]
    [#t
@@ -216,21 +222,19 @@ WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt ?executedBy 
        AVG(?executionTime) AS ?executionTime
-       ?isRelevantTo ?isProtected
+       ?projectTitle ?isProtected
 FROM <" system-state-graph ">
 WHERE {
   ?query rdf:type sg:Query .
-  OPTIONAL {
-    ?query sg:queryText     ?queryText     ;
-           sg:executedAt    ?executedAt    ;
-           sg:executedBy    ?executedBy    ;
-           sg:executionTime ?executionTime ;
-           sg:isRelevantTo  ?isRelevantTo  .
-    OPTIONAL {
-      ?query sg:isProtected   ?isProtected   ;
-             dcterms:date     ?date          .
-    }
-  }
+  OPTIONAL { ?query   sg:queryText     ?queryText     . }
+  OPTIONAL { ?query   sg:executedAt    ?executedAt    . }
+  OPTIONAL { ?query   sg:executedBy    ?executedBy    . }
+  OPTIONAL { ?query   sg:executionTime ?executionTime . }
+  OPTIONAL { ?query   sg:isRelevantTo  ?project       . }
+  OPTIONAL { ?query   sg:isProtected   ?isProtected   . }
+  OPTIONAL { ?query   dcterms:date     ?date          . }
+  OPTIONAL { ?project dcterms:title    ?projectTitle  . }
+
 "
    (if filters
        (format #f "~{  FILTER (~a)~%~}" filters)
@@ -268,7 +272,7 @@ WHERE {
   (let [(results (query-results->alist
                   (system-sparql-query
                     (generate-query-with-filters
-                     `(,(format #f "?isRelevantTo = <~a>" project))))))]
+                     `(,(format #f "?project = <~a>" project))))))]
     (if (null? results)
         '()
         results)))

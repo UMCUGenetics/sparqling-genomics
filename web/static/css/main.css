@@ -427,7 +427,7 @@ select#connection {
 
 .left-button-column {
     max-width: 20pt;
-    text-align: gright;
+    text-align: right;
 }
 .right-button-column {
     width: auto;
@@ -579,3 +579,28 @@ input[type=submit].login-field {
 }
 
 .side-info { color: #999999; }
+
+#two-column-left-side {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0pt 5pt 0pt 0pt;
+    margin: 0pt;
+    width: 200pt;
+}
+#two-column-right-side {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    padding: 0pt 0pt 0pt 5pt;
+    width: auto;
+}
+
+#sidebar { font-size: 0.9em; color: #000000; }
+.sidebar th { background: #444444; padding: 5pt; color: #ffffff; padding: 2pt 4pt 2pt 4pt; }
+.sidebar input[type=checkbox] { vertical-align: middle; }
+.sidebar label { cursor: pointer; }
+.sidebar tr { padding: 0pt; margin: 0pt; }
+.sidebar { border: solid 2px #444444; margin-bottom: 10pt; }
+.show-me-in-h2 { display: inline-block; vertical-align: middle; padding: 0pt 0pt 0pt 5pt; }
+

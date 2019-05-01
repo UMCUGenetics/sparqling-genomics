@@ -23,11 +23,17 @@
   #:use-module ((www db connections)
                 #:select (connection-uri
                           connection-username
-                          connection-password))
+                          connection-password
+                          connection-backend
+                          default-connection))
   #:export (default-uri-strings
             default-prefixes
             system-state-graph
             system-sparql-query
+            user-sparql-query
+            is-shorthand-uri?
+            shorthand-uri->uri
+            uri->shorthand-uri
             fork-on-startup?
             set-fork-on-startup!
             set-system-connection!
@@ -59,7 +65,8 @@
             set-ldap-domain!
             set-authentication-enabled!
             set-authentication-username!
-            set-authentication-password!))
+            set-authentication-password!
+            fibers-available?))
 
 
 ;; ----------------------------------------------------------------------------
@@ -351,6 +358,50 @@
                                               (cdr item)))
                                     default-uri-strings)))
 
+
+(define (uri->shorthand-uri input)
+  (catch #t
+    (lambda _
+      (car (delete '#f
+             (map (lambda (prefix)
+                    (if (string-prefix? (cdr prefix) input)
+                        (let [(remainder (substring input (string-length (cdr prefix))))]
+                          (if (string-index remainder #\/)
+                              #f
+                              (format #f "~a:~a" (car prefix) remainder)))
+                        #f))
+                  default-uri-strings))))
+    (lambda (key . args)
+      input)))
+
+(define (shorthand-uri->uri input)
+  (catch #t
+    (lambda _
+      (car (delete '#f
+             (map (lambda (prefix)
+                    (let [(prefix-str (symbol->string (car prefix)))]
+                      (if (string-prefix? prefix-str input)
+                          (let [(remainder (substring input (+ (string-length prefix-str) 1)))]
+                            (if (string-index remainder #\/)
+                                #f
+                                (string-append (cdr prefix) remainder)))
+                          #f)))
+                  default-uri-strings))))
+    (lambda (key . args)
+      input)))
+
+(define (is-shorthand-uri? input)
+  (catch #t
+    (lambda _
+      (not (null?
+            (delete '#f
+                    (map (lambda (prefix)
+                           (string-prefix? (string-append
+                                            (symbol->string (car prefix)) ":")
+                                           input))
+                         default-uri-strings)))))
+    (lambda (key . args) #f)))
+
 (define system-state-graph "http://sparqling-genomics.org/sg-web/state")
 
 (define-syntax-rule
@@ -361,6 +412,7 @@
   (let [(connection (system-connection))]
     (sparql-query query
                   #:uri (connection-uri connection)
+                  #:store-backend (connection-backend connection)
                   #:digest-auth
                   (if (and (connection-username connection)
                            (connection-password connection))
@@ -368,3 +420,23 @@
                        (connection-username connection) ":"
                        (connection-password connection))
                       #f))))
+
+(define (user-sparql-query username query)
+  (let [(connection (default-connection username))]
+    (sparql-query query
+                  #:uri (connection-uri connection)
+                  #:store-backend (connection-backend connection)
+                  #:digest-auth
+                  (if (and (connection-username connection)
+                           (connection-password connection))
+                      (string-append
+                       (connection-username connection) ":"
+                       (connection-password connection))
+                      #f))))
+
+(define (fibers-available?)
+  ;; 'resolve-module' returns the module name, so wrapping it in
+  ;; the redundant if-statement makes sure we return either #t or #f.
+  (if (resolve-module '(fibers) #:ensure #f)
+      #t
+      #f))

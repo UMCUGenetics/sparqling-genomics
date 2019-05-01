@@ -56,7 +56,7 @@
               #f))
          (connection (connection-by-name name username))
          (title (string-append "Edit “" name "”")))
-    (page-root-template title request-path
+    (page-root-template username title request-path
      `((h2 ,title)
        ;; When an action occurred (like “the connection was modified”), we
        ;; display the success or error message accordingly.

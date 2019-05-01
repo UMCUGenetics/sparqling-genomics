@@ -17,13 +17,17 @@
 (define-module (www db datasets)
   #:use-module (www util)
   #:use-module (www config)
-  #:use-module (www db connections)
   #:use-module (sparql driver)
   #:use-module (sparql util)
 
-  #:export (all-datasets))
+  #:export (all-datasets
+            all-collections))
 
-(define (all-datasets connection)
+;; ----------------------------------------------------------------------------
+;; ALL-DATASETS
+;; ----------------------------------------------------------------------------
+
+(define (all-datasets)
   (catch #t
     (lambda _
       (let* [(query (string-append
@@ -41,7 +45,30 @@ WHERE {
              (entries (query-results->alist (system-sparql-query query)))]
         entries))
     (lambda (key . args)
-      (if (not connection)
-          (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                  "all-datasets" key args))
+      (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
+              "all-datasets" key args)
+      '())))
+
+;; ----------------------------------------------------------------------------
+;; ALL-COLLECTIONS
+;; ----------------------------------------------------------------------------
+
+(define (all-collections)
+  (catch #t
+    (lambda _
+      (let* [(query (string-append
+                     default-prefixes
+                     "SELECT DISTINCT ?title ?description ?publisher
+WHERE {
+  ?subject rdf:type       dctype:Collection ;
+           dcterms:title  ?title .
+  OPTIONAL {
+    ?subject   dc:description    ?description ;
+               dcterms:publisher ?pub .
+    ?pub       rdfs:label        ?publisher .
+  }
+}"))
+             (entries (query-results->alist (system-sparql-query query)))]
+        entries))
+    (lambda (key . args)
       '())))

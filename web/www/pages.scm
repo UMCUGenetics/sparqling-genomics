@@ -29,16 +29,26 @@
 
 (define (page-is-ontology? request-path) #f)
 
-(define pages
+(define public-pages
+  '(("/datasets" "Datasets")
+    ("/login" "Log in")))
+
+(define private-pages
   '(("/" "Overview")
     ("/connections" "Connections")
     ("/datasets" "Datasets")
     ("/projects" "Projects")
     ("/query" "Query")
     ("/exploratory" "Exploratory")
+    ("/prompt" "Prompt")
     ("/logout" "Logout")))
 
-(define (page-partial-main-menu request-path)
+(define (pages username)
+  (if username
+      private-pages
+      public-pages))
+
+(define (page-partial-main-menu pages request-path)
   (let ((page-is-ontology (page-is-ontology? request-path)))
     `(ul
       ,(map
@@ -62,7 +72,7 @@
             `(li (a (@ (href ,(car item))) ,(cadr item))))))
         pages))))
 
-(define* (page-root-template title request-path content-tree #:key (dependencies '(test)))
+(define* (page-root-template username title request-path content-tree #:key (dependencies '(test)))
   `((html (@ (lang "en"))
      (head
       (title ,(string-append page-title-prefix title))
@@ -72,6 +82,13 @@
                (href "/static/favicon.ico")))
       ,(if (memq 'jquery dependencies)
            `(script (@ (type "text/javascript") (src "/static/jquery-3.2.1.min.js")) "")
+           `())
+      ,(if (memq 'prompt dependencies)
+           `(script (@ (type "text/javascript") (src "/static/prompt.js")) "")
+           `())
+      ,(if (memq 'autocomplete dependencies)
+           `((link (@ (rel "stylesheet") (type "text/css") (href "/static/ext/jquery-autocomplete.css")))
+             (script (@ (type "text/javascript") (src "/static/ext/jquery-ui-autocomplete.min.js")) ""))
            `())
       ,(if (memq 'datatables dependencies)
            `((link (@ (rel "stylesheet") (type "text/css") (href "/static/datatables.min.css")))
@@ -94,7 +111,7 @@
                              (onerror "this.src='/static/images/logo.png'")
                              (alt ,(www-name)))))
                 (div (@ (class "menu"))
-                     ,(page-partial-main-menu request-path)))
+                     ,(page-partial-main-menu (pages username) request-path)))
            (div (@ (id "content"))
                 ,content-tree)
            (div (@ (id "footer"))
@@ -121,7 +138,9 @@
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.svg")
                              (onerror "this.src='/static/images/logo.png'")
-                             (alt ,(www-name))))))
+                             (alt ,(www-name)))))
+                (div (@ (class "menu"))
+                     ,(page-partial-main-menu (pages #f) request-path)))
            (div (@ (id "content"))
                 ,content-tree)
            (div (@ (id "footer"))

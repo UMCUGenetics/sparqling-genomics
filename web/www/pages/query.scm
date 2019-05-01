@@ -18,32 +18,38 @@
   #:use-module (www pages)
   #:use-module (www db connections)
   #:use-module (www db queries)
+  #:use-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (srfi srfi-1)
   #:export (page-query))
 
 (define* (page-query request-path username #:key (post-data #f))
-  (page-root-template "Query" request-path
+  (page-root-template username "Query" request-path
    `((h2 "Query the database")
      ,(let* ((connections (all-connections username #:filter connection-name))
-             (queries     (queries-by-username username))
              (alist       (if post-data (post-data->alist post-data) '()))
              (query       (assoc-ref alist 'query))
+             (project     (active-project-for-user username))
              (endpoint    (if (assoc-ref alist 'endpoint)
                               (assoc-ref alist 'endpoint)
                               "")))
         ;; Handle removal instructions.
         (when (assoc-ref alist 'remove)
           (query-remove (assoc-ref alist 'remove) username))
-        (if (null? connections)
-            ;; Before we can query, there must be a connection that we can query on.
-            ;; The best we can do is refer to creating a connection at this point.
-            `((h3 "Create a connection")
-              (p "Please " (a (@ (href "/connections")) "create a connection") " first."))
-            ;; Queries are executed on a connection, so we must give users the choice
-            ;; to select the appropriate connection.
-            `((h3 "Select a connection")
+        (cond
+         [(null? connections)
+          ;; Before we can query, there must be a connection that we can query on.
+          ;; The best we can do is refer to creating a connection at this point.
+          `((h3 "Create a connection")
+            (p "Please " (a (@ (href "/connections")) "create a connection") " first."))]
+         [(null? project)
+          `((h3 "Set active project")
+            (p "Please set one of your " (a (@ (href "/projects")) "projects") " to active first."))]
+         [else
+          ;; Queries are executed on a connection, so we must give users the choice
+          ;; to select the appropriate connection.
+          `((h3 "Select a connection")
               (select (@ (id "connection"))
                       ,(map (lambda (connection)
                               `(option (@ (value ,connection)
@@ -128,11 +134,14 @@ $(document).ready(function(){
         /*  Insert the results HTML table into the page. */
         $('#editor').after(data);
         $('.query-data-loader').remove();
+        $('#note-five-thousand').remove();
 
         /* Detect an error response. */
         if ($('.query-error').length == 0) {
           $('#editor').after(function(){ return '"
-      (h3 (@ (id "query-results")) "Query results") "' });
+      ((h3 (@ (id "query-results")) "Query results")
+       (p (@ (id "note-five-thousand"))
+          (strong "Note:") " Query results are limited to a maximum of 5000 rows.  Programmatic access does not have this limitation.")) "' });
 
           /* Initialize DataTables. */
           $('#query-output').addClass('display');
@@ -148,5 +157,5 @@ $(document).ready(function(){
       }, readOnly: true
     });
 });
-")))))
+"))])))
    #:dependencies '(ace jquery datatables)))

@@ -35,6 +35,7 @@
             active-project
             all-projects
             active-project-for-user
+            active-writable-graphs-for-user
             projects-by-user
             project-by-name
             project-by-id
@@ -283,6 +284,22 @@ INSERT { agent:" username " sg:currentlyWorksOn <" project-id "> . }"))]
     (if (> (length results) 0)
         (assoc-ref (car results) "project")
         '())))
+
+(define (active-writable-graphs-for-user username)
+  (let [(query (string-append
+                default-prefixes
+                "SELECT ?graph FROM <http://sparqling-genomics.org/sg-web/state>
+WHERE {
+  ?project sg:hasAssignedGraph ?graph .
+  agent:" username " sg:currentlyWorksOn ?project .
+
+  OPTIONAL {
+    ?graph sg:isLocked ?locked .
+  }
+
+  FILTER (! BOUND(?locked) OR (?locked = 0))
+}"))]
+    (query-results->alist (system-sparql-query query))))
 
 ;; PROJECT -> MEMBERS
 ;; ----------------------------------------------------------------------------

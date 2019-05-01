@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019  Roel Janssen <roel@gnu.org>
 ;;; Copyright © 2016  Ricardo Wurmus <rekado@elephly.net>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
@@ -35,7 +35,8 @@
             alist-symbol-key<?
             mkdir-p
             string->sha256sum
-            generate-id))
+            generate-id
+            is-uri?))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -124,3 +125,13 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
 
 (define (generate-id . arguments)
   (string->sha256sum (format #f "~{~a~}" arguments)))
+
+(define (is-uri? string)
+  (catch #t
+    (lambda _
+      (or (string-prefix? "http://" string)
+          (string-prefix? "https://" string)
+          (and (string-prefix? "<" string )
+               (string-suffix? ">" string))))
+    (lambda (key . args)
+      #f)))

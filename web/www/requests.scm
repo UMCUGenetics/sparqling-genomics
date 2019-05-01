@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -30,6 +30,7 @@
   #:use-module (www db cache)
   #:use-module (www db connections)
   #:use-module (www db projects)
+  #:use-module (www db prompt)
   #:use-module (www db sessions)
   #:use-module (www db queries)
   #:use-module (www pages error)
@@ -42,6 +43,7 @@
   #:use-module (www pages project-details)
   #:use-module (www pages)
   #:use-module (www util)
+  #:use-module (json)
 
   #:export (request-handler))
 
@@ -342,6 +344,40 @@
                                       (utf8->string request-body)) port)
                       (page-function request-path username))))))]
 
+   [(string-prefix? "/prompt-session-clear" request-path)
+    (prompt-clear-triplets username)
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/prompt")))
+            "")]
+
+   [(string-prefix? "/prompt-session-save" request-path)
+    (catch #t
+      (lambda _
+        (let* [(post-data (post-data->alist (uri-decode
+                                             (utf8->string request-body))))
+               (graph (assoc-ref post-data 'select-graph))]
+          (prompt-save-session username graph)))
+      (lambda (key . args) #f))
+
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/prompt")))
+            "")]
+
+   [(string-prefix? "/prompt-remove-triplet" request-path)
+    (catch #t
+      (lambda _
+        (let* [(json-data (json-string->scm (utf8->string request-body)))
+               (subject   (hash-ref json-data "subject"))
+               (predicate (hash-ref json-data "predicate"))
+               (object    (hash-ref json-data "object"))]
+          (prompt-remove-triplet username subject predicate object)))
+      (lambda (key . args) #f))
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/prompt")))
+            "")]
 
    ;; All other requests can be handled as HTML responses.
    [#t
@@ -412,8 +448,14 @@
           (request-scheme-page-handler
            request request-body request-path #:username username))]
        [(or (string-prefix? "/login" request-path)
-            (string-prefix? "/static/" request-path))
+            (string-prefix? "/static/" request-path)
+            (string= "/datasets" request-path))
         (request-scheme-page-handler request request-body request-path)]
+       [(string= "/" request-path)
+        (values (build-response
+                 #:code 303
+                 #:headers '((Location . "/datasets")))
+                "")]
        [else
         (values (build-response
                  #:code 303

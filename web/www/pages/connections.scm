@@ -45,20 +45,22 @@
          (th (@ (style "min-width: 30pt")
                 (colspan "2")) "Actions"))
      ,(map (lambda (record)
-             (let ((name    (connection-name    record))
-                   (uri     (connection-uri     record)))
+             (let [(name        (connection-name    record))
+                   (uri         (connection-uri     record))
+                   (is-default? (connection-is-default? record))]
                `(tr (td (a (@ (href ,(string-append "/edit-connection/" name)))
                            ,(string-append name " (" uri ")")))
                     (td (@ (class "button-column"))
-                        (form (@ (action "/connections") (method "post"))
-                              (button (@ (type "submit")
-                                         (class "action-btn remove-btn")
-                                         (name "remove")
-                                         (value ,name))
-                                      "✖")
-                              ))
+                        ,(if is-default?
+                             '()
+                             `(form (@ (action "/connections") (method "post"))
+                                    (button (@ (type "submit")
+                                               (class "action-btn remove-btn")
+                                               (name "remove")
+                                               (value ,name))
+                                            "✖"))))
                     (td (@ (class "button-column"))
-                        ,(if (not (connection-is-default? record))
+                        ,(if (not is-default?)
                              `(form (@ (action "/connections") (method "post"))
                                     (button (@ (type "submit")
                                                (class "action-btn active-btn")
@@ -98,7 +100,7 @@
                    #f ; No need to display a message.
                    `(div (@ (class "message-box failure")) (p ,message))))
              #f)))
-    (page-root-template "Connections" request-path
+    (page-root-template username "Connections" request-path
      `((h2 "Connections"
            ;; The “Add connection” button is on the same line as the title.
            ;; The corresponding CSS makes sure it looks like a button.

@@ -30,11 +30,11 @@
             page-ontology-or-error-404))
 
 (define (page-error-404 request-path)
-  (page-root-template "Oops!" request-path
+  (page-root-template #f "Oops!" request-path
    `(p "The page you tried to reach cannot be found.")))
 
 (define (page-error-filesize request-path)
-  (page-root-template "Oops!" request-path
+  (page-root-template #f "Oops!" request-path
    `(p ,(format #f "The maximum file size has been set to ~a megabytes."
                 (/ (www-max-file-size) 1000000)))))
 

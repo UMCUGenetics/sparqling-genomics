@@ -54,6 +54,8 @@ SOURCES =                                               \
   www/pages/project-members.scm                         \
   www/pages/project-queries.scm                         \
   www/pages/projects.scm                                \
+  www/pages/prompt.scm                                  \
+  www/pages/prompt-session-table.scm                    \
   www/pages/query-history.scm                           \
   www/pages/query-history-mark.scm                      \
   www/pages/query-response.scm                          \
