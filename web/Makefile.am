@@ -1,4 +1,4 @@
-# Copyright © 2017, 2018 Roel Janssen <roel@gnu.org>
+# Copyright © 2017, 2018, 2019 Roel Janssen <roel@gnu.org>
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License
@@ -35,6 +35,7 @@ SOURCES =                                               \
   www/db/exploratory.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
+  www/db/prompt.scm                                     \
   www/db/queries.scm                                    \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
