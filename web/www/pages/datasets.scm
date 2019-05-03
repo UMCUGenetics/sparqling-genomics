@@ -78,11 +78,12 @@
           (div (@ (id "two-column-right-side"))
                (h3 "Datasets")
                (p "")
-               ,(map (lambda (collection)
-                       `(div (@ (class "data-collection"))
-                             (h2 ,(assoc-ref collection "name")
-                                 (span (@ (class "side-info")) " by "
-                                       ,(assoc-ref collection "publisher")))
-                             (p ,(assoc-ref collection "description"))))
+               ,(map (lambda (dataset)
+                       `(div (@ (class "dataset"))
+                             (h2 ,(assoc-ref dataset "title")
+                                 ,(if (assoc-ref dataset "publisher")
+                                      `(span (@ (class "side-info")) " by "
+                                             ,(assoc-ref dataset "publisher"))))
+                             (p ,(assoc-ref dataset "description"))))
                      (all-datasets)))))
    #:dependencies '()))

@@ -552,12 +552,12 @@ input[type=submit].login-field {
 .table-header-small-text a { color: #fff }
 .table-header-small-text a:hover { color: #ccc }
 
-#content .data-collection {
+#content .dataset {
     border: solid 2pt #444444;
     margin-bottom: 15pt;
 }
 
-#content .data-collection h2 {
+#content .dataset h2 {
     font-weight: bold;
     font-size: large;
     color: #ffffff;
@@ -567,9 +567,9 @@ input[type=submit].login-field {
     font-size: 12pt;
 }
 
-#content .data-collection h2 a { color: #ffffff; }
-#content .data-collection h2 a:hover { color: #cccccc; }
-#content .data-collection p {
+#content .dataset h2 a { color: #ffffff; }
+#content .dataset h2 a:hover { color: #cccccc; }
+#content .dataset p {
     padding: 5pt;
     font-size: 0.85em;
     background: #fafafa;

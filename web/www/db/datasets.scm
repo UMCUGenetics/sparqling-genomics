@@ -32,10 +32,10 @@
     (lambda _
       (let* [(query (string-append
                      default-prefixes
-                     "SELECT DISTINCT ?name ?description ?publisher
+                     "SELECT DISTINCT ?title ?description ?publisher
 WHERE {
-  ?subject rdf:type    dctype:Dataset ;
-           rdfs:label  ?name .
+  ?subject rdf:type       dctype:Dataset ;
+           dcterms:title  ?title .
   OPTIONAL {
     ?subject   dc:description    ?description ;
                dcterms:publisher ?pub .
