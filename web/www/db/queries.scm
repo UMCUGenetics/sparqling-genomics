@@ -225,10 +225,11 @@ SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt ?executedBy
        ?projectTitle ?isProtected
 FROM <" system-state-graph ">
 WHERE {
-  ?query rdf:type sg:Query .
-  OPTIONAL { ?query   sg:queryText     ?queryText     . }
-  OPTIONAL { ?query   sg:executedAt    ?executedAt    . }
-  OPTIONAL { ?query   sg:executedBy    ?executedBy    . }
+  ?query rdf:type         sg:Query ;
+         sg:queryText     ?queryText     ;
+         sg:executedAt    ?executedAt    ;
+         sg:executedBy    ?executedBy    .
+
   OPTIONAL { ?query   sg:executionTime ?executionTime . }
   OPTIONAL { ?query   sg:isRelevantTo  ?project       . }
   OPTIONAL { ?query   sg:isProtected   ?isProtected   . }
