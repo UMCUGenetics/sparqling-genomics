@@ -1,0 +1,148 @@
+#!@GUILE@ --no-auto-compile
+-*- scheme -*-
+!#
+;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
+;;;
+;;; This program is free software: you can redistribute it and/or
+;;; modify it under the terms of the GNU General Public License
+;;; as published by the Free Software Foundation, either version 3 of
+;;; the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU General Public License
+;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(use-modules (ice-9 getopt-long)
+             (ice-9 format)
+             (ice-9 receive)
+             (json)
+             (rnrs bytevectors)
+             (srfi srfi-1)
+             (web client)
+             (web response))
+
+;; ---------------------------------------------------------------------------
+;; COMMAND-LINE PARSING
+;; ---------------------------------------------------------------------------
+;;
+;; The following section handles command-line arguments.
+;;
+
+(define program-options
+  '((version             (single-char #\v) (value #f))
+    (help                (single-char #\h) (value #f))
+    (analyses            (single-char #\a) (value #f))
+    (dacs                (single-char #\d) (value #f))
+    (datasets            (single-char #\e) (value #f))
+    (files               (single-char #\f) (value #f))
+    (runs                (single-char #\r) (value #f))
+    (samples             (single-char #\s) (value #f))
+    (studies             (single-char #\t) (value #f))))
+
+(define (show-help)
+  (for-each (lambda (line) (display line) (newline))
+   '("This is ega2rdf."
+     "  --help       Show this message."
+     "  --version    Show versioning information."
+     "  --analyses   Gather analysis metadata from EGA."
+     "  --dacs       Gather data access committee metadata from EGA."
+     "  --datasets   Gather dataset metadata from EGA."
+     "  --files      Gather file metadata from EGA."
+     "  --runs       Gather run metadata from EGA."
+     "  --samples    Gather sample metadata from EGA."
+     "  --studies    Gather study metadata from EGA."))
+  (exit 0))
+
+(define (show-version)
+  (display "ega2rdf @VERSION@")
+  (newline)
+  (exit 0))
+
+(define %config (getopt-long (command-line) program-options))
+
+(when (assoc-ref %config 'help)    (show-help))
+(when (assoc-ref %config 'version) (show-version))
+
+;; ---------------------------------------------------------------------------
+;; EGA FETCHING CODE
+;; ---------------------------------------------------------------------------
+;;
+;; The following section implements the actual EGA metadata fetching.
+;;
+
+(define %ega-api-uri "https://ega-archive.org/metadata/v2")
+
+(define* (fetch-ega-category category #:optional (number-of-items -1)
+                                                 (batch-size 100)
+                                                 (batch-round 0))
+  (cond
+   [(< number-of-items 0)
+    ;; Determine the value for ‘number-of-items’.
+    ;; ------------------------------------------------------------------
+    (receive (http-header port)
+        (http-get (string-append %ega-api-uri "/analyses?limit=1")
+                  #:streaming? #t)
+      (if (= (response-code http-header) 200)
+          (let [(data       (json->scm port))]
+            (let [(header   (hash-ref data "header"))
+                  (response (hash-ref data "response"))]
+              (let [(items (hash-ref response "numTotalResults"))]
+                (fetch-ega-category category items))))
+          (format #t "Finding the number of analyses failed with HTTP status code ~a~%"
+                  (response-code http-header))))]
+
+   [(> number-of-items (* batch-size (1+ batch-round)))
+    ;; Attempt to fetch ‘number-of-items’ items.
+    ;; ------------------------------------------------------------------
+    (receive (http-header port)
+        (http-get (format #f "~a/analyses?limit=~a&skip=~a"
+                          %ega-api-uri
+                          batch-size
+                          (* batch-round batch-size))
+                  #:streaming? #t)
+      (if (= (response-code http-header) 200)
+          (begin
+            (let [(data       (json->scm port))]
+              (let [(header   (hash-ref data "header"))
+                    (response (hash-ref data "response"))]
+                (let [(analyses (hash-ref response "result"))]
+                  (for-each
+                   (lambda (analysis)
+                     (let* [(egaStableId (hash-ref analysis "egaStableId"))
+                            (subject (string-append
+                                      "<https://ega-archive.org/analyses/"
+                                      egaStableId
+                                      ">"))]
+                       (hash-for-each
+                        (lambda (key value)
+                          (format #t "~a <https://ega-archive.org/terms/~a> \"~a\"~%"
+                                  subject key value))
+                        analysis)))
+                   analyses))))
+            (fetch-ega-category category number-of-items batch-size (1+ batch-round)))
+          #f))]))
+
+(when (assoc-ref %config 'analyses)
+  (fetch-ega-category "analyses"))
+
+(when (assoc-ref %config 'dacs)
+  (fetch-ega-category "dacs"))
+
+(when (assoc-ref %config 'datasets)
+  (fetch-ega-category "datasets"))
+
+(when (assoc-ref %config 'files)
+  (fetch-ega-category "files"))
+
+(when (assoc-ref %config 'runs)
+  (fetch-ega-category "runs"))
+
+(when (assoc-ref %config 'samples)
+  (fetch-ega-category "samples"))
+
+(when (assoc-ref %config 'studies)
+  (fetch-ega-category "studies"))
