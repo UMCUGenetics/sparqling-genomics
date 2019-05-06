@@ -164,11 +164,11 @@ main (int argc, char **argv)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_MASTER, "convertedBy");
-      stmt->object    = term (PREFIX_MASTER, "vcf2rdf");
+      stmt->object    = term (PREFIX_MASTER, "vcf2rdf-" VERSION);
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_MASTER, "vcf2rdf");
+      stmt->subject   = term (PREFIX_MASTER, "vcf2rdf-" VERSION);
       stmt->predicate = term (PREFIX_OWL, "#versionInfo");
       stmt->object    = literal (VERSION, XSD_STRING);
       register_statement (stmt);
@@ -201,7 +201,7 @@ main (int argc, char **argv)
               while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
                 {
                   process_variant (vcf_header, buffer, file_hash);
-                  if (counter % 50000 == 0)
+                  if (counter % 1000000 == 0)
                     {
                       rawtime = time (NULL);
                       strftime (time_str, 20, "%Y-%m-%d %H:%M:%S", localtime (&rawtime));
