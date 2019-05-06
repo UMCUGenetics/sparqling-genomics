@@ -84,7 +84,7 @@
     ;; Determine the value for ‘number-of-items’.
     ;; ------------------------------------------------------------------
     (receive (http-header port)
-        (http-get (string-append %ega-api-uri "/analyses?limit=1")
+        (http-get (string-append %ega-api-uri "/" category "?limit=1")
                   #:streaming? #t)
       (if (= (response-code http-header) 200)
           (let [(data       (json->scm port))]
@@ -99,7 +99,7 @@
     ;; Attempt to fetch ‘number-of-items’ items.
     ;; ------------------------------------------------------------------
     (receive (http-header port)
-        (http-get (format #f "~a/analyses?limit=~a&skip=~a"
+        (http-get (format #f "~a/" category "?limit=~a&skip=~a"
                           %ega-api-uri
                           batch-size
                           (* batch-round batch-size))
