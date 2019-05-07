@@ -79,7 +79,7 @@
       (meta (@ (http-equiv "Content-Type") (content "text/html; charset=utf-8")))
       (link (@ (rel "icon")
                (type "image/x-icon")
-               (href "/static/favicon.ico")))
+               (href "/static/images/favicon.ico")))
       ,(if (memq 'jquery dependencies)
            `(script (@ (type "text/javascript") (src "/static/jquery-3.2.1.min.js")) "")
            `())
