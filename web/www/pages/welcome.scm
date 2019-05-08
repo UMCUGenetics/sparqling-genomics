@@ -30,7 +30,9 @@
 (define* (page-welcome request-path username #:key (post-data ""))
   (let ((number-of-endpoints (length (all-connections username))))
     (page-root-template username "Overview" request-path
-     `((h2 "Overview")
+     `((h2 "Overview"
+           (div (@ (class "small-action action-btn-clear-cache"))
+                (a (@ (href "/clear-overview-cache")) "⭯")))
        (p "There " ,(if (= number-of-endpoints 1) "is " "are ")
           ,number-of-endpoints " configured endpoint"
           ,(if (= number-of-endpoints 1) "" "s") ", which contain"

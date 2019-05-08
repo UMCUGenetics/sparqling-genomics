@@ -316,11 +316,18 @@
                                (page-project-assigned-graphs request-path username))
                            port))))]
 
-   [(string-prefix? "/clear-cache" request-path)
+   [(string-prefix? "/clear-exploratory-cache" request-path)
     (cache-clear username)
     (values (build-response
              #:code 303
              #:headers `((Location   . "/exploratory")))
+            "")]
+
+   [(string-prefix? "/clear-overview-cache" request-path)
+    (cache-clear username)
+    (values (build-response
+             #:code 303
+             #:headers `((Location   . "/")))
             "")]
 
    ;; For “/query-history-clean”, we must call a database function and
