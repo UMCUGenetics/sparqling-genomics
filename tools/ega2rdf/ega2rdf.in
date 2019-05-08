@@ -67,6 +67,51 @@
 (when (assoc-ref %config 'help)    (show-help))
 (when (assoc-ref %config 'version) (show-version))
 
+(define (kv->rdf subject key value)
+  (cond
+   ;; Write boolean values as booleans.
+   [(or (eq? value #t)
+        (eq? value #f))
+    (format #t "~a <https://ega-archive.org/terms/~a> ~a .~%"
+            subject key (if value "true" "false"))]
+
+   ;; Skip non-existent values.
+   [(eq? value #nil) #t]
+   [(null? value)    #t]
+
+   ;; Handle lists of values.
+   [(list? value)
+    (for-each (lambda (v) (kv->rdf subject key v)) value)]
+
+   [(hash-table? value)
+    ;; TODO: Implement iterating over a hash table.
+    #t]
+   ;; Treat timestamps as timestamps.
+   [(or (string= key "creationTime") (string= key "releasedDate"))
+    (format #t "~a <https://ega-archive.org/terms/~a> ~s^^xsd:dateTimeStamp .~%"
+            subject key value)]
+
+   ;; Use Dublin Core's terms for title and description.
+   [(string= key "description")
+    (format #t "~a <http://purl.org/dc/terms/description> ~s .~%"
+            subject value)]
+   [(string= key "title")
+    (format #t "~a <http://purl.org/dc/terms/title> ~s .~%"
+            subject value)]
+
+   ;; The subject already contains the egaStableId.
+   [(string= key "egaStableId") #t]
+
+   ;; Write EGA identifiers as URIs
+   [(string= key "studyStableId")
+    (format #t "~a <https://ega-archive.org/terms/~a> <https://ega-archive.org/studies/~a> .~%"
+            subject key value)]
+
+   ;; Write the rest as plain strings.
+   [else
+    (format #t "~a <https://ega-archive.org/terms/~a> ~s .~%"
+            subject key value)]))
+
 ;; ---------------------------------------------------------------------------
 ;; EGA FETCHING CODE
 ;; ---------------------------------------------------------------------------
@@ -92,15 +137,16 @@
                   (response (hash-ref data "response"))]
               (let [(items (hash-ref response "numTotalResults"))]
                 (fetch-ega-category category items))))
-          (format #t "Finding the number of analyses failed with HTTP status code ~a~%"
-                  (response-code http-header))))]
+          (format #t "Finding the number of ~a failed with HTTP status code ~a~%"
+                  category (response-code http-header))))]
 
    [(> number-of-items (* batch-size (1+ batch-round)))
     ;; Attempt to fetch ‘number-of-items’ items.
     ;; ------------------------------------------------------------------
     (receive (http-header port)
-        (http-get (format #f "~a/" category "?limit=~a&skip=~a"
+        (http-get (format #f "~a/~a?limit=~a&skip=~a"
                           %ega-api-uri
+                          category
                           batch-size
                           (* batch-round batch-size))
                   #:streaming? #t)
@@ -109,20 +155,23 @@
             (let [(data       (json->scm port))]
               (let [(header   (hash-ref data "header"))
                     (response (hash-ref data "response"))]
-                (let [(analyses (hash-ref response "result"))]
+                (let [(items  (hash-ref response "result"))]
                   (for-each
-                   (lambda (analysis)
-                     (let* [(egaStableId (hash-ref analysis "egaStableId"))
+                   (lambda (item)
+                     (let* [(egaStableId (hash-ref item "egaStableId"))
                             (subject (string-append
-                                      "<https://ega-archive.org/analyses/"
+                                      "<https://ega-archive.org/" category "/"
                                       egaStableId
                                       ">"))]
-                       (hash-for-each
-                        (lambda (key value)
-                          (format #t "~a <https://ega-archive.org/terms/~a> \"~a\"~%"
-                                  subject key value))
-                        analysis)))
-                   analyses))))
+                       ;; Specifically mark datasets as dctype:Dataset so that
+                       ;; the SG's web interface will pick it up.
+                       (when (string= category "datasets")
+                         (format #t "~a ~a ~a .~%"
+                                 subject
+                                 "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+                                 "<http://purl.org/dc/dcmitype/Dataset>"))
+                       (hash-for-each (lambda (k v) (kv->rdf subject k v)) item)))
+                   items))))
             (fetch-ega-category category number-of-items batch-size (1+ batch-round)))
           #f))]))
 
@@ -133,6 +182,9 @@
   (fetch-ega-category "dacs"))
 
 (when (assoc-ref %config 'datasets)
+  (format #t "<http://ega-archive.org> ~a ~a .~%"
+          "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+          "<http://purl.org/dc/dcmitype/Collection>")
   (fetch-ega-category "datasets"))
 
 (when (assoc-ref %config 'files)
