@@ -78,12 +78,22 @@
           (div (@ (id "two-column-right-side"))
                (h3 "Datasets")
                (p "")
-               ,(map (lambda (dataset)
-                       `(div (@ (class "dataset"))
-                             (h2 ,(assoc-ref dataset "title")
-                                 ,(if (assoc-ref dataset "publisher")
-                                      `(span (@ (class "side-info")) " by "
-                                             ,(assoc-ref dataset "publisher"))))
-                             (p ,(assoc-ref dataset "description"))))
-                     (all-datasets)))))
+               ,(map
+                 (lambda (dataset)
+                   (let [(graphs (graphs-for-dataset
+                                  (assoc-ref dataset "id")))]
+                     `(div (@ (class "dataset"))
+                           (h2 ,(assoc-ref dataset "title")
+                               ,(if (assoc-ref dataset "publisher")
+                                    `(span (@ (class "side-info")) " by "
+                                           ,(assoc-ref dataset "publisher"))))
+                           (p ,(assoc-ref dataset "description"))
+                           ,(if (not (null? graphs))
+                                `(p (strong "Graph" ,(if (> (length graphs) 1) "s" "") ":")
+                                    " "
+                                    ,(map (lambda (graph)
+                                            `(code ,(assoc-ref graph "graph")))
+                                          graphs))
+                                '()))))
+                 (all-datasets)))))
    #:dependencies '()))

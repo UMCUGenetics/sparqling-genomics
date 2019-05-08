@@ -21,7 +21,8 @@
   #:use-module (sparql util)
 
   #:export (all-datasets
-            all-collections))
+            all-collections
+            graphs-for-dataset))
 
 ;; ----------------------------------------------------------------------------
 ;; ALL-DATASETS
@@ -32,12 +33,12 @@
     (lambda _
       (let* [(query (string-append
                      default-prefixes
-                     "SELECT DISTINCT ?title ?description ?publisher
+                     "SELECT DISTINCT ?id ?title ?description ?publisher
 WHERE {
-  ?subject rdf:type       dctype:Dataset ;
+  ?id      rdf:type       dctype:Dataset ;
            dcterms:title  ?title .
   OPTIONAL {
-    ?subject   dc:description    ?description ;
+    ?id        dc:description    ?description ;
                dcterms:publisher ?pub .
     ?pub       rdfs:label        ?publisher .
   }
@@ -71,4 +72,19 @@ WHERE {
              (entries (query-results->alist (system-sparql-query query)))]
         entries))
     (lambda (key . args)
+      '())))
+
+(define (graphs-for-dataset id)
+  (catch #t
+    (lambda _
+      (let* [(query (string-append
+                     default-prefixes
+                     "SELECT DISTINCT ?graph "
+                     "WHERE { ?graph sg:containsDataFor <" id "> . }"))
+             (entries (query-results->alist (system-sparql-query query)))]
+        entries))
+    (lambda (key . args)
+      (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
+              "all-datasets" key args)
+      (format #t "Argument was: ~s~%" id)
       '())))

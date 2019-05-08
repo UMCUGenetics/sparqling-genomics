@@ -30,8 +30,8 @@
 (define* (page-exploratory request-path username #:key (post-data ""))
   (page-root-template username "Exploratory" request-path
    `((h2 "Exploratory"
-         (div (@ (id "add-project") (class "small-action action-btn-clear-cache"))
-              (a (@ (href "/clear-cache")) "⭯")))
+         (div (@ (class "small-action action-btn-clear-cache"))
+              (a (@ (href "/clear-exploratory-cache")) "⭯")))
      (p "The exploratory provides an alternative interface to explore the "
         "structure of data available at each connection.  It is optimized "
         "for speed, allowing it to show outdated information.  By using "
