@@ -228,10 +228,10 @@ WHERE {
   ?query rdf:type         sg:Query ;
          sg:queryText     ?queryText     ;
          sg:executedAt    ?executedAt    ;
-         sg:executedBy    ?executedBy    .
+         sg:executedBy    ?executedBy    ;
+         sg:isRelevantTo  ?project       .
 
   OPTIONAL { ?query   sg:executionTime ?executionTime . }
-  OPTIONAL { ?query   sg:isRelevantTo  ?project       . }
   OPTIONAL { ?query   sg:isProtected   ?isProtected   . }
   OPTIONAL { ?query   dcterms:date     ?date          . }
   OPTIONAL { ?project dcterms:title    ?projectTitle  . }
