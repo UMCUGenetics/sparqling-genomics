@@ -75,7 +75,6 @@ WWW_STATIC_RESOURCES =                                  \
   static/fonts/Roboto-LightItalic.ttf                   \
   static/fonts/Roboto-Light.ttf                         \
   static/images/logo.png                                \
-  static/images/logo.svg                                \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \
