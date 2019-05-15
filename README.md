@@ -40,7 +40,7 @@ To start the web interface, run:
 [env]$ web/sg-web
 ```
 
-![Web interface screenshot](https://github.com/UMCUGenetics/sparqling-genomics/blob/master/doc/figures/web-interface.png)
+![Web interface screenshot](https://github.com/UMCUGenetics/sparqling-genomics/blob/master/doc/figures/web-query-history-page.png)
 
 ## Further reading
 
