@@ -52,7 +52,7 @@
                                (cached-value username cache-connection property)
                                #f)))
     (cond
-     [cached (map car cached)]
+     [cached (sort (map car cached) string<)]
      [connection
       (catch #t
         (lambda _
@@ -70,7 +70,7 @@
                                                      #f))
                                 #t))))
             (cache-value username cache-connection property result)
-            result))
+            (sort result string<)))
         (lambda (key . args)
           #f))]
      [else #f])))
@@ -94,7 +94,7 @@
                                (cached-value username cache-connection property)
                                #f)))
     (cond
-     [cached (map car cached)]
+     [cached (sort (map car cached) string<)]
      [connection
       (let ((result (apply append
                            (query-results->list
@@ -112,7 +112,7 @@
                                                   (connection-password connection))
                                                  #f)) #t))))
         (cache-value username cache-connection property result)
-        result)]
+        (sort result string<))]
      [else #f])))
 
 (define (all-types-in-graph username graph connection)
@@ -130,7 +130,7 @@
                                (cached-value username cache-connection property)
                                #f)))
     (cond
-     [cached (map car cached)]
+     [cached (sort (map car cached) string<)]
      [connection
       (let ((result (apply append
                            (query-results->list
@@ -148,5 +148,5 @@
                                                   (connection-password connection))
                                                  #f)) #t))))
         (cache-value username cache-connection property result)
-        result)]
+        (sort result string<))]
      [else #f])))
