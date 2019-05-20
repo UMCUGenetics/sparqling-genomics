@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -28,6 +28,12 @@
                           default-connection))
   #:export (default-uri-strings
             default-prefixes
+            default-debug-port
+            default-error-port
+            default-warning-port
+            set-default-debug-port!
+            set-default-error-port!
+            set-default-warning-port!
             system-state-graph
             system-sparql-query
             user-sparql-query
@@ -169,7 +175,21 @@
   ;; --------------------------------------------------------------------------
   (system-connection        #:init-value '()
                             #:getter get-system-connection
-                            #:setter set-system-connection-private!))
+                            #:setter set-system-connection-private!)
+
+  ;; Output ports for logging
+  ;; --------------------------------------------------------------------------
+  (error-port               #:init-value '()
+                            #:getter get-default-error-port
+                            #:setter set-default-error-port-private!)
+
+  (warning-port             #:init-value '()
+                            #:getter get-default-warning-port
+                            #:setter set-warning-error-port-private!)
+
+  (debug-port               #:init-value '()
+                            #:getter get-default-debug-port
+                            #:setter set-default-debug-port-private!))
 
 
 ;; Create an instance of the <runtime-configuration> environment.
@@ -235,6 +255,27 @@
 (define-syntax-rule
   (graph-name-max-length)
   (get-graph-name-max-length %runtime-configuration))
+
+(define (default-debug-port)
+  (get-default-debug-port %runtime-configuration))
+
+(define (default-warning-port)
+  (get-default-warning-port %runtime-configuration))
+
+(define (default-error-port)
+  (get-default-error-port %runtime-configuration))
+
+(define-syntax-rule
+  (set-default-debug-port! port)
+  (set-default-debug-port-private! %runtime-configuration port))
+
+(define-syntax-rule
+  (set-default-warning-port! port)
+  (set-default-warning-port-private! %runtime-configuration port))
+
+(define-syntax-rule
+  (set-default-error-port! port)
+  (set-default-error-port-private! %runtime-configuration port))
 
 (define-syntax-rule
   (set-fork-on-startup! arg)
@@ -341,11 +382,13 @@
     (dc           . "http://purl.org/dc/elements/1.1/")
     (dcterms      . "http://purl.org/dc/terms/")
     (dctype       . "http://purl.org/dc/dcmitype/")
+    (faldo        . "http://biohackathon.org/resource/faldo#")
     (project      . "http://sparqling-genomics.org/Project/")
     (query        . "http://sparqling-genomics.org/Query/")
     (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
     (rdfs         . "http://www.w3.org/2000/01/rdf-schema#")
     (row          . "http://sparqling-genomics/table2rdf/Row/")
+    (sg-old       . "http://sparqling-genomics/")
     (sg           . "http://sparqling-genomics.org/")
     (table2rdf    . "http://sparqling-genomics/table2rdf/")
     (vcf2rdf      . "http://sparqling-genomics/vcf2rdf/")
