@@ -422,9 +422,10 @@
     (lambda _
       (car (delete '#f
              (map (lambda (prefix)
-                    (let [(prefix-str (symbol->string (car prefix)))]
+                    (let [(prefix-str (string-append
+                                       (symbol->string (car prefix)) ":"))]
                       (if (string-prefix? prefix-str input)
-                          (let [(remainder (substring input (+ (string-length prefix-str) 1)))]
+                          (let [(remainder (substring input (string-length prefix-str)))]
                             (if (string-index remainder #\/)
                                 #f
                                 (string-append (cdr prefix) remainder)))
