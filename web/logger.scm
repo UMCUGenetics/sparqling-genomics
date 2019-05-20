@@ -20,7 +20,7 @@
             log-debug))
 
 (define (log-any type port function fmt . rst)
-  (unless (null? (default-debug-port))
+  (unless (null? port)
     (format port "[ ~a ] ~a: ~a: " type
             (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time)))
             (if (string? function) function "unknown"))
