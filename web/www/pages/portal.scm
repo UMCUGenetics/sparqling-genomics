@@ -14,20 +14,20 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www pages datasets)
+(define-module (www pages portal)
   #:use-module (www pages)
   #:use-module (www config)
   #:use-module (www util)
   #:use-module (www db connections)
   #:use-module (www db overview)
   #:use-module (www db projects)
-  #:use-module (www db datasets)
+  #:use-module (www db portal)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
-  #:export (page-datasets))
+  #:export (page-portal))
 
 (define (%query-endpoint username)
   (let ((connections (all-connections username)))
@@ -54,7 +54,7 @@
                           ,text)))
       text))
 
-(define* (page-datasets request-path username #:key (post-data ""))
+(define* (page-portal request-path username #:key (post-data ""))
   (page-root-template username "Data collections" request-path
    `((h2 "Portal")
      (div (@ (id "two-column"))

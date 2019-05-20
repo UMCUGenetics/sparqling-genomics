@@ -30,13 +30,13 @@
 (define (page-is-ontology? request-path) #f)
 
 (define public-pages
-  '(("/datasets" "Datasets")
+  '(("/portal" "Portal")
     ("/login" "Log in")))
 
 (define private-pages
   '(("/" "Overview")
     ("/connections" "Connections")
-    ("/datasets" "Datasets")
+    ("/portal" "Portal")
     ("/projects" "Projects")
     ("/query" "Query")
     ("/exploratory" "Exploratory")

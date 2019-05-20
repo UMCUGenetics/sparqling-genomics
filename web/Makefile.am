@@ -31,7 +31,7 @@ SOURCES =                                               \
   www/config-reader.scm                                 \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
-  www/db/datasets.scm                                   \
+  www/db/portal.scm                                     \
   www/db/exploratory.scm                                \
   www/db/overview.scm                                   \
   www/db/projects.scm                                   \
@@ -41,7 +41,7 @@ SOURCES =                                               \
   www/html.scm                                          \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
-  www/pages/datasets.scm                                \
+  www/pages/portal.scm                                  \
   www/pages/edit-connection.scm                         \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \

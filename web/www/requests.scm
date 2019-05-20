@@ -456,12 +456,12 @@
            request request-body request-path #:username username))]
        [(or (string-prefix? "/login" request-path)
             (string-prefix? "/static/" request-path)
-            (string= "/datasets" request-path))
+            (string= "/portal" request-path))
         (request-scheme-page-handler request request-body request-path)]
        [(string= "/" request-path)
         (values (build-response
                  #:code 303
-                 #:headers '((Location . "/datasets")))
+                 #:headers '((Location . "/portal")))
                 "")]
        [else
         (values (build-response

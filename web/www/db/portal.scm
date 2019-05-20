@@ -14,7 +14,7 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www db datasets)
+(define-module (www db portal)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (sparql driver)
