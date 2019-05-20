@@ -163,6 +163,12 @@ main (int argc, char **argv)
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
+      stmt->predicate = term (PREFIX_MASTER, "sha256sum");
+      stmt->object    = literal ((char *)file_hash, XSD_STRING);
+      register_statement (stmt);
+
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_MASTER, "convertedBy");
       stmt->object    = term (PREFIX_MASTER, "vcf2rdf-" VERSION);
       register_statement (stmt);
