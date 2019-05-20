@@ -24,6 +24,7 @@
              (srfi srfi-1)
              (sxml simple)
              (ldap authenticate)
+             (logger)
              (www base64)
              (www config)
              (www config-reader)
@@ -41,14 +42,18 @@
 (define program-options
   '((version             (single-char #\v) (value #f))
     (help                (single-char #\h) (value #f))
+    (error-log           (single-char #\e) (value #t))
+    (debug-log           (single-char #\d) (value #t))
     (configuration-file  (single-char #\f) (value #t))))
 
 (define (show-help)
   (for-each (lambda (line) (display line) (newline))
    '("This is sparqling-genomics."
-     "  --help                     Show this message."
-     "  --version                  Show versioning information."
-     "  --configuration-file=ARG   Path to the configuration file."))
+     "  --help                     -h  Show this message."
+     "  --version                  -v  Show versioning information."
+     "  --error-log=ARG            -e  Path to the error logfile."
+     "  --debug-log=ARG            -d  Path to the debugging logfile."
+     "  --configuration-file=ARG   -f  Path to the configuration file."))
   (exit 0))
 
 (define (show-version)
@@ -60,6 +65,14 @@
 
 (when (assoc-ref %config 'help)    (show-help))
 (when (assoc-ref %config 'version) (show-version))
+
+(when (assoc-ref %config 'error-log)
+  (set-default-error-port! (open-file (assoc-ref %config 'error-log) "a"))
+  (log-error #f "Started sg-web.~%"))
+
+(when (assoc-ref %config 'debug-log)
+  (set-default-debug-port! (open-file (assoc-ref %config 'debug-log) "a"))
+  (log-debug #f "Started sg-web.~%"))
 
 ;; ----------------------------------------------------------------------------
 ;; RUNNER
@@ -82,7 +95,8 @@
 (define (run-sg-server request-handler)
   (if (fibers-available?)
       (begin
-        (format #t "Using Fibers for multi-threaded connection handling.~%")
+        (log-debug "run-sg-server"
+                   "Using Fibers for multi-threaded connection handling.~%")
         (use-modules (fibers web server))
         ;; Fibers uses a slightly different syntax for run-server.
         (run-server request-handler
@@ -92,7 +106,8 @@
       ;; When Fibers isn't available, fall back to the built-in
       ;; implementation of run-server.
       (begin
-        (format #t "Using single-threaded connection handling.~%")
+        (log-debug "run-sg-server"
+                   "Using single-threaded connection handling.~%")
         (use-modules (web server))
         (run-server request-handler 'http
                     `(#:port ,(www-listen-port)
@@ -133,6 +148,6 @@
         (if (eq? pid 0)
             (with-output-to-file "web.log"
               (lambda _
-                (run-sg-server request-handler)
-                (primitive-exit)))))
+                (run-sg-server request-handler)))
+            (primitive-exit)))
       (run-sg-server request-handler)))
