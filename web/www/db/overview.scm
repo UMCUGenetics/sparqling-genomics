@@ -27,6 +27,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
+  #:use-module (logger)
 
   #:export (number-of-samples
             all-samples
@@ -58,8 +59,8 @@
        [(eq? key 'wrong-type-arg) 0]
        [else
         (begin
-          (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
-                  "number-of-samples" key args)
+          (log-error "number-of-samples"
+                     "Unknown exception ~a: ~a~%" key args)
           0)]))))
 
 (define* (all-samples username #:optional (connection #f))

@@ -21,6 +21,8 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
+  #:use-module (logger)
+
   #:re-export (%null-pointer parse-c-struct int size_t * pointer->string)
   #:export (may-access?
             ldap-is-available?))
@@ -97,5 +99,5 @@
           (ldap-unbind (dereference-pointer connection))
           result)
         (begin
-          (format #t "Error: Couldn't connect to ~s~%" ldap-server-uri)
+          (log-error "may-access?" "Couldn't connect to ~s~%" ldap-server-uri)
           #f))))

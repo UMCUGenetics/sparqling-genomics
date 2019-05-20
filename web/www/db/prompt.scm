@@ -25,6 +25,7 @@
   #:use-module (www db exploratory)
   #:use-module (www db sessions)
   #:use-module (www util)
+  #:use-module (logger)
 
   #:export (prompt-insert-triplet
             prompt-remove-triplet
@@ -78,8 +79,9 @@ INSERT INTO <http://~a/sg-prompt> {
                                 #f))
             (= (response-code header) 200))))
       (lambda (key . args)
-        (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                "prompt-insert-triplet" key args)))))
+        (log-error "prompt-insert-triplet"
+                   "Unknown exception thrown: ~a: ~a~%"
+                   key args)))))
 
 ;; PROMPT-REMOVE-TRIPLET
 ;; ----------------------------------------------------------------------------
@@ -106,8 +108,9 @@ DELETE DATA {
               (user-sparql-query username query)
             (= (response-code header) 200))))
       (lambda (key . args)
-        (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                "prompt-remove-triplet" key args)))))
+        (log-error "prompt-remove-triplet"
+                   "Unknown exception thrown ~a: ~a~%"
+                   key args)))))
 
 ;; PROMPT-GET-TRIPLETS
 ;; ----------------------------------------------------------------------------
@@ -134,8 +137,9 @@ DELETE DATA {
               results
               '())))
       (lambda (key . args)
-        (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                "prompt-get-triplets" key args)
+        (log-error "prompt-get-triplet"
+                   "Unknown exception thrown ~a: ~a~%"
+                   key args)
         '()))))
 
 ;; PROMPT-CLEAR-TRIPLETS
@@ -158,8 +162,9 @@ DELETE DATA {
                               #f))
          #t))
       (lambda (key . args)
-        (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                "prompt-clear-triplets" key args)
+        (log-error "prompt-clear-triplets"
+                   "Unknown exception thrown ~a: ~a~%"
+                   key args)
         '()))))
 
 (define (prompt-save-session username graph)
@@ -183,6 +188,7 @@ DELETE DATA {
               (prompt-clear-triplets username)
               #f)))
       (lambda (key . args)
-        (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-                "prompt-save-session" key args)
+        (log-error "prompt-save-session"
+                   "Unknown exception thrown ~a: ~a~%"
+                   key args)
         '()))))

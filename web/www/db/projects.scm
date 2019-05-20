@@ -27,6 +27,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs io ports)
+  #:use-module (logger)
 
   #:export (project-add
             project-edit
@@ -269,7 +270,8 @@ INSERT { agent:" username " sg:currentlyWorksOn <" project-id "> . }"))]
       (if (= (response-code header) 200)
           #t
           (begin
-            (format #t "Error:~%~a~%" (get-string-all body))
+            (log-error "set-active-project-for-user!"
+                       "~a~%" (get-string-all body))
             #f)))
     (receive (header body) (system-sparql-query insert-query)
       (= (response-code header) 200))))
@@ -459,7 +461,8 @@ WHERE {
       (if (= (response-code header) 200)
           #t
           (begin
-            (format #t "Error:~%~a~%" (get-string-all body))
+            (log-error "project-lock-or-unlock-assigned-graph!"
+                       "~a~%" (get-string-all body))
             #f)))
     (receive (header body) (system-sparql-query insert-query)
       (if (= (response-code header) 200)

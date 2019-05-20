@@ -20,6 +20,7 @@
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web uri)
+  #:use-module (logger)
   #:export (sparql-query
             sparql-query-4store
             sparql-query-virtuoso
@@ -80,6 +81,8 @@
                                 (type "text/csv")
                                 (token #f)
                                 (digest-auth #f))
+  (log-debug "sparql-query" "-------- Running query --------~%")
+  (log-debug "sparql-query" "~%~a~%" query)
   (let* ((post-uri (cond
                     ((string? token) "/sparql-oauth")
                     ((string? digest-auth) "/sparql-auth")
@@ -87,65 +90,69 @@
          (post-url (if uri
                        uri
                        (format #f "http://~a:~a~a" host port post-uri))))
-    (http-post post-url
-               #:body query
-               #:streaming? #t
-               #:headers
-               (delete #f
-                `((user-agent . "GNU Guile")
-                  (content-type . (application/sparql-update))
-                  (accept . ((,(string->symbol type))))
-                  ;; "Bearer" authorization isn't implemented in (web client),
-                  ;; so we work around that by capitalizing the header key.
-                  ,(if (string? token)
-                       `(Authorization . ,(string-append "Bearer " token))
-                       #f)
-                  ,(if (string? digest-auth)
-                       (receive (header port)
-                           (http-post post-url)
-                         (if (= (response-code header) 401)
-                             (let* ((tokens    (string-split digest-auth #\:))
-                                    (username  (car tokens))
-                                    (password  (cadr tokens))
-                                    (auth      (response-www-authenticate header))
-                                    (digest    (assoc-ref auth 'digest))
-                                    (realm     (assoc-ref digest 'realm))
-                                    (nonce     (assoc-ref digest 'nonce))
-                                    (opaque    (assoc-ref digest 'opaque))
-                                    (qop       (assoc-ref digest 'qop))
-                                    (algorithm (assoc-ref digest 'algorithm)))
-                               (if (and (string= algorithm "MD5")
-                                        (string= qop       "auth"))
-                                   (let* ((ha1      (md5-from-string
-                                                     (string-append
-                                                      username ":" realm
-                                                      ":" password)))
-                                          (ha2      (md5-from-string
-                                                     (string-append
-                                                      "POST:" post-uri)))
-                                          (cnonce   (md5-from-string
-                                                     (random-ascii 32)))
-                                          (nc       "00000001")
-                                          (response (md5-from-string
-                                                     (string-append
-                                                      ha1 ":" nonce  ":"
-                                                      nc  ":" cnonce ":"
-                                                      qop ":" ha2)))
-                                          (auth-response
-                                           (string-append
-                                            "Digest username=\"" username
-                                            "\", realm=\"" realm
-                                            "\", nonce=\"" nonce
-                                            "\", uri=\"" post-uri
-                                            "\", qop=\"" qop
-                                            "\", nc=\"" nc
-                                            "\", cnonce=\"" cnonce
-                                            "\", response=\"" response
-                                            "\", opaque=\"" opaque "\"")))
-                                     `(Authorization . ,auth-response))
-                                   #f))
-                             #f))
-                       #f))))))
+    (receive (header port)
+        (http-post post-url
+          #:body query
+          #:streaming? #t
+          #:headers
+          (delete #f
+                  `((user-agent . "GNU Guile")
+                    (content-type . (application/sparql-update))
+                    (accept . ((,(string->symbol type))))
+                    ;; "Bearer" authorization isn't implemented in (web client),
+                    ;; so we work around that by capitalizing the header key.
+                    ,(if (string? token)
+                         `(Authorization . ,(string-append "Bearer " token))
+                         #f)
+                    ,(if (string? digest-auth)
+                         (receive (header port)
+                             (http-post post-url)
+                           (if (= (response-code header) 401)
+                               (let* ((tokens    (string-split digest-auth #\:))
+                                      (username  (car tokens))
+                                      (password  (cadr tokens))
+                                      (auth      (response-www-authenticate header))
+                                      (digest    (assoc-ref auth 'digest))
+                                      (realm     (assoc-ref digest 'realm))
+                                      (nonce     (assoc-ref digest 'nonce))
+                                      (opaque    (assoc-ref digest 'opaque))
+                                      (qop       (assoc-ref digest 'qop))
+                                      (algorithm (assoc-ref digest 'algorithm)))
+                                 (if (and (string= algorithm "MD5")
+                                          (string= qop       "auth"))
+                                     (let* ((ha1      (md5-from-string
+                                                       (string-append
+                                                        username ":" realm
+                                                        ":" password)))
+                                            (ha2      (md5-from-string
+                                                       (string-append
+                                                        "POST:" post-uri)))
+                                            (cnonce   (md5-from-string
+                                                       (random-ascii 32)))
+                                            (nc       "00000001")
+                                            (response (md5-from-string
+                                                       (string-append
+                                                        ha1 ":" nonce  ":"
+                                                        nc  ":" cnonce ":"
+                                                        qop ":" ha2)))
+                                            (auth-response
+                                             (string-append
+                                              "Digest username=\"" username
+                                              "\", realm=\"" realm
+                                              "\", nonce=\"" nonce
+                                              "\", uri=\"" post-uri
+                                              "\", qop=\"" qop
+                                              "\", nc=\"" nc
+                                              "\", cnonce=\"" cnonce
+                                              "\", response=\"" response
+                                              "\", opaque=\"" opaque "\"")))
+                                       `(Authorization . ,auth-response))
+                                     #f))
+                               #f))
+                         #f))))
+      (begin
+        (log-debug "sparql-query" "---------- End query ----------~%")
+        (values header port)))))
 
 ;;;
 ;;; 4store-specific SPARQL-QUERY using a POST request.

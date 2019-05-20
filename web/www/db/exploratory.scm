@@ -27,6 +27,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
+  #:use-module (logger)
 
   #:export (all-graphs-in-connection
             all-predicates-in-graph
@@ -42,15 +43,15 @@
    graph))
 
 (define* (all-graphs-in-connection username connection)
-  (let* ((cache-connection (default-connection username))
-         (property         (string-append
+  (let* [(cache-connection (default-connection username))
+         (property         (generate-id
                             "available-graph-in-"
                             (if (connection-name connection)
                                 (connection-name connection)
                                 "")))
          (cached           (if cache-connection
                                (cached-value username cache-connection property)
-                               #f)))
+                               #f))]
     (cond
      [cached (sort (map car cached) string<)]
      [connection
@@ -76,77 +77,84 @@
      [else #f])))
 
 (define (all-predicates-in-graph username graph connection type)
-  (let* ((cache-connection (default-connection username))
-         (property         (string-append
-                            "all-predicates-in-graph-"
-                            (if (connection-name connection)
-                                (connection-name connection)
-                                "")
-                            "-"
-                            (if graph
-                                (sanitize-graph-name graph)
-                                "")
-                            "-"
-                            (if type
-                                (sanitize-graph-name type)
-                                "")))
-         (cached           (if cache-connection
+  (catch #t
+    (lambda _
+      (let* [(cache-connection (default-connection username))
+             (property    (generate-id
+                           "all-predicates-in-graph-"
+                           (if (connection-name connection)
+                               (connection-name connection)
+                               "")
+                           (if graph (sanitize-graph-name graph) "")
+                           (if type (sanitize-graph-name type)   "")))
+             (cached       (if cache-connection
                                (cached-value username cache-connection property)
-                               #f)))
-    (cond
-     [cached (sort (map car cached) string<)]
-     [connection
-      (let ((result (apply append
-                           (query-results->list
-                            (sparql-query
-                             (string-append
-                              "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-                              "SELECT DISTINCT ?predicate WHERE { GRAPH <"
-                              graph "> { ?s rdf:type <" type "> . ?s ?predicate ?o } }")
-                             #:uri           (connection-uri connection)
-                             #:store-backend (connection-backend connection)
-                             #:digest-auth   (if (and (connection-username connection)
-                                                      (connection-password connection))
-                                                 (string-append
-                                                  (connection-username connection) ":"
-                                                  (connection-password connection))
-                                                 #f)) #t))))
-        (cache-value username cache-connection property result)
-        (sort result string<))]
-     [else #f])))
+                               #f))]
+        (cond
+         [cached (sort (map car cached) string<)]
+         [connection
+          (let [(result (map uri->shorthand-uri
+                             (apply append
+                                    (query-results->list
+                                     (sparql-query
+                                      (string-append
+                                       "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+                                       "SELECT DISTINCT ?predicate WHERE { GRAPH <"
+                                       (shorthand-uri->uri graph) "> { ?s rdf:type <"
+                                       (shorthand-uri->uri type) "> . ?s ?predicate ?o } }")
+                                      #:uri           (connection-uri connection)
+                                      #:store-backend (connection-backend connection)
+                                      #:digest-auth   (if (and (connection-username connection)
+                                                               (connection-password connection))
+                                                          (string-append
+                                                           (connection-username connection) ":"
+                                                           (connection-password connection))
+                                                          #f)) #t))))]
+            (cache-value username cache-connection property result)
+            (sort result string<))]
+         [else #f])))
+    (lambda (key . args)
+      (log-error "all-predicates-in-graph"
+                 "Unknown exception thrown: ~a: ~a~%" key args)
+      '())))
 
 (define (all-types-in-graph username graph connection)
-  (let* ((cache-connection (default-connection username))
-         (property         (string-append
-                            "all-types-in-graph-"
-                            (if (connection-name connection)
-                                (connection-name connection)
-                                "")
-                            "-"
-                            (if graph
-                                (sanitize-graph-name graph)
-                                "")))
-         (cached           (if cache-connection
-                               (cached-value username cache-connection property)
-                               #f)))
-    (cond
-     [cached (sort (map car cached) string<)]
-     [connection
-      (let ((result (apply append
-                           (query-results->list
-                            (sparql-query
-                             (string-append
-                              "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-                              "SELECT DISTINCT ?type WHERE { GRAPH <" graph "> "
-                              "{ ?s rdf:type ?type } }")
-                             #:uri           (connection-uri connection)
-                             #:store-backend (connection-backend connection)
-                             #:digest-auth   (if (and (connection-username connection)
-                                                      (connection-password connection))
-                                                 (string-append
-                                                  (connection-username connection) ":"
-                                                  (connection-password connection))
-                                                 #f)) #t))))
-        (cache-value username cache-connection property result)
-        (sort result string<))]
-     [else #f])))
+  (catch #t
+    (lambda _
+      (let* [(cache-connection (default-connection username))
+             (property         (generate-id
+                                "all-types-in-graph-"
+                                (if (connection-name connection)
+                                    (connection-name connection)
+                                    "")
+                                (if graph (sanitize-graph-name graph) "")))
+             (cached           (if cache-connection
+                                   (cached-value username cache-connection property)
+                                   #f))]
+        (cond
+         [cached (sort (map car cached) string<)]
+         [connection
+          (let [(result
+                 (map uri->shorthand-uri
+                      (apply append
+                             (query-results->list
+                              (sparql-query
+                               (string-append
+                                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+                                "SELECT DISTINCT ?type WHERE { GRAPH <" (shorthand-uri->uri graph) "> "
+                                "{ ?s rdf:type ?type } }")
+                               #:uri           (connection-uri connection)
+                               #:store-backend (connection-backend connection)
+                               #:digest-auth   (if (and (connection-username connection)
+                                                        (connection-password connection))
+                                                   (string-append
+                                                    (connection-username connection) ":"
+                                                    (connection-password connection))
+                                                   #f)) #t))))]
+            (cache-value username cache-connection property result)
+            (sort result string<))]
+         [else #f])))
+    (lambda (key . args)
+      (log-error "all-types-in-graph"
+                 "Unknown exception thrown: ~a: ~a~%" key args)
+      '())))
