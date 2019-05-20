@@ -35,11 +35,6 @@
         #f
         (connection-name (car connections)))))
 
-(define %default-filter-query
-  (string-append
-   default-prefixes
-   "SELECT ?s ?p ?o WHERE { ?s ?p ?o }"))
-
 (define (make-query-button text query username)
   (if (%query-endpoint username)
       `(div (@ (class "show-me-in-h2 small-action-btn"))
@@ -62,7 +57,7 @@
                (h3 "Filter"
                    ,(if username
                         (make-query-button "SHOW ME"
-                                           %default-filter-query
+                                           all-collections-query
                                            username)
                         '()))
                (p "")
@@ -72,7 +67,7 @@
                             (tr (th "Collections"))
                             ,(map (lambda (collection)
                                     `(tr (td (label (input (@ (type "checkbox")))
-                                                    ,(assoc-ref collection "title")))))
+                                                    ,(collection-title collection)))))
                                   (all-collections))))))
 
           (div (@ (id "two-column-right-side"))
@@ -81,12 +76,12 @@
                ,(map
                  (lambda (dataset)
                    (let [(graphs (graphs-for-dataset
-                                  (assoc-ref dataset "id")))]
+                                  (dataset-id dataset)))]
                      `(div (@ (class "dataset"))
-                           (h2 ,(assoc-ref dataset "title")
-                               ,(if (assoc-ref dataset "publisher")
+                           (h2 ,(dataset-title dataset)
+                               ,(if (dataset-publisher dataset)
                                     `(span (@ (class "side-info")) " by "
-                                           ,(assoc-ref dataset "publisher"))))
+                                           ,(dataset-publisher dataset))))
                            (p ,(assoc-ref dataset "description"))
                            ,(if (not (null? graphs))
                                 `(p (strong "Graph" ,(if (> (length graphs) 1) "s" "") ":")

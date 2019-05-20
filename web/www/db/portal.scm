@@ -19,10 +19,21 @@
   #:use-module (www config)
   #:use-module (sparql driver)
   #:use-module (sparql util)
+  #:use-module (logger)
 
   #:export (all-datasets
             all-collections
-            graphs-for-dataset))
+            all-collections-query
+            graphs-for-dataset
+
+            dataset-id
+            dataset-title
+            dataset-description
+            dataset-publisher
+
+            collection-title
+            collection-description
+            collection-publisher))
 
 ;; ----------------------------------------------------------------------------
 ;; ALL-DATASETS
@@ -46,20 +57,40 @@ WHERE {
              (entries (query-results->alist (system-sparql-query query)))]
         entries))
     (lambda (key . args)
-      (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-              "all-datasets" key args)
+      (log-error "all-datasets"
+                 "Unknown exception thrown in ~a: ~a: ~a~%" key args)
       '())))
+
+;; ----------------------------------------------------------------------------
+;; RECORDS-LIKE INTERFACE FOR DATASETS
+;; ----------------------------------------------------------------------------
+
+(define-syntax-rule
+  (dataset-id dataset)
+  (assoc-ref dataset "id"))
+
+(define-syntax-rule
+  (dataset-title dataset)
+  (assoc-ref dataset "title"))
+
+(define-syntax-rule
+  (dataset-description dataset)
+  (assoc-ref dataset "description"))
+
+(define-syntax-rule
+  (dataset-publisher dataset)
+  (assoc-ref dataset "publisher"))
+
 
 ;; ----------------------------------------------------------------------------
 ;; ALL-COLLECTIONS
 ;; ----------------------------------------------------------------------------
 
-(define (all-collections)
-  (catch #t
-    (lambda _
-      (let* [(query (string-append
-                     default-prefixes
-                     "SELECT DISTINCT ?title ?description ?publisher
+(define all-collections-query
+  (string-append
+   default-prefixes
+   "
+SELECT DISTINCT ?title ?description ?publisher
 WHERE {
   ?subject rdf:type       dctype:Collection ;
            dcterms:title  ?title .
@@ -69,10 +100,34 @@ WHERE {
     ?pub       rdfs:label        ?publisher .
   }
 }"))
-             (entries (query-results->alist (system-sparql-query query)))]
-        entries))
+
+(define (all-collections)
+  (catch #t
+    (lambda _
+      (query-results->alist (system-sparql-query all-collections-query)))
     (lambda (key . args)
       '())))
+
+;; ----------------------------------------------------------------------------
+;; RECORDS-LIKE INTERFACE FOR COLLECTIONS
+;; ----------------------------------------------------------------------------
+
+(define-syntax-rule
+  (collection-title collection)
+  (assoc-ref collection "title"))
+
+(define-syntax-rule
+  (collection-description collection)
+  (assoc-ref collection "description"))
+
+(define-syntax-rule
+  (collection-publisher collection)
+  (assoc-ref collection "publisher"))
+
+
+;; ----------------------------------------------------------------------------
+;; GRAPHS
+;; ----------------------------------------------------------------------------
 
 (define (graphs-for-dataset id)
   (catch #t
@@ -84,7 +139,6 @@ WHERE {
              (entries (query-results->alist (system-sparql-query query)))]
         entries))
     (lambda (key . args)
-      (format #t "Unknown exception thrown in ~a: ~a: ~a~%"
-              "all-datasets" key args)
-      (format #t "Argument was: ~s~%" id)
+      (log-error "graphs-for-dataset"
+                 "Unknown exception thrown in ~a: ~a: ~a~%" key args)
       '())))
