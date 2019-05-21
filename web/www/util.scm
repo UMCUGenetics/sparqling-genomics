@@ -138,6 +138,7 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
       #f)))
 
 (define (respond-to-client response-code client-port content-type body)
+  (set-port-encoding! client-port "utf8")
   (write-response (build-response
                    #:code response-code
                    #:headers `((content-type . ,content-type)
