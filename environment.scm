@@ -81,7 +81,6 @@
     `(("texlive" ,texlive)))
    (inputs
     `(("guile" ,guile-2.2)
-      ("guile-fibers" ,guile-fibers)
       ("htslib" ,htslib)
       ("libgcrypt" ,libgcrypt)
       ("pkg-config" ,pkg-config)

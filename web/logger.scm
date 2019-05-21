@@ -15,23 +15,37 @@
 
 (define-module (logger)
   #:use-module (www config)
+  #:use-module (ice-9 threads)
   #:export (log-error
             log-warning
-            log-debug))
+            log-debug
+            log-access))
+
+(define %log-mutex (make-mutex))
 
 (define (log-any type port function fmt . rst)
   (unless (null? port)
+    (lock-mutex %log-mutex)
     (format port "[ ~a ] ~a: ~a: " type
             (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time)))
             (if (string? function) function "unknown"))
-    (format port fmt rst)
-    (force-output port)))
+    (apply format (append (list port fmt) rst))
+    (force-output port)
+    (unlock-mutex %log-mutex)))
 
 (define (log-debug function fmt . rst)
-  (log-any "DEBUG" (default-debug-port) function fmt rst))
+  (log-any "DEBUG" (default-debug-port) function fmt
+           (if (pair? rst) (car rst) '())))
 
 (define (log-warning function fmt . rst)
-  (log-any "WARNING" (default-warning-port) function fmt rst))
+  (log-any "WARNING" (default-warning-port) function fmt
+           (if (pair? rst) (car rst) rst)))
 
 (define (log-error function fmt . rst)
-  (log-any "ERROR" (default-error-port) function fmt rst))
+  (log-any "ERROR" (default-error-port) function fmt
+           (if (pair? rst) (car rst) rst)))
+
+(define (log-access username fmt . rst)
+  (apply log-any (append
+                  (list "ACCESS" (default-debug-port) username fmt)
+                  rst)))

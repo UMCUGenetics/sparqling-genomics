@@ -34,7 +34,6 @@
   #:use-module (srfi srfi-19)
   #:use-module (json)
   #:use-module (sxml simple)
-  #:use-module ((fibers) #:prefix fibers:)
 
   #:export (page-query-response))
 
@@ -58,9 +57,6 @@
                                  (string-append "<pre>" (sxml->html-string token) "</pre>")))
                            tokens)))
           (unless (>= number-of-rows 5000)
-            ;; A call to "sleep" will create a "yield point" for Fibers (the
-            ;; threading library).
-            (fibers:sleep 0)
             (stream-response input-port output-port #f (+ number-of-rows 1)))))))
 
 (define* (page-query-response request-path username #:key (post-data ""))

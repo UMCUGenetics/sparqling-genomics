@@ -36,7 +36,8 @@
             mkdir-p
             string->sha256sum
             generate-id
-            is-uri?))
+            is-uri?
+            respond-to-client))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -135,3 +136,11 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                (string-suffix? ">" string))))
     (lambda (key . args)
       #f)))
+
+(define (respond-to-client response-code client-port content-type body)
+  (write-response (build-response
+                   #:code response-code
+                   #:headers `((content-type . ,content-type)
+                               (content-length . ,(string-length body))))
+                  client-port)
+  (display body client-port))

@@ -71,8 +71,7 @@
             set-ldap-domain!
             set-authentication-enabled!
             set-authentication-username!
-            set-authentication-password!
-            fibers-available?))
+            set-authentication-password!))
 
 
 ;; ----------------------------------------------------------------------------
@@ -477,10 +476,3 @@
                        (connection-username connection) ":"
                        (connection-password connection))
                       #f))))
-
-(define (fibers-available?)
-  ;; 'resolve-module' returns the module name, so wrapping it in
-  ;; the redundant if-statement makes sure we return either #t or #f.
-  (if (resolve-module '(fibers) #:ensure #f)
-      #t
-      #f))

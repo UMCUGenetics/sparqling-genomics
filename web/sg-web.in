@@ -17,10 +17,8 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(use-modules (ice-9 suspendable-ports))
-(install-suspendable-ports!)
-
 (use-modules (ice-9 getopt-long)
+             (ice-9 threads)
              (srfi srfi-1)
              (sxml simple)
              (ldap authenticate)
@@ -92,26 +90,30 @@
   (format #t "Refused to run without an authentication mechanism.~%")
   (exit 0))
 
-(define (run-sg-server request-handler)
-  (if (fibers-available?)
-      (begin
-        (log-debug "run-sg-server"
-                   "Using Fibers for multi-threaded connection handling.~%")
-        (use-modules (fibers web server))
-        ;; Fibers uses a slightly different syntax for run-server.
-        (run-server request-handler
-                    #:port (www-listen-port)
-                    #:family (www-listen-address-family)
-                    #:addr (www-listen-address)))
-      ;; When Fibers isn't available, fall back to the built-in
-      ;; implementation of run-server.
-      (begin
-        (log-debug "run-sg-server"
-                   "Using single-threaded connection handling.~%")
-        (use-modules (web server))
-        (run-server request-handler 'http
-                    `(#:port ,(www-listen-port)
-                      #:addr ,(www-listen-address))))))
+(define (start-server request-handler)
+  (let ((s (socket PF_INET SOCK_STREAM 0)))
+    (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
+
+    (bind s AF_INET (if (string? (www-listen-address))
+                        (inet-pton AF_INET (www-listen-address))
+                        (www-listen-address))
+          (www-listen-port))
+
+    (listen s 10)
+    (while #t
+      (let* [(client-connection (accept s))
+             (client-details    (cdr client-connection))
+             (client-port       (car client-connection))]
+
+        ;; Each request is handled in a separate thread.
+        (call-with-new-thread
+         (lambda _
+           (request-handler client-port)
+           (close client-port))
+         (lambda (key . args)
+           (close client-port)))
+        (log-debug "start-server" "Number of active threads: ~a~%"
+                   (length (all-threads)))))))
 
 (begin
   (catch #t
@@ -146,8 +148,6 @@
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
         (if (eq? pid 0)
-            (with-output-to-file "web.log"
-              (lambda _
-                (run-sg-server request-handler)))
+            (start-server request-handler)
             (primitive-exit)))
-      (run-sg-server request-handler)))
+      (start-server request-handler)))

@@ -58,7 +58,7 @@
 ;; In this section, the different handlers are implemented.
 ;;
 
-(define (request-file-handler path)
+(define (request-file-handler path client-port)
   "This handler takes data from a file and sends that as a response."
 
   (define (response-content-type path)
@@ -78,28 +78,23 @@
 
   (let ((full-path (string-append (www-root) "/" path)))
     (if (not (file-exists? full-path))
-        (values (build-response
-                 #:code 404
-                 #:headers '((content-type . (text/html))))
-                (with-output-to-string (lambda _ (sxml->xml (page-error-404 path)))))
-        ;; Do not handle files larger than (maximum-file-size).
-        ;; Please increase the file size if your server can handle it.
-        (let ((file-stat (stat full-path)))
-          (if (> (stat:size file-stat) (www-max-file-size))
-              (values '((content-type . (text/html)))
-                      (with-output-to-string
-                        (lambda _ (sxml->xml (page-error-filesize path)))))
-              (values `((content-type . ,(response-content-type full-path)))
-                      (with-input-from-file full-path
-                        (lambda _
-                          (setvbuf (current-input-port)
-                                   (if (string= (effective-version) "2.2")
-                                       'block
-                                       _IOFBF) 4096)
-                          (get-bytevector-all (current-input-port))))))))))
+        (respond-to-client 404 client-port '(text/html)
+          (with-output-to-string
+            (lambda _ (sxml->xml (page-error-404 path)))))
+        (let* [(file-stat (stat full-path))
+               (bytes     (stat:size file-stat))]
+          (write-response
+           (build-response
+            #:code 200
+            #:headers `((content-type . ,(response-content-type full-path))
+                        (content-length . ,bytes)))
+           client-port)
+          (call-with-input-file full-path
+            (lambda (input-port)
+              (sendfile client-port input-port bytes)))))))
 
 (define* (request-scheme-page-handler request request-body request-path
-                                      #:key (username #f))
+                                      client-port #:key (username #f))
 
   (define (module-path prefix elements)
     "Returns the module path so it can be loaded."
@@ -125,33 +120,35 @@
   (cond
    ;; The “/” page is special, because we re-route it to “welcome”.
    [(not (string-is-longer-than request-path 2))
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (page-welcome "/" username) port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (sxml->xml (page-welcome "/" username) port))))]
 
    ;; Static resources can be served directly using the ‘request-file-handler’.
    ;; -------------------------------------------------------------------------
    [(string-prefix? "/static/" request-path)
-    (request-file-handler request-path)]
+    (request-file-handler request-path client-port)]
 
    ;; The POST request of the login page is special, because it must set
    ;; a Set-Cookie HTTP header.  This is something out of the control of
    ;; the normal page functions.
    [(and (string-prefix? "/login" request-path)
          (eq? (request-method request) 'POST))
-    (let ((data (post-data->alist (utf8->string request-body))))
+    (let [(data (post-data->alist (utf8->string request-body)))]
       (if (or (and (ldap-enabled?)
-                   (may-access? (ldap-uri) (ldap-organizational-unit) (ldap-domain)
-                                (assoc-ref data 'username)
-                                (assoc-ref data 'password)))
+                   (may-access?
+                     (ldap-uri) (ldap-organizational-unit) (ldap-domain)
+                     (assoc-ref data 'username)
+                     (assoc-ref data 'password)))
               (and (not (ldap-enabled?))
                    (authentication-enabled?)
-                   (string= (authentication-username) (assoc-ref data 'username))
-                   (string= (authentication-password) (string->sha256sum
-                                                       (assoc-ref data 'password)))))
+                   (string= (authentication-username)
+                            (assoc-ref data 'username))
+                   (string= (authentication-password)
+                            (string->sha256sum (assoc-ref data 'password)))))
           (let ((session (session-by-username (assoc-ref data 'username))))
             (unless session
               (set! session (alist->session
@@ -159,98 +156,100 @@
                                (token    . ""))))
               (session-add session))
             ;; Redirect to the “welcome” page.
-            (values (build-response
-                     #:code 303
-                     #:headers
-                     `((Location   . "/")
-                       (Set-Cookie . ,(string-append
-                                       "SGSession=" (session-token session)))))
-                    ""))
-          (values '((content-type . (text/html)))
-                  (call-with-output-string
-                    (lambda (port)
-                      (set-port-encoding! port "utf8")
-                      (let* ((page-function (resolve-module-function "login"))
-                             (sxml-tree     (page-function request-path
-                                              #:post-data
-                                              (utf8->string request-body))))
-                        (catch 'wrong-type-arg
-                          (lambda _
-                            (when (eq? (car (car sxml-tree)) 'html)
-                              (format port "<!DOCTYPE html>~%")))
-                          (lambda (key . args) #f))
-                        (sxml->xml sxml-tree port)))))))]
-
-   ;; The regular login page is special because the username
-   ;; isn't known at this point.
-   [(and (string-prefix? "/login" request-path)
-         (eq? (request-method request) 'GET))
-    (values '((content-type . (text/html)))
+            (write-response (build-response
+                             #:code 303
+                             #:headers
+                             `((Location   . "/")
+                               (Set-Cookie . ,(string-append
+                                               "SGSession="
+                                               (session-token session)))))
+                            client-port))
+          (respond-to-client 200 client-port '(text/html)
             (call-with-output-string
               (lambda (port)
                 (set-port-encoding! port "utf8")
                 (let* ((page-function (resolve-module-function "login"))
-                       (sxml-tree     (page-function request-path)))
+                       (sxml-tree     (page-function request-path
+                                                     #:post-data
+                                                     (utf8->string request-body))))
                   (catch 'wrong-type-arg
                     (lambda _
                       (when (eq? (car (car sxml-tree)) 'html)
                         (format port "<!DOCTYPE html>~%")))
                     (lambda (key . args) #f))
-                  (sxml->xml sxml-tree port)))))]
+                  (sxml->xml sxml-tree port)))))))]
+
+   ;; The regular login page is special because the username
+   ;; isn't known at this point.
+   [(and (string-prefix? "/login" request-path)
+         (eq? (request-method request) 'GET))
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (let* ((page-function (resolve-module-function "login"))
+                 (sxml-tree     (page-function request-path)))
+            (catch 'wrong-type-arg
+              (lambda _
+                (when (eq? (car (car sxml-tree)) 'html)
+                  (format port "<!DOCTYPE html>~%")))
+              (lambda (key . args) #f))
+            (sxml->xml sxml-tree port)))))]
 
    [(string-prefix? "/logout" request-path)
-    (values (build-response
-                   #:code 303
-                   #:headers `((Location . "/")
-                               (Set-Cookie  . ,(string-append
-                                                "SGSession=deleted; expires=Thu,"
-                                                " Jan 01 1970 00:00:00 UTC;"))))
-            "")]
+    (write-response
+      (build-response
+       #:code 303
+       #:headers `((Location . "/")
+                   (Set-Cookie  . ,(string-append
+                                    "SGSession=deleted; expires=Thu,"
+                                    " Jan 01 1970 00:00:00 UTC;"))))
+      client-port)]
 
    ;; ;; When the URI begins with “/project-queries/”, use the project-queries
    ;; ;; page to construct a suitable output.
    [(string-prefix? "/project-queries" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (sxml->xml
-                 (page-project-queries request-path username #:post-data '())
-                 port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (sxml->xml
+           (page-project-queries request-path username #:post-data '())
+           port))))]
 
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
    [(string-suffix? ".json" request-path)
-    (values '((content-type . (application/javascript)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (let* ((request-path (basename request-path ".json"))
-                       (page-function (resolve-module-function request-path)))
-                  (if page-function
-                      (if (eq? (request-method request) 'POST)
-                          (put-string port
-                                      (page-function
-                                       request-path username
-                                       #:type 'json
-                                       #:post-data (utf8->string request-body)))
-                          (put-string port (page-function request-path username
-                                                          #:type 'json)))
-                      (put-string port "[]"))))))]
+    (respond-to-client 200 client-port '(application/javascript)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (let* ((request-path (basename request-path ".json"))
+                 (page-function (resolve-module-function request-path)))
+            (if page-function
+                (if (eq? (request-method request) 'POST)
+                    (put-string port
+                                (page-function
+                                 request-path username
+                                 #:type 'json
+                                 #:post-data (utf8->string request-body)))
+                    (put-string port (page-function request-path username
+                                                    #:type 'json)))
+                (put-string port "[]"))))))]
 
    ;; When the URI begins with “/edit-connection/”, use the edit-connection
    ;; page.
    [(string-prefix? "/edit-connection" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-edit-connection request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-edit-connection request-path username))
-                           port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (sxml->xml (if (eq? (request-method request) 'POST)
+                         (page-edit-connection request-path username
+                            #:post-data (utf8->string request-body))
+                         (page-edit-connection request-path username))
+                     port))))]
 
    ;; When the URI begins with “/project-details/”, use the project-details
    ;; page.
@@ -260,9 +259,8 @@
         (let* [(hash    (last (string-split request-path #\/)))
                (project (project-by-hash hash))]
           (if (project-has-member? (project-id project) username)
-              (values
-               '((content-type . (text/html)))
-               (call-with-output-string
+              (respond-to-client 200 client-port '(text/html)
+                (call-with-output-string
                  (lambda (port)
                    (set-port-encoding! port "utf8")
                    (format port "<!DOCTYPE html>~%")
@@ -273,90 +271,90 @@
                               port))))
               (throw 'no-access))))
       (lambda (key . args)
-        (values
-         (build-response
-          #:code 404
-          #:headers '((content-type . (text/html))))
-         (with-output-to-string
+        (respond-to-client 404 client-port '(text/html)
+          (with-output-to-string
            (lambda _ (sxml->xml (page-error-404 request-path)))))))]
 
    [(string-prefix? "/project-members" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-project-members request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-project-members request-path username))
-                           port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (sxml->xml (if (eq? (request-method request) 'POST)
+                         (page-project-members request-path username
+                                               #:post-data (utf8->string request-body))
+                         (page-project-members request-path username))
+                     port))))]
 
    [(string-prefix? "/project-dependent-graphs" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-project-dependent-graphs request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-project-dependent-graphs request-path username))
-                           port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (sxml->xml (if (eq? (request-method request) 'POST)
+                         (page-project-dependent-graphs request-path username
+                                                        #:post-data (utf8->string request-body))
+                         (page-project-dependent-graphs request-path username))
+                     port))))]
 
    [(string-prefix? "/project-assigned-graphs" request-path)
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (format port "<!DOCTYPE html>~%")
-                (sxml->xml (if (eq? (request-method request) 'POST)
-                               (page-project-assigned-graphs request-path username
-                                #:post-data (utf8->string request-body))
-                               (page-project-assigned-graphs request-path username))
-                           port))))]
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (sxml->xml (if (eq? (request-method request) 'POST)
+                         (page-project-assigned-graphs request-path username
+                                                       #:post-data (utf8->string request-body))
+                         (page-project-assigned-graphs request-path username))
+                     port))))]
 
    [(string-prefix? "/clear-exploratory-cache" request-path)
     (cache-clear username)
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/exploratory")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/exploratory")))
+                    client-port)]
 
    [(string-prefix? "/clear-overview-cache" request-path)
     (cache-clear username)
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/")))
+                    client-port)]
 
    ;; For “/query-history-clean”, we must call a database function and
    ;; redirect to “/query”.
    [(string-prefix? "/query-history-clear" request-path)
     (query-remove-unmarked username)
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/query")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/query")))
+                    client-port)]
 
    [(string-prefix? "/query-response" request-path)
-    (values '((content-type . (text/html)))
-            (lambda (port)
-              (let* ((path          (substring request-path 1))
-                     (page-function (resolve-module-function path)))
-                (when page-function
-                  (if (eq? (request-method request) 'POST)
-                      ((page-function request-path username
-                                      #:post-data
-                                      (utf8->string request-body)) port)
-                      (page-function request-path username))))))]
+    (respond-to-client 200 client-port '(text/html)
+      ;; TODO: Let query-response stream the results, rather than
+      ;; building it up in-memory and send it in a single large response.
+      (call-with-output-string
+        (lambda (port)
+          (let* ((path          (substring request-path 1))
+                 (page-function (resolve-module-function path)))
+            (when page-function
+              (if (eq? (request-method request) 'POST)
+                  ((page-function request-path username
+                                  #:post-data
+                                  (utf8->string request-body)) port)
+                  (page-function request-path username)))))))]
 
    [(string-prefix? "/prompt-session-clear" request-path)
     (prompt-clear-triplets username)
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/prompt")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/prompt")))
+                    client-port)]
 
    [(string-prefix? "/prompt-session-save" request-path)
     (catch #t
@@ -367,10 +365,10 @@
           (prompt-save-session username graph)))
       (lambda (key . args) #f))
 
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/prompt")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/prompt")))
+                    client-port)]
 
    [(string-prefix? "/prompt-remove-triplet" request-path)
     (catch #t
@@ -381,38 +379,38 @@
                (object    (hash-ref json-data "object"))]
           (prompt-remove-triplet username subject predicate object)))
       (lambda (key . args) #f))
-    (values (build-response
-             #:code 303
-             #:headers `((Location   . "/prompt")))
-            "")]
+    (write-response (build-response
+                     #:code 303
+                     #:headers `((Location   . "/prompt")))
+                    client-port)]
 
    ;; All other requests can be handled as HTML responses.
    [#t
-    (values '((content-type . (text/html)))
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                ;; Use block-buffering for a higher I/O throughput, but don't
-                ;; set it on Guile 2.0, because setting it on string ports
-                ;; is not needed/supported.
-                (unless (string= (effective-version) "2.0")
-                  (setvbuf port 'block 4096))
-                (let* ((path          (substring request-path 1))
-                       (page-function (resolve-module-function path))
-                       (sxml-tree     (if page-function
-                                          (if (eq? (request-method request) 'POST)
-                                              (page-function request-path username
-                                                             #:post-data
-                                                             (utf8->string request-body))
-                                              (page-function request-path username))
-                                          (page-ontology-or-error-404
-                                           request-path))))
-                  (catch 'wrong-type-arg
-                    (lambda _
-                      (when (eq? (car (car sxml-tree)) 'html)
-                        (format port "<!DOCTYPE html>~%")))
-                    (lambda (key . args) #f))
-                  (sxml->xml sxml-tree port)))))]))
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          ;; Use block-buffering for a higher I/O throughput, but don't
+          ;; set it on Guile 2.0, because setting it on string ports
+          ;; is not needed/supported.
+          (unless (string= (effective-version) "2.0")
+            (setvbuf port 'block 4096))
+          (let* ((path          (substring request-path 1))
+                 (page-function (resolve-module-function path))
+                 (sxml-tree     (if page-function
+                                    (if (eq? (request-method request) 'POST)
+                                        (page-function request-path username
+                                                       #:post-data
+                                                       (utf8->string request-body))
+                                        (page-function request-path username))
+                                    (page-ontology-or-error-404
+                                     request-path))))
+            (catch 'wrong-type-arg
+              (lambda _
+                (when (eq? (car (car sxml-tree)) 'html)
+                  (format port "<!DOCTYPE html>~%")))
+              (lambda (key . args) #f))
+            (sxml->xml sxml-tree port)))))]))
 
 
 ;; ----------------------------------------------------------------------------
@@ -429,9 +427,11 @@
 ;; Feel free to add your own handler whenever that is necessary.
 ;;
 
-(define (request-handler request request-body)
-  (let ((request-path (uri-path (request-uri request)))
-        (headers      (request-headers request)))
+(define (request-handler client-port)
+  (let* [(request      (read-request client-port))
+         (request-path (uri-path (request-uri request)))
+         (request-body (read-request-body request))
+         (headers      (request-headers request))]
     ;; There can be multiple cookies on the top-level domain, so we have
     ;; to pick the right one;  the one with session name 'SGSession'.
     (let* ((cookies-str (assoc-ref headers 'cookie))
@@ -453,18 +453,19 @@
         (let* ((real-token  (substring token 10))
                (username    (session-username (session-by-token real-token))))
           (request-scheme-page-handler
-           request request-body request-path #:username username))]
+           request request-body request-path client-port #:username username))]
        [(or (string-prefix? "/login" request-path)
             (string-prefix? "/static/" request-path)
             (string= "/portal" request-path))
-        (request-scheme-page-handler request request-body request-path)]
+        (request-scheme-page-handler
+         request request-body request-path client-port)]
        [(string= "/" request-path)
-        (values (build-response
-                 #:code 303
-                 #:headers '((Location . "/portal")))
-                "")]
+        (write-response (build-response
+                         #:code 303
+                         #:headers '((Location . "/portal")))
+                        client-port)]
        [else
-        (values (build-response
-                 #:code 303
-                 #:headers '((Location . "/login")))
-                "")]))))
+        (write-response (build-response
+                         #:code 303
+                         #:headers '((Location . "/login")))
+                        client-port)]))))
