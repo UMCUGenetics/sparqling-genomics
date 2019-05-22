@@ -16,6 +16,8 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www util)
+  #:use-module (rnrs bytevectors)
+  #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 popen)
@@ -139,9 +141,11 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
 
 (define (respond-to-client response-code client-port content-type body)
   (set-port-encoding! client-port "utf8")
-  (write-response (build-response
-                   #:code response-code
-                   #:headers `((content-type . ,content-type)
-                               (content-length . ,(string-length body))))
-                  client-port)
-  (display body client-port))
+  (let [(content (string->utf8 body))]
+    (write-response
+     (build-response
+      #:code response-code
+      #:headers `((content-type   . ,content-type)
+                  (content-length . ,(bytevector-length content))))
+     client-port)
+    (put-bytevector client-port content)))
