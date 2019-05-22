@@ -17,12 +17,14 @@
 (define-module (www requests)
   #:use-module (ice-9 getopt-long)
   #:use-module (ice-9 rdelim)
+  #:use-module (json)
+  #:use-module (ldap authenticate)
+  #:use-module (logger)
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (sxml simple)
-  #:use-module (ldap authenticate)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
@@ -32,21 +34,21 @@
   #:use-module (www db portal)
   #:use-module (www db projects)
   #:use-module (www db prompt)
-  #:use-module (www db sessions)
   #:use-module (www db queries)
-  #:use-module (www pages error)
-  #:use-module (www pages welcome)
-  #:use-module (www pages project-dependent-graphs)
-  #:use-module (www pages project-assigned-graphs)
-  #:use-module (www pages project-queries)
-  #:use-module (www pages project-members)
+  #:use-module (www db sessions)
   #:use-module (www pages edit-connection)
+  #:use-module (www pages error)
+  #:use-module (www pages project-assigned-graphs)
+  #:use-module (www pages project-dependent-graphs)
   #:use-module (www pages project-details)
+  #:use-module (www pages project-members)
+  #:use-module (www pages project-queries)
+  #:use-module (www pages welcome)
   #:use-module (www pages)
   #:use-module (www util)
-  #:use-module (json)
 
-  #:export (request-handler))
+  #:export (request-handler
+            start-server))
 
 ;; ----------------------------------------------------------------------------
 ;; HANDLERS
@@ -480,3 +482,28 @@
                          #:code 303
                          #:headers '((Location . "/login")))
                         client-port)]))))
+
+(define (start-server request-handler)
+  (let ((s (socket PF_INET SOCK_STREAM 0)))
+    (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
+
+    (bind s AF_INET (if (string? (www-listen-address))
+                        (inet-pton AF_INET (www-listen-address))
+                        (www-listen-address))
+          (www-listen-port))
+
+    (listen s 10)
+    (while #t
+      (let* [(client-connection (accept s))
+             (client-details    (cdr client-connection))
+             (client-port       (car client-connection))]
+
+        ;; Each request is handled in a separate thread.
+        (call-with-new-thread
+         (lambda _
+           (request-handler client-port)
+           (close client-port))
+         (lambda (key . args)
+           (close client-port)))
+        (log-debug "start-server" "Number of active threads: ~a~%"
+                   (length (all-threads)))))))
