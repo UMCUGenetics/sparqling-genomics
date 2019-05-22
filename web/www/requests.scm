@@ -29,6 +29,7 @@
   #:use-module (www config)
   #:use-module (www db cache)
   #:use-module (www db connections)
+  #:use-module (www db portal)
   #:use-module (www db projects)
   #:use-module (www db prompt)
   #:use-module (www db sessions)
@@ -383,6 +384,16 @@
                      #:code 303
                      #:headers `((Location   . "/prompt")))
                     client-port)]
+
+   [(string-prefix? "/portal-filter-query" request-path)
+    (catch #t
+      (lambda _
+        (let* [(json-data (json-string->scm (utf8->string request-body)))
+               (response-data (filtered-datasets-query json-data))]
+          (respond-to-client 200 client-port '(text/plain) response-data)))
+      (lambda (key . args)
+        ;; 204 No Content
+        (write-response (build-response #:code 204) client-port)))]
 
    ;; All other requests can be handled as HTML responses.
    [#t

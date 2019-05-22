@@ -27,6 +27,7 @@
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
+  #:use-module (json)
   #:export (page-portal))
 
 (define (%query-endpoint username)
@@ -43,52 +44,76 @@
                             (name "endpoint")
                             (value ,(%query-endpoint username))))
                   (button (@ (type "submit")
+                             (id "query-button")
                              (class "small-action-btn question-btn")
                              (name "query")
                              (value ,query))
                           ,text)))
       text))
 
-(define* (page-portal request-path username #:key (post-data ""))
-  (page-root-template username "Data collections" request-path
-   `((h2 "Portal")
-     (div (@ (id "two-column"))
+(define (show-datasets-table datasets)
+  `(div (@ (id "datasets"))
+    ,(map
+      (lambda (dataset)
+        (let [(graphs (graphs-for-dataset (dataset-id dataset)))]
+          `(div (@ (class "dataset"))
+                (h2 ,(dataset-title dataset)
+                    ,(if (dataset-publisher dataset)
+                         `(span (@ (class "side-info")) " by "
+                                ,(dataset-publisher dataset))))
+                (p ,(assoc-ref dataset "description"))
+                ,(if (not (null? graphs))
+                     `(p (strong "Graph" ,(if (> (length graphs) 1)
+                                              "s" "") ":")
+                         " "
+                         ,(map (lambda (graph)
+                                 `(code ,(assoc-ref graph "graph")))
+                               graphs))
+                     '()))))
+      datasets)))
+
+(define* (page-portal request-path username #:key (post-data #f))
+  (if post-data
+      (show-datasets-table
+       (filtered-datasets (json-string->scm post-data)))
+      (page-root-template username "Data collections" request-path
+       `((h2 "Portal")
+         (div (@ (id "two-column"))
           (div (@ (id "two-column-left-side"))
-               (h3 "Filter"
-                   ,(if username
-                        (make-query-button "SHOW ME"
-                                           all-collections-query
-                                           username)
-                        '()))
-               (p "")
-               (div (@ (id "sidebar"))
-                    (form
-                     (table (@ (class "sidebar"))
-                            (tr (th "Collections"))
-                            ,(map (lambda (collection)
-                                    `(tr (td (label (input (@ (type "checkbox")))
-                                                    ,(collection-title collection)))))
-                                  (all-collections))))))
+           (h3 "Filter"
+               ,(if username
+                    (make-query-button "SHOW ME" all-collections-query username)
+                    '()))
+           (p "")
+           (div (@ (id "sidebar"))
+            (form (@ (id "sidebar-form"))
+             (table (@ (class "sidebar"))
+              (tr (th "Collections"))
+              ,(map (lambda (collection)
+                      (let [(title (collection-title collection))]
+                        `(tr (td (label (input (@ (type "checkbox")
+                                                  (name "collection")
+                                                  (value ,title)))
+                                        ,title)))))
+                    (all-collections)))
+
+             (table (@ (class "sidebar"))
+              (tr (th "Reference assembly"))
+              ,(map (lambda (assembly)
+                      (let [(title (assembly-title assembly))]
+                        `(tr (td (label
+                                  (input (@ (type "checkbox")
+                                            (name "assembly")
+                                            (value ,title)))
+                                  ,title)))))
+                    (all-assemblies))))))
 
           (div (@ (id "two-column-right-side"))
                (h3 "Datasets")
                (p "")
-               ,(map
-                 (lambda (dataset)
-                   (let [(graphs (graphs-for-dataset
-                                  (dataset-id dataset)))]
-                     `(div (@ (class "dataset"))
-                           (h2 ,(dataset-title dataset)
-                               ,(if (dataset-publisher dataset)
-                                    `(span (@ (class "side-info")) " by "
-                                           ,(dataset-publisher dataset))))
-                           (p ,(assoc-ref dataset "description"))
-                           ,(if (not (null? graphs))
-                                `(p (strong "Graph" ,(if (> (length graphs) 1) "s" "") ":")
-                                    " "
-                                    ,(map (lambda (graph)
-                                            `(code ,(assoc-ref graph "graph")))
-                                          graphs))
-                                '()))))
-                 (all-datasets)))))
-   #:dependencies '()))
+               ,(show-datasets-table (all-datasets))))
+         (script "
+$(document).ready(function(){
+  $('#sidebar-form').change(filter_items);
+});"))
+       #:dependencies '(jquery portal))))
