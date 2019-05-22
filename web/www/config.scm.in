@@ -382,6 +382,7 @@
     (dcterms      . "http://purl.org/dc/terms/")
     (dctype       . "http://purl.org/dc/dcmitype/")
     (faldo        . "http://biohackathon.org/resource/faldo#")
+    (ncbi         . "http://rdf.biosemantics.org/ontologies/ncbiassembly#")
     (project      . "http://sparqling-genomics.org/Project/")
     (query        . "http://sparqling-genomics.org/Query/")
     (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
