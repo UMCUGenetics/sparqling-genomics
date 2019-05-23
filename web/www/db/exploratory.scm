@@ -22,7 +22,6 @@
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (web response)
-  #:use-module (ice-9 threads)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
@@ -115,7 +114,7 @@
          [else #f])))
     (lambda (key . args)
       (log-error "all-predicates-in-graph"
-                 "Unknown exception thrown: ~a: ~a~%" key args)
+                 "Unknown exception thrown: ~a: ~a" key args)
       '())))
 
 (define (all-types-in-graph username graph connection)
@@ -156,5 +155,5 @@
          [else #f])))
     (lambda (key . args)
       (log-error "all-types-in-graph"
-                 "Unknown exception thrown: ~a: ~a~%" key args)
+                 "Unknown exception thrown: ~a: ~a" key args)
       '())))

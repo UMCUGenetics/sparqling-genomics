@@ -92,7 +92,7 @@
 DELETE { ?query " predicate " ?value . }
 INSERT { ?query " predicate " " (if type
                                     (if (string= type "xsd:boolean")
-                                        (format #f "~a" (if object "1" "0"))
+                                        (if object "1" "0")
                                         (format #f "~s^^~a" object type))
                                     (format #f "<~a>" object)) " . }
 WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))

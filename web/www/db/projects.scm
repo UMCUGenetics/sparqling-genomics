@@ -23,7 +23,6 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 threads)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs io ports)
@@ -187,7 +186,7 @@ WHERE  { <" project-uri "> ?predicate ?object . }"))
 DELETE { ?project " predicate " ?value . }
 INSERT { ?project " predicate " " (if type
                                     (if (string= type "xsd:boolean")
-                                        (format #f "~a" (if object "1" "0"))
+                                        (if object "1" "0")
                                         (format #f "~s^^~a" object type))
                                     (format #f "<~a>" object)) " . }
 WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))
@@ -271,7 +270,7 @@ INSERT { agent:" username " sg:currentlyWorksOn <" project-id "> . }"))]
           #t
           (begin
             (log-error "set-active-project-for-user!"
-                       "~a~%" (get-string-all body))
+                       (get-string-all body))
             #f)))
     (receive (header body) (system-sparql-query insert-query)
       (= (response-code header) 200))))
@@ -462,7 +461,7 @@ WHERE {
           #t
           (begin
             (log-error "project-lock-or-unlock-assigned-graph!"
-                       "~a~%" (get-string-all body))
+                       (get-string-all body))
             #f)))
     (receive (header body) (system-sparql-query insert-query)
       (if (= (response-code header) 200)

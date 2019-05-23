@@ -66,11 +66,13 @@
 
 (when (assoc-ref %config 'error-log)
   (set-default-error-port! (open-file (assoc-ref %config 'error-log) "a"))
-  (log-error #f "Started sg-web.~%"))
+  (log-error "sg-web.in" "Started sg-web.")
+  (log-error "sg-web.in" "---------------"))
 
 (when (assoc-ref %config 'debug-log)
   (set-default-debug-port! (open-file (assoc-ref %config 'debug-log) "a"))
-  (log-debug #f "Started sg-web.~%"))
+  (log-debug "sg-web.in" "Started sg-web.")
+  (log-debug "sg-web.in" "---------------"))
 
 ;; ----------------------------------------------------------------------------
 ;; RUNNER

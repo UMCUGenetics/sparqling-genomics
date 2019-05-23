@@ -465,10 +465,12 @@
              (is-valid-session-token? (substring token 10)))
         (let* ((real-token  (substring token 10))
                (username    (session-username (session-by-token real-token))))
+          (unless (string-prefix? "/static/" request-path)
+            (log-access username request-path))
           (request-scheme-page-handler
            request request-body request-path client-port #:username username))]
-       [(or (string-prefix? "/login" request-path)
-            (string-prefix? "/static/" request-path)
+       [(or (string-prefix? "/static/" request-path)
+            (string= "/login" request-path)
             (string= "/portal" request-path))
         (request-scheme-page-handler
          request request-body request-path client-port)]
@@ -504,6 +506,4 @@
            (request-handler client-port)
            (close client-port))
          (lambda (key . args)
-           (close client-port)))
-        (log-debug "start-server" "Number of active threads: ~a~%"
-                   (length (all-threads)))))))
+           (close client-port)))))))

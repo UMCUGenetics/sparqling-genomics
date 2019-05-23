@@ -74,10 +74,10 @@ WHERE {
       text))
 
 (define* (page-overview-table request-path username #:key (post-data ""))
-  (let* ((info (par-map (lambda (func) (func username))
-                        (list number-of-samples
-                              number-of-variant-calls
-                              number-of-copynumber-calls))))
+  (let* ((info (n-par-map 3 (lambda (func) (func username))
+                          (list number-of-samples
+                                number-of-variant-calls
+                                number-of-copynumber-calls))))
     `(table (@ (id "overview-table")
                (class "item-table"))
       (tr (th "Property")

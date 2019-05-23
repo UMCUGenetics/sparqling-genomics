@@ -99,5 +99,5 @@
           (ldap-unbind (dereference-pointer connection))
           result)
         (begin
-          (log-error "may-access?" "Couldn't connect to ~s~%" ldap-server-uri)
+          (log-error "may-access?" "Couldn't connect to ~s" ldap-server-uri)
           #f))))

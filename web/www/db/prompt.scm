@@ -80,8 +80,8 @@ INSERT INTO <http://~a/sg-prompt> {
             (= (response-code header) 200))))
       (lambda (key . args)
         (log-error "prompt-insert-triplet"
-                   "Unknown exception thrown: ~a: ~a~%"
-                   key args)))))
+                   "Uknown exception thrown: ~a" key)
+        '()))))
 
 ;; PROMPT-REMOVE-TRIPLET
 ;; ----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ DELETE DATA {
             (= (response-code header) 200))))
       (lambda (key . args)
         (log-error "prompt-remove-triplet"
-                   "Unknown exception thrown ~a: ~a~%"
+                   "Unknown exception thrown ~a: ~a"
                    key args)))))
 
 ;; PROMPT-GET-TRIPLETS
@@ -137,9 +137,9 @@ DELETE DATA {
               results
               '())))
       (lambda (key . args)
-        (log-error "prompt-get-triplet"
-                   "Unknown exception thrown ~a: ~a~%"
-                   key args)
+        (log-error "prompt-get-triplets"
+                   "Unknown exception thrown ~a"
+                   args)
         '()))))
 
 ;; PROMPT-CLEAR-TRIPLETS
@@ -163,7 +163,7 @@ DELETE DATA {
          #t))
       (lambda (key . args)
         (log-error "prompt-clear-triplets"
-                   "Unknown exception thrown ~a: ~a~%"
+                   "Unknown exception thrown ~a: ~a"
                    key args)
         '()))))
 
@@ -189,6 +189,6 @@ DELETE DATA {
               #f)))
       (lambda (key . args)
         (log-error "prompt-save-session"
-                   "Unknown exception thrown ~a: ~a~%"
+                   "Unknown exception thrown ~a: ~a"
                    key args)
         '()))))

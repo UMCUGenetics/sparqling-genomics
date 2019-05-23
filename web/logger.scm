@@ -16,6 +16,7 @@
 (define-module (logger)
   #:use-module (www config)
   #:use-module (ice-9 threads)
+  #:use-module (ice-9 format)
   #:export (log-error
             log-warning
             log-debug
@@ -30,22 +31,22 @@
             (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time)))
             (if (string? function) function "unknown"))
     (apply format (append (list port fmt) rst))
+    (newline port)
     (force-output port)
     (unlock-mutex %log-mutex)))
 
 (define (log-debug function fmt . rst)
-  (log-any "DEBUG" (default-debug-port) function fmt
-           (if (pair? rst) (car rst) '())))
+  (apply log-any
+         (append (list "DEBUG" (default-debug-port) function fmt) rst)))
 
 (define (log-warning function fmt . rst)
-  (log-any "WARNING" (default-warning-port) function fmt
-           (if (pair? rst) (car rst) rst)))
+  (apply log-any
+         (append (list "WARNING" (default-warning-port) function fmt) rst)))
 
 (define (log-error function fmt . rst)
-  (log-any "ERROR" (default-error-port) function fmt
-           (if (pair? rst) (car rst) rst)))
+  (apply log-any
+         (append (list "ERROR" (default-error-port) function fmt) rst)))
 
 (define (log-access username fmt . rst)
-  (apply log-any (append
-                  (list "ACCESS" (default-debug-port) username fmt)
-                  rst)))
+  (apply log-any
+         (append (list "ACCESS" (default-debug-port) username fmt) rst)))

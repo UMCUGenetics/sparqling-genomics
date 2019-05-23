@@ -84,9 +84,11 @@ WHERE { ?sample rdf:type <http://sparqling-genomics/Sample> . }")
                                              #f))
                            #t)))
             results)
-          (let* ((samples (par-map (lambda (connection)
-                                     (all-samples username connection))
-                                   (all-connections username)))
+          (let* ((user-connections (all-connections username))
+                 (samples (n-par-map (length user-connections)
+                                     (lambda (connection)
+                                       (all-samples username connection))
+                                     user-connections))
                  (simplified-list (stable-sort
                                    (apply append (apply append (delete #f samples)))
                                    string>?)))
@@ -147,10 +149,12 @@ SELECT (COUNT(?variant) AS ?variants) WHERE { ?variant rdf:type sg:VariantCall }
             (string->number (caar results)))]
          ;; Return the number of variants for all connections.
          [else
-          (let* ((variants (delete #f (par-map (lambda (connection)
-                                                 (number-of-variant-calls
-                                                  username connection))
-                                               (all-connections username))))
+          (let* ((user-connections (all-connections username))
+                 (variants (delete #f (n-par-map (length user-connections)
+                                                 (lambda (connection)
+                                                   (number-of-variant-calls
+                                                    username connection))
+                                                 user-connections)))
                  (result   (apply + variants)))
             (cache-value username cache-connection "variantcalls" result)
             result)])))
@@ -189,10 +193,12 @@ SELECT COUNT(?cnv) WHERE { ?cnv col:copynumber ?o }")
                            #t)))
             (string->number (caar results)))]
          [else
-          (let* ((variants (delete #f (par-map (lambda (connection)
-                                                 (number-of-copynumber-calls
-                                                  username connection))
-                                               (all-connections username))))
+          (let* ((user-connections (all-connections username))
+                 (variants (delete #f (n-par-map (length user-connections)
+                                                 (lambda (connection)
+                                                   (number-of-copynumber-calls
+                                                    username connection))
+                                                 user-connections)))
                  (result   (apply + variants)))
             (cache-value username cache-connection "copynumbercalls" result)
             result)])))

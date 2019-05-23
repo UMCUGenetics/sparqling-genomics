@@ -81,8 +81,6 @@
                                 (type "text/csv")
                                 (token #f)
                                 (digest-auth #f))
-  (log-debug "sparql-query" "-------- Running query --------~%")
-  (log-debug "sparql-query" "~%~a~%" query)
   (let* ((post-uri (cond
                     ((string? token) "/sparql-oauth")
                     ((string? digest-auth) "/sparql-auth")
@@ -150,9 +148,7 @@
                                      #f))
                                #f))
                          #f))))
-      (begin
-        (log-debug "sparql-query" "---------- End query ----------~%")
-        (values header port)))))
+      (values header port))))
 
 ;;;
 ;;; 4store-specific SPARQL-QUERY using a POST request.
