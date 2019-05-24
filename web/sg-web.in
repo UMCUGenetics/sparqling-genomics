@@ -82,14 +82,14 @@
 ;;
 
 (when (assoc-ref %config 'configuration-file)
-  (format #t "Using configuration from ~s.~%"
-          (assoc-ref %config 'configuration-file))
+  (log-debug "sg-web.in" "Using configuration from ~s."
+             (assoc-ref %config 'configuration-file))
   (read-configuration-from-file
    (assoc-ref %config 'configuration-file)))
 
 (when (and (not (ldap-enabled?))
            (not (authentication-enabled?)))
-  (format #t "Refused to run without an authentication mechanism.~%")
+  (log-error "sg-web.in" "Refused to run without an authentication mechanism.")
   (exit 0))
 
 (begin
@@ -117,10 +117,10 @@
       ;; 'random-state-from-platform' to seed the pRNG.
       (set! *random-state* (random-state-from-platform))))
 
-  (format #t "SPARQLing-genomics is running at http://~a:~a~%"
-          (inet-ntop (www-listen-address-family)
-                     (www-listen-address))
-          (www-listen-port))
+  (log-debug "sg-web.in" "SPARQLing-genomics is running at http://~a:~a"
+             (inet-ntop (www-listen-address-family)
+                        (www-listen-address))
+             (www-listen-port))
   (load-sessions)
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
