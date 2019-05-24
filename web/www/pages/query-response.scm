@@ -37,9 +37,9 @@
 
   #:export (page-query-response))
 
-(define* (stream-response input-port output-port
-                          #:optional (read-header? #t)
-                          (number-of-rows 0))
+(define* (stream-html-response input-port output-port
+                               #:optional (read-header? #t)
+                               (number-of-rows 0))
   "Read the query response from PORT and turn it into a SXML table."
   (let [(tokens (csv-read-entry input-port #\,))]
     (if (null? tokens)
@@ -57,9 +57,43 @@
                                  (string-append "<pre>" (sxml->html-string token) "</pre>")))
                            tokens)))
           (unless (>= number-of-rows 5000)
-            (stream-response input-port output-port #f (+ number-of-rows 1)))))))
+            (stream-html-response input-port output-port #f (+ number-of-rows 1)))))))
 
-(define* (page-query-response request-path username #:key (post-data ""))
+(define* (stream-json-response input-port output-port
+                               #:optional (header '())
+                               (number-of-rows 0))
+  "Read the query response from PORT and turn it into JSON."
+  (let [(tokens (csv-read-entry input-port #\,))]
+    (if (null? tokens)
+        (format output-port "~a" (if (null? header) "[]" "]"))
+        ;; The first line in the output is the table header.
+        (begin
+          (if (null? header)
+              (begin
+                (format output-port "[")
+                (set! header tokens))
+              (let* [(pairs (zip header tokens))
+                     (first (car pairs))]
+                (unless (= number-of-rows 1) (format output-port ","))
+                (format output-port "{ ~s: ~a "
+                        (list-ref first 0)
+                        (if (string->number (list-ref first 1))
+                            (list-ref first 1)
+                            (format #f "~s" (list-ref first 1))))
+                (for-each (lambda (pair)
+                            (format output-port ", ~s: ~a "
+                                    (list-ref pair 0)
+                                    (if (string->number (list-ref pair 1))
+                                        (list-ref pair 1)
+                                        (format #f "~s" (list-ref pair 1)))))
+                          (cdr pairs))
+                (format output-port "}")))
+          (if (>= number-of-rows 5000)
+              (format output-port "]")
+              (stream-json-response input-port output-port header (+ number-of-rows 1)))))))
+
+(define* (page-query-response request-path username #:key (post-data "")
+                              (return-type '(text/html)))
 
   (define (respond-with-error port)
     (let ((message (get-string-all port)))
@@ -102,7 +136,15 @@
                                    username
                                    seconds
                                    (active-project-for-user username))
-                        (lambda (output-port) (stream-response port output-port)))]
+                        (lambda (output-port)
+                          (cond
+                            ((equal? return-type '(application/javascript))
+                             (stream-json-response port output-port))
+                            ((equal? return-type '(text/html))
+                             (stream-html-response port output-port))
+                            ;; Fall back to a HTML response.
+                            (else
+                             (stream-html-response port output-port)))))]
                      [(= (response-code header) 401)
                       (lambda (output-port)
                         (sxml->xml (call-with-input-string "Authentication failed."

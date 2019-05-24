@@ -284,8 +284,6 @@ table {
     width: 100%;
 }
 
-svg { width: 100%; height: 600pt; background: #333333; }
-
 #add-field { width: 100% }
 #add-field-button {
     width: 22pt;
@@ -544,6 +542,9 @@ input[type=submit].login-field {
 .stop-btn { background: #008888; }
 .stop-btn:hover { background: #00aaaa; }
 
+.plot-btn { background: #e2e9ee; }
+.plot-btn:hover { background: #efefef; }
+
 .question-btn { background: #33cccc; color: #000000; }
 .question-btn:hover { background: #66eeee; color: #222222; }
 
@@ -606,3 +607,19 @@ input[type=submit].login-field {
 .sidebar { border: solid 2px #444444; margin-bottom: 10pt; }
 .show-me-in-h2 { display: inline-block; vertical-align: middle; padding: 0pt 0pt 0pt 5pt; }
 
+#plot-wrapper {
+    position: relative;
+    display: block;
+    margin-top: 1em;
+    width: 600pt;
+    height: 340pt;
+    border: solid 2px #111111;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#plot-wrapper svg {
+    width: 100%;
+    height: 100%;
+    background: #eeeeee;
+}

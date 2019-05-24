@@ -42,13 +42,14 @@ SOURCES =                                               \
   www/html.scm                                          \
   www/pages.scm                                         \
   www/pages/connections.scm                             \
-  www/pages/portal.scm                                  \
   www/pages/edit-connection.scm                         \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \
   www/pages/graphs.scm                                  \
   www/pages/login.scm                                   \
   www/pages/overview-table.scm                          \
+  www/pages/plottable-query.scm                         \
+  www/pages/portal.scm                                  \
   www/pages/predicates.scm                              \
   www/pages/project-assigned-graphs.scm                 \
   www/pages/project-dependent-graphs.scm                \
@@ -56,10 +57,10 @@ SOURCES =                                               \
   www/pages/project-members.scm                         \
   www/pages/project-queries.scm                         \
   www/pages/projects.scm                                \
-  www/pages/prompt.scm                                  \
   www/pages/prompt-session-table.scm                    \
-  www/pages/query-history.scm                           \
+  www/pages/prompt.scm                                  \
   www/pages/query-history-mark.scm                      \
+  www/pages/query-history.scm                           \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
   www/pages/samples.scm                                 \
@@ -80,13 +81,17 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \
   static/images/sort_desc.png                           \
-  static/datatables.min.css                             \
-  static/jquery.dataTables.min.js                       \
-  static/jquery-3.2.1.min.js                            \
   static/ace/ace.js                                     \
   static/ace/ext-language_tools.js                      \
   static/ace/mode-sparql.js                             \
-  static/ace/theme-crimson_editor.js
+  static/ace/theme-crimson_editor.js                    \
+  static/d3.min.js                                      \
+  static/datatables.min.css                             \
+  static/jquery-3.2.1.min.js                            \
+  static/jquery.dataTables.min.js                       \
+  static/plottable-query.js                             \
+  static/portal.js                                      \
+  static/prompt.js
 
 bin_SCRIPTS     = sg-web
 webdir          = $(pkgdatadir)/web

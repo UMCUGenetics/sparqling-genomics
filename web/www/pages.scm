@@ -49,28 +49,27 @@
       public-pages))
 
 (define (page-partial-main-menu pages request-path)
-  (let ((page-is-ontology (page-is-ontology? request-path)))
-    `(ul
-      ,(map
-        (lambda (item)
-          (cond
-           ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
-            `(li (@ (class "active")) ,(cadr item)))
-           ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
-                 (string= (car item) "/query"))
-            `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
-           ((and page-is-ontology
-                 (string= (car item) "/query"))
-            `(li (@ (class "active")) (a (@ (href "/query")
-                                            (onclick "history.go(-1); return false;")) "← Go back")))
-           ((or (and (string= (car item) "/connections")
-                     (string-prefix? "/edit-connection" request-path))
-                (and (string= (car item) "/projects")
-                     (string-prefix? "/project-details" request-path)))
-            `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
-           (else
-            `(li (a (@ (href ,(car item))) ,(cadr item))))))
-        pages))))
+  `(ul
+    ,(map
+      (lambda (item)
+        (cond
+         ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
+          `(li (@ (class "active")) ,(cadr item)))
+         ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
+               (string= (car item) "/query"))
+          `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
+         ((and (string= (car item) "/query")
+               (string-prefix? "/plottable-query" request-path))
+          `(li (@ (class "active")) (a (@ (href "/query")
+                                          (onclick "history.go(-1); return false;")) "← Go back")))
+         ((or (and (string= (car item) "/connections")
+                   (string-prefix? "/edit-connection" request-path))
+              (and (string= (car item) "/projects")
+                   (string-prefix? "/project-details" request-path)))
+          `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
+         (else
+          `(li (a (@ (href ,(car item))) ,(cadr item))))))
+      pages)))
 
 (define* (page-root-template username title request-path content-tree #:key (dependencies '(test)))
   `((html (@ (lang "en"))
@@ -88,6 +87,12 @@
            `())
       ,(if (memq 'portal dependencies)
            `(script (@ (type "text/javascript") (src "/static/portal.js")) "")
+           `())
+      ,(if (memq 'd3 dependencies)
+           `(script (@ (type "text/javascript") (src "/static/d3.min.js")) "")
+           `())
+      ,(if (memq 'plottable-query dependencies)
+           `(script (@ (type "text/javascript") (src "/static/plottable-query.js")) "")
            `())
       ,(if (memq 'autocomplete dependencies)
            `((link (@ (rel "stylesheet") (type "text/css") (href "/static/ext/jquery-autocomplete.css")))

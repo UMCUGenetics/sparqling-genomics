@@ -220,6 +220,24 @@
            (page-project-queries request-path username #:post-data '())
            port))))]
 
+   [(string-prefix? "/query-response" request-path)
+    (let [(response-mime-type (if (string-suffix? ".json" request-path)
+                                  '(application/javascript)
+                                  '(text/html)))]
+      (respond-to-client 200 client-port response-mime-type
+      ;; TODO: Let query-response stream the results, rather than
+      ;; building it up in-memory and send it in a single large response.
+      (call-with-output-string
+        (lambda (port)
+          (let* ((path          "query-response")
+                 (page-function (resolve-module-function path)))
+            (when page-function
+              (if (eq? (request-method request) 'POST)
+                  ((page-function request-path username
+                                  #:post-data (utf8->string request-body)
+                                  #:return-type response-mime-type) port)
+                  (page-function request-path username))))))))]
+
    ;; When the “file extension” of the request indicates JSON, treat the
    ;; returned format as ‘application/javascript’.
    [(string-suffix? ".json" request-path)
@@ -336,21 +354,6 @@
                      #:code 303
                      #:headers `((Location   . "/query")))
                     client-port)]
-
-   [(string-prefix? "/query-response" request-path)
-    (respond-to-client 200 client-port '(text/html)
-      ;; TODO: Let query-response stream the results, rather than
-      ;; building it up in-memory and send it in a single large response.
-      (call-with-output-string
-        (lambda (port)
-          (let* ((path          (substring request-path 1))
-                 (page-function (resolve-module-function path)))
-            (when page-function
-              (if (eq? (request-method request) 'POST)
-                  ((page-function request-path username
-                                  #:post-data
-                                  (utf8->string request-body)) port)
-                  (page-function request-path username)))))))]
 
    [(string-prefix? "/prompt-session-clear" request-path)
     (prompt-clear-triplets username)
