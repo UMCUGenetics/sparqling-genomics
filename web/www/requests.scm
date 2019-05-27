@@ -17,6 +17,7 @@
 (define-module (www requests)
   #:use-module (ice-9 getopt-long)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 threads)
   #:use-module (json)
   #:use-module (ldap authenticate)
   #:use-module (logger)
@@ -129,11 +130,6 @@
           (set-port-encoding! port "utf8")
           (format port "<!DOCTYPE html>~%")
           (sxml->xml (page-welcome "/" username) port))))]
-
-   ;; Static resources can be served directly using the ‘request-file-handler’.
-   ;; -------------------------------------------------------------------------
-   [(string-prefix? "/static/" request-path)
-    (request-file-handler request-path client-port)]
 
    ;; The POST request of the login page is special, because it must set
    ;; a Set-Cookie HTTP header.  This is something out of the control of
@@ -462,26 +458,38 @@
                       (car cookies)
                       #f)))
       (cond
+       ;; Static resources are served using the ‘request-file-handler’.
+       ;; ----------------------------------------------------------------------
+       [(string-prefix? "/static/" request-path)
+        (request-file-handler request-path client-port)]
+
+       ;; Authentication is required for almost all pages.
+       ;; ----------------------------------------------------------------------
        [(and (string? token)
              ;; The token starts with 'SGSession=', we have to strip that
              ;; off to get the actual token.
              (is-valid-session-token? (substring token 10)))
         (let* ((real-token  (substring token 10))
                (username    (session-username (session-by-token real-token))))
-          (unless (string-prefix? "/static/" request-path)
-            (log-access username request-path))
+          (log-access username request-path)
           (request-scheme-page-handler
            request request-body request-path client-port #:username username))]
-       [(or (string-prefix? "/static/" request-path)
-            (string= "/login" request-path)
+
+       ;; The following pages may be access without logging in.
+       ;; ----------------------------------------------------------------------
+       [(or (string= "/login" request-path)
             (string= "/portal" request-path))
         (request-scheme-page-handler
          request request-body request-path client-port)]
+
+       ;; When not authenticated, redirect from the main page to the portal.
+       ;; ----------------------------------------------------------------------
        [(string= "/" request-path)
         (write-response (build-response
                          #:code 303
                          #:headers '((Location . "/portal")))
                         client-port)]
+
        [else
         (write-response (build-response
                          #:code 303
