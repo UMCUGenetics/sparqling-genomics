@@ -28,7 +28,7 @@
   (unless (null? port)
     (lock-mutex %log-mutex)
     (format port "[ ~a ] ~a: ~a: " type
-            (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time)))
+            (strftime "%Y-%m-%d %H:%M:%S" (localtime (current-time)))
             (if (string? function) function "unknown"))
     (apply format (append (list port fmt) rst))
     (newline port)
