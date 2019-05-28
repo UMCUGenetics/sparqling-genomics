@@ -114,7 +114,10 @@
           current-token
           (reverse (cons (list->string (reverse current-token)) tokens)))]
      [(eq? character #\")
-      (csv-read-entry port delimiter current-token tokens (not in-quote))]
+      (if (and (not (null? current-token))
+               (eq? (car current-token) #\\))
+          (csv-read-entry port delimiter (cons character (cdr current-token)) tokens in-quote)
+          (csv-read-entry port delimiter current-token tokens (not in-quote)))]
      [(and (eq? character delimiter)
            (not in-quote))
       (csv-read-entry port delimiter '()
