@@ -22,10 +22,11 @@
              (gnu packages gnupg)
              (gnu packages guile)
              (gnu packages guile-xyz)
+             (gnu packages openldap)
              (gnu packages pkg-config)
              (gnu packages rdf)
-             (gnu packages tls)
              (gnu packages tex)
+             (gnu packages tls)
              (gnu packages)
              (guix build utils)
              (guix build-system gnu)
@@ -38,7 +39,7 @@
 (define sparqling-genomics
   (package
    (name "sparqling-genomics")
-   (version "0.99.2")
+   (version "0.99.9")
    (source (origin
             (method url-fetch)
             (uri (string-append
@@ -50,7 +51,10 @@
               "1lmjvglbjiq4n9a56ic0kwwwip3y1f6wsksdjylf5hggaf5bhmpr"))))
    (build-system gnu-build-system)
    (arguments
-    `(#:parallel-build? #f
+    `(#:configure-flags (list (string-append
+                               "--with-libldap-prefix="
+                               (assoc-ref %build-inputs "openldap")))
+      #:parallel-build? #f ; It breaks building the documentation.
       #:phases
       (modify-phases %standard-phases
         (add-after 'install 'setup-static-resources
@@ -78,12 +82,13 @@
                   (,guile-load-compiled-path))
                 `("SG_WEB_ROOT" ":" prefix (,web-root)))))))))
    (native-inputs
-    `(("texlive" ,texlive)))
+    `(("texlive" ,texlive)
+      ("pkg-config" ,pkg-config)))
    (inputs
     `(("guile" ,guile-2.2)
       ("htslib" ,htslib)
       ("libgcrypt" ,libgcrypt)
-      ("pkg-config" ,pkg-config)
+      ("openldap" ,openldap)
       ("raptor2" ,raptor2)
       ("xz" ,xz)
       ("zlib" ,zlib)))
@@ -93,7 +98,9 @@
    (synopsis "Tools to use SPARQL to analyze genomics data")
    (description "This package provides various tools to extract RDF triples
 from genomic data formats, and a web interface to query SPARQL endpoints.")
-   (license license:gpl3+)))
+   ;; All programs except the web interface is licensed GPLv3+.  The web
+   ;; interface is licensed AGPLv3+.
+   (license (list license:gpl3+ license:agpl3+))))
 
 ;; Evaluate to the complete recipe, so that the development
 ;; environment has everything to start from scratch.
