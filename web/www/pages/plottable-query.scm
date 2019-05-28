@@ -26,7 +26,7 @@
 
 (define* (page-plottable-query request-path username #:key (post-data #f))
   (page-root-template username "Plottable Query" request-path
-   `((h2 "Query")
+   `((h2 "Query visualisation")
      ,(let* ((connections (all-connections username #:filter connection-name))
              (alist       (if post-data (post-data->alist post-data) '()))
              (query       (assoc-ref alist 'query))
