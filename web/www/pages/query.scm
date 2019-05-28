@@ -145,7 +145,7 @@ $(document).ready(function(){
 
           /* Initialize DataTables. */
           $('#query-output').addClass('display');
-          var dt = $('#query-output').DataTable({ sDom: 'lrtip' });
+          var dt = $('#query-output').DataTable({ 'sDom': 'lrtip', 'aaSorting': [] });
           dt.draw();
 
           $.get('/query-history', function (data){
