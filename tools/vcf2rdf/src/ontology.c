@@ -115,7 +115,7 @@ ontology_init (ontology_t **ontology_ptr)
   
   int32_t initialized_xsds = 0;
   for (; initialized_xsds < ontology->xsds_length; initialized_xsds++)
-    if (!ontology->classes[initialized_xsds]) break;
+    if (!ontology->xsds[initialized_xsds]) break;
 
   if ((initialized_classes  == ontology->classes_length)  &&
       (initialized_prefixes == ontology->prefixes_length) &&
