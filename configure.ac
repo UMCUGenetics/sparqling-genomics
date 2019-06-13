@@ -84,6 +84,7 @@ AC_CONFIG_FILES([
   tools/table2rdf/Makefile
   tools/folder2rdf/Makefile
   tools/ega2rdf/Makefile
+  tools/xml2rdf/Makefile
   web/www/config.scm
   web/ldap/authenticate.scm
   web/Makefile
@@ -92,6 +93,8 @@ AC_CONFIG_FILES([
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
 PKG_CHECK_MODULES([raptor2], [raptor2])
+PKG_CHECK_MODULES([libxml2], [libxml-2.0])
+PKG_CHECK_MODULES([zlib], [zlib])
 
 
 dnl Let users provide a path to the libldap library because there is
