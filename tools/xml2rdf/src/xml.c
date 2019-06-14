@@ -111,11 +111,11 @@ on_start_element (void *ctx,
       int32_t id = id_next (&(config.id_tracker), element_name);
       raptor_statement *stmt;
 
-      int32_t subject_name_length = strlen (element_name) + 75;
+      int32_t subject_name_length = strlen (element_name) + 76;
       char subject_name[subject_name_length];
 
       int32_t written;
-      written = snprintf (subject_name, subject_name_length, "%s/%s%d",
+      written = snprintf (subject_name, subject_name_length, "%s/%s/%d",
                           config.origin_hash, element_name, id);
 
       if (written < 0 || written > subject_name_length)
@@ -162,8 +162,8 @@ on_end_element (void *ctx, const xmlChar *name)
   int32_t subject_name_length;
   char *element_name = (char *)name;
 
-  /* The ‘subject_name_length’ is the sum of the hash (64), a
-   * slash (1), the element_name length and the maximum
+  /* The ‘subject_name_length’ is the sum of the hash (64), two
+   * slashes (2), the element_name length and the maximum
    * number of characters in a positive int32_t (10). */
   if (config.value_buffer == NULL)
     {
@@ -180,14 +180,14 @@ on_end_element (void *ctx, const xmlChar *name)
 
       char *item_name = (char *)subject->data;
       identifier = id_current (config.id_tracker, item_name);
-      subject_name_length = strlen (item_name) + 75;
+      subject_name_length = strlen (item_name) + 76;
     }
 
   if (identifier < 0)
     return;
 
   char subject_name[subject_name_length + 1];
-  written = snprintf (subject_name, subject_name_length, "%s/%s%d",
+  written = snprintf (subject_name, subject_name_length, "%s/%s/%d",
                       config.origin_hash,
                       (config.value_buffer == NULL)
                         ? element_name
@@ -234,11 +234,11 @@ on_end_element (void *ctx, const xmlChar *name)
           if (object_id < 0)
             return;
 
-          int32_t object_name_length = strlen (original_name) + 75;
+          int32_t object_name_length = strlen (original_name) + 76;
           char object_name[object_name_length + 1];
 
           int32_t written = snprintf (object_name, object_name_length,
-                                      "%s/%s%d", config.origin_hash,
+                                      "%s/%s/%d", config.origin_hash,
                                       original_name, object_id);
 
           if (written > 0 && written < object_name_length)
@@ -246,7 +246,7 @@ on_end_element (void *ctx, const xmlChar *name)
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_BASE, subject_name);
               stmt->predicate = term (PREFIX_MASTER, "isPartOf");
-              stmt->object    = term (PREFIX_DYNAMIC_TYPE, object_name);
+              stmt->object    = term (PREFIX_BASE, object_name);
               register_statement (stmt);
             }
         }
