@@ -66,7 +66,7 @@ WHERE {
         entries))
     (lambda (key . args)
       (log-error "all-datasets"
-                 "Unknown exception thrown in ~a: ~a: ~a" key args)
+                 "Unknown exception thrown in ~a: ~a" key args)
       '())))
 
 (define (filtered-datasets-query filters)
