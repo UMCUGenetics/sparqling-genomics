@@ -112,12 +112,21 @@
       (if (and (null? current-token)
                (null? tokens))
           current-token
-          (reverse (cons (list->string (reverse current-token)) tokens)))]
+          (map (lambda (item)
+                 (let [(item-length (string-length item))]
+                   (cond
+                    [(and (> item-length 1)
+                          (eq? (string-ref item 0) #\")
+                          (eq? (string-ref item (- item-length 1)) #\"))
+                     (substring item 1 (- item-length 1))]
+                    [else item])))
+               (reverse (cons (list->string (reverse current-token)) tokens))))]
      [(eq? character #\")
       (if (and (not (null? current-token))
-               (eq? (car current-token) #\\))
+               (or (eq? (car current-token) #\\)
+                   (eq? (car current-token) #\")))
           (csv-read-entry port delimiter (cons character (cdr current-token)) tokens in-quote)
-          (csv-read-entry port delimiter current-token tokens (not in-quote)))]
+          (csv-read-entry port delimiter (cons character current-token) tokens (not in-quote)))]
      [(and (eq? character delimiter)
            (not in-quote))
       (csv-read-entry port delimiter '()
