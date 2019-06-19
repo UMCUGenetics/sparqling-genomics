@@ -161,7 +161,7 @@ main (int argc, char **argv)
        * We read the data in chunks so that we can process large files.
        * The ‘buffer’ determines the chunk size.
        */
-      char buffer[64];
+      char buffer[4096];
       int bytes_read = 0;
       xmlSAXHandler handler;
       xmlParserCtxtPtr ctx;
