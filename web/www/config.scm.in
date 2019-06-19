@@ -381,7 +381,8 @@
     (dc           . "http://purl.org/dc/elements/1.1/")
     (dcterms      . "http://purl.org/dc/terms/")
     (dctype       . "http://purl.org/dc/dcmitype/")
-    (dt           . "http://sparqling-genomics.org/0.99.9/xml2rdf/DynamicType/")
+    (xdt          . "http://sparqling-genomics.org/0.99.9/xml2rdf/DynamicType/")
+    (jdt          . "http://sparqling-genomics.org/0.99.9/json2rdf/DynamicType/")
     (faldo        . "http://biohackathon.org/resource/faldo#")
     (ncbi         . "http://rdf.biosemantics.org/ontologies/ncbiassembly#")
     (project      . "http://sparqling-genomics.org/Project/")
@@ -394,6 +395,7 @@
     (table2rdf    . "http://sparqling-genomics/table2rdf/")
     (vcf2rdf      . "http://sparqling-genomics/vcf2rdf/")
     (xml2rdf      . "http://sparqling-genomics.org/0.99.9/xml2rdf/")
+    (json2rdf     . "http://sparqling-genomics.org/0.99.9/json2rdf/")
     (xsd          . "http://www.w3.org/2001/XMLSchema#")))
 
 (define default-prefixes
