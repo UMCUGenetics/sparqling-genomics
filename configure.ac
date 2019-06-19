@@ -80,14 +80,15 @@ AC_CONFIG_FILES([
   doc/Makefile
   doc/version.tex
   tools/bam2rdf/Makefile
-  tools/vcf2rdf/Makefile
-  tools/table2rdf/Makefile
-  tools/folder2rdf/Makefile
   tools/ega2rdf/Makefile
+  tools/folder2rdf/Makefile
+  tools/json2rdf/Makefile
+  tools/table2rdf/Makefile
+  tools/vcf2rdf/Makefile
   tools/xml2rdf/Makefile
-  web/www/config.scm
-  web/ldap/authenticate.scm
   web/Makefile
+  web/ldap/authenticate.scm
+  web/www/config.scm
 ])
 
 PKG_PROG_PKG_CONFIG

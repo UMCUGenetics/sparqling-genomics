@@ -14,7 +14,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 AUTOMAKE_OPTIONS 	= subdir-objects
-SUBDIRS                 = tools/bam2rdf tools/vcf2rdf tools/table2rdf tools/folder2rdf tools/ega2rdf tools/xml2rdf web doc
+SUBDIRS                 = doc                   \
+                          tools/bam2rdf         \
+                          tools/ega2rdf         \
+                          tools/folder2rdf      \
+                          tools/json2rdf        \
+                          tools/table2rdf       \
+                          tools/vcf2rdf         \
+                          tools/xml2rdf         \
+                          web
 
 ontologydir             = ${pkgdatadir}
 nobase_ontology_DATA    = ontologies/sparqling-genomics.ttl
