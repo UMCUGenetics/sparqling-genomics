@@ -5,17 +5,17 @@
 
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
-AM_CFLAGS            = -Iinclude $(LIBGCRYPT_CFLAGS) $(raptor2_CFLAGS) \
-                       $(zlib_CFLAGS)
+AM_CFLAGS            = -Iinclude -I../common/include $(LIBGCRYPT_CFLAGS)            \
+                       $(raptor2_CFLAGS) $(zlib_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
 AM_CFLAGS              += -DENABLE_MTRACE
 endif
 
 bin_PROGRAMS         = json2rdf
-json2rdf_SOURCES     = src/helper.c include/helper.h                                \
+json2rdf_SOURCES     = ../common/src/helper.c ../common/include/helper.h            \
                        src/main.c include/runtime_configuration.h                   \
-                       src/list.c include/list.h                                    \
+                       ../common/src/list.c ../common/include/list.h                \
                        src/runtime_configuration.c                                  \
                        src/ui.c include/ui.h                                        \
                        src/ontology.c include/ontology.h                            \
@@ -29,3 +29,5 @@ json2rdf_SOURCES     = src/helper.c include/helper.h                            
                        src/json.c include/json.h
 
 json2rdf_LDADD       = $(LIBGCRYPT_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
+
+nobase_json2rdf_DATA = tests/input.json

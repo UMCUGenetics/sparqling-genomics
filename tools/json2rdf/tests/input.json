@@ -1,0 +1,21 @@
+[
+    {
+        "first": "test value",
+        "second": 42,
+        "third": true,
+        "eighteenth": null,
+        "nineteenth": {
+            "seventh": "This is a somewhat longer string.",
+            "sixth": null,
+            "ninetyninth": "[[[{{{}}}]]]",
+            "eightyfifth": ["A", "B", "C", "D"],
+            "seventyfifth": [{ "A": 3, "B": 7 }, { "A": 5, "B": 7 }]
+        }
+    },
+    {
+        "first": "second value",
+        "second": 123456789123456789123456789.123456789123456789123456789,
+        "fourth": "Hello world!",
+        "fifth": false
+    }
+]

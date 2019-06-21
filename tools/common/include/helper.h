@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018  Roel Janssen <roel@gnu.org>
+ * Copyright (C) 2019  Roel Janssen <roel@gnu.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,14 @@
 #define HELPER_H
 
 #include <stdbool.h>
-#include "runtime_configuration.h"
+#include <stdint.h>
 
 bool get_pretty_hash (unsigned char *hash,
                       uint32_t length,
                       unsigned char *output);
 
 unsigned char *helper_get_hash_from_file (const char *filename);
-
+bool only_contains_whitespace (const char *input, int32_t length);
 char *trim_quotes (const char *string, uint32_t length);
 char *sanitize_string (const char *string, uint32_t length);
 
