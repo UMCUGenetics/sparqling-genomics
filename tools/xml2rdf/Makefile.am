@@ -25,4 +25,4 @@ xml2rdf_SOURCES      = ../common/src/helper.c ../common/include/helper.h      \
 xml2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(libxml2_LIBS) $(raptor2_LIBS)      \
                        $(zlib_LIBS)
 
-nobase_xml2rdf_DATA  = tests/input.xml
+EXTRA_DIST           = tests/input.xml

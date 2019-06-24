@@ -30,4 +30,4 @@ json2rdf_SOURCES     = ../common/src/helper.c ../common/include/helper.h        
 
 json2rdf_LDADD       = $(LIBGCRYPT_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
 
-nobase_json2rdf_DATA = tests/input.json
+EXTRA_DIST           = tests/input.json

@@ -24,4 +24,4 @@ vcf2rdf_SOURCES      = ../common/src/helper.c ../common/include/helper.h      \
 vcf2rdf_LDFLAGS      = # -pthread
 vcf2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS) $(raptor2_LIBS)
 
-nobase_vcf2rdf_DATA  = tests/sample.vcf
+EXTRA_DIST           = tests/sample.vcf
