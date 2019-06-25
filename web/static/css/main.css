@@ -557,6 +557,7 @@ input[type=submit].login-field {
 #content .dataset {
     border: solid 2pt #444444;
     margin-bottom: 15pt;
+    max-width: 600pt;
 }
 
 #content .dataset h2 {

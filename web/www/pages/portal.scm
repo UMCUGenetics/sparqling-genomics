@@ -76,7 +76,7 @@
   (if post-data
       (show-datasets-table
        (filtered-datasets (json-string->scm post-data)))
-      (page-root-template username "Data collections" request-path
+      (page-root-template username "Portal" request-path
        `((h2 "Portal")
          (div (@ (id "two-column"))
           (div (@ (id "two-column-left-side"))
