@@ -31,11 +31,11 @@
   (page-root-template username "Exploratory" request-path
    `((h2 "Exploratory"
          (div (@ (class "small-action action-btn-clear-cache"))
-              (a (@ (href "/clear-exploratory-cache")) "⭯")))
+              (a (@ (href "/clear-exploratory-cache")) "↻")))
      (p "The exploratory provides an alternative interface to explore the "
         "structure of data available at each connection.  It is optimized "
         "for speed, allowing it to show outdated information.  By using "
-        "the ⭯ button, you can request the most recent data.  This may "
+        "the ↻ button, you can request the most recent data.  This may "
         "be a bit slower than showing the outdated information.")
      (form
       (table (@ (id "exploratory-table")
