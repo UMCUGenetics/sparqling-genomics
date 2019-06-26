@@ -27,8 +27,6 @@
 
 (define page-title-prefix (string-append (www-name) " | "))
 
-(define (page-is-ontology? request-path) #f)
-
 (define public-pages
   '(("/portal" "Portal")
     ("/login" "Log in")))
