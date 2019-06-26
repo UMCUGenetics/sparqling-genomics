@@ -54,7 +54,7 @@ ontology_init (ontology_t **ontology_ptr)
   ontology_t *ontology = calloc (1, sizeof (ontology_t));
   if (!ontology) return false;
 
-  ontology->prefixes_length = 20;
+  ontology->prefixes_length = 19;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
   register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
@@ -75,8 +75,16 @@ ontology_init (ontology_t **ontology_ptr)
   register_prefix (PREFIX_XSD,               STR_PREFIX_XSD,               "xsd");
   register_prefix (PREFIX_OWL,               STR_PREFIX_OWL,               "owl");
   register_prefix (PREFIX_FALDO,             STR_PREFIX_FALDO,             "faldo");
-  register_prefix (PREFIX_HG19,              STR_PREFIX_HG19,              "hg19");
-  register_prefix (PREFIX_HG19_CHR,          STR_PREFIX_HG19_CHR,          "hg19chr");
+
+  if (config.reference != NULL)
+    { /* The brackets are required in this case -> see the macro definition
+       * for ‘register_prefix’. */
+      register_prefix (PREFIX_REFERENCE,     config.reference,             "ref");
+    }
+  else
+    {
+      register_prefix (PREFIX_REFERENCE,     STR_PREFIX_REFERENCE,         "ref");
+    }
 
   int32_t initialized_prefixes = 0;
   for (; initialized_prefixes < ontology->prefixes_length; initialized_prefixes++)

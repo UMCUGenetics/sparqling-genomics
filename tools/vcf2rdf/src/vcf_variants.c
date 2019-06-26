@@ -124,7 +124,6 @@ process_variant_for_sample (bcf_hdr_t *header,
    * the function call overhead is worth avoiding.  So we just directly access
    * the field containing the chromosome identifier instead. */
   char *chromosome = (char *)header->id[BCF_DT_CTG][buffer->rid].key;
-  size_t chromosome_len = strlen (chromosome);
 
   /* HTSlib uses 0-based positions, while in the VCF 1-based position are used.
    * Therefore we need to add one to the position here. */
@@ -137,18 +136,23 @@ process_variant_for_sample (bcf_hdr_t *header,
   stmt->subject   = raptor_term_copy (self);
   stmt->predicate = term (PREFIX_FALDO, "#reference");
 
-  /* The chromosome can be a contig name or the usual 1..MT.
-   * The usual ones are prefixed by "chr" in the ontology we use
-   * to describe a chromosome. */
-  char chr_buffer[16];
-  if (chromosome_len < 3)
-    snprintf (chr_buffer, 16, "#chr%s", chromosome);
+  if (!config.reference)
+    stmt->object = term (PREFIX_REFERENCE, chromosome);
   else
-    snprintf (chr_buffer, 16, "#%s", chromosome);
+    {
+      size_t reference_len = strlen (config.reference);
+      if (config.reference[reference_len - 1] == '#')
+        {
+          size_t chromosome_len = strlen (chromosome);
+          char chr_buffer[chromosome_len + 2];
+          snprintf (chr_buffer, chromosome_len + 2, "#%s", chromosome);
+          stmt->object = term (PREFIX_REFERENCE, chr_buffer);
+        }
+      else
+        stmt->object = term (PREFIX_REFERENCE, chromosome);
+    }
 
-  stmt->object    = term (PREFIX_HG19, chr_buffer);
   register_statement (stmt);
-
   snprintf (config.number_buffer, 32, "%u", position);
 
   stmt = raptor_new_statement (config.raptor_world);

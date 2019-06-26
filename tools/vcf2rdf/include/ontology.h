@@ -24,8 +24,6 @@
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_W3            "http://www.w3.org"
-#define URI_BIOSEMANTICS  "http://rdf.biosemantics.org"
-#define URI_ASSEMBLIES    URI_BIOSEMANTICS "/data/genomeassemblies"
 #define URI_ONTOLOGY      "http://sparqling-genomics/vcf2rdf"
 #define URI_MASTER        "http://sparqling-genomics"
 
@@ -47,8 +45,7 @@
 #define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"
 #define STR_PREFIX_XSD                 URI_W3 "/2001/XMLSchema#"
 #define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
-#define STR_PREFIX_HG19                URI_ASSEMBLIES "/hg19#"
-#define STR_PREFIX_HG19_CHR            URI_ASSEMBLIES "/hg19#chr"
+#define STR_PREFIX_REFERENCE           "http://www.ncbi.nlm.nih.gov/nuccore/"
 
 typedef enum
 {
@@ -70,8 +67,7 @@ typedef enum
   PREFIX_OWL,
   PREFIX_XSD,
   PREFIX_FALDO,
-  PREFIX_HG19,
-  PREFIX_HG19_CHR
+  PREFIX_REFERENCE
 } ontology_prefix;
 
 typedef enum

@@ -29,7 +29,7 @@ ui_show_help (void)
 {
   puts ("\nAvailable options:\n"
 	"  --header-only,           -o  Only process the VCF header.\n"
-	"  --metadata-only          -m  Output only metadata.  This mode "
+	"  --metadata-only,         -m  Output only metadata.  This mode "
                                        "can be used to find samples.\n"
         "  --hash=ARG,              -H  Use ARG as file identification hash.\n"
 	"  --help,                  -h  Show this message.\n"
@@ -39,18 +39,18 @@ ui_show_help (void)
                                        "file.\n"
         "  --filter=ARG,            -f  Omit calls with FILTER=ARG from the "
                                        "output.\n"
-        "  --sample=ARG             -s  Only process variant calls for ARG.\n"
+        "  --sample=ARG,            -s  Only process variant calls for ARG.\n"
         "  --without-info-fields,   -x  Do not process INFO fields.\n"
         "  --without-format-fields, -y  Do not process FORMAT fields.\n"
         "  --input-file=ARG,        -i  The input file to process.\n"
-        "  --stdin                  -I  Read input from a pipe instead of a "
+        "  --stdin,                 -I  Read input from a pipe instead of a "
                                        "file.\n"
         "  --keep=ARG,              -k  Omit calls without FILTER=ARG from the "
                                        "output.\n"
-        "  --output-format          -O  The output format to serialize to.\n"
-        "  --reference=ARG,         -r  The reference genome the variant "
-                                       "positions refer to.  GRCh37 is "
-                                       "assumed.\n");
+        "  --output-format,         -O  The output format to serialize to.\n"
+        "  --reference=ARG,         -r  Prefix for the chromosome names.  "
+                                       "Defaults to:\n"
+        "                               \"https://www.ncbi.nlm.nih.gov/nuccore/\".\n");
 }
 
 void
