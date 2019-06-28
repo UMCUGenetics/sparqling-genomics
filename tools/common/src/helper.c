@@ -103,6 +103,7 @@ helper_get_hash_from_file (const char *filename)
     {
       fprintf (stderr, "ERROR: Not enough memory available for processing '%s'.\n", filename);
       gcry_md_close (handler);
+      fclose (file);
       return NULL;
     }
 
