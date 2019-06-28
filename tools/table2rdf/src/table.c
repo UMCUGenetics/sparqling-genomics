@@ -93,6 +93,11 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
       || header->predicate_transformer_ids == NULL)
     {
       ui_print_general_memory_error();
+      free (header->keys);
+      free (header->column_ids);
+      free (header->object_transformer_ids);
+      free (header->predicate_transformer_ids);
+      free (header);
       return NULL;
     }
 
