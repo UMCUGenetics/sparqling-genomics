@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <raptor2.h>
 
 #define TRANSFORMER_INDEX_UNKNOWN      -2
 #define TRANSFORMER_INDEX_UNAVAILABLE  -1
@@ -34,7 +35,8 @@ typedef struct {
   uint32_t keys_alloc_len;
 } table_hdr_t;
 
-table_hdr_t *process_header (FILE* stream, const unsigned char *origin, const char *filename);
-void process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const char *filename);
+table_hdr_t *process_header (FILE* stream, raptor_term *origin, const char *filename);
+void process_row (table_hdr_t* hdr, FILE *stream, raptor_term *origin,
+                  const unsigned char *origin_str, const char *filename);
 
 #endif /* TABLE_H */

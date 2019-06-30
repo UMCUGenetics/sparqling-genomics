@@ -107,47 +107,49 @@ main (int argc, char **argv)
       node_filename = term (PREFIX_ORIGIN, (char *)file_hash);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = term (PREFIX_MASTER, "Origin");
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+      stmt->object    = class (CLASS_ORIGIN);
+      register_statement_reuse_all (stmt);
+
+      raptor_term *table2rdf = term (PREFIX_MASTER, "table2rdf-" VERSION);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "convertedBy");
-      stmt->object    = term (PREFIX_BASE, "table2rdf");
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_CONVERTED_BY);
+      stmt->object    = table2rdf;
+      register_statement_reuse_all (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_MASTER, "table2rdf");
-      stmt->predicate = term (PREFIX_OWL, "#versionInfo");
+      stmt->subject   = table2rdf;
+      stmt->predicate = predicate (PREDICATE_VERSION_INFO);
       stmt->object    = literal (VERSION, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_predicate (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "filename");
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_FILENAME);
 
       if (config.input_from_stdin)
         stmt->object    = literal ("stdin", XSD_STRING);
       else
         stmt->object    = literal (config.input_file, XSD_STRING);
 
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
 
       if (config.sample_name != NULL)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
-          stmt->predicate = term (PREFIX_RDF, "#type");
-          stmt->object    = term (PREFIX_MASTER, "Sample");
-          register_statement (stmt);
+          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+          stmt->object    = class (CLASS_SAMPLE);
+          register_statement_reuse_predicate_object (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
-          stmt->predicate = term (PREFIX_MASTER, "foundIn");
-          stmt->object    = raptor_term_copy (node_filename);
-          register_statement (stmt);
+          stmt->predicate = predicate (PREDICATE_FOUND_IN);
+          stmt->object    = node_filename;
+          register_statement_reuse_predicate_object (stmt);
         }
 
       stmt = NULL;
@@ -161,7 +163,7 @@ main (int argc, char **argv)
         }
 
       /* Process the header. */
-      table_hdr_t *table = process_header (stream, file_hash, config.input_file);
+      table_hdr_t *table = process_header (stream, node_filename, config.input_file);
 
       if (config.show_progress_info)
         {
@@ -175,7 +177,7 @@ main (int argc, char **argv)
                    "------------------- -------------------\n");
           while (!feof (stream))
             {
-              process_row (table, stream, file_hash, config.input_file);
+              process_row (table, stream, node_filename, file_hash, config.input_file);
               if (counter % 50000 == 0)
                 {
                   rawtime = time (NULL);
@@ -193,7 +195,7 @@ main (int argc, char **argv)
       else
         {
           while (!feof (stream))
-            process_row (table, stream, file_hash, config.input_file);
+            process_row (table, stream, node_filename, file_hash, config.input_file);
         }
 
       uint32_t index = 0;

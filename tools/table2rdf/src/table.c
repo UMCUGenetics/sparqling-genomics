@@ -72,7 +72,7 @@ is_flag (const char *input, uint32_t length)
 }
 
 table_hdr_t *
-process_header (FILE* stream, const unsigned char *origin, const char *filename)
+process_header (FILE* stream, raptor_term *origin, const char *filename)
 {
   table_hdr_t *header = calloc (1, sizeof (table_hdr_t));
   if (!header)
@@ -181,32 +181,33 @@ process_header (FILE* stream, const unsigned char *origin, const char *filename)
             }
 
           header->column_ids[header->keys_len] = column_id;
+          raptor_term *subject = term (PREFIX_COLUMN, column_id);
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_COLUMN, column_id);
-          stmt->predicate = term (PREFIX_RDF, "#type");
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
           stmt->object    = class (CLASS_COLUMN);
-          register_statement (stmt);
+          register_statement_reuse_all (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_COLUMN, column_id);
-          stmt->predicate = term (PREFIX_MASTER, "foundIn");
-          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-          register_statement (stmt);
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_FOUND_IN);
+          stmt->object    = origin;
+          register_statement_reuse_all (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_COLUMN, column_id);
-          stmt->predicate = term (PREFIX_RDFS, "#label");
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_LABEL);
           stmt->object    = literal (header->keys[header->keys_len],
                                      XSD_STRING);
-          register_statement (stmt);
+          register_statement_reuse_subject_predicate (stmt);
 
           snprintf (config.number_buffer, 32, "%u", header->keys_len);
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_COLUMN, column_id);
-          stmt->predicate = term (PREFIX_BASE, "position");
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_POSITION);
           stmt->object    = literal (config.number_buffer, XSD_INTEGER);
-          register_statement (stmt);
+          register_statement_reuse_predicate (stmt);
 
           header->keys_len += 1;
 
@@ -345,7 +346,8 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 }
 
 void
-process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const char *filename)
+process_row (table_hdr_t* hdr, FILE *stream, raptor_term *origin,
+             const unsigned char *origin_str, const char *filename)
 {
   char *line_orig = NULL;
   char *line      = NULL;
@@ -367,23 +369,24 @@ process_row (table_hdr_t* hdr, FILE *stream, const unsigned char *origin, const 
       char *token            = NULL;
       raptor_statement *stmt = NULL;
 
-      if (! generate_row_id (origin, config.id_buf))
+      if (! generate_row_id (origin_str, config.id_buf))
         {
           ui_print_general_memory_error();
           return;
         }
 
+      raptor_term *subject = term (PREFIX_ROW, config.id_buf);
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_ROW, config.id_buf);
-      stmt->predicate = term (PREFIX_RDF, "#type");
+      stmt->subject   = subject;
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
       stmt->object    = class (CLASS_ROW);
-      register_statement (stmt);
+      register_statement_reuse_all (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_ROW, config.id_buf);
-      stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-      stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-      register_statement (stmt);
+      stmt->subject   = subject;
+      stmt->predicate = predicate (PREDICATE_ORIGINATED_FROM);
+      stmt->object    = origin;
+      register_statement_reuse_predicate_object (stmt);
 
       token = strsep (&line, config.delimiter);
       uint32_t column_index = 0;
