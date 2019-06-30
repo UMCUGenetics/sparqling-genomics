@@ -45,6 +45,8 @@ runtime_configuration_init (void)
   config.process_info_fields = true;
   config.process_format_fields = true;
   config.input_from_stdin = false;
+  config.field_identities = NULL;
+  config.reference_len = 0;
 
   return true;
 }
@@ -94,6 +96,12 @@ runtime_configuration_free (void)
       config.format_field_indexes = NULL;
     }
 
+  if (config.field_identities != NULL)
+    {
+      free (config.field_identities);
+      config.field_identities = NULL;
+    }
+
   raptor_serializer_serialize_end (config.raptor_serializer);
   raptor_free_serializer (config.raptor_serializer);
   raptor_free_world (config.raptor_world);
@@ -102,7 +110,7 @@ runtime_configuration_free (void)
 bool
 generate_variant_id (const unsigned char *origin, char *variant_id)
 {
-  int32_t bytes_written;
+  int8_t bytes_written;
   bytes_written = snprintf (variant_id, 77, "%s-V%010u",
                             origin,
                             config.non_unique_variant_counter);

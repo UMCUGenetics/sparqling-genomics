@@ -18,9 +18,10 @@
 #ifndef VCF_HEADER_H
 #define VCF_HEADER_H
 
+#include <raptor2.h>
 #include <htslib/vcf.h>
 
-void process_header (bcf_hdr_t *vcf_header, const unsigned char *origin);
+void process_header (bcf_hdr_t *vcf_header, raptor_term *origin);
 
 #endif /* VCF_HEADER_H */
 

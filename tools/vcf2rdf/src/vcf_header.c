@@ -56,7 +56,7 @@ process_header_item (bcf_hdr_t *vcf_header,
 }
 
 void
-process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
+process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
 {
   if (!vcf_header || !origin) return;
 
@@ -87,18 +87,22 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
       if (config.sample && strcmp(vcf_header->samples[index], config.sample))
         continue;
 
-      stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
-      stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = class (CLASS_SAMPLE);
-      register_statement (stmt);
+      raptor_term *subject = term (PREFIX_SAMPLE, vcf_header->samples[index]);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_SAMPLE, vcf_header->samples[index]);
-      stmt->predicate = term (PREFIX_MASTER, "foundIn");
-      stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-      register_statement (stmt);
+      stmt->subject   = subject;
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+      stmt->object    = class (CLASS_SAMPLE);
+      register_statement_reuse_all (stmt);
+
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = subject;
+      stmt->predicate = predicate (PREDICATE_FOUND_IN);
+      stmt->object    = origin;
+      register_statement_reuse_all (stmt);
       stmt = NULL;
+
+      raptor_free_term (subject);
     }
 
   /* Skip the rest of the triplets when metadata-only mode is enabled. */
@@ -130,23 +134,25 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
        * ------------------------------------------------------------------- */
       if (vcf_header->hrec[index]->value)
         {
-          stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
-          stmt->predicate = term (PREFIX_RDF, "#type");
-          stmt->object    = class (CLASS_VCF_HEADER);
-          register_statement (stmt);
+          raptor_term* subject = term (PREFIX_VCF_HEADER, identifier);
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+          stmt->object    = class (CLASS_VCF_HEADER);
+          register_statement_reuse_all (stmt);
+
+          stmt = raptor_new_statement (config.raptor_world);
+          stmt->subject   = subject;
           stmt->predicate = term (PREFIX_VCF_HEADER, vcf_header->hrec[index]->key);
           stmt->object    = literal (vcf_header->hrec[index]->value, XSD_STRING);
-          register_statement (stmt);
+          register_statement_reuse_subject (stmt);
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_VCF_HEADER, identifier);
-          stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-          register_statement (stmt);
+          stmt->subject   = subject;
+          stmt->predicate = predicate (PREDICATE_ORIGINATED_FROM);
+          stmt->object    = origin;
+          register_statement_reuse_predicate_object (stmt);
         }
 
       /* Handle other fields.
@@ -227,9 +233,9 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
-          stmt->predicate = term (PREFIX_RDF, "#type");
-          stmt->object    = class (type);
-          register_statement (stmt);
+          stmt->predicate = config.ontology->classes[CLASS_RDF_TYPE];
+          stmt->object    = config.ontology->classes[type];
+          register_statement_reuse_predicate_object (stmt);
 
           process_header_item (vcf_header, identifier, prefix, index);
         }
@@ -239,9 +245,9 @@ process_header (bcf_hdr_t *vcf_header, const unsigned char *origin)
           /* Add a reference to the 'origin'. */
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
-          stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-          stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-          register_statement (stmt);
+          stmt->predicate = predicate (PREDICATE_ORIGINATED_FROM);
+          stmt->object    = origin;
+          register_statement_reuse_predicate_object (stmt);
         }
 
       prefix = -1;

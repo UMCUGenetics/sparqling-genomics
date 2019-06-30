@@ -156,41 +156,45 @@ main (int argc, char **argv)
       node_filename = term (PREFIX_ORIGIN, (char *)file_hash);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = term (PREFIX_MASTER, "Origin");
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+      stmt->object    = class (CLASS_ORIGIN);
+      register_statement_reuse_all (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "sha256sum");
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_SHA256SUM);
       stmt->object    = literal ((char *)file_hash, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "convertedBy");
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_CONVERTED_BY);
       stmt->object    = term (PREFIX_MASTER, "vcf2rdf-" VERSION);
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_MASTER, "vcf2rdf-" VERSION);
-      stmt->predicate = term (PREFIX_OWL, "#versionInfo");
+      stmt->predicate = predicate (PREDICATE_VERSION_INFO);
       stmt->object    = literal (VERSION, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_predicate (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "filename");
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_FILENAME);
       stmt->object    = literal (config.input_file, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
       stmt = NULL;
 
       /* Process the header. */
-      process_header (vcf_header, file_hash);
+      process_header (vcf_header, node_filename);
 
       if (!config.header_only && !config.metadata_only)
         {
+          /* Pre-process the header item's identities to avoid
+           * repetitive computations for each variant call. */
+          build_field_identities (vcf_header);
+
           /* Process variant calls. */
           bcf1_t *buffer = bcf_init ();
 
@@ -206,7 +210,7 @@ main (int argc, char **argv)
                        "------------------- -------------------\n");
               while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
                 {
-                  process_variant (vcf_header, buffer, file_hash);
+                  process_variant (vcf_header, buffer, node_filename, file_hash);
                   if (counter % 1000000 == 0)
                     {
                       rawtime = time (NULL);
@@ -224,7 +228,7 @@ main (int argc, char **argv)
           else
             {
               while (bcf_read (vcf_stream, vcf_header, buffer) == 0)
-                process_variant (vcf_header, buffer, file_hash);
+                process_variant (vcf_header, buffer, node_filename, file_hash);
             }
 
           bcf_destroy (buffer);

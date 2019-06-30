@@ -90,12 +90,34 @@ typedef enum
   CLASS_HOMOZYGOUS_ALTERNATIVE
 } ontology_class;
 
+typedef enum
+{
+  PREDICATE_RDF_TYPE = 0,
+  PREDICATE_SHA256SUM,
+  PREDICATE_CONVERTED_BY,
+  PREDICATE_VERSION_INFO,
+  PREDICATE_FILENAME,
+  PREDICATE_ORIGINATED_FROM,
+  PREDICATE_SAMPLE,
+  PREDICATE_VARIANT_ID,
+  PREDICATE_CHROMOSOME,
+  PREDICATE_POSITION,
+  PREDICATE_REF,
+  PREDICATE_ALT,
+  PREDICATE_QUAL,
+  PREDICATE_FILTER,
+  PREDICATE_PLOIDY,
+  PREDICATE_FOUND_IN
+} ontology_predicate;
+
 typedef struct
 {
   raptor_term **classes;
+  raptor_term **predicates;
   raptor_uri  **prefixes;
   raptor_uri **xsds;
   int32_t     classes_length;
+  int32_t     predicates_length;
   int32_t     prefixes_length;
   int32_t     xsds_length;
 } ontology_t;
@@ -119,9 +141,8 @@ raptor_term* term (int32_t index, char *suffix);
                                    config.uris[index],          \
                                    str)
 
-/* TODO: Possibly wrap this in raptor_term_copy. */
-#define class(index)                                            \
-  raptor_term_copy (config.ontology->classes[index])
+#define class(index)      config.ontology->classes[index]
+#define predicate(index)  config.ontology->predicates[index]
 
 #define literal(str, datatype)                                  \
   raptor_new_term_from_literal                                  \
@@ -132,6 +153,53 @@ raptor_term* term (int32_t index, char *suffix);
 #define register_statement(stmt)                                \
   raptor_serializer_serialize_statement                         \
   (config.raptor_serializer, stmt);                             \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_subject(stmt)                  \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->subject = NULL;                                         \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_predicate(stmt)                \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->predicate = NULL;                                       \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_object(stmt)                   \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->object = NULL;                                          \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_subject_predicate(stmt)        \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->subject = NULL;                                         \
+  stmt->predicate = NULL;                                       \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_subject_object(stmt)           \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->subject = NULL;                                         \
+  stmt->object = NULL;                                          \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_predicate_object(stmt)         \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->predicate = NULL;                                       \
+  stmt->object = NULL;                                          \
+  raptor_free_statement (stmt)
+
+#define register_statement_reuse_all(stmt)                      \
+  raptor_serializer_serialize_statement                         \
+  (config.raptor_serializer, stmt);                             \
+  stmt->subject = NULL;                                         \
+  stmt->predicate = NULL;                                       \
+  stmt->object = NULL;                                          \
   raptor_free_statement (stmt)
 
 

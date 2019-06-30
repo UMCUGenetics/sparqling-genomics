@@ -46,6 +46,17 @@ define_class (ontology_t *ontology, int32_t index, int32_t prefix, char *suffix)
   raptor_free_uri (uri);
 }
 
+void
+define_predicate (ontology_t *ontology, int32_t index, int32_t prefix, char *suffix)
+{
+  raptor_uri *uri = raptor_new_uri_relative_to_base (config.raptor_world,
+                                                     ontology->prefixes[prefix],
+                                                     (unsigned char *)suffix);
+
+  ontology->predicates[index] = raptor_new_term_from_uri (config.raptor_world, uri);
+  raptor_free_uri (uri);
+}
+
 bool
 ontology_init (ontology_t **ontology_ptr)
 {
@@ -80,6 +91,7 @@ ontology_init (ontology_t **ontology_ptr)
     { /* The brackets are required in this case -> see the macro definition
        * for ‘register_prefix’. */
       register_prefix (PREFIX_REFERENCE,     config.reference,             "ref");
+      config.reference_len = strlen (config.reference);
     }
   else
     {
@@ -114,6 +126,30 @@ ontology_init (ontology_t **ontology_ptr)
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
     if (!ontology->classes[initialized_classes]) break;
 
+  ontology->predicates_length = 16;
+  ontology->predicates = calloc (ontology->predicates_length, sizeof (raptor_term*));
+
+  define_predicate (ontology, PREDICATE_RDF_TYPE,        PREFIX_RDF,          "#type");
+  define_predicate (ontology, PREDICATE_SHA256SUM,	 PREFIX_MASTER,       "sha256sum");
+  define_predicate (ontology, PREDICATE_CONVERTED_BY,	 PREFIX_MASTER,       "convertedBy");
+  define_predicate (ontology, PREDICATE_VERSION_INFO,	 PREFIX_OWL,          "#versionInfo");
+  define_predicate (ontology, PREDICATE_FILENAME,	 PREFIX_MASTER,       "filename");
+  define_predicate (ontology, PREDICATE_ORIGINATED_FROM, PREFIX_MASTER,       "originatedFrom");
+  define_predicate (ontology, PREDICATE_SAMPLE,		 PREFIX_MASTER,       "sample");
+  define_predicate (ontology, PREDICATE_VARIANT_ID,	 PREFIX_BASE,         "variantId");
+  define_predicate (ontology, PREDICATE_CHROMOSOME,	 PREFIX_FALDO,        "#reference");
+  define_predicate (ontology, PREDICATE_POSITION,	 PREFIX_FALDO,        "#position");
+  define_predicate (ontology, PREDICATE_REF,		 PREFIX_VARIANT_CALL, "REF");
+  define_predicate (ontology, PREDICATE_ALT,		 PREFIX_VARIANT_CALL, "ALT");
+  define_predicate (ontology, PREDICATE_QUAL,		 PREFIX_VARIANT_CALL, "QUAL");
+  define_predicate (ontology, PREDICATE_FILTER,		 PREFIX_VARIANT_CALL, "FILTER");
+  define_predicate (ontology, PREDICATE_PLOIDY,		 PREFIX_BASE,         "ploidy");
+  define_predicate (ontology, PREDICATE_FOUND_IN,	 PREFIX_MASTER,       "foundIn");
+
+  int32_t initialized_predicates = 0;
+  for (; initialized_predicates < ontology->predicates_length; initialized_predicates++)
+    if (!ontology->predicates[initialized_predicates]) break;
+
   ontology->xsds_length = 4;
   ontology->xsds = calloc (ontology->xsds_length, sizeof (raptor_uri*));
   define_xsd (XSD_STRING,  "#string");
@@ -125,9 +161,10 @@ ontology_init (ontology_t **ontology_ptr)
   for (; initialized_xsds < ontology->xsds_length; initialized_xsds++)
     if (!ontology->xsds[initialized_xsds]) break;
 
-  if ((initialized_classes  == ontology->classes_length)  &&
-      (initialized_prefixes == ontology->prefixes_length) &&
-      (initialized_xsds     == ontology->xsds_length))
+  if ((initialized_predicates  == ontology->predicates_length)  &&
+      (initialized_classes     == ontology->classes_length)     &&
+      (initialized_prefixes    == ontology->prefixes_length)    &&
+      (initialized_xsds        == ontology->xsds_length))
     {
       *ontology_ptr = ontology;
       return true;
@@ -156,6 +193,12 @@ ontology_free (ontology_t *ontology)
       ontology->classes[index] = NULL;
     }
 
+  for (index = 0; index < ontology->predicates_length; index++)
+    {
+      raptor_free_term (ontology->predicates[index]);
+      ontology->predicates[index] = NULL;
+    }
+
   for (index = 0; index < ontology->xsds_length; index++)
     {
       raptor_free_uri (ontology->xsds[index]);
@@ -169,6 +212,10 @@ ontology_free (ontology_t *ontology)
   free (ontology->classes);
   ontology->classes = NULL;
   ontology->classes_length = 0;
+
+  free (ontology->predicates);
+  ontology->predicates = NULL;
+  ontology->predicates_length = 0;
 
   free (ontology->xsds);
   ontology->xsds = NULL;

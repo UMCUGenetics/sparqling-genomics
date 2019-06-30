@@ -28,6 +28,13 @@
 #include <stdint.h>
 #include <raptor2.h>
 
+typedef struct
+{
+  char *id;
+  int32_t type;
+  int32_t number;
+} field_identity_t;
+
 /* This struct can be used to make program options available throughout the
  * entire code without needing to pass them around as parameters.  Do not write
  * to these values, other than in the runtime_configuration_init() and
@@ -44,6 +51,7 @@ typedef struct
   char              *sample;
   char              *user_hash;
   uint32_t          non_unique_variant_counter;
+  int32_t           reference_len;
   bool              header_only;
   bool              metadata_only;
   bool              show_progress_info;
@@ -65,6 +73,7 @@ typedef struct
   int32_t           *format_field_indexes;
   size_t            format_field_indexes_len;
   size_t            format_field_indexes_blocks;
+  field_identity_t  *field_identities;
 
   /* Shared buffers. */
   char variant_id_buf[77];

@@ -29,38 +29,65 @@
 #include <string.h>
 
 void
-get_field_identity (bcf_hdr_t *header, int32_t index, char **id_str,
-                    int32_t *type, int32_t *number)
+build_field_identities (bcf_hdr_t *header)
 {
-  int32_t j = 0;
-  for (; j < header->hrec[index]->nkeys; j++)
+  config.field_identities = malloc (header->nhrec * sizeof (field_identity_t));
+  if (config.field_identities == NULL)
     {
-      char *key   = header->hrec[index]->keys[j];
-      char *value = header->hrec[index]->vals[j];
-      if (!key || !value) continue;
-      if (!strcmp (key, "ID"))
-        *id_str = value;
-      else if (!strcmp (key, "Number"))
-        *number = (!strcmp (value, ".")) ? -2
-          : (!strcmp (value, "A")) ? -3
-          : (!strcmp (value, "R")) ? -4
-          : (!strcmp (value, "G")) ? -5
-          : atoi (value);
-      else if (!strcmp (key, "Type"))
-        *type = (!strcmp (value, "Integer")) ? XSD_INTEGER
+      ui_print_general_memory_error ();
+      return;
+    }
+
+  int32_t index = 0, j = 0;
+  for (; index < header->nhrec; index++)
+    {
+      config.field_identities[index].id = NULL;
+      config.field_identities[index].type = -1;
+      config.field_identities[index].number = -1;
+
+      for (j = 0; j < header->hrec[index]->nkeys; j++)
+        {
+          char *key   = header->hrec[index]->keys[j];
+          char *value = header->hrec[index]->vals[j];
+          if (!key || !value) continue;
+          if (!strcmp (key, "ID"))
+            config.field_identities[index].id = value;
+          else if (!strcmp (key, "Number"))
+            config.field_identities[index].number =
+              (!strcmp (value, ".")) ? -2
+              : (!strcmp (value, "A")) ? -3
+              : (!strcmp (value, "R")) ? -4
+              : (!strcmp (value, "G")) ? -5
+              : atoi (value);
+          else if (!strcmp (key, "Type"))
+            config.field_identities[index].type =
+              (!strcmp (value, "Integer")) ? XSD_INTEGER
               : (!strcmp (value, "Float"))   ? XSD_FLOAT
               : (!strcmp (value, "String"))  ? XSD_STRING
               : (!strcmp (value, "Flag"))    ? XSD_BOOLEAN
               : -1;
 
-      if (*id_str && *type != -1 && *number != -1) break;
+          if (config.field_identities[index].id != NULL &&
+              config.field_identities[index].type != -1 &&
+              config.field_identities[index].number != -1)
+            break;
+        }
     }
 }
 
-void
+static void
+get_field_identity (int32_t index, char **id, int32_t *type, int32_t *number)
+{
+  *id     = config.field_identities[index].id;
+  *type   = config.field_identities[index].type;
+  *number = config.field_identities[index].number;
+}
+
+static void
 process_variant_for_sample (bcf_hdr_t *header,
                             bcf1_t *buffer,
-                            const unsigned char *origin,
+                            raptor_term *origin,
+                            const unsigned char *origin_str,
                             int32_t sample_index,
                             int32_t number_of_samples)
 {
@@ -70,7 +97,7 @@ process_variant_for_sample (bcf_hdr_t *header,
   raptor_statement *stmt   = NULL;
   char *variant_id         = NULL;
 
-  if (! generate_variant_id (origin, config.variant_id_buf))
+  if (! generate_variant_id (origin_str, config.variant_id_buf))
     ui_print_general_memory_error ();
   else
     variant_id = config.variant_id_buf;
@@ -83,25 +110,25 @@ process_variant_for_sample (bcf_hdr_t *header,
     }
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
-  stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
-  register_statement (stmt);
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_ORIGINATED_FROM);
+  stmt->object    = origin;
+  register_statement_reuse_all (stmt);
 
   if (number_of_samples > 0)
     {
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (self);
-      stmt->predicate = term (PREFIX_MASTER, "sample");
+      stmt->subject   = self;
+      stmt->predicate = predicate (PREDICATE_SAMPLE);
       stmt->object    = term (PREFIX_SAMPLE, header->samples[sample_index]);
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
     }
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = class (CLASS_RDF_TYPE);
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_RDF_TYPE);
   stmt->object    = class (CLASS_VARIANT_CALL);
-  register_statement (stmt);
+  register_statement_reuse_all (stmt);
 
   /* The original variant ID should be preserved.  Unfortunately, it is
    * not guaranteed to be unique, so we can't use it as an identifier.
@@ -111,10 +138,10 @@ process_variant_for_sample (bcf_hdr_t *header,
   if (buffer->d.id[0] != '.')
     {
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (self);
-      stmt->predicate = term (PREFIX_BASE, "variantId");
+      stmt->subject   = self;
+      stmt->predicate = predicate (PREDICATE_VARIANT_ID);
       stmt->object    = literal (buffer->d.id, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
     }
 
   /* Add position information
@@ -133,45 +160,40 @@ process_variant_for_sample (bcf_hdr_t *header,
    * Default fields: ID, CHROM, POS, REF, ALT, QUAL, FILTER, INFO, FORMAT.
    * -------------------------------------------------------------------- */
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_FALDO, "#reference");
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_CHROMOSOME);
 
-  if (!config.reference)
-    stmt->object = term (PREFIX_REFERENCE, chromosome);
-  else
+  if (config.reference != NULL &&
+      config.reference[config.reference_len - 1] == '#')
     {
-      size_t reference_len = strlen (config.reference);
-      if (config.reference[reference_len - 1] == '#')
-        {
-          size_t chromosome_len = strlen (chromosome);
-          char chr_buffer[chromosome_len + 2];
-          snprintf (chr_buffer, chromosome_len + 2, "#%s", chromosome);
-          stmt->object = term (PREFIX_REFERENCE, chr_buffer);
-        }
-      else
-        stmt->object = term (PREFIX_REFERENCE, chromosome);
+      size_t chromosome_len = strlen (chromosome);
+      char chr_buffer[chromosome_len + 2];
+      snprintf (chr_buffer, chromosome_len + 2, "#%s", chromosome);
+      stmt->object = term (PREFIX_REFERENCE, chr_buffer);
     }
+  else
+    stmt->object = term (PREFIX_REFERENCE, chromosome);
 
-  register_statement (stmt);
+  register_statement_reuse_subject_predicate (stmt);
   snprintf (config.number_buffer, 32, "%u", position);
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_FALDO, "#position");
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_POSITION);
   stmt->object    = literal (config.number_buffer, XSD_INTEGER);
-  register_statement (stmt);
+  register_statement_reuse_subject_predicate (stmt);
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_VARIANT_CALL, "REF");
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_REF);
   stmt->object    = term (PREFIX_SEQUENCE, buffer->d.allele[0]);
-  register_statement (stmt);
+  register_statement_reuse_subject_predicate (stmt);
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = raptor_term_copy (self);
-  stmt->predicate = term (PREFIX_VARIANT_CALL, "ALT");
+  stmt->subject   = self;
+  stmt->predicate = predicate (PREDICATE_ALT);
   stmt->object    = term (PREFIX_SEQUENCE, buffer->d.allele[1]);
-  register_statement (stmt);
+  register_statement_reuse_subject_predicate (stmt);
 
   /* The QUAL indicator "." means that the QUAL value is missing or unknown.
    * In such a case we skip the entire triplet.  This behavior needs to be
@@ -182,11 +204,11 @@ process_variant_for_sample (bcf_hdr_t *header,
       snprintf (config.number_buffer, 32, "%4.6f", buffer->qual);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (self);
-      stmt->predicate = term (PREFIX_VARIANT_CALL, "QUAL");
+      stmt->subject   = self;
+      stmt->predicate = predicate (PREDICATE_QUAL);
       stmt->object    = literal (config.number_buffer, XSD_FLOAT);
 
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
     }
 
   /* Process filter fields.
@@ -196,11 +218,11 @@ process_variant_for_sample (bcf_hdr_t *header,
   for (; filter_index < buffer->d.n_flt; filter_index++)
     {
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (self);
-      stmt->predicate = term (PREFIX_VARIANT_CALL, "FILTER");
+      stmt->subject   = self;
+      stmt->predicate = predicate (PREDICATE_FILTER);
       stmt->object    = term (PREFIX_BASE,
                               (char *)(header->id[BCF_DT_ID][buffer->d.flt[filter_index]].key));
-      register_statement (stmt);
+      register_statement_reuse_subject_predicate (stmt);
     }
 
   char *id_str           = NULL;
@@ -217,7 +239,7 @@ process_variant_for_sample (bcf_hdr_t *header,
   if (config.process_info_fields)
     {
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (self);
+      stmt->subject   = self;
 
       for (i = 0; i < config.info_field_indexes_len; i++)
         {
@@ -228,7 +250,7 @@ process_variant_for_sample (bcf_hdr_t *header,
           index     = config.info_field_indexes[i];
           number    = -1;
 
-          get_field_identity (header, index, &id_str, &type, &number);
+          get_field_identity (index, &id_str, &type, &number);
 
           if (!id_str || type == -1)
             goto clean_up_iteration;
@@ -267,9 +289,9 @@ process_variant_for_sample (bcf_hdr_t *header,
                       stmt->predicate = term (PREFIX_VCF_HEADER_INFO, config.number_buffer);
                     }
 
-                  register_statement (stmt);
+                  register_statement_reuse_subject (stmt);
                   stmt = raptor_new_statement (config.raptor_world);
-                  stmt->subject   = raptor_term_copy (self);
+                  stmt->subject   = self;
                 }
             }
           else
@@ -280,9 +302,9 @@ process_variant_for_sample (bcf_hdr_t *header,
               else if (type == XSD_BOOLEAN && state == 1)
                 stmt->object = literal ("true", XSD_BOOLEAN);
 
-              register_statement (stmt);
+              register_statement_reuse_subject (stmt);
               stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = raptor_term_copy (self);
+              stmt->subject   = self;
             }
 
         clean_up_iteration:
@@ -290,6 +312,7 @@ process_variant_for_sample (bcf_hdr_t *header,
           value = NULL;
         }
 
+      stmt->subject = NULL;
       raptor_free_statement (stmt);
     }
 
@@ -306,13 +329,13 @@ process_variant_for_sample (bcf_hdr_t *header,
           index     = config.format_field_indexes[i];
           number    = -1;
 
-          get_field_identity (header, index, &id_str, &type, &number);
+          get_field_identity (index, &id_str, &type, &number);
 
           if (!id_str || type == -1)
             continue;
 
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = raptor_term_copy (self);
+          stmt->subject   = self;
 
           if (!strcmp (id_str, "GT"))
             {
@@ -336,10 +359,10 @@ process_variant_for_sample (bcf_hdr_t *header,
 
                   snprintf (config.number_buffer, 32, "%d", genotypes[k]);
                   stmt->object    = literal (config.number_buffer, XSD_INTEGER);
-                  register_statement (stmt);
+                  register_statement_reuse_subject (stmt);
 
                   stmt = raptor_new_statement (config.raptor_world);
-                  stmt->subject   = raptor_term_copy (self);
+                  stmt->subject   = self;
                 }
 
               stmt->predicate = term (PREFIX_VCF_HEADER_FORMAT, id_str);
@@ -359,16 +382,16 @@ process_variant_for_sample (bcf_hdr_t *header,
               else if (ploidy == 0)
                 genotype_class = CLASS_NULLIZYGOUS;
 
-              stmt->object    = class (genotype_class);
-              register_statement (stmt);
+              stmt->object    = config.ontology->classes[genotype_class];
+              register_statement_reuse_subject_object (stmt);
 
               /* Also output the “raw” genotype information. */
               snprintf (config.number_buffer, 32, "%d", ploidy);
               stmt = raptor_new_statement (config.raptor_world);
-              stmt->subject   = raptor_term_copy (self);
-              stmt->predicate = term (PREFIX_BASE, "ploidy");
+              stmt->subject   = self;
+              stmt->predicate = predicate (PREDICATE_PLOIDY);
               stmt->object    = literal (config.number_buffer, XSD_INTEGER);
-              register_statement (stmt);
+              register_statement_reuse_subject_predicate (stmt);
 
               free (genotypes);
               free (dst);
@@ -414,9 +437,9 @@ process_variant_for_sample (bcf_hdr_t *header,
                           stmt->object = literal (config.number_buffer, XSD_FLOAT);
                         }
 
-                      register_statement (stmt);
+                      register_statement_reuse_subject (stmt);
                       stmt = raptor_new_statement (config.raptor_world);
-                      stmt->subject   = raptor_term_copy (self);
+                      stmt->subject   = self;
                     }
                 }
               else
@@ -438,12 +461,13 @@ process_variant_for_sample (bcf_hdr_t *header,
                   else if (type == XSD_BOOLEAN && state == 1)
                     stmt->object = literal ("true", XSD_BOOLEAN);
 
-                  register_statement (stmt);
+                  register_statement_reuse_subject (stmt);
                   stmt = raptor_new_statement (config.raptor_world);
-                  stmt->subject   = raptor_term_copy (self);
+                  stmt->subject   = self;
                 }
 
             clean_format_iteration:
+              stmt->subject = NULL;
               raptor_free_statement (stmt);
               free (value);
               value = NULL;
@@ -455,25 +479,20 @@ process_variant_for_sample (bcf_hdr_t *header,
 }
 
 void
-process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
+process_variant (bcf_hdr_t *header, bcf1_t *buffer, raptor_term *origin,
+                 const unsigned char *origin_str)
 {
-  if (!header || !buffer || !origin) return;
+  if (!header || !buffer || !origin || !origin_str) return;
   int32_t number_of_samples = bcf_hdr_nsamples (header);
 
   /* Handle the program options for leaving out FILTER fields.
    * ------------------------------------------------------------------------ */
-  if (config.filter && bcf_has_filter (header, buffer, config.filter) == 1)
+  if ((config.filter && bcf_has_filter (header, buffer, config.filter) == 1)
+      || (config.keep && bcf_has_filter (header, buffer, config.keep) != 1))
     {
       /* Up the variant ID because we might want to add this variant
        * at a later time.  When processing the same file, it will keep the
        * variant IDs in sync. */
-      config.non_unique_variant_counter +=
-        (number_of_samples > 0) ? number_of_samples : 1;
-      return;
-    }
-
-  if (config.keep && bcf_has_filter (header, buffer, config.keep) != 1)
-    {
       config.non_unique_variant_counter +=
         (number_of_samples > 0) ? number_of_samples : 1;
       return;
@@ -488,8 +507,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
   if (buffer->d.allele == NULL)
     return;
 
-  int32_t sample_index = 0;
-
   if (!origin)
     {
       config.non_unique_variant_counter +=
@@ -502,18 +519,20 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin)
    * Accomodating for this use-case is a bit special, so let's deal with
    * it here. */
   if (number_of_samples == 0 && !(config.sample))
-    process_variant_for_sample (header, buffer, origin, -1, number_of_samples);
+    process_variant_for_sample (header, buffer, origin, origin_str, -1,
+                                number_of_samples);
 
   /* When samples are defined (as usual), we should treat each variant call
    * for a given sample as a unique call.  This makes sure multi-sample VCFs
    * are handled correctly automatically. */
+  int32_t sample_index = 0;
   for (; sample_index < number_of_samples; sample_index++)
     {
       /* Handle the --sample command-line option. */
       if (config.sample && strcmp(header->samples[sample_index], config.sample))
         continue;
 
-      process_variant_for_sample (header, buffer, origin, sample_index,
-                                  number_of_samples);
+      process_variant_for_sample (header, buffer, origin, origin_str,
+                                  sample_index, number_of_samples);
     }
 }

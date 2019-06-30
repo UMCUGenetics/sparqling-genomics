@@ -18,9 +18,12 @@
 #ifndef VCF_VARIANTS_H
 #define VCF_VARIANTS_H
 
+#include <raptor2.h>
 #include <htslib/vcf.h>
 
-void process_variant (bcf_hdr_t *header, bcf1_t *buffer, const unsigned char *origin);
+void process_variant (bcf_hdr_t *header, bcf1_t *buffer, raptor_term *origin,
+                      const unsigned char *origin_str);
+void build_field_identities (bcf_hdr_t *header);
 
 #endif /* VCF_VARIANTS_H */
 
