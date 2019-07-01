@@ -91,6 +91,11 @@
 % Hyperref should be loaded last.
 \usepackage[colorlinks=true,linkcolor=LinkGray,urlcolor=LinkGray,citecolor=CiteColor,plainpages=false,pdfpagelabels]{hyperref}
 
+% Alternative to \verbatim that allows escaping.
+\usepackage{listings}
+\lstset{escapeinside={(@*}{*@)}}
+\lstset{basicstyle=\ttfamily, columns=fullflexible, keepspaces=true}
+
 % Enable code listing features.
 %\usepackage{minted}
 %\setminted{autogobble,fontsize=\small}

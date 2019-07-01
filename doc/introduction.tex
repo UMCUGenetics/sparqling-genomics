@@ -125,25 +125,25 @@ brew install autoconf automake gcc make pkg-config libgcrypt guile \
   \href{https://github.com/UMCUGenetics/sparqling-genomics/releases}%
   {Releases}%
   \footnote{\url{https://github.com/UMCUGenetics/sparqling-genomics/releases}}
-  page.  Make sure to download the \mbox{\texttt{sparqling-genomics-0.99.9.tar.gz}}
-  file.
+  page.  Make sure to download the {\fontfamily{\ttdefault}\selectfont
+    sparqling-genomics-\sgversion{}.tar.gz} file.
   \end{sloppypar}
 
   Or, directly download the tarball using the command-line:
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
-download/0.99.9/sparqling-genomics-0.99.9.tar.gz
-\end{verbatim}
+download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@).tar.gz
+\end{lstlisting}
 \end{siderules}
 
   After obtaining the tarball, it can be unpacked using the \texttt{tar}
   command:
 
 \begin{siderules}
-\begin{verbatim}
-tar zxvf sparqling-genomics-0.99.9.tar.gz
-\end{verbatim}
+\begin{lstlisting}
+tar zxvf sparqling-genomics-(@*\sgversion{}*@).tar.gz
+\end{lstlisting}
 \end{siderules}
 
 \section{Installation instructions}
@@ -155,13 +155,13 @@ tar zxvf sparqling-genomics-0.99.9.tar.gz
   commands:
 
 \begin{siderules}
-\begin{verbatim}
-cd sparqling-genomics-0.99.9
+\begin{lstlisting}
+cd sparqling-genomics-(@*\sgversion{}*@)
 autoreconf -vif # Only needed if the "./configure" step does not work.
 ./configure
 make
 make install
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
   To run the \texttt{make install} command, super user privileges may be
@@ -187,11 +187,11 @@ make -C tools/vcf2rdf
   can be imported into docker using the following commands:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
-download/0.99.9/sparqling-genomics-0.99.9-docker.tar.gz
-docker load < sparqling-genomics-0.99.9-docker.tar.gz
-\end{verbatim}
+download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
+docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
+\end{lstlisting}
 \end{siderules}
 
   The container contains both SPARQLing genomics and Virtuoso (open source
