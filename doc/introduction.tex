@@ -20,38 +20,37 @@
   to (re)generate the documentation.
 
   Each component in the repository has its own dependencies.  Table
-  \ref{table:dependencies} provides an overview for each tool.
+  \ref{table:dependencies} provides an overview for each tool.  A $\bullet{}$
+  indicates that the program (row) depends on the program or library (column).
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ X X X X X }
+    \begin{tabularx}{\textwidth}{ X l l l l l l l l }
       \headrow
-      \textbf{vcf2rdf} & \textbf{table2rdf} & \textbf{folder2rdf} &
-      \textbf{Web interface} & \textbf{Documentation}\\
+      & \rotatebox[origin=l]{90}{\href{https://gcc.gnu.org/}{C compiler}\space\space\space}
+      & \rotatebox[origin=l]{90}{\href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}}
+      & \rotatebox[origin=l]{90}{\href{http://www.librdf.org/}{raptor2}}
+      & \rotatebox[origin=l]{90}{\href{http://www.xmlsoft.org/}{libxml2}}
+      & \rotatebox[origin=l]{90}{\href{http://www.htslib.org/}{HTSLib}}
+      & \rotatebox[origin=l]{90}{\href{https://www.gnu.org/software/guile}{GNU Guile}\space\space\space}
+      & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
+      & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \href{https://gcc.gnu.org/}{GNU C compiler}
-      & \href{https://gcc.gnu.org/}{GNU C compiler}
-      & \href{https://gcc.gnu.org/}{GNU C compiler}
-      & \href{https://www.gnu.org/software/guile}{GNU Guile}
-      & \href{https://tug.org/texlive/}{\LaTeX{} distribtion}\\
+      \texttt{vcf2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &\\
       \oddrow
-      \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      & \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      & \href{https://www.gnu.org/software/guile}{GNU Guile}
-      & \href{https://github.com/wingo/fibers}{Fibers}
-      & \\
+      \texttt{bam2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &\\
       \evenrow
-      \href{http://www.librdf.org/}{\texttt{raptor2}}
-      & \href{http://www.librdf.org/}{\texttt{raptor2}}
-      & \href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}
-      &
-      & \\
+      \texttt{table2rdf}  & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &             &\\
       \oddrow
-      \href{http://www.htslib.org/}{HTSLib}
-      &
-      &
-      &
-      & \\
+      \texttt{json2rdf}   & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &             &\\
+      \evenrow
+      \texttt{xml2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &\\
+      \oddrow
+      \texttt{folder2rdf} &             &             &             &             &             & $\bullet{}$ &             &\\
+      \evenrow
+      \texttt{sg-web}     &             &             &             &             &             & $\bullet{}$ & $\bullet{}$ &\\
+      \oddrow
+      Documentation       &             &             &             &             &             &             &             & $\bullet{}$\\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs this
       project provides.}
@@ -73,7 +72,7 @@
 \begin{verbatim}
 apt-get install autoconf automake gcc make pkg-config libgcrypt-dev     \
                 zlib-dev guile-2.0 guile-2.0-dev libraptor2-dev texlive \
-                curl
+                curl libxml2-dev
 \end{verbatim}
 \end{siderules}
 
@@ -85,7 +84,7 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt-dev     \
 \begin{siderules}
 \begin{verbatim}
 yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
-            guile guile-devel raptor2-devel texlive curl
+            guile guile-devel raptor2-devel texlive curl libxml2-devel
 \end{verbatim}
 \end{siderules}
 
@@ -110,7 +109,7 @@ guix environment -l environment.scm
 \begin{siderules}
 \begin{verbatim}
 brew install autoconf automake gcc make pkg-config libgcrypt guile \
-             htslib curl raptor
+             htslib curl raptor libxml2
 \end{verbatim}
 \end{siderules}
 
