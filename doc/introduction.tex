@@ -25,32 +25,33 @@
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ X l l l l l l l l }
+    \begin{tabularx}{\textwidth}{ X l l l l l l l l l }
       \headrow
       & \rotatebox[origin=l]{90}{\href{https://gcc.gnu.org/}{C compiler}\space\space\space}
       & \rotatebox[origin=l]{90}{\href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}}
       & \rotatebox[origin=l]{90}{\href{http://www.librdf.org/}{raptor2}}
       & \rotatebox[origin=l]{90}{\href{http://www.xmlsoft.org/}{libxml2}}
       & \rotatebox[origin=l]{90}{\href{http://www.htslib.org/}{HTSLib}}
+      & \rotatebox[origin=l]{90}{\href{https://zlib.net/}{zlib}}
       & \rotatebox[origin=l]{90}{\href{https://www.gnu.org/software/guile}{GNU Guile}\space\space\space}
       & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
       & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \texttt{vcf2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &\\
+      \texttt{vcf2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &             &\\
       \oddrow
-      \texttt{bam2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &\\
+      \texttt{bam2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &             &\\
       \evenrow
-      \texttt{table2rdf}  & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &             &\\
+      \texttt{table2rdf}  & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             & $\bullet{}$ &             &             &\\
       \oddrow
-      \texttt{json2rdf}   & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &             &\\
+      \texttt{json2rdf}   & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             & $\bullet{}$ &             &             &\\
       \evenrow
-      \texttt{xml2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             &             &             &\\
+      \texttt{xml2rdf}    & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ & $\bullet{}$ &             & $\bullet{}$ &             &             &\\
       \oddrow
-      \texttt{folder2rdf} &             &             &             &             &             & $\bullet{}$ &             &\\
+      \texttt{folder2rdf} &             &             &             &             &             &             & $\bullet{}$ &             &\\
       \evenrow
-      \texttt{sg-web}     &             &             &             &             &             & $\bullet{}$ & $\bullet{}$ &\\
+      \texttt{sg-web}     &             &             &             &             &             &             & $\bullet{}$ & $\bullet{}$ &\\
       \oddrow
-      Documentation       &             &             &             &             &             &             &             & $\bullet{}$\\
+      Documentation       &             &             &             &             &             &             &             &             & $\bullet{}$\\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs this
       project provides.}
