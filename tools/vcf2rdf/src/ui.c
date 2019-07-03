@@ -172,7 +172,8 @@ int32_t
 ui_print_file_format_error (void)
 {
   fprintf (stderr, "ERROR: This program only handles \".vcf\", "
-                   "\".vcf.gz\", \".bcf\", and \".bcf.gz\" files.\n");
+                   "\".vcf.gz\", \".vcf.bgz\", \".bcf\", \".bcf.gz\", and "
+                   "\".bcf.bgz\" files.\n");
   return 1;
 }
 

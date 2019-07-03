@@ -100,8 +100,12 @@ main (int argc, char **argv)
 
       if (!is_vcf && !is_bcf && input_file_len > 6)
         {
-          is_gzip_vcf = !strcmp (config.input_file + input_file_len - 6, "vcf.gz");
-          is_gzip_bcf = !strcmp (config.input_file + input_file_len - 6, "bcf.gz");
+          is_gzip_vcf =
+            (!strcmp (config.input_file + input_file_len - 6, "vcf.gz")
+             || !strcmp (config.input_file + input_file_len - 7, "vcf.bgz"));
+          is_gzip_bcf =
+            (!strcmp (config.input_file + input_file_len - 6, "bcf.gz")
+             || !strcmp (config.input_file + input_file_len - 7, "bcf.bgz"));
         }
 
       if (!(is_bcf || is_gzip_bcf || is_vcf || is_gzip_vcf ||
