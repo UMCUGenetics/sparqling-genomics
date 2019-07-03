@@ -23,6 +23,7 @@
 #include <time.h>
 #include <raptor2.h>
 #include <gcrypt.h>
+#include <zlib.h>
 
 #ifdef ENABLE_MTRACE
 #include <mcheck.h>
@@ -74,11 +75,11 @@ main (int argc, char **argv)
 
       ui_show_missing_options_warning ();
 
-      FILE *stream = NULL;
+      gzFile stream;
       if (config.input_from_stdin)
-        stream = stdin;
+        stream = gzdopen (fileno(stdin), "r");
       else
-        stream = fopen (config.input_file, "r");
+        stream = gzopen (config.input_file, "r");
 
       if (!stream)
         return ui_print_file_error (config.input_file);
@@ -175,7 +176,7 @@ main (int argc, char **argv)
                    "Rows", "Time");
           fprintf (stderr, "[ PROGRESS ] ------------------- "
                    "------------------- -------------------\n");
-          while (!feof (stream))
+          while (!gzeof (stream))
             {
               process_row (table, stream, node_filename, file_hash, config.input_file);
               if (counter % 50000 == 0)
@@ -194,7 +195,7 @@ main (int argc, char **argv)
         }
       else
         {
-          while (!feof (stream))
+          while (!gzeof (stream))
             process_row (table, stream, node_filename, file_hash, config.input_file);
         }
 
@@ -218,7 +219,7 @@ main (int argc, char **argv)
       free (file_hash);
       if (!config.input_from_stdin)
         {
-          fclose (stream);
+          gzclose (stream);
         }
     }
 

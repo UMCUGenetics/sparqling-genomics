@@ -19,6 +19,7 @@
 #include "ui.h"
 #include "runtime_configuration.h"
 #include "helper.h"
+#include "tools.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -72,7 +73,7 @@ is_flag (const char *input, uint32_t length)
 }
 
 table_hdr_t *
-process_header (FILE* stream, raptor_term *origin, const char *filename)
+process_header (gzFile stream, raptor_term *origin, const char *filename)
 {
   table_hdr_t *header = calloc (1, sizeof (table_hdr_t));
   if (!header)
@@ -113,13 +114,13 @@ process_header (FILE* stream, raptor_term *origin, const char *filename)
   ssize_t result = 0;
 
   if (config.header_line == NULL)
-    result = getdelim (&line, &line_len, '\n', stream);
+    result = gzgetdelim (&line, &line_len, '\n', stream);
   else
     line = config.header_line;
 
   if (!(result == -1 && !config.header_line))
     {
-      /* The 'getdelim' function does not remove the delimiter, so let's do
+      /* The 'gzgetdelim' function does not remove the delimiter, so let's do
        * that here. */
       size_t line_strlen = strlen (line);
       if (line[line_strlen - 1] == '\n')
@@ -346,21 +347,21 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
 }
 
 void
-process_row (table_hdr_t* hdr, FILE *stream, raptor_term *origin,
+process_row (table_hdr_t* hdr, gzFile stream, raptor_term *origin,
              const unsigned char *origin_str, const char *filename)
 {
   char *line_orig = NULL;
   char *line      = NULL;
   size_t line_len = 0;
 
-  if (getdelim (&line, &line_len, '\n', stream) != -1)
+  if (gzgetdelim (&line, &line_len, '\n', stream) != -1)
     {
       /* We use 'strsep' later on, which will eventually set line to NULL.
-       * To be able to free the memory allocated by 'getdelim', we must store
+       * To be able to free the memory allocated by 'gzgetdelim', we must store
        * the memory address.  */
       line_orig = line;
 
-      /* The 'getdelim' function does not remove the delimiter, so let's do
+      /* The 'gzgetdelim' function does not remove the delimiter, so let's do
        * that here. */
       size_t line_strlen = strlen (line);
       if (line[line_strlen - 1] == '\n')
@@ -425,7 +426,7 @@ process_row (table_hdr_t* hdr, FILE *stream, raptor_term *origin,
           token = strsep (&line, config.delimiter);
         }
     }
-  else if (!feof (stream))
+  else if (!gzeof (stream))
     ui_print_file_read_error ((char *)filename);
   else
     line_orig = line;
