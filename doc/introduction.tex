@@ -3,10 +3,14 @@
 \section{Prerequisites}
 \label{sec:prerequisites}
 
-  In addition to the tools provided by this project, a RDF store is required.
-  In the manual we use \href{https://virtuoso.openlinksw.com/}{Virtuoso}, but
+  The programs provided by this project build a knowledge graph.  However,
+  a knowledge graph store (better known as an RDF store) is not included.
+
+  Through the years various great RDF stores have been developed, including
+  \href{https://virtuoso.openlinksw.com/}{Virtuoso},
   \href{https://github.com/4store/4store}{4store} and
-  \href{https://www.blazegraph.com/}{BlazeGraph} are equally well supported.
+  \href{https://www.blazegraph.com/}{BlazeGraph}.  We recommend using one of
+  the mentioned RDF stores with the programs from this project.
 
   Before we can use the programs provided by this project, we need to build
   them.  The build system needs
@@ -23,10 +27,13 @@
   \ref{table:dependencies} provides an overview for each tool.  A $\bullet{}$
   indicates that the program (row) depends on the program or library (column).
 
+  Care was taken to pick dependencies that are widely available on GNU/Linux
+  systems.
+
   \hypersetup{urlcolor=black}
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ X l l l l l l l l l }
-      \headrow
+    \begin{tabularx}{\textwidth}{X *{9}{l}}
+      \headrow \cellcolor{White}
       & \rotatebox[origin=l]{90}{\href{https://gcc.gnu.org/}{C compiler}\space\space\space}
       & \rotatebox[origin=l]{90}{\href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}}
       & \rotatebox[origin=l]{90}{\href{http://www.librdf.org/}{raptor2}}
@@ -206,16 +213,46 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
   in the form \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
   \emph{object}, which is the form of an RDF triplet.
 
+  Once all desired data is described as RDF triplets, we can use a simplified
+  language to analyze data: SPARQL Protocol and RDF Query Language (SPARQL).
+
+  But (re)stating facts as RDF is not the goal of SPARQLing genomics.  It is
+  a necessary first step to a more powerful inference system.  To understand
+  the knowledge graph and its intended use, we can think of the knowledge
+  graph as having multiple layers.  Figure \ref{fig:layered-knowledge}
+  displays a small example of two layers.
+
+  \begin{figure}[h]
+    \begin{center}
+    \includegraphics[width=0.9\textwidth]{figures/layered-knowledge.pdf}
+    \end{center}
+    \caption{\textit{Illustrating knowledge layers.  In the figure we have
+        knowledge from two separate sources (gene locations and genomic
+        variants) from which we can derive new knowledge in an inference
+        layer.}}
+    \label{fig:layered-knowledge}
+  \end{figure}
+
   Programs can operate on multiple layers of knowledge.  A program operates
   on the first layer (layer 0) when it translates a non-RDF format into RDF.
   These programs (re)state observations.  In the second layer (layer 1) and
-  up, we find programs that operate on facts and generate inferences.
+  up, we find programs that operate on facts from layer 0 and generate
+  inferences.
 
   From a computational perspective, these inferences allow programs to take
   shortcuts, and therefore answer questions (called \emph{querying}) faster.
   The performance of querying the graph can therefore be tuned by cleverly
-  stating facts (or by simply buying more and faster computing machines ---
-  a fact not described in the knowledge graph).
+  stating facts.  For example, by using the inference drawn in figure
+  \ref{fig:layered-knowledge}, a query asking for ``all variants in a gene''
+  no longer needs to compute whether a variant is inside any of the
+  genes.  The query planner can also narrow the search space by only
+  considering the variants in the layer 1 graph.
+
+  From a data access perspective, these inferences allow fine-grained access
+  to knowledge.  For example, access to a layer 1 graph can be given, but
+  not to its underlying layer 0 graph(s).  Properties can be removed (like
+  patient identifiers), or made less precise (rounding variant positions to
+  the nearest 1000).
 
   \begin{sloppypar}
   The knowledge graph contains two types of nodes; uniquely identifiable
