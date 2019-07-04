@@ -1,35 +1,27 @@
 \chapter{Command-line programs}
 \label{chap:command-line}
 
-  The project provides programs to create a complete pipeline including
-  data conversion, data importing and data exploration.  These tools
-  provide the ``layer 0'' for the knowledge graph, and the tools to
-  discover the data in this layer.   All tools described in the remainder
-  of this chapter can be invoked with the \texttt{-{}-help} argument to
-  get a complete overview of options for that particular tool.
+  SPARQLing genomics provides programs to create an extensive knowledge graph
+  from genomics-specific data formats.  The programs described in this chapter
+  provide the ``layer 0'' for the knowledge graph, and the tools to discover
+  the data in this layer.   All tools described in the remainder of this
+  chapter can be invoked with the \texttt{-{}-help} argument to get a complete
+  overview of options for that particular tool.
 
 \section{Preparing variant call data with \texttt{vcf2rdf}}
 \label{sec:vcf2rdf}
 
-  Obtaining variants from sequenced data is a task of so called
-  \emph{variant callers}.  These programs often output the variants they found
-  in the \emph{Variant Call Format} (VCF).  Before we can use the data described
-  in this format, we need to extract \emph{knowledge} (in the form of triples)
-  from it.
-
-  The \texttt{vcf2rdf} program does exactly this, by converting a VCF file
-  into an RDF format.  In section \ref{sec:curl} {\color{LinkGray}`\nameref{sec:curl}%
-  '} we describe how to import the data produced by \texttt{vcf2rdf} in the
-  database.
+  Obtaining variants from sequenced data is a task performed by \emph{variant
+    callers}.  These programs often output the variants they found in the
+  \emph{Variant Call Format} (VCF).  The \texttt{vcf2rdf} program extracts
+  knowledge from a VCF file and writes it as RDF.
 
 \subsection{Knowledge extracted by \texttt{vcf2rdf}}
 
   The program treats the VCF as its own ontology.  It uses the VCF header as
   a guide.  All fields described in the header of the VCF file will be
-  translated into triples.
-
-  In addition to the knowledge from the VCF file, \texttt{vcf2rdf} provides the
-  following triples:
+  translated into triples.  In addition to the knowledge from the VCF file,
+  \texttt{vcf2rdf} provides the following triples:
 
     \begin{table}[H]
     \begin{tabularx}{\textwidth}{ l l l L }
@@ -37,22 +29,27 @@
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:filename} &
+      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
       \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
+      \texttt{:Origin/}\emph{identifier} & \texttt{:sha256sum} &
+      \emph{SHA256 sum}
+      & This triple states the SHA256 sum of the content of the original file.\\
+      \oddrow
       \texttt{:Sample/}\emph{sample name} & \texttt{rdf:type} & \texttt{:Sample}
       & This states that there is a sample with \emph{sample name}.\\
-      \oddrow
-      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{SHA256 hash}
-      & This triple states that a sample can be found in a file identified by
-      the \texttt{:Origin} with a specific SHA256 hash.\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:convertedBy} & \texttt{:vcf2rdf}
+      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
+      & \texttt{:Origin/}\emph{identifier}
+      & This triple states that a sample can be found in a file identified by
+      the \texttt{:Origin} with a specific identifier.\\
+      \oddrow
+      \texttt{:Origin/}\emph{identifier} & \texttt{:convertedBy} &
+             {\fontfamily{\ttdefault}\selectfont :vcf2rdf-\sgversion{}}
       & This triple states that the file was converted with \texttt{vcf2rdf}.\\
     \end{tabularx}
     \caption{\small The additional triple patterns provided by \texttt{vcf2rdf}.}
@@ -62,10 +59,11 @@
   The following snippet is an example of the extra data in Turtle-format:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 <http://sparqling-genomics/Origin/14f2b609b>
-    :convertedBy :vcf2rdf ;
+    :convertedBy :vcf2rdf-(@*\sgversion{}*@) ;
     :filename "clone_ref_tumor.vcf.gz"^^xsd:string ;
+    :sha256sum "14f2b609b" ;
     a :Origin .
 
 <http://sparqling-genomics/Sample/CLONE_REF>
@@ -75,7 +73,7 @@
 <http://sparqling-genomics/Sample/CLONE_TUMOR>
     :foundIn <http://sparqling-genomics/Origin/14f2b609b3> ;
     a :Sample .
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
 \subsection{Example usage}
@@ -136,10 +134,10 @@ vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:filename} &
+      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
       \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
@@ -152,9 +150,9 @@ vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
       \oddrow
       \texttt{:bam2rdf/}\emph{unique identifier}
       & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{SHA256 hash}
+      & \texttt{:Origin/}\emph{identifier}
       & This triple states that a header line can be found in a file identified
-      by the \texttt{:Origin} with a specific SHA256 hash.\\
+      by the \texttt{:Origin} with a specific identifier.\\
       \evenrow
       \texttt{:bam2rdf/}\emph{unique identifier}
       & \emph{type class}\texttt{/}\emph{key}
@@ -162,7 +160,7 @@ vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
       & Each header field consists of a key/value pair.  The key is used as
       predicate.\\
       \oddrow
-      \texttt{:Origin/}\emph{SHA256 hash}
+      \texttt{:Origin/}\emph{identifier}
       & \texttt{:convertedBy}
       & \texttt{:bam2rdf}
       & This triple states that the file was converted with \texttt{bam2rdf}.\\
@@ -236,26 +234,26 @@ $ table2rdf -i test.tsv
   for short:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 $ table2rdf     \
     -i test.tsv \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
 ...
-@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
+(@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome p00000:chr1 ;
+    (@*\colorbox{Highlight}{col:chromosome p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
 <http://sparqling-genomics/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome p00000:chrMT ;
+    (@*\colorbox{Highlight}{col:chromosome p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
 ...
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
   After the transformation, the output produced by \texttt{table2rdf} uses
@@ -272,27 +270,27 @@ $ table2rdf     \
   different transformation can be made:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 $ table2rdf     \
     -i test.tsv \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
     -T Chromosome=http://biohackathon.org/resource/faldo#reference
 ...
-@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#> .
+(@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    faldo:reference p00000:chr1 ;
+    (@*\colorbox{Highlight}{faldo:reference p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
 <http://sparqling-genomics/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    faldo:reference p00000:chrMT ;
+    (@*\colorbox{Highlight}{faldo:reference p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
 ...
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
 \subsection{Delimiters}
@@ -319,68 +317,38 @@ $ table2rdf     \
 $ cat multi.tsv
 Chromosome	Position	Filter
 1	10000	A;B;C;D
-1	10010	A
-1	11000	
 \end{verbatim}
 \end{siderules}
 
   Without using the secondary delimiter, we get:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 $ table2rdf -i multi.tsv
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
-    col:filter "A;B;C;D"^^xsd:string ;
+    (@*\colorbox{Highlight}{col:filter "A;B;C;D"\^{}\^{}xsd:string ;}*@)
     col:position 10000 ;
     a :Row .
-
-<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome 1 ;
-    col:filter "A"^^xsd:string ;
-    col:position 10010 ;
-    a :Row .
-
-<http://sparqling-genomics/table2rdf/Row/...-R0000000002>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome 1 ;
-    col:position 11000 ;
-    a :Row .
-...
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
   Using the secondary delimiter, we get:
 
 \begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 $ table2rdf -i multi.tsv --secondary-delimiter ";"
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
-    col:filter "A"^^xsd:string, "B"^^xsd:string, "C"^^xsd:string,
-               "D"^^xsd:string ;
+    (@*\colorbox{Highlight}{col:filter "A"\^{}\^{}xsd:string, "B"\^{}\^{}xsd:string, "C"\^{}\^{}xsd:string,}*@)
+    (@*\colorbox{Highlight}{\space\space\space\space\space\space\space\space\space\space\space"D"\^{}\^{}xsd:string ;}*@)
     col:position 10000 ;
     a :Row .
-
-<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome 1 ;
-    col:filter "A"^^xsd:string ;
-    col:position 10010 ;
-    a :Row .
-
-<http://sparqling-genomics/table2rdf/Row/...-R0000000002>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
-    col:chromosome 1 ;
-    col:position 11000 ;
-    a :Row .
-...
-\end{verbatim}
+\end{lstlisting}
 \end{siderules}
 
   Notice how the \texttt{col:filter} predicate now describes a
@@ -398,15 +366,15 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";"
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
       & This defines a uniquely identifiable reference to the originating
         file.\\
       \oddrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:filename} &
+      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
       \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{:convertedBy} &
+      \texttt{:Origin/}\emph{identifier} & \texttt{:convertedBy} &
       \texttt{:table2rdf}
       & This triple states that the file was converted with
         \texttt{table2rdf}.\\
@@ -415,9 +383,9 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";"
       & This states that there is a sample with \emph{sample name}.\\
       \evenrow
       \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{SHA256 hash}
+      & \texttt{:Origin/}\emph{identifier}
       & This triple states that a sample can be found in a file identified by
-      the \texttt{:Origin} with a specific SHA256 hash.\\
+      the \texttt{:Origin} with a specific identifier.\\
     \end{tabularx}
     \caption{\small The additional triple patterns provided by \texttt{table2rdf}.}
     \label{table:table2rdf-ontology}
@@ -577,7 +545,7 @@ folder2rdf --input-directory=/vcf-data   \
       \texttt{:User/}\emph{username} & \texttt{rdf:type} & \texttt{:User}
       & This defines the identifier for the file owner (username).\\
       \evenrow
-      \texttt{:Origin/}\emph{SHA256 hash} & \texttt{rdf:type} & \texttt{:Origin}
+      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
     \end{tabularx}
     \caption{\small The additional triple patterns produced by \texttt{folder2rdf}.}

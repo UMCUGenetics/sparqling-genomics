@@ -11,6 +11,7 @@
 \usepackage{array}
 \usepackage{mdframed}
 \usepackage{upquote}
+\usepackage[margin=1cm]{caption}
 
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
@@ -48,6 +49,7 @@
 \usepackage{color, colortbl}
 \definecolor{Gray}{rgb}{0.5, 0.63, 0.76}
 \definecolor{White}{gray}{1.00}
+\definecolor{Highlight}{rgb}{1.0, 0.97, 0.85}
 \definecolor{EvenRowColor}{rgb}{0.97, 0.97, 0.97}
 \definecolor{OddRowColor}{rgb}{0.93, 0.93, 0.93}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
@@ -70,6 +72,9 @@
   skipbelow=5pt
 ]{siderules}
 
+% When highlighting text, make sure the highlighting box doesn't
+% add padding space.
+\setlength{\fboxsep}{0pt}
 
 \newcommand{\oddcell}{\cellcolor{OddRowColor}}
 \newcommand{\oddrow}{\rowcolor{OddRowColor}}
