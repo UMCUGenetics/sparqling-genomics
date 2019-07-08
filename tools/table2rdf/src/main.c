@@ -34,6 +34,7 @@
 #include "runtime_configuration.h"
 #include "ontology.h"
 #include "table.h"
+#include "tools.h"
 
 int
 main (int argc, char **argv)
@@ -159,7 +160,7 @@ main (int argc, char **argv)
         {
           char *line = NULL;
           size_t line_len = 0;
-          getdelim (&line, &line_len, '\n', stream);
+          gzgetdelim (&line, &line_len, '\n', stream);
           free (line);
         }
 
