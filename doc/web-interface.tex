@@ -176,15 +176,11 @@ sg-web --configuration-file=file.xml
     \label{fig:web-connections}
   \end{figure}
 
-  When providing a username and password for a connection, it will attempt
-  to connect using \emph{digest authentication}.
-
 \section{Managing projects}
 
-  When interacting with large datasets, it may be useful to confine queries to
-  a subset of the dataset.  On the \emph{projects} page, subsets can be made
-  based on \emph{sample names}.  These sample names are automatically extracted
-  from VCF files, and can also be extracted from tabular data.
+  Projects are a loosely-defined way to group queries and to collaborate with
+  other users.  Projects provide a way to manage access to \emph{graphs}, and
+  to share previously-executed queries among project members.
 
   Marking a project as ``active'' indicates that queries executed using the web
   interface relate to that project.  See also section \ref{sec:query-history}
