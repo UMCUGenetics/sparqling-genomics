@@ -102,10 +102,9 @@ ontology_init (ontology_t **ontology_ptr)
   for (; initialized_prefixes < ontology->prefixes_length; initialized_prefixes++)
     if (!ontology->prefixes[initialized_prefixes]) break;
 
-  ontology->classes_length = 16;
+  ontology->classes_length = 15;
   ontology->classes = calloc (ontology->classes_length, sizeof (raptor_term*));
 
-  define_class (ontology, CLASS_RDF_TYPE,               PREFIX_RDF,    "#type");
   define_class (ontology, CLASS_ORIGIN,                 PREFIX_MASTER, "Origin");
   define_class (ontology, CLASS_VCF_HEADER,             PREFIX_BASE,   "HeaderItem");
   define_class (ontology, CLASS_VCF_HEADER_INFO,        PREFIX_BASE,   "InfoItem");
@@ -126,10 +125,11 @@ ontology_init (ontology_t **ontology_ptr)
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
     if (!ontology->classes[initialized_classes]) break;
 
-  ontology->predicates_length = 16;
+  ontology->predicates_length = 17;
   ontology->predicates = calloc (ontology->predicates_length, sizeof (raptor_term*));
 
   define_predicate (ontology, PREDICATE_RDF_TYPE,        PREFIX_RDF,          "#type");
+  define_predicate (ontology, PREDICATE_RDFS_LABEL,      PREFIX_RDFS,         "#label");
   define_predicate (ontology, PREDICATE_SHA256SUM,	 PREFIX_MASTER,       "sha256sum");
   define_predicate (ontology, PREDICATE_CONVERTED_BY,	 PREFIX_MASTER,       "convertedBy");
   define_predicate (ontology, PREDICATE_VERSION_INFO,	 PREFIX_OWL,          "#versionInfo");

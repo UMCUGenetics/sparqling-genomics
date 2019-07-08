@@ -102,7 +102,11 @@ process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
       register_statement_reuse_all (stmt);
       stmt = NULL;
 
-      raptor_free_term (subject);
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = subject;
+      stmt->predicate = predicate (PREDICATE_RDFS_LABEL);
+      stmt->object    = literal (vcf_header->samples[index], XSD_STRING);
+      register_statement_reuse_predicate (stmt);
     }
 
   /* Skip the rest of the triplets when metadata-only mode is enabled. */
@@ -233,7 +237,7 @@ process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (prefix, identifier);
-          stmt->predicate = config.ontology->classes[CLASS_RDF_TYPE];
+          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
           stmt->object    = config.ontology->classes[type];
           register_statement_reuse_predicate_object (stmt);
 
