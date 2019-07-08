@@ -206,21 +206,27 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 
 \chapter{The knowledge graph}
 
-  The tools provided by SPARQLing genomics are designed to build a
-  common format to express genomic information.  The programs from chapter
-  \ref{chap:command-line} {\color{LinkGray}`\nameref{chap:command-line}'}
-  read data in a domain-specific format, and translate it into \emph{facts}
-  in the form \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
+  In this manual we define a \emph{knowledge graph} as a collection of
+  facts stated in a coherent way so that inferences can be drawn from
+  the explicitly stated facts.  We implement a knowledge graph using the
+  Resource Description Framework \citep{Lassila:99:RDF}, hereafter referred
+  to as RDF.  The knowledge graph is the main value obtained from this
+  project.
+
+  The programs from chapter \ref{chap:command-line}
+  {\color{LinkGray}`\nameref{chap:command-line}'} read data in a
+  domain-specific format, and translate it into \emph{facts} in the form
+  \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
   \emph{object}, which is the form of an RDF triplet.
 
-  Once all desired data is described as RDF triplets, we can use a simplified
-  language to analyze data: SPARQL Protocol and RDF Query Language (SPARQL).
+  Once all desired data is described as RDF triplets, we can use the SPARQL
+  Protocol and RDF Query Language \citep{sparql-11}, better known as simply
+  ``SPARQL'', to extract knowledge from the facts.
 
-  But (re)stating facts as RDF is not the goal of SPARQLing genomics.  It is
-  a necessary first step to a more powerful inference system.  To understand
-  the knowledge graph and its intended use, we can think of the knowledge
-  graph as having multiple layers.  Figure \ref{fig:layered-knowledge}
-  displays a small example of two layers.
+  Stating facts as RDF is a necessary first step to a more powerful inference
+  system.  To understand the knowledge graph and its intended use, we can
+  think of the knowledge graph as having multiple layers.  Figure
+  \ref{fig:layered-knowledge} displays a small example of two layers.
 
   \begin{figure}[h]
     \begin{center}
