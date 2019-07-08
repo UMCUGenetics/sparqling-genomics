@@ -127,7 +127,7 @@ On a typical graph with data originating from \texttt{vcf2rdf}, this may yield
 the following table:
 
 \begin{table}[H]
-  \begin{tabularx}{\textwidth}{ X X X }
+  \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}X}}
     \headrow
     \textbf{subjects} & \textbf{predicates} & \textbf{objects}\\
     \evenrow
@@ -201,7 +201,7 @@ WHERE {
 Which may yield the following table:
 
 \begin{table}[H]
-  \begin{tabularx}{\textwidth}{ l L }
+  \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}L}
     \headrow
     \textbf{sample} & \textbf{filename}\\
     \evenrow
@@ -257,7 +257,7 @@ WHERE
   Which may yield the following table:
 
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ l L l }
+    \begin{tabularx}{\textwidth}{ l!{\VRule[-1pt]}L!{\VRule[-1pt]}l }
       \headrow
       \textbf{sample} & \textbf{filename} & \textbf{numberOfVariants}\\
       \evenrow
@@ -353,7 +353,7 @@ LIMIT 2
 Which may yield the following table:
 
 \begin{table}[H]
-  \begin{tabularx}{\textwidth}{ l L }
+  \begin{tabularx}{\textwidth}{ l!{\VRule[-1pt]}L }
     \headrow
     \textbf{occurrences} & \textbf{sample}\\
     \evenrow
@@ -458,7 +458,7 @@ SELECT ?speciesId ?name {
 Which may yield the following table:
 
 \begin{table}[H]
-  \begin{tabularx}{\textwidth}{ l L }
+  \begin{tabularx}{\textwidth}{ l!{\VRule[-1pt]}L }
     \headrow
     \textbf{speciesId} & \textbf{name}\\
     \evenrow

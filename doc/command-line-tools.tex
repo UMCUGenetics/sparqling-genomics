@@ -23,8 +23,8 @@
   translated into triples.  In addition to the knowledge from the VCF file,
   \texttt{vcf2rdf} provides the following triples:
 
-    \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ l l l L }
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
@@ -126,9 +126,9 @@ vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
 
   \begin{table}[H]
     \begin{tabularx}{\linewidth}{>{\hsize=0.2\hsize}X
-        >{\hsize=0.15\hsize}X
-        >{\hsize=0.35\hsize}L
-        >{\hsize=0.30\hsize}L}
+        !{\VRule[-1pt]}>{\hsize=0.15\hsize}X
+        !{\VRule[-1pt]}>{\hsize=0.35\hsize}L
+        !{\VRule[-1pt]}>{\hsize=0.30\hsize}L}
       %\begin{tabularx}{\textwidth}{L l L L }
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
@@ -363,7 +363,7 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";"
   metadata:
 
     \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ l l l L }
+      \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
@@ -536,7 +536,7 @@ folder2rdf --input-directory=/vcf-data   \
   extracts the following data:
 
   \begin{table}[H]
-    \begin{tabularx}{\textwidth}{ l l l L }
+    \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\

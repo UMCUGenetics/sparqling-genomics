@@ -52,6 +52,8 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
 
 docs-clean:
 	$(RM) -rf $(doc_NAME).aux			\
+		  $(doc_NAME).bbl			\
+		  $(doc_NAME).blg			\
 		  $(doc_NAME).log			\
 		  $(doc_NAME).out			\
 		  $(doc_NAME).toc			\
