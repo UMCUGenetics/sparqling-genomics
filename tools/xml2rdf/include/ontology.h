@@ -22,19 +22,15 @@
 #include <stdint.h>
 #include <raptor2.h>
 
+#include "master-ontology.h"
+
 /* These string constants can be used to concatenate strings at compile-time. */
-#define URI_W3            "http://www.w3.org"
-#define URI_MASTER        "http://sparqling-genomics.org/" VERSION
 #define URI_ONTOLOGY      URI_MASTER "/xml2rdf"
 
 #define STR_PREFIX_MASTER              URI_MASTER "/"
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
 #define STR_PREFIX_DYNAMIC_TYPE        URI_ONTOLOGY "/DynamicType/"
 #define STR_PREFIX_ORIGIN              URI_MASTER "/Origin/"
-#define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
-#define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
-#define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"
-#define STR_PREFIX_XSD                 URI_W3 "/2001/XMLSchema#"
 
 typedef enum
 {
@@ -73,30 +69,5 @@ bool ontology_init (ontology_t **ontology_ptr);
 void ontology_free (ontology_t *ontology);
 
 raptor_term* term (int32_t index, char *suffix);
-
-/* The following marcros can be used to construct terms (nodes) and URIs.
- * These assume 'config.raptor_world', 'config.uris', 'config.ontology',
- * and 'config.raptor_serializer' exist and have been initialized.
- */
-#define uri(index, suffix)                                      \
-  raptor_new_uri_relative_to_base (config.raptor_world,         \
-                                   config.uris[index],          \
-                                   str)
-
-/* TODO: Possibly wrap this in raptor_term_copy. */
-#define class(index)                                            \
-  raptor_term_copy (config.ontology->classes[index])
-
-#define literal(str, datatype)                                  \
-  raptor_new_term_from_literal                                  \
-  (config.raptor_world, (unsigned char *)str,                   \
-   config.ontology->xsds[datatype],                             \
-   NULL)
-
-#define register_statement(stmt)                                \
-  raptor_serializer_serialize_statement                         \
-  (config.raptor_serializer, stmt);                             \
-  raptor_free_statement (stmt)
-
 
 #endif  /* ONTOLOGY_H */

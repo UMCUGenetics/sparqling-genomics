@@ -14,6 +14,7 @@ endif
 
 bin_PROGRAMS         = json2rdf
 json2rdf_SOURCES     = ../common/src/helper.c ../common/include/helper.h            \
+                       ../common/include/master-ontology.h                          \
                        src/main.c include/runtime_configuration.h                   \
                        ../common/src/list.c ../common/include/list.h                \
                        src/runtime_configuration.c                                  \

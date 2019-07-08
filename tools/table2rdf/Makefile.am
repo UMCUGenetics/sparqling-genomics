@@ -14,6 +14,7 @@ endif
 
 bin_PROGRAMS         = table2rdf
 table2rdf_SOURCES    = ../common/src/helper.c ../common/include/helper.h      \
+                       ../common/include/master-ontology.h                    \
                        src/main.c include/runtime_configuration.h             \
                        src/runtime_configuration.c                            \
                        src/tools.c include/tools.h                            \
