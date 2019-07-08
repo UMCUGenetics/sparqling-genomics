@@ -17,27 +17,45 @@
       \headrow
       \textbf{Term} & \textbf{Used as} & \textbf{Description}\\
       \evenrow
-      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-Agent}
-           {dcterms:Agent}
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-Agent}
+           {\texttt{dcterms:Agent}}
       & Class
       & Used by the web interface to describe the organization that produced
       a collection or dataset.\\
       \oddrow
-      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-BibliographicResource}
-           {dcterms:BibliographicResource}
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#dcmitype-Collection}
+           {\texttt{dctype:Collection}}
       & Class
-      & Used by the web interface to describe papers related to a dataset.\\
+      & Used by the portal page in the web interface as a filter mechanism to browse
+        \texttt{dctype:Dataset}s..\\
       \evenrow
-      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#elements-publisher}
-           {dcterms:publisher}
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#dcmitype-Dataset}
+           {\texttt{dctype:Dataset}}
+      & Class
+      & Used by the portal page in the web interface to describe data in a graph.\\
+      \oddrow
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-isPartOf}
+           {\texttt{dcterms:isPartOf}}
+      & Predicate
+      & Used by the portal page in the web interface to express that a \texttt{dctype:Dataset}
+        is linked to a \texttt{dctype:Collection}.\\
+      \evenrow
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-title}
+           {\texttt{dcterms:title}}
+      & Predicate
+      & Used by the web interface to name a \texttt{dctype:Collection} or a \texttt{dctype:Dataset}.\\
+      \oddrow
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-publisher}
+           {\texttt{dcterms:publisher}}
       & Predicate
       & Used by the web interface to identify the organization that published
       a collection or dataset.\\
-      \oddrow
-      \href{http://dublincore.org/documents/2012/06/14/dcmi-terms/\#terms-references}
-           {dcterms:references}
+      \evenrow
+      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-description}
+           {\texttt{dc:description}}
       & Predicate
-      & Used by the web interface to link a paper to a collection or dataset.\\
+      & Used by the web interface to provide a textual description of a
+        \texttt{dctype:Collection} or a \texttt{dctype:Dataset}.\\
     \end{tabularx}
     \caption{\small Terms used from the Dublic Core Terms ontology.}
     \label{table:dcterms-usage}
@@ -57,12 +75,12 @@
       \headrow
       \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
       \evenrow
-      \href{http://biohackathon.org/resource/faldo\#position}{faldo:position}
+      \href{http://biohackathon.org/resource/faldo\#position}{\texttt{faldo:position}}
       & Predicate
       & Used by \texttt{vcf2rdf} to describe the basepair position within a
       chromosome or contig.\\
       \oddrow
-      \href{http://biohackathon.org/resource/faldo\#reference}{faldo:reference}
+      \href{http://biohackathon.org/resource/faldo\#reference}{\texttt{faldo:reference}}
       & Predicate
       & Used by \texttt{vcf2rdf} to describe the chromosome or contig to which
       the \texttt{faldo:position} is relative to.\\
@@ -86,58 +104,28 @@
       \headrow
       \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
       \evenrow
-      \href{http://sparqling-genomics/Origin}{sg:Origin}
+      \href{http://sparqling-genomics/Origin}{\texttt{sg:Origin}}
       & Class
-      & Used by \texttt{vcf2rdf} to point to the file or resource from which
-      information was derived.\\
+      & Used by the command-line tools (see chapter \ref{chap:command-line}
+           {\color{LinkGray}`\nameref{chap:command-line}'})
+      to point to the file or resource from which information was derived.\\
       \oddrow
-      \href{http://sparqling-genomics/SparqlEndpoint}{sg:SparqlEndpoint}
+      \texttt{sg:containsDataFor}
       & Class
-      & Used by the web interface to describe the endpoint that contains
-      specific information.\\
+      & Used by the portal page in the web interface to express which graph
+      (object) belongs to which dataset (subject).\\
       \evenrow
-      \href{http://sparqling-genomics/inGraph}{sg:inGraph}
+      \texttt{sg:mappedToGenomeAssembly}
       & Class
-      & Used by \texttt{vcf2rdf} to point to the file or resource from which
-      information was derived.\\
+      & Used by the portal page in the web interface to describe the reference
+      genome assembly used for a \texttt{dctype:Dataset}.\\
       \oddrow
-      \href{http://sparqling-genomics/Sample}{sg:Sample}
+      \texttt{sg:Sample}
       & Class
       & Used by \texttt{vcf2rdf} to describe a sample.\\
-      \evenrow
-      \href{http://sparqling-genomics/table2rdf/Column}{table2rdf:Column}
-      & Class
-      & Used by \texttt{table2rdf} to describe a column.\\
-      \oddrow
-      \href{http://sparqling-genomics/table2rdf/Row}{table2rdf:Row}
-      & Class
-      & Used by \texttt{table2rdf} to describe a row.\\
-      \evenrow
-      \href{http://sparqling-genomics/vcf2rdf/FilterItem}{vcf2rdf:FilterItem}
-      & Class
-      & \\
-      \oddrow
-      \href{http://sparqling-genomics/vcf2rdf/HeaderItem}{vcf2rdf:HeaderItem}
-      & Class
-      & \\
-      \evenrow
-      \href{http://sparqling-genomics/vcf2rdf/InfoItem}{vcf2rdf:InfoItem}
-      & Class
-      & \\
-      \oddrow
-      \href{http://sparqling-genomics/vcf2rdf/FormatItem}{vcf2rdf:FormatItem}
-      & Class
-      & \\
-      \evenrow
-      \href{http://sparqling-genomics/vcf2rdf/VariantCall}{vcf2rdf:VariantCall}
-      & Class
-      & Used by \texttt{vcf2rdf} to identify a variant call.\\
-      %% \oddrow
-      %% \href{}{sg:}
-      %% & 
-      %% & \\
     \end{tabularx}
     \caption{\small Terms made up by us.}
     \label{table:sg-usage}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
+
