@@ -344,7 +344,7 @@ process_variant_for_sample (bcf_hdr_t *header,
               int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
               int32_t ploidy = gt / number_of_samples;
               int32_t *ptr = (int32_t *)dst + sample_index * ploidy;
-              int32_t *genotypes = calloc (ploidy, sizeof (int32_t));
+              int32_t genotypes[ploidy];
 
               int32_t k;
               for (k = 0; k < ploidy; k++)
@@ -393,7 +393,6 @@ process_variant_for_sample (bcf_hdr_t *header,
               stmt->object    = literal (config.number_buffer, XSD_INTEGER);
               register_statement_reuse_subject_predicate (stmt);
 
-              free (genotypes);
               free (dst);
             }
           else
