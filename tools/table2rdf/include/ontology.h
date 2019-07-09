@@ -29,7 +29,6 @@
 #define STR_PREFIX_SAMPLE              URI_MASTER "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
 #define STR_PREFIX_ROW                 URI_ONTOLOGY "/Row/"
-#define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
 
 typedef enum
 {
@@ -42,8 +41,7 @@ typedef enum
   PREFIX_RDF,
   PREFIX_RDFS,
   PREFIX_OWL,
-  PREFIX_XSD,
-  PREFIX_FALDO
+  PREFIX_XSD
 } ontology_prefix;
 
 typedef enum

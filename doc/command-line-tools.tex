@@ -279,16 +279,17 @@ $ table2rdf     \
     -T Chromosome=http://biohackathon.org/resource/faldo#reference
 ...
 (@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
-...
+(@*\colorbox{Highlight}{@prefix p00001: <http://biohackathon.org/resource/faldo\#> .}*@)
+
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    (@*\colorbox{Highlight}{faldo:reference p00000:chr1 ;}*@)
+    (@*\colorbox{Highlight}{p00001:reference p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
 <http://sparqling-genomics/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    (@*\colorbox{Highlight}{faldo:reference p00000:chrMT ;}*@)
+    (@*\colorbox{Highlight}{p00001:reference p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
 ...
