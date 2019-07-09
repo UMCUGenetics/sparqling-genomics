@@ -5,11 +5,11 @@
 
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
-AM_CFLAGS            = -Iinclude -I../common/include $(LIBGCRYPT_CFLAGS)      \
-                       $(htslib_CFLAGS) $(raptor2_CFLAGS)
+bam2rdf_CFLAGS       = -I$(srcdir)/include -I$(srcdir)/../common/include      \
+                       $(LIBGCRYPT_CFLAGS) $(htslib_CFLAGS) $(raptor2_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
-AM_CFLAGS              += -DENABLE_MTRACE
+bam2rdf_CFLAGS      += -DENABLE_MTRACE
 endif
 
 bin_PROGRAMS         = bam2rdf
