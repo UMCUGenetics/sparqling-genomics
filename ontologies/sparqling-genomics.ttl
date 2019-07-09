@@ -6,18 +6,20 @@
 @prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
-@prefix vcf2rdf:   <http://sparqling-genomics/vcf2rdf/> .
-@prefix variant:   <http://sparqling-genomics/vcf2rdf/VariantCall/> .
-@prefix table2rdf: <http://sparqling-genomics/table2rdf/> .
-@prefix :          <http://sparqling-genomics/> .
+@prefix vcf2rdf:   <https://sparqling-genomics.org/0.99.10/vcf2rdf/> .
+@prefix variant:   <https://sparqling-genomics.org/0.99.10/vcf2rdf/VariantCall/> .
+@prefix table2rdf: <https://sparqling-genomics.org/0.99.10/table2rdf/> .
+@prefix :          <https://sparqling-genomics.org/0.99.10/> .
 
-# sequence_variant = obo:SO_0001060
-
-<http://sparqling-genomics/sparqling-genomics>
+<https://sparqling-genomics.org/0.99.10>
     rdf:type        owl:Ontology ;
     dc:title        "Ontology describing the output of sparqling-genomics tools." ;
     rdfs:comment    "This ontology describes the structure exported by tools in sparqling-genomics." ;
     owl:versionInfo "1.0" .
+
+### ---------------------------------------------------------------------------
+### VCF2RDF
+### ---------------------------------------------------------------------------
 
 ## Class: VariantGenotype
 ## ----------------------------------------------------------------------------
@@ -30,24 +32,40 @@ vcf2rdf:VariantGenotype
 # Possible VariantGenotype subclasses
 # -------------------------------------------------------------------------
 
+vcf2rdf:Nullizygous
+    rdf:type        owl:Class ;
+    rdfs:label      "Nullizygous genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of 0." ;
+    rdfs:subClassOf :VariantGenotype .
+
 vcf2rdf:HomozygousGenotype
     rdf:type        owl:Class ;
-    rdfs:label "Homozygous genotype" ;
+    rdfs:label      "Homozygous genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of 1." ;
     rdfs:subClassOf :VariantGenotype .
 
 vcf2rdf:HeterozygousGenotype
     rdf:type        owl:Class ;
-    rdfs:label "Heterozygous genotype" ;
+    rdfs:label      "Heterozygous genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of 2, where the alleles differ from each other." ;
+    rdfs:subClassOf :VariantGenotype .
+
+vcf2rdf:Multizygous
+    rdf:type        owl:Class ;
+    rdfs:label      "Multizyous genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of more than 2." ;
     rdfs:subClassOf :VariantGenotype .
 
 vcf2rdf:HomozygousReferenceGenotype
     rdf:type        owl:Class ;
-    rdfs:label "Homozygous reference genotype" ;
+    rdfs:label      "Homozygous reference genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of 2 where the alleles are equal to the reference." ;
     rdfs:subClassOf :VariantGenotype .
 
 vcf2rdf:HomozygousAlternativeGenotype
     rdf:type        owl:Class ;
-    rdfs:label "Homozygous alternative genotype" ;
+    rdfs:label      "Homozygous alternative genotype" ;
+    rdfs:comment    "This is used to indicate a ploidy of 2 where the alleles are equal to the alternative." ;
     rdfs:subClassOf :VariantGenotype .
 
 ## Variant Call Format Header
@@ -127,6 +145,35 @@ vcf2rdf:ContigItem
     rdfs:range :Sample ;
     rdfs:domain :VariantCall .
 
+### ---------------------------------------------------------------------------
+### TABLE2RDF
+### ---------------------------------------------------------------------------
+
+table2rdf:Row rdf:type owl:Class ;
+    rdfs:label "Row" .
+
+table2rdf:Column rdf:type owl:Class ;
+    rdfs:label "Column" .
+
+### ---------------------------------------------------------------------------
+### JSON2RDF
+### ---------------------------------------------------------------------------
+
+json2rdf:JsonObject rdf:type owl:Class ;
+    rdfs:label "JSON object" .
+
+### ---------------------------------------------------------------------------
+### XML2RDF
+### ---------------------------------------------------------------------------
+
+xml2rdf:XmlAttribute rdf:type owl:Class ;
+    rdfs:label "XML attribute" .
+
+
+### ---------------------------------------------------------------------------
+### GLOBAL
+### ---------------------------------------------------------------------------
+
 ## Class: Origin
 ## ----------------------------------------------------------------------------
 
@@ -139,6 +186,11 @@ vcf2rdf:ContigItem
     rdf:type owl:DatatypeProperty ;
     rdfs:label "Filename" ;
     rdfs:comment "A file path or file name." ;
+    rdfs:domain :Origin .
+
+:sha256sum
+    rdf:type owl:DatatypeProperty ;
+    rdfs:label "SHA256 sum" ;
     rdfs:domain :Origin .
 
 ## Annotation properties
@@ -192,6 +244,14 @@ vcf2rdf:ContigItem
 :folder2rdf rdf:type :SoftwareProgram ;
     rdfs:label   "folder2rdf" ;
     rdfs:comment "Tool to extract RDF from files in a directory." .
+
+:json2rdf rdf:type :SoftwareProgram ;
+    rdfs:label   "json2rdf" ;
+    rdfs:comment "Tool to convert JSON data to RDF." .
+
+:xml2rdf rdf:type :SoftwareProgram ;
+    rdfs:label   "xml2rdf" ;
+    rdfs:comment "Tool to convert XML data to RDF." .
 
 :sg-web rdf:type :SoftwareProgram ;
     rdfs:label   "SPARQLing genomics web interface" ;
