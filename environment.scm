@@ -40,7 +40,7 @@
 (define sparqling-genomics
   (package
    (name "sparqling-genomics")
-   (version "0.99.9")
+   (version "0.99.10")
    (source (origin
             (method url-fetch)
             (uri (string-append
@@ -49,7 +49,7 @@
                   version ".tar.gz"))
             (sha256
              (base32
-              "1lmjvglbjiq4n9a56ic0kwwwip3y1f6wsksdjylf5hggaf5bhmpr"))))
+              "114sjnm850gj63jsiqk22dc5g4pd297qigj4ggpavb20k0k7yn30"))))
    (build-system gnu-build-system)
    (arguments
     `(#:configure-flags (list (string-append
@@ -58,14 +58,6 @@
       #:parallel-build? #f ; It breaks building the documentation.
       #:phases
       (modify-phases %standard-phases
-        (add-after 'install 'setup-static-resources
-          (lambda* (#:key outputs #:allow-other-keys)
-            (let* ((out        (assoc-ref outputs "out"))
-                   (web-root   (string-append
-                                out "/share/sparqing-genomics/sg-web"))
-                   (static-dir (string-append web-root "/static")))
-              (mkdir-p static-dir)
-              (copy-recursively "web/static" static-dir))))
         (add-after 'install 'wrap-executable
           (lambda* (#:key outputs #:allow-other-keys)
             (let* ((out  (assoc-ref outputs "out"))
@@ -76,7 +68,7 @@
                     (string-append out "/lib/guile/2.2/site-ccache:"
                                    (getenv "GUILE_LOAD_COMPILED_PATH")))
                    (web-root (string-append
-                              out "/share/sparqing-genomics/sg-web")))
+                              out "/share/sparqling-genomics/web")))
               (wrap-program (string-append out "/bin/sg-web")
                 `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
                 `("GUILE_LOAD_COMPILED_PATH" ":" prefix
