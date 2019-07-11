@@ -64,10 +64,15 @@
 (when (assoc-ref %config 'help)    (show-help))
 (when (assoc-ref %config 'version) (show-version))
 
-(when (assoc-ref %config 'error-log)
-  (set-default-error-port! (open-file (assoc-ref %config 'error-log) "a"))
-  (log-error "sg-web.in" "Started sg-web.")
-  (log-error "sg-web.in" "---------------"))
+(if (assoc-ref %config 'error-log)
+    (begin
+      (set-default-error-port! (open-file (assoc-ref %config 'error-log) "a"))
+      (log-error "sg-web.in" "Started sg-web.")
+      (log-error "sg-web.in" "---------------"))
+    (begin
+      (set-default-error-port! (current-error-port))
+      (log-error "sg-web.in" "Errors are logged to stderr.")
+      (log-error "sg-web.in" "Use --error-log to change this behavior.")))
 
 (when (assoc-ref %config 'debug-log)
   (set-default-debug-port! (open-file (assoc-ref %config 'debug-log) "a"))
@@ -81,11 +86,16 @@
 ;; This code runs the web server.
 ;;
 
-(when (assoc-ref %config 'configuration-file)
-  (log-debug "sg-web.in" "Using configuration from ~s."
-             (assoc-ref %config 'configuration-file))
-  (read-configuration-from-file
-   (assoc-ref %config 'configuration-file)))
+(let [(config-file (assoc-ref %config 'configuration-file))]
+  (if config-file
+      (read-configuration-from-file config-file)
+      (let [(sysconfig-file "@webconfdir@/sg-web.xml")]
+        (if (file-exists? sysconfig-file)
+            (read-configuration-from-file sysconfig-file)
+            (begin
+              (log-error "sg-web.in" "Refused to run without a configuration file.")
+              (log-error "sg-web.in" "Use --configuration-file to specify one.")
+              (exit 0))))))
 
 (when (and (not (ldap-enabled?))
            (not (authentication-enabled?)))

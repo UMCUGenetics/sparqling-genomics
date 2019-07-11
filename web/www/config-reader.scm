@@ -16,15 +16,17 @@
 
 (define-module (www config-reader)
   #:use-module (ldap authenticate)
+  #:use-module (logger)
   #:use-module (sparql driver)
   #:use-module (sparql util)
-  #:use-module (www config)
-  #:use-module (sxml simple)
-  #:use-module (www db connections)
   #:use-module (srfi srfi-1)
+  #:use-module (sxml simple)
+  #:use-module (www config)
+  #:use-module (www db connections)
   #:export (read-configuration-from-file))
 
 (define (read-configuration-from-file filename)
+  (log-debug "read-configuration-from-file" "Reading ~s." filename)
   (catch #t
     (lambda _
       (let* ((sxml-data (call-with-input-file filename

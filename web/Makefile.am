@@ -97,3 +97,5 @@ bin_SCRIPTS     = sg-web
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 EXTRA_DIST     += $(WWW_STATIC_RESOURCES)
+webconf_DATA    = sg-web.xml
+webconfdir      = @webconfdir@

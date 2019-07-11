@@ -65,6 +65,14 @@ dnl refers to ${prefix}.  Thus we have to use `eval' twice.
   test "$exec_prefix_NONE" && exec_prefix=NONE
 ])
 
+dnl The SYSCONFDIR is left configurable on 'make'.  However, the 'sg-web'
+dnl script needs no 'make' step, so we expand the variable here.
+SYSCONFDIR=`test "$prefix" = NONE && prefix=$ac_default_prefix; eval echo "${sysconfdir}"`
+AC_SUBST([sysconfdir], [$SYSCONFDIR])
+
+webconfdir=$SYSCONFDIR/sparqling-genomics
+AC_SUBST([webconfdir])
+
 dnl Use the above macro to define a resolved path for the web root.
 dnl ---------------------------------------------------------------------------
 AC_DEFINE_DIR([WEB_ROOT], [datarootdir], [Data directory for web resources.])

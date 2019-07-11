@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Please read chapter 5 “Web interface” of the manual and adjust this
+    configuration accordingly.
+-->
+<web-interface>
+  <fork>0</fork>
+  <bind-address>127.0.0.1</bind-address>
+  <port>8080</port>
+  <authentication>
+    <single-user>
+      <username>changeme</username>
+      <!-- 
+           Generate a password using ‘printf "password" | sha256sum 
+           The default is set to ‘changeme’.
+      -->
+      <password>057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86</password>
+    </single-user>
+  </authentication>
+  <system-connection>
+    <uri>http://localhost:8000</uri>
+    <backend>virtuoso</backend>
+    <username>changeme</username>
+    <password>changeme</password>
+  </system-connection>
+</web-interface>
