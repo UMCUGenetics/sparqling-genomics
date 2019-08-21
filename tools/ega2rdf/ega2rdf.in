@@ -35,6 +35,8 @@
 (define program-options
   '((version             (single-char #\v) (value #f))
     (help                (single-char #\h) (value #f))
+    (after               (single-char #\a) (value #t))
+    (batch-size          (single-char #\b) (value #t))
     (category            (single-char #\c) (value #t))))
 
 (define (show-help)
@@ -42,6 +44,8 @@
    '("This is ega2rdf."
      "  --help          Show this message."
      "  --version       Show versioning information."
+     "  --batch-size=N  Number of items to fetch in a single iteration."
+     "  --after=N       Start reading after N batches."
      "  --category=ARG  One of 'studies',     'dacs',    'policies', "
      "                         'samples',     'runs',    'experiments',"
      "                         'analyses',    'datasets',"
@@ -60,7 +64,17 @@
 (unless (assoc-ref %config 'category)
   (show-help))
 
-(define (kv->rdf subject key value)
+(define %start
+  (if (assoc-ref %config 'after)
+      (string->number (assoc-ref %config 'after))
+      0))
+
+(define %batch-size
+  (if (assoc-ref %config 'batch-size)
+      (string->number (assoc-ref %config 'batch-size))
+      10))
+
+(define (kv->rdf port subject key value)
   (cond
    ;; Write boolean values as booleans.
    [(or (eq? value #t)
@@ -95,7 +109,7 @@
 
    ;; Handle lists of values.
    [(list? value)
-    (for-each (lambda (v) (kv->rdf subject key v)) value)]
+    (for-each (lambda (v) (kv->rdf port subject key v)) value)]
 
    [(hash-table? value)
     ;; TODO: Implement iterating over a hash table.
@@ -160,7 +174,7 @@
                  (header    (hash-ref data "header"))
                  (response  (hash-ref data "response"))
                  (items     (hash-ref response "numTotalResults"))]
-            (fetch-ega-category category items))]
+            (fetch-ega-category category items batch-size batch-round))]
          [(or (= http-code 501) (= http-code 400))
           (format (current-error-port)
                   "The API does not support retrieving ~a~%" category)]
@@ -170,53 +184,63 @@
                   category (response-code http-header))])))]
 
    [(> number-of-items (* batch-size (1+ batch-round)))
-    (format (current-error-port)
-            "\rFetching ~a records ~a to ~a of ~a (~,2f %)"
-            category
-            (* batch-round batch-size)
-            (* (1+ batch-round) batch-size)
-            number-of-items
-            (* (/ (* batch-round batch-size) number-of-items) 100.0))
+    (catch #t
+      (lambda _
+        (format (current-error-port)
+                "\rFetching ~a records ~a to ~a of ~a (~,2f %)"
+                category
+                (* batch-round batch-size)
+                (* (1+ batch-round) batch-size)
+                number-of-items
+                (* (/ (* batch-round batch-size) number-of-items) 100.0))
 
-    ;; Attempt to fetch ‘number-of-items’ items.
-    ;; ------------------------------------------------------------------
-    (receive (http-header port)
-        (http-get (format #f "~a/~a?limit=~a&skip=~a"
-                          %ega-api-uri
-                          category
-                          batch-size
-                          (* batch-round batch-size))
-                  #:streaming? #t)
-      (if (= (response-code http-header) 200)
-          (begin
-            (let* [(data     (json->scm port))
-                   (header   (hash-ref data "header"))
-                   (response (hash-ref data "response"))
-                   (items    (hash-ref response "result"))]
-              (for-each
-               (lambda (item)
-                 (let* [(egaStableId (hash-ref item "egaStableId"))
-                        (subject (string-append
-                                  "<https://ega-archive.org/" category "/"
-                                  egaStableId
-                                  ">"))]
-                   ;; Specifically mark datasets as dctype:Dataset so that
-                   ;; the SG's web interface will pick it up.
-                   (when (string= category "datasets")
-                     (format #t "~a ~a ~a .~%"
-                             subject
-                             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
-                             "<http://purl.org/dc/dcmitype/Dataset>"))
-                   (hash-for-each (lambda (k v) (kv->rdf subject k v)) item)))
-               items))
-            (fetch-ega-category category number-of-items batch-size (1+ batch-round)))
-          (begin
-            (format (current-error-port)
-                    "Failed to fetch records ~a to ~a from ~a.  Retrying ...~%"
-                    (* batch-round batch-size)
-                    (* (1+ batch-round) batch-size)
-                    category)
-            (fetch-ega-category category number-of-items batch-size batch-round))))]))
+        ;; Attempt to fetch ‘number-of-items’ items.
+        ;; ------------------------------------------------------------------
+        (receive (http-header port)
+            (http-get (format #f "~a/~a?limit=~a&skip=~a"
+                              %ega-api-uri
+                              category
+                              batch-size
+                              (* batch-round batch-size))
+                      #:streaming? #t)
+          (if (= (response-code http-header) 200)
+              (begin
+                (let* [(data     (json->scm port))
+                       (header   (hash-ref data "header"))
+                       (response (hash-ref data "response"))
+                       (items    (hash-ref response "result"))]
+                  (for-each
+                   (lambda (item)
+                     (let* [(egaStableId (hash-ref item "egaStableId"))
+                            (subject (string-append
+                                      "<https://ega-archive.org/" category "/"
+                                      egaStableId ">"))
+                            ;; Prevent producing half-a-batch of output.
+                            ;; Instead we build the ntriples for this batch as
+                            ;; a string and only write it after the complete
+                            ;; batch was processed.
+                            (output
+                             (call-with-output-string
+                               (lambda (out)
+                                 ;; Specifically mark datasets as dctype:Dataset so that
+                                 ;; the SG's web interface will pick it up.
+                                 (when (string= category "datasets")
+                                   (format out "~a ~a ~a .~%"
+                                           subject
+                                           "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+                                           "<http://purl.org/dc/dcmitype/Dataset>"))
+                                 (hash-for-each (lambda (k v) (kv->rdf out subject k v)) item))))]
+                       (display output)))
+                   items))
+                (fetch-ega-category category number-of-items batch-size (1+ batch-round)))
+              (throw 'fetch-failure))))
+      (lambda (key . args)
+        (format (current-error-port)
+                "Failed to fetch records ~a to ~a from ~a.  Retrying ...~%"
+                (* batch-round batch-size)
+                (* (1+ batch-round) batch-size)
+                category)
+        (fetch-ega-category category number-of-items batch-size batch-round)))]))
 
 (when (string= (assoc-ref %config 'category) "datasets")
   (format #t "<%a> ~a ~a .~%"
@@ -224,4 +248,5 @@
           "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
           "<http://purl.org/dc/dcmitype/Collection>"))
 
-(fetch-ega-category (assoc-ref %config 'category))
+(fetch-ega-category (assoc-ref %config 'category)
+                    -1 %batch-size %start)
