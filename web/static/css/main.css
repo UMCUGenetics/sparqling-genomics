@@ -15,8 +15,8 @@
 @font-face {
     font-family: 'Roboto-Bold';
     src: url('/static/fonts/Roboto-Bold.ttf') format('truetype');
-    font-weight: normal;
-    font-style: bold;
+    font-weight: bold;
+    font-style: normal;
 }
 
 @font-face {
@@ -41,7 +41,7 @@ body,html {
     font-family: 'Roboto', sans-serif;
     line-height: 1.4em;
     color: #000000;
-    background-color: #99cccc
+    background-color: #99cccc;
 }
 
 #wrapper {
@@ -117,11 +117,14 @@ a:hover { color: #555555; }
     padding: 5pt;
 }
 
+#prompt-wrapper table {
+    border-spacing: 0pt;
+    border-collapse: collapse;
+}
+
 #prompt-wrapper table td {
     margin: 0pt;
     padding: 0pt;
-    cellspacing: 0pt;
-    cellpadding: 0pt;
 }
 
 #prompt-wrapper .prompt {
@@ -154,7 +157,7 @@ a:hover { color: #555555; }
 }
 #content table td { padding: 2pt 4pt 2pt 4pt; font-size: 0.85em; height: 25pt; }
 
-#footer { width: 100% font-size: small; text-align: center; color: #000000 }
+#footer { width: 100%; font-size: small; text-align: center; color: #000000 }
 #footer a { color: #000000 }
 
 .h2-title { font-size: large; }
@@ -319,7 +322,7 @@ table {
 #add-field { width: 100% }
 #query-output {
     width: 100%;
-    min-height: 600pt:
+    min-height: 600pt;
 }
 
 .item-table { width: 100%; border: solid 2pt #444444; }
