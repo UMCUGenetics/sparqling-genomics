@@ -69,16 +69,16 @@
                    (if (null? graphs)
                        `(p "To save this session, unlock at least one graph "
                            "in your active project.")
-                       `(select (@ (id "select-graph")
-                                   (name "select-graph"))
-                         ,(map (lambda (graph)
-                                 `(option (@ (value ,(assoc-ref graph "graph")))
-                                          ,(assoc-ref graph "graph")))
-                               graphs))))
-                (input (@ (id "add-field-button")
-                          (style "margin-left: 5pt;")
-                          (type "submit")
-                          (value "💾"))))))
+                       `((select (@ (id "select-graph")
+                                    (name "select-graph"))
+                                 ,(map (lambda (graph)
+                                         `(option (@ (value ,(assoc-ref graph "graph")))
+                                                  ,(assoc-ref graph "graph")))
+                                       graphs))
+                         (input (@ (id "add-field-button")
+                                   (style "margin-left: 5pt;")
+                                   (type "submit")
+                                   (value "💾")))))))))
         (script "
 $(document).ready(function(){
   enable_prompt('#prompt-field');
