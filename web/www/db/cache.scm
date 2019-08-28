@@ -16,6 +16,7 @@
 
 (define-module (www db cache)
   #:use-module (ice-9 receive)
+  #:use-module (ice-9 ftw)
   #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (srfi srfi-1)
@@ -26,7 +27,11 @@
 
   #:export (cache-clear
             cache-value
-            cached-value))
+            cached-value
+
+            cached-query-response
+            cache-query-response
+            remove-query-response-cache))
 
 ;; CACHED-VALUE
 ;; ----------------------------------------------------------------------------
@@ -84,3 +89,32 @@ INSERT INTO <http://~a/sg-cache> {
        (format #f "DEFINE sql:log-enable 3
 CLEAR GRAPH <http://~a/sg-cache>" username))
     (= (response-code header) 200)))
+
+;; WHOLE-QUERY-RESULTS CACHE
+;; ----------------------------------------------------------------------------
+;;
+;; The following functions implement a file-system caching mechanism for
+;; storing query results.
+;;
+
+(define (cache-location username key)
+  (string-append (www-cache-root) "/query-cache/" username "/" key))
+
+(define (cached-query-response username property)
+  (let [(cached-file (cache-location username property))]
+    (if (file-exists? cached-file)
+        (call-with-input-file cached-file read)
+        #f)))
+
+(define (cache-query-response username property value)
+  (let [(cache-file (cache-location username property))]
+    (mkdir-p (dirname cache-file))
+    (call-with-output-file cache-file
+      (lambda (port) (write value port)))))
+
+(define (remove-query-response-cache username)
+  (let [(cache-dir (cache-location username ""))]
+    (when (file-exists? cache-dir)
+      (map delete-file (scandir cache-dir))
+      (rmdir cache-dir))
+    #t))
