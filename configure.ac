@@ -24,7 +24,7 @@ AM_PROG_CC_C_O
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h stdio.h])
 
-GUILE_PKG([2.2 2.0])
+GUILE_PKG([3.0 2.2 2.0])
 GUILE_PROGS
 
 dnl Installation directories for .scm and .go files.
