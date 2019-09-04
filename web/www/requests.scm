@@ -30,6 +30,7 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
+  #:use-module (www db api)
   #:use-module (www db cache)
   #:use-module (www db connections)
   #:use-module (www db portal)
@@ -61,6 +62,29 @@
 ;;
 ;; In this section, the different handlers are implemented.
 ;;
+
+(define (authenticate-user data)
+  "This function returns a user session on success or #f on failure."
+
+  (if (or (and (ldap-enabled?)
+               (may-access?
+                (ldap-uri) (ldap-organizational-unit) (ldap-domain)
+                (assoc-ref data 'username)
+                (assoc-ref data 'password)))
+          (and (not (ldap-enabled?))
+               (authentication-enabled?)
+               (string= (authentication-username)
+                        (assoc-ref data 'username))
+               (string= (authentication-password)
+                        (string->sha256sum (assoc-ref data 'password)))))
+      (let ((session (session-by-username (assoc-ref data 'username))))
+        (unless session
+          (set! session (alist->session
+                         `((username . ,(assoc-ref data 'username))
+                           (token    . ""))))
+          (session-add session))
+        session)
+      #f))
 
 (define (request-file-handler path client-port)
   "This handler takes data from a file and sends that as a response."
@@ -136,41 +160,25 @@
    ;; the normal page functions.
    [(and (string-prefix? "/login" request-path)
          (eq? (request-method request) 'POST))
-    (let [(data (post-data->alist (utf8->string request-body)))]
-      (if (or (and (ldap-enabled?)
-                   (may-access?
-                     (ldap-uri) (ldap-organizational-unit) (ldap-domain)
-                     (assoc-ref data 'username)
-                     (assoc-ref data 'password)))
-              (and (not (ldap-enabled?))
-                   (authentication-enabled?)
-                   (string= (authentication-username)
-                            (assoc-ref data 'username))
-                   (string= (authentication-password)
-                            (string->sha256sum (assoc-ref data 'password)))))
-          (let ((session (session-by-username (assoc-ref data 'username))))
-            (unless session
-              (set! session (alist->session
-                             `((username . ,(assoc-ref data 'username))
-                               (token    . ""))))
-              (session-add session))
-            ;; Redirect to the “welcome” page.
-            (write-response (build-response
-                             #:code 303
-                             #:headers
-                             `((Location   . "/")
-                               (Set-Cookie . ,(string-append
-                                               "SGSession="
-                                               (session-token session)))))
-                            client-port))
+    (let* [(data    (post-data->alist (utf8->string request-body)))
+           (session (authenticate-user data))]
+      (if session
+          ;; Redirect to the “welcome” page.
+          (write-response (build-response
+                           #:code 303
+                           #:headers
+                           `((Location   . "/")
+                             (Set-Cookie . ,(string-append
+                                             "SGSession="
+                                             (session-token session)))))
+                          client-port)
           (respond-to-client 200 client-port '(text/html)
             (call-with-output-string
               (lambda (port)
                 (set-port-encoding! port "utf8")
                 (let* ((page-function (resolve-module-function "login"))
-                       (sxml-tree     (page-function request-path
-                                                     #:post-data
-                                                     (utf8->string request-body))))
+                       (sxml-tree (page-function request-path
+                                    #:post-data (utf8->string request-body))))
                   (catch 'wrong-type-arg
                     (lambda _
                       (when (eq? (car (car sxml-tree)) 'html)
@@ -215,6 +223,75 @@
           (sxml->xml
            (page-project-queries request-path username #:post-data '())
            port))))]
+
+   ;; The API is implemented as purely virtual locations.
+   ;; -------------------------------------------------------------------------
+   [(string-prefix? "/api" request-path)
+    (let [(accept-type  (request-accept request))
+          (content-type (request-content-type request))]
+      (cond
+       ;; When no response can be sent, don't bother processing further.
+       [(not (api-serveable-format? accept-type))
+        (respond-to-client 406 client-port "text/plain"
+          (format #f "The API cannot serve ~s~%" (car accept-type)))]
+
+       [(string= "/api/login" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(data    (api-request-data->alist content-type (utf8->string request-body)))
+                   (session (authenticate-user data))]
+              (if session
+                  (begin
+                    (log-debug "api-login" "User ~s logged in to the API." username)
+                    (write-response
+                     (build-response
+                      #:code 200
+                      #:headers
+                      `((Set-Cookie . ,(string-append
+                                        "SGSession=" (session-token session)))))
+                     client-port))
+                  ;; When authentication fails, respond with HTTP 401.
+                  (respond-to-client 401 client-port
+                    (first-acceptable-format accept-type)
+                    (api-format (first-acceptable-format accept-type)
+                      '(error (message "Invalid username or password."))))))
+            ;; GET requests are not supported.
+            (respond-to-client 404 client-port
+              (first-acceptable-format accept-type)
+              (api-format (first-acceptable-format accept-type)
+               '(error (message "Please use a POST request for this resource.")))))]
+
+       [(string= "/api/projects" request-path)
+        (let [(response-type (first-acceptable-format accept-type))]
+          (respond-to-client 200 client-port response-type
+            (api-format response-type (projects-by-user username))))]
+
+       [(string= "/api/assign-graph" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(response-type (first-acceptable-format accept-type))
+                   (data          (api-request-data->alist
+                                   content-type (utf8->string request-body)))
+                   (project-uri   (assoc-ref data 'project-uri))
+                   (graph-uri     (assoc-ref data 'graph-uri))]
+              (if (project-has-member? project-uri username)
+                  (if (project-assign-graph! project-uri graph-uri username)
+                      (respond-to-client 200 client-port response-type
+                        (api-format response-type '(success (message "OK"))))
+                      (respond-to-client 500 client-port response-type
+                        (api-format response-type '(success (message "Not OK")))))
+                  (respond-to-client 401 client-port
+                    (first-acceptable-format accept-type)
+                    (api-format (first-acceptable-format accept-type)
+                                '(error (message "Not allowed."))))))
+            (respond-to-client 404 client-port
+              (first-acceptable-format accept-type)
+              (api-format (first-acceptable-format accept-type)
+               '(error (message "Please use a POST request for this resource.")))))]
+
+       [else
+        (respond-to-client 404 client-port
+          (first-acceptable-format accept-type)
+          (api-format (first-acceptable-format accept-type)
+                      '(error (message "This method does not exist."))))]))]
 
    [(string-prefix? "/query-response" request-path)
     (let [(response-mime-type (if (string-suffix? ".json" request-path)
@@ -475,10 +552,11 @@
           (request-scheme-page-handler
            request request-body request-path client-port #:username username))]
 
-       ;; The following pages may be access without logging in.
+       ;; The following pages may be accessed without logging in.
        ;; ----------------------------------------------------------------------
        [(or (string= "/login" request-path)
-            (string= "/portal" request-path))
+            (string= "/portal" request-path)
+            (string= "/api/login" request-path))
         (request-scheme-page-handler
          request request-body request-path client-port)]
 
@@ -489,6 +567,13 @@
                          #:code 303
                          #:headers '((Location . "/portal")))
                         client-port)]
+
+       [(string-prefix? "/api" request-path)
+        (let [(accept-type (request-accept request))]
+          (respond-to-client 401 client-port
+            (first-acceptable-format accept-type)
+            (api-format (first-acceptable-format accept-type)
+              '(error (message "Please log in.")))))]
 
        [else
         (write-response (build-response
