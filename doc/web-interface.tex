@@ -256,3 +256,161 @@ sg-web --configuration-file=file.xml
   \emph{every} triplet.  Especially when using \texttt{INFO} and \texttt{FORMAT}
   fields in a VCF file, we recommend using them in a query inside an
   \texttt{OPTIONAL} clause.
+
+\section{Programmatic access to the web interface's functionality}
+
+  Other than a user interface, the web interface provides a machine interface
+  that supports JSON, and S-expressions.  The remainder of this section
+  describes the API.
+
+  Whenever applicable, data can be send or returned in the various formats.
+  Table \ref{table:api-return-formats} provides an overview of supported formats.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Content-Type} & \textbf{Example response}\\
+      \evenrow
+      \texttt{application/json}
+      & \texttt{[\{ "message": "This is a JSON response." \}]}\\
+      \oddrow
+%      \texttt{application/xml}
+%      & \texttt{<message>This is a XML response.</message>}\\
+%      \evenrow
+      \texttt{application/s-expression}
+      & \texttt{("This is a S-expression response.")}\\
+    \end{tabularx}
+    \caption{\small Implemented content types for the API.  The
+      \texttt{Content-Type} can be used in the \texttt{Accept} HTTP header.}
+    \label{table:api-return-formats}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\subsection{Formatting \texttt{POST} requests}
+
+  The \texttt{Accept} parameter influences the response format of the API,
+  and the \texttt{Content-Type} parameter can be used to indicate the format
+  of the request.
+
+%  To format the request in the XML format, the API expects
+%  parameters to be wrapped in \texttt{<parameters>...</parameters>}.
+
+%  So, to log in using an XML request, use:
+%\begin{siderules}
+%\begin{verbatim}
+%POST /api/login HTTP/1.1
+%Host: ...
+%Accept: application/xml
+%Content-Type: application/xml
+%Content-Length: 80
+%Connection: close
+%
+%<parameters>
+%  <username>...</username>
+%  <password>...</password>
+%</parameters>
+%\end{verbatim}
+%\end{siderules}
+
+%  Subsequently, when accepting \texttt{application/xml} the results are wrapped
+%  in \texttt{<results>...</results>}, and data structures built from multiple
+%  key-value pairs are wrapped in \texttt{<result>...<result>}.  The following
+%  example illustrates how that looks.
+
+%\begin{siderules}
+%\begin{verbatim}
+%GET /api/projects HTTP/1.1
+%Host: ...
+%Accept: application/xml
+%Content-Type: application/xml
+%Content-Length: 80
+%Cookie: ...
+%Connection: close
+%
+%<results>
+%  <result>
+%    <projectId>http://sparqling-genomics.org/0.99.10/Project/...</projectId>
+%    <creator>http://sparqling-genomics.org/0.99.10/Agent/...</creator>
+%  </result>
+%</results>
+%\end{verbatim}
+%\end{siderules}
+
+  In addition to the documented \texttt{Content-Type} values, the type
+  \texttt{application/x-www-form-urlencoded} is also allowed, which expects
+  the following format:
+\begin{siderules}
+\begin{verbatim}
+parameter1=value1&parameter2=value2&...
+\end{verbatim}
+\end{siderules}
+
+\subsection{\texttt{/api/login}: Authenticating API requests}
+\label{sec:api-login}
+
+  Before being able to interact with the API, a session token must be obtained.
+  This can be done by sending a \texttt{POST}-request to \texttt{/api/login},
+  with the following parameters:
+  \begin{itemize}
+    \item{\texttt{username}}
+    \item{\texttt{password}}
+  \end{itemize}
+
+  The response contains a cookie with the session token.  Use this cookie in
+  subsequent requests to stay logged in.
+
+  When authentication fails, the service will respond with HTTP status-code
+  \texttt{401}.
+
+\subsection{\texttt{/api/projects}: Listing projects}
+
+  Retrieving a list of projects can be done by sending a \texttt{GET} request
+  to \texttt{/api/projects}.  Don't forget to include the session token cookie
+  obtained in section \ref{sec:api-login} {\color{LinkGray}`%
+    \nameref{sec:api-login}'}.
+
+  Use the \texttt{Accept} header to choose the format of the response.
+
+\subsection{\texttt{/api/assign-graph}: Add a graph to a project.}
+
+  Assigning a graph to a project can be done by sending a \texttt{POST} request
+  to \texttt{/api/assign-graph}.  The required parameters are:
+
+  \begin{itemize}
+    \item{\texttt{project-uri}: This can be obtained from a call to
+      \texttt{/api/projects}.}
+    \item{\texttt{graph-uri}: The graph URI to assign.}
+  \end{itemize}
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri",    \
+               "graph-uri": "http://the-new-graph-name" }' \
+     http://localhost/api/assign-graph
+\end{verbatim}
+\end{siderules}
+
+\subsection{\texttt{/api/unassign-graph}: Remove a graph from a project.}
+
+  Like assigning a graph to a project, it can be unassigned as well using
+  \texttt{/api/unassign-graph} using the same parameters as
+  \texttt{/api/assign-graph}.
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri",    \
+               "graph-uri": "http://the-new-graph-name" }' \
+     http://localhost/api/unassign-graph
+\end{verbatim}
+\end{siderules}
