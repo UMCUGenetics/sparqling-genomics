@@ -32,14 +32,14 @@
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
    [(equal? fmt '(application/json))                       #t]
-   [(not (null? (member fmt '(application/json))))         #t]
+   [(member '(application/json) fmt)                       #t]
    ;; Support for XML hasn't been ironed out completely.
    ;; Only enable this when the remaining functionality has been
    ;; implemented.
    ;[(equal? fmt '(application/xml))                        #t]
-   ;[(not (null? (member fmt '(application/xml))))          #t]
+   ;[(member '(application/xml) fmt)))                      #t]
    [(equal? fmt '(application/s-expression))               #t]
-   [(not (null? (member fmt '(application/s-expression)))) #t]
+   [(member '(application/s-expression) fmt)               #t]
    [else                                                   #f]))
 
 (define (api-format fmt data)
