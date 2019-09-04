@@ -164,14 +164,8 @@
            (session (authenticate-user data))]
       (if session
           ;; Redirect to the “welcome” page.
-          (write-response (build-response
-                           #:code 303
-                           #:headers
-                           `((Location   . "/")
-                             (Set-Cookie . ,(string-append
-                                             "SGSession="
-                                             (session-token session)))))
-                          client-port)
+          (respond-303 client-port "/" (string-append
+                                        "SGSession=" (session-token session)))
           (respond-to-client 200 client-port '(text/html)
             (call-with-output-string
               (lambda (port)
@@ -204,14 +198,9 @@
             (sxml->xml sxml-tree port)))))]
 
    [(string-prefix? "/logout" request-path)
-    (write-response
-      (build-response
-       #:code 303
-       #:headers `((Location . "/")
-                   (Set-Cookie  . ,(string-append
-                                    "SGSession=deleted; expires=Thu,"
-                                    " Jan 01 1970 00:00:00 UTC;"))))
-      client-port)]
+    (respond-303 client-port "/" (string-append
+                                  "SGSession=deleted; expires=Thu,"
+                                  " Jan 01 1970 00:00:00 UTC;"))]
 
    ;; ;; When the URI begins with “/project-queries/”, use the project-queries
    ;; ;; page to construct a suitable output.
@@ -232,66 +221,42 @@
       (cond
        ;; When no response can be sent, don't bother processing further.
        [(not (api-serveable-format? accept-type))
-        (respond-to-client 406 client-port "text/plain"
-          (format #f "The API cannot serve ~s~%" (car accept-type)))]
+        (respond-406 client-port)]
 
        [(string= "/api/login" request-path)
         (if (eq? (request-method request) 'POST)
-            (let* [(data    (api-request-data->alist content-type (utf8->string request-body)))
+            (let* [(data    (api-request-data->alist
+                             content-type (utf8->string request-body)))
                    (session (authenticate-user data))]
               (if session
                   (begin
-                    (log-debug "api-login" "User ~s logged in to the API." username)
-                    (write-response
-                     (build-response
-                      #:code 200
-                      #:headers
-                      `((Set-Cookie . ,(string-append
-                                        "SGSession=" (session-token session)))))
-                     client-port))
-                  ;; When authentication fails, respond with HTTP 401.
-                  (respond-to-client 401 client-port
-                    (first-acceptable-format accept-type)
-                    (api-format (first-acceptable-format accept-type)
-                      '(error (message "Invalid username or password."))))))
-            ;; GET requests are not supported.
-            (respond-to-client 404 client-port
-              (first-acceptable-format accept-type)
-              (api-format (first-acceptable-format accept-type)
-               '(error (message "Please use a POST request for this resource.")))))]
+                    (log-debug "api-login"
+                               "User ~s logged in to the API." username)
+                    (respond-200-with-cookie client-port
+                      (string-append "SGSession=" (session-token session))))
+                  (respond-401 client-port accept-type "Invalid username or password.")))
+            (respond-405 client-port '(POST)))]
 
        [(string= "/api/projects" request-path)
-        (let [(response-type (first-acceptable-format accept-type))]
-          (respond-to-client 200 client-port response-type
-            (api-format response-type (projects-by-user username))))]
+        (if (eq? (request-method request) 'GET)
+            (respond-200 client-port accept-type (projects-by-user username))
+            (respond-405 client-port '(GET)))]
 
        [(string= "/api/assign-graph" request-path)
         (if (eq? (request-method request) 'POST)
-            (let* [(response-type (first-acceptable-format accept-type))
-                   (data          (api-request-data->alist
+            (let* [(data          (api-request-data->alist
                                    content-type (utf8->string request-body)))
                    (project-uri   (assoc-ref data 'project-uri))
                    (graph-uri     (assoc-ref data 'graph-uri))]
               (if (project-has-member? project-uri username)
                   (if (project-assign-graph! project-uri graph-uri username)
-                      (respond-to-client 200 client-port response-type
-                        (api-format response-type '(success (message "OK"))))
-                      (respond-to-client 500 client-port response-type
-                        (api-format response-type '(success (message "Not OK")))))
-                  (respond-to-client 401 client-port
-                    (first-acceptable-format accept-type)
-                    (api-format (first-acceptable-format accept-type)
-                                '(error (message "Not allowed."))))))
-            (respond-to-client 404 client-port
-              (first-acceptable-format accept-type)
-              (api-format (first-acceptable-format accept-type)
-               '(error (message "Please use a POST request for this resource.")))))]
+                      (respond-200 client-port accept-type '(success (message "OK")))
+                      (respond-500 client-port accept-type "Not OK"))
+                  (respond-401 client-port accept-type "Not allowed.")))
+            (respond-405 client-port '(POST)))]
 
        [else
-        (respond-to-client 404 client-port
-          (first-acceptable-format accept-type)
-          (api-format (first-acceptable-format accept-type)
-                      '(error (message "This method does not exist."))))]))]
+        (respond-404 client-port accept-type "This method does not exist.")]))]
 
    [(string-prefix? "/query-response" request-path)
     (let [(response-mime-type (if (string-suffix? ".json" request-path)
@@ -407,33 +372,21 @@
 
    [(string-prefix? "/clear-exploratory-cache" request-path)
     (cache-clear username)
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/exploratory")))
-                    client-port)]
+    (respond-303 client-port "/exploratory" #f)]
 
    [(string-prefix? "/clear-overview-cache" request-path)
     (cache-clear username)
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/")))
-                    client-port)]
+    (respond-303 client-port "/" #f)]
 
    ;; For “/query-history-clean”, we must call a database function and
    ;; redirect to “/query”.
    [(string-prefix? "/query-history-clear" request-path)
     (query-remove-unmarked username)
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/query")))
-                    client-port)]
+    (respond-303 client-port "/query" #f)]
 
    [(string-prefix? "/prompt-session-clear" request-path)
     (prompt-clear-triplets username)
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/prompt")))
-                    client-port)]
+    (respond-303 client-port "/prompt" #f)]
 
    [(string-prefix? "/prompt-session-save" request-path)
     (catch #t
@@ -444,10 +397,7 @@
           (prompt-save-session username graph)))
       (lambda (key . args) #f))
 
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/prompt")))
-                    client-port)]
+    (respond-303 client-port "/prompt" #f)]
 
    [(string-prefix? "/prompt-remove-triplet" request-path)
     (catch #t
@@ -458,10 +408,7 @@
                (object    (hash-ref json-data "object"))]
           (prompt-remove-triplet username subject predicate object)))
       (lambda (key . args) #f))
-    (write-response (build-response
-                     #:code 303
-                     #:headers `((Location   . "/prompt")))
-                    client-port)]
+    (respond-303 client-port "/prompt" #f)]
 
    [(string-prefix? "/portal-filter-query" request-path)
     (catch #t
@@ -563,23 +510,13 @@
        ;; When not authenticated, redirect from the main page to the portal.
        ;; ----------------------------------------------------------------------
        [(string= "/" request-path)
-        (write-response (build-response
-                         #:code 303
-                         #:headers '((Location . "/portal")))
-                        client-port)]
+        (respond-303 client-port "/portal" #f)]
 
        [(string-prefix? "/api" request-path)
-        (let [(accept-type (request-accept request))]
-          (respond-to-client 401 client-port
-            (first-acceptable-format accept-type)
-            (api-format (first-acceptable-format accept-type)
-              '(error (message "Please log in.")))))]
+        (respond-401 client-port (request-accept request) "Please log in.")]
 
        [else
-        (write-response (build-response
-                         #:code 303
-                         #:headers '((Location . "/login")))
-                        client-port)]))))
+        (respond-303 client-port "/login" #f)]))))
 
 (define (start-server request-handler)
   (let ((s (socket PF_INET SOCK_STREAM 0)))

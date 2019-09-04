@@ -39,7 +39,15 @@
             string->sha256sum
             generate-id
             is-uri?
-            respond-to-client))
+            respond-to-client
+            respond-200
+            respond-200-with-cookie
+            respond-303
+            respond-401
+            respond-404
+            respond-405
+            respond-406
+            respond-500))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -149,3 +157,60 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                   (content-length . ,(bytevector-length content))))
      client-port)
     (put-bytevector client-port content)))
+
+(define (respond-200 client-port accept-type data)
+  (let [(response-type (first-acceptable-format accept-type))]
+    (if response-type
+        (respond-to-client 200 client-port response-type
+          (api-format response-type data))
+        (respond-406 client-port))))
+
+(define (respond-200-with-cookie client-port cookie)
+  (write-response
+   (build-response
+    #:code 200
+    #:headers `((Set-Cookie . ,cookie)))
+   client-port))
+
+(define (respond-303 client-port location cookie)
+  (write-response
+   (if cookie
+       (build-response
+        #:code 303
+        #:headers `((Location   . ,location)
+                    (Set-Cookie . ,cookie)))
+       (build-response
+        #:code 303
+        #:headers `((Location   . ,location))))
+   client-port))
+
+(define (respond-401 client-port accept-type message)
+  (let [(response-type (first-acceptable-format accept-type))]
+    (if response-type
+        (respond-to-client 401 client-port response-type
+          (api-format response-type `(error (message ,message))))
+        (respond-406 client-port))))
+
+(define (respond-404 client-port accept-type message)
+  (let [(response-type (first-acceptable-format accept-type))]
+    (if response-type
+        (respond-to-client 404 client-port response-type
+          (api-format response-type `(error (message ,message))))
+        (respond-406 client-port))))
+
+(define (respond-405 client-port allowed-methods)
+  (write-response
+   (build-response #:code 405 #:headers `((Allow . ,allowed-methods)))
+   client-port))
+
+(define (respond-406 client-port)
+  (format #t "Sending a 406!~%")
+  (respond-to-client 406 client-port '(text/plain)
+    (format #f "No acceptable format.~%")))
+
+(define (respond-500 client-port accept-type message)
+  (let [(response-type (first-acceptable-format accept-type))]
+    (if response-type
+        (respond-to-client 500 client-port response-type
+          (api-format response-type `(error (message ,message))))
+        (respond-406 client-port))))
