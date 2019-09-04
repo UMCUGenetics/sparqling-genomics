@@ -212,7 +212,6 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
    client-port))
 
 (define (respond-406 client-port)
-  (format #t "Sending a 406!~%")
   (respond-to-client 406 client-port '(text/plain)
     (format #f "No acceptable format.~%")))
 
