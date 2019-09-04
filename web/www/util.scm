@@ -42,6 +42,8 @@
             respond-to-client
             respond-200
             respond-200-with-cookie
+            respond-201
+            respond-204
             respond-303
             respond-401
             respond-404
@@ -171,6 +173,12 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
     #:code 200
     #:headers `((Set-Cookie . ,cookie)))
    client-port))
+
+(define (respond-201 client-port)
+  (write-response (build-response #:code 201)))
+
+(define (respond-204 client-port)
+  (write-response (build-response #:code 204)))
 
 (define (respond-303 client-port location cookie)
   (write-response

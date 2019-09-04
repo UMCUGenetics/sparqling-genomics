@@ -234,7 +234,8 @@
                                "User ~s logged in to the API." username)
                     (respond-200-with-cookie client-port
                       (string-append "SGSession=" (session-token session))))
-                  (respond-401 client-port accept-type "Invalid username or password.")))
+                  (respond-401 client-port accept-type
+                               "Invalid username or password.")))
             (respond-405 client-port '(POST)))]
 
        [(string= "/api/projects" request-path)
@@ -244,13 +245,26 @@
 
        [(string= "/api/assign-graph" request-path)
         (if (eq? (request-method request) 'POST)
-            (let* [(data          (api-request-data->alist
-                                   content-type (utf8->string request-body)))
-                   (project-uri   (assoc-ref data 'project-uri))
-                   (graph-uri     (assoc-ref data 'graph-uri))]
+            (let* [(data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (project-uri (assoc-ref data 'project-uri))
+                   (graph-uri   (assoc-ref data 'graph-uri))]
               (if (project-has-member? project-uri username)
                   (if (project-assign-graph! project-uri graph-uri username)
-                      (respond-200 client-port accept-type '(success (message "OK")))
+                      (respond-201 client-port)
+                      (respond-500 client-port accept-type "Not OK"))
+                  (respond-401 client-port accept-type "Not allowed.")))
+            (respond-405 client-port '(POST)))]
+
+       [(string= "/api/unassign-graph" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (project-uri (assoc-ref data 'project-uri))
+                   (graph-uri   (assoc-ref data 'graph-uri))]
+              (if (project-has-member? project-uri username)
+                  (if (project-forget-graph! project-uri graph-uri)
+                      (respond-204 client-port)
                       (respond-500 client-port accept-type "Not OK"))
                   (respond-401 client-port accept-type "Not allowed.")))
             (respond-405 client-port '(POST)))]
@@ -342,7 +356,7 @@
           (format port "<!DOCTYPE html>~%")
           (sxml->xml (if (eq? (request-method request) 'POST)
                          (page-project-members request-path username
-                                               #:post-data (utf8->string request-body))
+                           #:post-data (utf8->string request-body))
                          (page-project-members request-path username))
                      port))))]
 
@@ -354,7 +368,7 @@
           (format port "<!DOCTYPE html>~%")
           (sxml->xml (if (eq? (request-method request) 'POST)
                          (page-project-dependent-graphs request-path username
-                                                        #:post-data (utf8->string request-body))
+                           #:post-data (utf8->string request-body))
                          (page-project-dependent-graphs request-path username))
                      port))))]
 
@@ -366,7 +380,7 @@
           (format port "<!DOCTYPE html>~%")
           (sxml->xml (if (eq? (request-method request) 'POST)
                          (page-project-assigned-graphs request-path username
-                                                       #:post-data (utf8->string request-body))
+                           #:post-data (utf8->string request-body))
                          (page-project-assigned-graphs request-path username))
                      port))))]
 
