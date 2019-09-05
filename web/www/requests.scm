@@ -219,10 +219,6 @@
     (let [(accept-type  (request-accept request))
           (content-type (request-content-type request))]
       (cond
-       ;; When no response can be sent, don't bother processing further.
-       [(not (api-serveable-format? accept-type))
-        (respond-406 client-port)]
-
        [(string= "/api/login" request-path)
         (if (eq? (request-method request) 'POST)
             (let* [(data    (api-request-data->alist
@@ -237,6 +233,14 @@
                   (respond-401 client-port accept-type
                                "Invalid username or password.")))
             (respond-405 client-port '(POST)))]
+
+       ;; The remainder of API calls is expected to return data.  For these
+       ;; calls, the format in which to send data is important, and therefore
+       ;; when the client does not provide an 'Accept' header, or does not
+       ;; request a supported format, we do not need to process the API call
+       ;; further, because the response will always be a 406.
+       [(not (api-serveable-format? accept-type))
+        (respond-406 client-port)]
 
        [(string= "/api/projects" request-path)
         (if (eq? (request-method request) 'GET)
