@@ -28,6 +28,7 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
+  #:use-module (www db api)
   #:export (file-extension
             predicate-label
             string-replace-occurrence
@@ -175,10 +176,10 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
    client-port))
 
 (define (respond-201 client-port)
-  (write-response (build-response #:code 201)))
+  (write-response (build-response #:code 201) client-port))
 
 (define (respond-204 client-port)
-  (write-response (build-response #:code 204)))
+  (write-response (build-response #:code 204) client-port))
 
 (define (respond-303 client-port location cookie)
   (write-response
