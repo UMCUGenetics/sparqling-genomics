@@ -31,7 +31,10 @@
 
             cached-query-response
             cache-query-response
-            remove-query-response-cache))
+            remove-query-response-cache
+
+            cache-response-for-query
+            cached-response-for-query))
 
 ;; CACHED-VALUE
 ;; ----------------------------------------------------------------------------
@@ -118,3 +121,11 @@ CLEAR GRAPH <http://~a/sg-cache>" username))
       (map delete-file (scandir cache-dir))
       (rmdir cache-dir))
     #t))
+
+(define (cache-response-for-query query value)
+  (let [(sha (string-append "query-" (string->sha256sum query)))]
+    (cache-query-response "sgweb" sha value)))
+
+(define (cached-response-for-query query)
+  (let [(sha (string-append "query-" (string->sha256sum query)))]
+    (cached-query-response "sgweb" sha)))
