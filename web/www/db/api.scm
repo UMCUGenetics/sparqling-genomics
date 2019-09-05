@@ -26,18 +26,16 @@
   #:export (api-serveable-format?
             api-format
             api-request-data->alist
-            first-acceptable-format))
+            first-acceptable-format
+            alist->sxml))
 
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
    [(equal? fmt '(application/json))                       #t]
    [(member '(application/json) fmt)                       #t]
-   ;; Support for XML hasn't been ironed out completely.
-   ;; Only enable this when the remaining functionality has been
-   ;; implemented.
-   ;[(equal? fmt '(application/xml))                        #t]
-   ;[(member '(application/xml) fmt)))                      #t]
+   [(equal? fmt '(application/xml))                        #t]
+   [(member '(application/xml) fmt)                        #t]
    [(equal? fmt '(application/s-expression))               #t]
    [(member '(application/s-expression) fmt)               #t]
    [else                                                   #f]))
@@ -47,9 +45,8 @@
    [(equal? fmt '(application/json))
     (scm->json-string data)]
    [(equal? fmt '(application/xml))
-    ;; FIXME: Key-value pairs (an ALIST) does not translate well to (S)XML.
     (call-with-output-string
-      (lambda (port) (sxml->xml (list 'results data) port)))]
+      (lambda (port) (sxml->xml (alist->sxml data) port)))]
    [(equal? fmt '(application/s-expression))
     (call-with-output-string
       (lambda (port) (write data port)))]
@@ -85,3 +82,33 @@
    [(equal? fmt '(application/x-www-form-urlencoded))
     (post-data->alist data)]
    [else #f]))
+
+
+(define* (alist->sxml input #:optional (inside-list? #f))
+  "This function transforms an ALIST or a list of ALISTs into S-expressions
+that can be transformed by SXML->XML."
+  (cond
+   [(and (list? input)
+         (list? (car input))
+         (not inside-list?))
+    `(results
+      ,(map (lambda (item)
+              (cons 'result
+                    (map (lambda (token)
+                           (alist->sxml token #t))
+                         item)))
+            input))]
+   [(and (list? input)
+         (not inside-list?))
+    `(results
+      ,(cons 'result
+             (map (lambda (item) (alist->sxml item #t)) input)))]
+   [else
+    (let [(return-match (lambda (a b)
+                          (if (string? a)
+                              `(,(string->symbol a) ,b)
+                              `(,a ,b))))]
+      (match input
+        ((a b)    (return-match a b))
+        ((a . b)  (return-match a b))
+        (else     #f)))]))

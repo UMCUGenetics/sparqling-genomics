@@ -275,9 +275,9 @@ sg-web --configuration-file=file.xml
       \texttt{application/json}
       & \texttt{[\{ "message": "This is a JSON response." \}]}\\
       \oddrow
-%      \texttt{application/xml}
-%      & \texttt{<message>This is a XML response.</message>}\\
-%      \evenrow
+      \texttt{application/xml}
+      & \texttt{<message>This is a XML response.</message>}\\
+      \evenrow
       \texttt{application/s-expression}
       & \texttt{("This is a S-expression response.")}\\
     \end{tabularx}
@@ -293,50 +293,6 @@ sg-web --configuration-file=file.xml
   and the \texttt{Content-Type} parameter can be used to indicate the format
   of the request.
 
-%  To format the request in the XML format, the API expects
-%  parameters to be wrapped in \texttt{<parameters>...</parameters>}.
-
-%  So, to log in using an XML request, use:
-%\begin{siderules}
-%\begin{verbatim}
-%POST /api/login HTTP/1.1
-%Host: ...
-%Accept: application/xml
-%Content-Type: application/xml
-%Content-Length: 80
-%Connection: close
-%
-%<parameters>
-%  <username>...</username>
-%  <password>...</password>
-%</parameters>
-%\end{verbatim}
-%\end{siderules}
-
-%  Subsequently, when accepting \texttt{application/xml} the results are wrapped
-%  in \texttt{<results>...</results>}, and data structures built from multiple
-%  key-value pairs are wrapped in \texttt{<result>...<result>}.  The following
-%  example illustrates how that looks.
-
-%\begin{siderules}
-%\begin{verbatim}
-%GET /api/projects HTTP/1.1
-%Host: ...
-%Accept: application/xml
-%Content-Type: application/xml
-%Content-Length: 80
-%Cookie: ...
-%Connection: close
-%
-%<results>
-%  <result>
-%    <projectId>http://sparqling-genomics.org/0.99.10/Project/...</projectId>
-%    <creator>http://sparqling-genomics.org/0.99.10/Agent/...</creator>
-%  </result>
-%</results>
-%\end{verbatim}
-%\end{siderules}
-
   In addition to the documented \texttt{Content-Type} values, the type
   \texttt{application/x-www-form-urlencoded} is also allowed, which expects
   the following format:
@@ -345,6 +301,55 @@ sg-web --configuration-file=file.xml
 parameter1=value1&parameter2=value2&...
 \end{verbatim}
 \end{siderules}
+
+\subsection{Conventions when using XML}
+
+\begin{sloppypar}
+  To format the request in the XML format, the API expects
+  parameters to be wrapped in \texttt{<parameters>...</parameters>} elements.
+\end{sloppypar}
+  So, to log in using an XML request, the following message will be accepted:
+
+\begin{siderules}
+\begin{verbatim}
+POST /api/login HTTP/1.1
+Host: ...
+Content-Type: application/xml
+Content-Length: 88
+Connection: close
+
+<parameters>
+ <username>...</username>
+ <password>...</password>
+</parameters>
+\end{verbatim}
+\end{siderules}
+
+  Subsequently, when \texttt{Accept}ing XML the results are wrapped in
+  \texttt{<results>...</results>}, and data structures built from multiple
+  key-value pairs are wrapped in \texttt{<result>...<result>}.  The
+  following example illustrates how that looks:
+
+\begin{siderules}
+\begin{verbatim}
+GET /api/projects HTTP/1.1
+Host: ...
+Accept: application/xml
+Cookie: ...
+Connection: close
+
+<results>
+  <result>
+    <projectId>http://sparqling-genomics.org/0.99.10/Project/...</projectId>
+    <creator>http://sparqling-genomics.org/0.99.10/Agent/...</creator>
+    ...
+  </result>
+</results>
+\end{verbatim}
+\end{siderules}
+
+\textbf{Note}: The actual response strips the whitespace.  It was added to
+this example for clarity.
 
 \subsection{\texttt{/api/login}: Authenticating API requests}
 \label{sec:api-login}
