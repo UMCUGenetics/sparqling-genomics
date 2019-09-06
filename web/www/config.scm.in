@@ -58,6 +58,7 @@
             www-root
             www-cache-root
             www-static-root
+            api-enabled?
             ldap-enabled?
             ldap-uri
             ldap-organizational-unit
@@ -65,6 +66,7 @@
             authentication-enabled?
             authentication-username
             authentication-password
+            set-api-enabled!
             set-ldap-enabled!
             set-ldap-uri!
             set-ldap-organizational-unit!
@@ -132,6 +134,10 @@
   (www-listen-port          #:init-value 5000
                             #:getter get-www-listen-port
                             #:setter set-www-listen-port-private!)
+
+  (api-enabled?             #:init-value #t
+                            #:getter get-api-enabled?
+                            #:setter set-api-enabled-private!)
 
   (ldap-enabled?            #:init-value #f
                             #:getter get-ldap-enabled?
@@ -326,6 +332,14 @@
 (define-syntax-rule
   (set-ldap-domain! arg)
   (set-ldap-domain-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (api-enabled?)
+  (get-api-enabled? %runtime-configuration))
+
+(define-syntax-rule
+  (set-api-enabled! arg)
+  (set-api-enabled-private! %runtime-configuration arg))
 
 (define-syntax-rule
   (ldap-enabled?)

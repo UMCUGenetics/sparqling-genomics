@@ -39,6 +39,7 @@
         (let [(fork?             (assoc-ref config 'fork))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
+              (api               (assoc-ref config 'api))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
           (when (and fork? (> (string->number (car fork?)) 0))
@@ -47,6 +48,8 @@
             (set-www-listen-port! (string->number (car port))))
           (when address
             (set-www-listen-address! (car address)))
+          (when api
+            (set-api-enabled! (string= (car api) "1")))
           (when authentication
             (cond
              ;; LDAP is preferred over single-user authentication.

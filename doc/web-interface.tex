@@ -27,6 +27,7 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
+  <api>1</api>
   <authentication>
     <!-- Either LDAP settings, or single-user authentication -->
   </authentication>
@@ -44,6 +45,15 @@
 
   Because web services are popular these days, \texttt{sg-web} can be configured
   to bind on an arbitrary address and an arbitrary port.
+
+\subsection{Expose API}
+
+  The programming interface described in section \ref{sec:web-api}
+  {\color{LinkGray}`\nameref{sec:web-api}'} can be enabled with the
+  \texttt{api} property. A value of \texttt{1} enables it, and a value
+  of \texttt{0} disables it.
+
+  When no option is specified, the API is enabled.
 
 \subsection{System connection}
 
@@ -258,13 +268,12 @@ sg-web --configuration-file=file.xml
   \texttt{OPTIONAL} clause.
 
 \section{Programmatic access to the web interface's functionality}
+\label{sec:web-api}
 
   Other than a user interface, the web interface provides a machine interface
-  that supports JSON, and S-expressions.  The remainder of this section
-  describes the API.
-
-  Whenever applicable, data can be send or returned in the various formats.
-  Table \ref{table:api-return-formats} provides an overview of supported formats.
+  using the HyperText Transport Protocol (HTTP).  The interface supports XML,
+  JSON, and S-expressions.  Table \ref{table:api-return-formats} summarizes the
+  supported formats.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]

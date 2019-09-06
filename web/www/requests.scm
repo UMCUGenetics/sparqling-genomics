@@ -215,7 +215,7 @@
 
    ;; The API is implemented as purely virtual locations.
    ;; -------------------------------------------------------------------------
-   [(string-prefix? "/api" request-path)
+   [(and (api-enabled?) (string-prefix? "/api" request-path))
     (let [(accept-type  (request-accept request))
           (content-type (request-content-type request))]
       (cond
@@ -521,7 +521,7 @@
        ;; ----------------------------------------------------------------------
        [(or (string= "/login" request-path)
             (string= "/portal" request-path)
-            (string= "/api/login" request-path))
+            (and (api-enabled?) (string= "/api/login" request-path)))
         (request-scheme-page-handler
          request request-body request-path client-port)]
 
@@ -530,7 +530,7 @@
        [(string= "/" request-path)
         (respond-303 client-port "/portal" #f)]
 
-       [(string-prefix? "/api" request-path)
+       [(and (api-enabled?) (string-prefix? "/api" request-path))
         (respond-401 client-port (request-accept request) "Please log in.")]
 
        [else
