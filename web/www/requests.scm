@@ -16,6 +16,7 @@
 
 (define-module (www requests)
   #:use-module (ice-9 getopt-long)
+  #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 threads)
   #:use-module (json)
@@ -219,6 +220,9 @@
     (let [(accept-type  (request-accept request))
           (content-type (request-content-type request))]
       (cond
+
+       ;; LOGIN
+       ;; ---------------------------------------------------------------------
        [(string= "/api/login" request-path)
         (if (eq? (request-method request) 'POST)
             (let* [(data    (api-request-data->alist
@@ -242,11 +246,26 @@
        [(not (api-serveable-format? accept-type))
         (respond-406 client-port)]
 
+       ;; PROJECTS
+       ;; ---------------------------------------------------------------------
        [(string= "/api/projects" request-path)
         (if (eq? (request-method request) 'GET)
             (respond-200 client-port accept-type (projects-by-user username))
             (respond-405 client-port '(GET)))]
 
+       ;; ACTIVE-PROJECT
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/active-project" request-path)
+        (if (eq? (request-method request) 'GET)
+            (let [(project (active-project-for-user username))]
+              (if (null? project)
+                  (respond-200 client-port accept-type '())
+                  (respond-200 client-port accept-type
+                               (project-by-id project))))
+            (respond-405 client-port '(GET)))]
+
+       ;; ASSIGN-GRAPH
+       ;; ---------------------------------------------------------------------
        [(string= "/api/assign-graph" request-path)
         (if (eq? (request-method request) 'POST)
             (let* [(data        (api-request-data->alist
@@ -260,6 +279,8 @@
                   (respond-401 client-port accept-type "Not allowed.")))
             (respond-405 client-port '(POST)))]
 
+       ;; UNASSIGN-GRAPH
+       ;; ---------------------------------------------------------------------
        [(string= "/api/unassign-graph" request-path)
         (if (eq? (request-method request) 'POST)
             (let* [(data        (api-request-data->alist
@@ -271,6 +292,98 @@
                       (respond-204 client-port)
                       (respond-500 client-port accept-type "Not OK"))
                   (respond-401 client-port accept-type "Not allowed.")))
+            (respond-405 client-port '(POST)))]
+
+       ;; ADD-PROJECT
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/add-project" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (name        (assoc-ref data 'name))]
+              (receive (state message)
+                  (project-add name username)
+                (if state
+                    (respond-201 client-port)
+                    (respond-403 client-port accept-type message))))
+            (respond-405 client-port '(POST)))]
+
+       ;; SET-AS-ACTIVE-PROJECT
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/set-as-active-project" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (project-uri (assoc-ref data 'project-uri))]
+              (if (project-has-member? project-uri username)
+                  (if (set-active-project-for-user! username project-uri)
+                      (respond-204 client-port)
+                      (respond-500 client-port accept-type "Not OK"))
+                  (respond-403 client-port accept-type
+                               "You are not a member of this project.")))
+            (respond-405 client-port '(POST)))]
+
+       ;; REMOVE-PROJECT
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/remove-project" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (project-uri (assoc-ref data 'project-uri))]
+
+              (if (project-has-member? project-uri username)
+                  (receive (state message)
+                      (project-remove project-uri username)
+                    (if state
+                        (respond-204 client-port)
+                        (respond-403 client-port accept-type message)))
+                  (respond-403 client-port accept-type
+                               "You are not a member of this project.")))
+            (respond-405 client-port '(POST)))]
+
+       ;; QUERIES
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/queries" request-path)
+        (if (eq? (request-method request) 'GET)
+            (respond-200 client-port accept-type (queries-by-username username))
+            (respond-405 client-port '(GET)))]
+
+       ;; CONNECTIONS
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/connections" request-path)
+        (if (eq? (request-method request) 'GET)
+            (respond-200 client-port accept-type
+                         (map connection->alist (all-connections username)))
+            (respond-405 client-port '(GET)))]
+
+       ;; ADD-CONNECTION
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/add-connection" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(connections (all-connections username))
+                   (data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (record      (alist->connection data))]
+              (receive (state message)
+                  (connection-add record connections username)
+                (if state
+                    (respond-201 client-port)
+                    (respond-403 client-port accept-type message))))
+            (respond-405 client-port '(POST)))]
+
+       ;; REMOVE-CONNECTION
+       ;; ---------------------------------------------------------------------
+       [(string= "/api/remove-connection" request-path)
+        (if (eq? (request-method request) 'POST)
+            (let* [(connections (all-connections username))
+                   (data        (api-request-data->alist
+                                 content-type (utf8->string request-body)))
+                   (name        (assoc-ref data 'name))]
+              (receive (state message)
+                  (connection-remove name connections username)
+                (if state
+                    (respond-204 client-port)
+                    (respond-403 client-port accept-type message))))
             (respond-405 client-port '(POST)))]
 
        [else

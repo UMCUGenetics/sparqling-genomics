@@ -47,6 +47,7 @@
             respond-204
             respond-303
             respond-401
+            respond-403
             respond-404
             respond-405
             respond-406
@@ -161,6 +162,13 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
      client-port)
     (put-bytevector client-port content)))
 
+(define (respond-with-error-message code client-port accept-type message)
+  (let [(response-type (first-acceptable-format accept-type))]
+    (if response-type
+        (respond-to-client code client-port response-type
+          (api-format response-type `(error (message ,message))))
+        (respond-406 client-port))))
+
 (define (respond-200 client-port accept-type data)
   (let [(response-type (first-acceptable-format accept-type))]
     (if response-type
@@ -194,18 +202,13 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
    client-port))
 
 (define (respond-401 client-port accept-type message)
-  (let [(response-type (first-acceptable-format accept-type))]
-    (if response-type
-        (respond-to-client 401 client-port response-type
-          (api-format response-type `(error (message ,message))))
-        (respond-406 client-port))))
+  (respond-with-error-message 401 client-port accept-type message))
+
+(define (respond-403 client-port accept-type message)
+  (respond-with-error-message 403 client-port accept-type message))
 
 (define (respond-404 client-port accept-type message)
-  (let [(response-type (first-acceptable-format accept-type))]
-    (if response-type
-        (respond-to-client 404 client-port response-type
-          (api-format response-type `(error (message ,message))))
-        (respond-406 client-port))))
+  (respond-with-error-message 404 client-port accept-type message))
 
 (define (respond-405 client-port allowed-methods)
   (write-response
@@ -217,8 +220,4 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
     (format #f "No acceptable format.~%")))
 
 (define (respond-500 client-port accept-type message)
-  (let [(response-type (first-acceptable-format accept-type))]
-    (if response-type
-        (respond-to-client 500 client-port response-type
-          (api-format response-type `(error (message ,message))))
-        (respond-406 client-port))))
+  (respond-with-error-message 500 client-port accept-type message))

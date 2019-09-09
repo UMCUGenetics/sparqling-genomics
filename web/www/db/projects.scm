@@ -151,7 +151,7 @@ WHERE {
     (values #f (format #f "The project name cannot be longer than ~a characters."
                        (graph-name-max-length)))]
    [(string= name "")
-    (values #f (format #f "The project name cannot empty."))]
+    (values #f (format #f "An empty project name is not allowed."))]
    [(project-exists? name username)
     (values #f (format #f "There already exists a project with this name."))]
    [#t (if (persist-project username name)
