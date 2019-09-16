@@ -97,6 +97,10 @@ WWW_STATIC_RESOURCES =                                  \
 bin_SCRIPTS     = sg-web
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
-EXTRA_DIST     += $(WWW_STATIC_RESOURCES)
+EXTRA_DIST     += $(WWW_STATIC_RESOURCES) sg-web.service.in
 webconf_DATA    = sg-web.xml
 webconfdir      = @webconfdir@
+
+systemdservicedir = $(libdir)/systemd/system
+nodist_systemdservice_DATA = sg-web.service
+CLEANFILES     += $(nodist_systemdservice_DATA)

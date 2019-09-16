@@ -97,6 +97,7 @@ AC_CONFIG_FILES([
   web/Makefile
   web/ldap/authenticate.scm
   web/www/config.scm
+  web/sg-web.service
 ])
 
 PKG_PROG_PKG_CONFIG
