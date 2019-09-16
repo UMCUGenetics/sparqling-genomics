@@ -34,4 +34,8 @@ EXTRA_DIST              = $(nobase_ontology_DATA) environment.scm
 
 # Build docker image with Guix
 docker: dist
-	guix pack -C none -e '(load "environment.scm")' --with-source=sparqling-genomics-$(VERSION).tar.gz -f docker -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var glibc-utf8-locales tzdata coreutils bash virtuoso-ose
+	guix pack -C none -e '(load "environment.scm")' \
+             --with-source=sparqling-genomics-$(VERSION).tar.gz \
+             --format=docker \
+             -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
+             glibc-utf8-locales tzdata coreutils bash virtuoso-ose
