@@ -39,7 +39,6 @@
 #define STR_PREFIX_BAM_COMMENT         URI_ONTOLOGY "/Comment/"
 #define STR_PREFIX_BAM_READ            URI_ONTOLOGY "/SequencingRead/"
 #define STR_PREFIX_SEQUENCE            URI_ONTOLOGY "/Sequence/"
-#define STR_PREFIX_ORIGIN              URI_MASTER "/Origin/"
 #define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
 #define STR_PREFIX_HG19                URI_ASSEMBLIES "/hg19#"
 #define STR_PREFIX_HG19_CHR            URI_ASSEMBLIES "/hg19#chr"
