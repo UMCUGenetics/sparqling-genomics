@@ -22,6 +22,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (sxml simple)
   #:use-module (www config)
+  #:use-module (www util)
   #:use-module (www db connections)
   #:export (read-configuration-from-file))
 
@@ -40,6 +41,7 @@
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (api               (assoc-ref config 'api))
+              (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
           (when (and fork? (> (string->number (car fork?)) 0))
@@ -50,6 +52,93 @@
             (set-www-listen-address! (car address)))
           (when api
             (set-api-enabled! (string= (car api) "1")))
+          (when beacon
+            (let [(enabled      (assoc-ref beacon 'enabled))
+                  (connection   (assoc-ref beacon 'connection))
+                  (organization (assoc-ref beacon 'organization))]
+              (set-beacon-enabled! (string= (car enabled) "1"))
+              (when (beacon-enabled?)
+                (log-debug "read-configuration-from-file"
+                           "The Beacon service has been enabled.")
+                (if connection
+                    (let [(uri         (assoc-ref connection 'uri))
+                          (backend     (assoc-ref connection 'backend))
+                          (username    (assoc-ref connection 'username))
+                          (password    (assoc-ref connection 'password))]
+                      (cond
+                       [(not uri)       (throw 'invalid-beacon-connection
+                                               "No URI specified.")]
+                       [(null? uri)     (throw 'invalid-beacon-connection
+                                               "The URI may not be empty.")]
+                       [(not backend)   (throw 'invalid-beacon-connection
+                                               "No backend specified.")]
+                       [(null? backend) (throw 'invalid-beacon-connection
+                                               "Invalid backend specified.")]
+                       [(not (member (string->symbol (car backend))
+                                     (sparql-available-backends)))
+                        (throw 'invalid-beacon-connection
+                               "Invalid backend specified.")]
+                       [else
+                        (set-beacon-connection!
+                         (alist->connection
+                          `((name     . "beacon-connection")
+                            (uri      . ,(car uri))
+                            (username . ,(if (or (not username)
+                                                 (null? username))
+                                             ""
+                                             (car username)))
+                            (password . ,(if (or (not password)
+                                                 (null? password))
+                                             ""
+                                             (car password)))
+                            (backend  . ,(car backend)))))]))
+                    (throw 'invalid-beacon-connection
+                           "Missing 'connection' for 'beacon'."))
+                (if organization
+                    (let [(name        (assoc-ref organization 'name))
+                          (id          (assoc-ref organization 'id))
+                          (description (assoc-ref organization 'description))
+                          (address     (assoc-ref organization 'address))
+                          (welcome-url (assoc-ref organization 'welcome-url))
+                          (logo-url    (assoc-ref organization 'logo-url))
+                          (info        (assoc-ref organization 'info))]
+                      (if name
+                          (set-beacon-organization-name! (car name))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon organization name was set.")))
+                      (if id
+                          (set-beacon-organization-id! (car id))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon organization ID was set.")))
+                      (if description
+                          (set-beacon-organization-description!
+                           (multi-line-trim (car description)))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon organization description was set.")))
+                      (if address
+                          (set-beacon-organization-address! (car address))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No address for the Beacon endpoint was set.")))
+                      (if welcome-url
+                          (set-beacon-organization-welcome-url!
+                           (car welcome-url))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon welcome URL was set.")))
+                      (if logo-url
+                          (set-beacon-organization-logo-url! (car logo-url))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon logo URL was set.")))
+                      (if info
+                          (set-beacon-organization-info! (car info))
+                          (when (beacon-enabled?)
+                            (log-warning "read-configuration-from-file"
+                                         "No Beacon 'info' was set."))))))))
           (when authentication
             (cond
              ;; LDAP is preferred over single-user authentication.
@@ -122,6 +211,15 @@
             (begin
               (display "Error: There was a problem with the ")
               (display "'system-connection' property:")
+              (newline)
+              (display (car args))
+              (newline)
+              (exit 1)
+              #f)]
+       [eq? key 'invalid-beacon-connection
+            (begin
+              (display "Error: There was a problem with the ")
+              (display "'beacon-connection' property:")
               (newline)
               (display (car args))
               (newline)

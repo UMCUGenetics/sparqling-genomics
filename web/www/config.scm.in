@@ -26,7 +26,18 @@
                           connection-password
                           connection-backend
                           default-connection))
-  #:export (default-uri-strings
+  #:export (beacon-connection
+            beacon-enabled?
+            beacon-organization-name
+            beacon-organization-id
+            beacon-organization-description
+            beacon-organization-address
+            beacon-organization-welcome-url
+            beacon-organization-contact-url
+            beacon-organization-logo-url
+            beacon-organization-info
+            beacon-sparql-query
+            default-uri-strings
             default-prefixes
             default-debug-port
             default-error-port
@@ -37,6 +48,7 @@
             system-state-graph
             system-sparql-query
             user-sparql-query
+            sparql-query-with-connection
             is-shorthand-uri?
             shorthand-uri->uri
             uri->shorthand-uri
@@ -67,13 +79,23 @@
             authentication-username
             authentication-password
             set-api-enabled!
+            set-beacon-enabled!
             set-ldap-enabled!
             set-ldap-uri!
             set-ldap-organizational-unit!
             set-ldap-domain!
             set-authentication-enabled!
             set-authentication-username!
-            set-authentication-password!))
+            set-authentication-password!
+            set-beacon-connection!
+            set-beacon-organization-name!
+            set-beacon-organization-id!
+            set-beacon-organization-description!
+            set-beacon-organization-address!
+            set-beacon-organization-welcome-url!
+            set-beacon-organization-contact-url!
+            set-beacon-organization-logo-url!
+            set-beacon-organization-info!))
 
 
 ;; ----------------------------------------------------------------------------
@@ -139,6 +161,10 @@
                             #:getter get-api-enabled?
                             #:setter set-api-enabled-private!)
 
+  (beacon-enabled?          #:init-value #f
+                            #:getter get-beacon-enabled?
+                            #:setter set-beacon-enabled-private!)
+
   (ldap-enabled?            #:init-value #f
                             #:getter get-ldap-enabled?
                             #:setter set-ldap-enabled-private!)
@@ -175,6 +201,44 @@
 
   (graph-name-max-length    #:init-value 128
                             #:getter get-graph-name-max-length)
+
+  ;; Beacon settings
+  ;; --------------------------------------------------------------------------
+  (beacon-organization-name #:init-value #nil
+                            #:getter get-beacon-organization-name
+                            #:setter set-beacon-organization-name-private!)
+
+  (beacon-organization-id   #:init-value #nil
+                            #:getter get-beacon-organization-id
+                            #:setter set-beacon-organization-id-private!)
+
+  (beacon-organization-description #:init-value #nil
+                            #:getter get-beacon-organization-description
+                            #:setter set-beacon-organization-description-private!)
+
+  (beacon-organization-address #:init-value #nil
+                            #:getter get-beacon-organization-address
+                            #:setter set-beacon-organization-address-private!)
+
+  (beacon-organization-welcome-url #:init-value #nil
+                            #:getter get-beacon-organization-welcome-url
+                            #:setter set-beacon-organization-welcome-url-private!)
+
+  (beacon-organization-contact-url #:init-value #nil
+                            #:getter get-beacon-organization-contact-url
+                            #:setter set-beacon-organization-contact-url-private!)
+
+  (beacon-organization-logo-url #:init-value #nil
+                            #:getter get-beacon-organization-logo-url
+                            #:setter set-beacon-organization-logo-url-private!)
+
+  (beacon-organization-info #:init-value #nil
+                            #:getter get-beacon-organization-info
+                            #:setter set-beacon-organization-info-private!)
+
+  (beacon-connection        #:init-value '()
+                            #:getter get-beacon-connection
+                            #:setter set-beacon-connection-private!)
 
   ;; System connection settings
   ;; --------------------------------------------------------------------------
@@ -342,6 +406,14 @@
   (set-api-enabled-private! %runtime-configuration arg))
 
 (define-syntax-rule
+  (beacon-enabled?)
+  (get-beacon-enabled? %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-enabled! arg)
+  (set-beacon-enabled-private! %runtime-configuration arg))
+
+(define-syntax-rule
   (ldap-enabled?)
   (get-ldap-enabled? %runtime-configuration))
 
@@ -380,6 +452,86 @@
 (define-syntax-rule
   (system-connection)
   (get-system-connection %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-name! name)
+  (set-beacon-organization-name-private!
+   %runtime-configuration name))
+
+(define-syntax-rule
+  (beacon-organization-name)
+  (get-beacon-organization-name %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-id! id)
+  (set-beacon-organization-id-private!
+   %runtime-configuration id))
+
+(define-syntax-rule
+  (beacon-organization-id)
+  (get-beacon-organization-id %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-description! description)
+  (set-beacon-organization-description-private!
+   %runtime-configuration description))
+
+(define-syntax-rule
+  (beacon-organization-description)
+  (get-beacon-organization-description %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-address! address)
+  (set-beacon-organization-address-private!
+   %runtime-configuration address))
+
+(define-syntax-rule
+  (beacon-organization-address)
+  (get-beacon-organization-address %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-welcome-url! welcome-url)
+  (set-beacon-organization-welcome-url-private!
+   %runtime-configuration welcome-url))
+
+(define-syntax-rule
+  (beacon-organization-welcome-url)
+  (get-beacon-organization-welcome-url %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-contact-url! contact-url)
+  (set-beacon-organization-contact-url-private!
+   %runtime-configuration contact-url))
+
+(define-syntax-rule
+  (beacon-organization-contact-url)
+  (get-beacon-organization-contact-url %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-logo-url! logo-url)
+  (set-beacon-organization-logo-url-private!
+   %runtime-configuration logo-url))
+
+(define-syntax-rule
+  (beacon-organization-logo-url)
+  (get-beacon-organization-logo-url %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-organization-info! info)
+  (set-beacon-organization-info-private!
+   %runtime-configuration info))
+
+(define-syntax-rule
+  (beacon-organization-info)
+  (get-beacon-organization-info %runtime-configuration))
+
+(define-syntax-rule
+  (set-beacon-connection! arg)
+  (set-beacon-connection-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (beacon-connection)
+  (get-beacon-connection %runtime-configuration))
 
 ;; ----------------------------------------------------------------------------
 ;; DEFAULT URIS
@@ -470,28 +622,23 @@
   (uri-string key)
   (assoc-ref default-uri-strings key))
 
-(define (system-sparql-query query)
-  (let [(connection (system-connection))]
-    (sparql-query query
-                  #:uri (connection-uri connection)
-                  #:store-backend (connection-backend connection)
-                  #:digest-auth
-                  (if (and (connection-username connection)
-                           (connection-password connection))
-                      (string-append
-                       (connection-username connection) ":"
-                       (connection-password connection))
-                      #f))))
+(define (sparql-query-with-connection connection query)
+  (sparql-query query
+                #:uri (connection-uri connection)
+                #:store-backend (connection-backend connection)
+                #:digest-auth
+                (if (and (connection-username connection)
+                         (connection-password connection))
+                    (string-append
+                     (connection-username connection) ":"
+                     (connection-password connection))
+                    #f)))
 
-(define (user-sparql-query username query)
-  (let [(connection (default-connection username))]
-    (sparql-query query
-                  #:uri (connection-uri connection)
-                  #:store-backend (connection-backend connection)
-                  #:digest-auth
-                  (if (and (connection-username connection)
-                           (connection-password connection))
-                      (string-append
-                       (connection-username connection) ":"
-                       (connection-password connection))
-                      #f))))
+(define-syntax-rule (system-sparql-query query)
+  (sparql-query-with-connection (system-connection) query))
+
+(define-syntax-rule (beacon-sparql-query query)
+  (sparql-query-with-connection (beacon-connection) query))
+
+(define-syntax-rule (user-sparql-query username query)
+  (sparql-query-with-connection (default-connection username) query))
