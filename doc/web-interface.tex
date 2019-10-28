@@ -103,6 +103,60 @@
 \end{verbatim}
 \end{siderules}
 
+\subsection{Beacon support}
+
+  Beacon is an interface to create a ``global search engine for genetic
+  mutations'' \citep{beacon-network}.  It achieves this by defining a
+  standard that institutions must implement so that one search engine can
+  query the implementations from each institution to find a specific
+  genetic mutation.
+
+  The web interface can function as a Beacon in the Beacon network
+  \citep{beacon-network}.  The Beacon API uses a separate connection,
+  similar to the \texttt{system-connection}, so that access can be
+  controlled at the user level.
+
+  The following example shows how to configure \emph{Beacon} including the
+  \emph{Beacon connection}:
+
+\begin{siderules}
+\begin{verbatim}
+<?xml version="1.0" encoding="utf-8"?>
+<web-interface>
+  ...
+  <beacon>
+    <enabled>1</enabled>
+    <organization>
+      <id>SG</id>
+      <name>SPARQLing-genomics Beacon service</name>
+      <description>
+        This Beacon service provides variant information for data hosted by
+        this instance of the RDF store.
+      </description>
+      <address>Not provided</address>
+      <welcome-url>https://www.sparqling-genomics.org</welcome-url>
+      <contact-url>mailto:beacon@sparqling-genomics.org</contact-url>
+      <logo-url>https://www.sparqling-genomics.org/static/images/logo.png</logo-url>
+      <info>Not provided</info>
+    </organization>
+    <connection>
+      <uri>http://localhost:8000</uri>
+      <backend>virtuoso</backend>
+      <username>beacon</username>
+      <password>changeme</password>
+    </connection>
+  </beacon>
+</web-interface>
+\end{verbatim}
+\end{siderules}
+
+  The implementation assumes the following conditions are met:
+  \begin{itemize}
+  \item Variant call data was imported using \texttt{vcf2rdf};
+  \item The reference genome can be identified by the chromosome's NCBI
+    identifier.
+  \end{itemize}
+
 \subsection{Authentication}
 \label{sec:authentication}
 

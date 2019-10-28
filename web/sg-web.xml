@@ -23,4 +23,26 @@
     <username>changeme</username>
     <password>changeme</password>
   </system-connection>
+  <beacon>
+    <enabled>1</enabled>
+    <organization>
+      <id>SG</id>
+      <name>SPARQLing-genomics Beacon service</name>
+      <description>
+        This Beacon service provides variant information for data hosted by
+        this instance of the RDF store.
+      </description>
+      <address>Not provided</address>
+      <welcome-url>https://www.sparqling-genomics.org</welcome-url>
+      <contact-url>mailto:beacon@sparqling-genomics.org</contact-url>
+      <logo-url>https://www.sparqling-genomics.org/static/images/logo.png</logo-url>
+      <info>Not provided</info>
+    </organization>
+    <connection>
+      <uri>http://localhost:8000</uri>
+      <backend>virtuoso</backend>
+      <username>beacon</username>
+      <password>changeme</password>
+    </connection>
+  </beacon>
 </web-interface>

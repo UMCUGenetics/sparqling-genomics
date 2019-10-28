@@ -37,6 +37,7 @@
             post-data->alist
             alist-symbol-key<?
             mkdir-p
+            multi-line-trim
             string->sha256sum
             generate-id
             is-uri?
@@ -46,6 +47,7 @@
             respond-201
             respond-204
             respond-303
+            respond-400
             respond-401
             respond-403
             respond-404
@@ -131,6 +133,24 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
                  (apply throw args))))))
       (() #t))))
 
+(define* (multi-line-trim input #:optional (position 0)
+                                           (output '()))
+  (if (>= position (string-length input))
+      (string-trim-both
+       (list->string (map (lambda (char)
+                            (if (eq? char #\newline)
+                                #\space
+                                char))
+                          (reverse output))))
+      (let [(char (string-ref input position))
+            (prev-char (if (= position 0)
+                           #\X
+                           (string-ref input (- position 1))))]
+        (if (and (char-whitespace? char)
+                 (char-whitespace? prev-char))
+            (multi-line-trim input (+ position 1) output)
+            (multi-line-trim input (+ position 1) (cons char output))))))
+
 (define (string->sha256sum input)
   (let* [(command (format #f "printf ~s | sha256sum" input))
          (port    (open-pipe command OPEN_READ))
@@ -200,6 +220,9 @@ SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
         #:code 303
         #:headers `((Location   . ,location))))
    client-port))
+
+(define (respond-400 client-port accept-type message)
+  (respond-with-error-message 400 client-port accept-type message))
 
 (define (respond-401 client-port accept-type message)
   (respond-with-error-message 401 client-port accept-type message))

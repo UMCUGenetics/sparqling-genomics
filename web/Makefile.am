@@ -68,6 +68,8 @@ SOURCES =                                               \
   www/pages/types.scm                                   \
   www/pages/welcome.scm                                 \
   www/requests.scm                                      \
+  www/requests-api.scm                                  \
+  www/requests-beacon.scm                               \
   www/util.scm
 
 WWW_STATIC_RESOURCES =                                  \
