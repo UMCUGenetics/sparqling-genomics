@@ -110,8 +110,12 @@
 
   (define (resolve-module-function request-path)
     "Return FUNCTION from MODULE."
-    (let* ((module (resolve-module (module-path '(www pages)
-                     (string-split request-path #\/)) #:ensure #f))
+    (let* ((module (if (developer-mode?)
+                       (reload-module
+                        (resolve-module (module-path '(www pages)
+                         (string-split request-path #\/)) #:ensure #f))
+                       (resolve-module (module-path '(www pages)
+                         (string-split request-path #\/)) #:ensure #f)))
            (page-symbol (symbol-append 'page-
                          (string->symbol
                           (string-replace-occurrence request-path #\/ #\-)))))

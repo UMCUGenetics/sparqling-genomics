@@ -38,6 +38,7 @@
         ;; Handle options
         ;; --------------------------------------------------------------------
         (let [(fork?             (assoc-ref config 'fork))
+              (developer?        (assoc-ref config 'developer-mode))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (api               (assoc-ref config 'api))
@@ -46,6 +47,8 @@
               (sys-connection    (assoc-ref config 'system-connection))]
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
+          (when (and developer? (string= (car developer?) "1"))
+            (set-developer-mode! #t))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

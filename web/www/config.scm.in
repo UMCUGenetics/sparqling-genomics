@@ -45,6 +45,8 @@
             set-default-debug-port!
             set-default-error-port!
             set-default-warning-port!
+            developer-mode?
+            set-developer-mode!
             system-state-graph
             system-sparql-query
             user-sparql-query
@@ -202,6 +204,10 @@
   (graph-name-max-length    #:init-value 128
                             #:getter get-graph-name-max-length)
 
+  (developer-mode?          #:init-value #f
+                            #:getter get-developer-mode?
+                            #:setter set-developer-mode-private!)
+
   ;; Beacon settings
   ;; --------------------------------------------------------------------------
   (beacon-organization-name #:init-value #nil
@@ -322,6 +328,10 @@
   (get-fork-on-startup? %runtime-configuration))
 
 (define-syntax-rule
+  (developer-mode?)
+  (get-developer-mode? %runtime-configuration))
+
+(define-syntax-rule
   (graph-name-max-length)
   (get-graph-name-max-length %runtime-configuration))
 
@@ -349,6 +359,10 @@
 (define-syntax-rule
   (set-fork-on-startup! arg)
   (set-fork-on-startup-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (set-developer-mode! arg)
+  (set-developer-mode-private! %runtime-configuration arg))
 
 (define (set-www-listen-address! arg)
   (if (string? arg)
