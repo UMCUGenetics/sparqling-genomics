@@ -92,14 +92,12 @@
                  ;; When it isn't specified, "NONE" is assumed.
                  (include-dataset-responses
                   (assoc-ref data "includeDatasetResponses"))]
-            (format #t "Data: ~s~%" data)
             (cond
              [(and (not (null? reference-name))
                    (not (null? start))
                    (not (null? end))
                    (not (null? reference-bases))
                    (not (null? alternate-bases)))
-                (format #t "Querying the database..~%")
                 ;; Search for SNPs.
                 (let* [(query (string-append
                                default-prefixes
@@ -118,8 +116,6 @@
                                "}"))
                        (results (query-results->alist
                                  (beacon-sparql-query query)))]
-                  (format #t "Query:~%~a~%" query)
-                  (format #t "Beacon results: ~s~%" results)
                   (respond-200 client-port accept-type results))]
              [(or (null? reference-name)
                   (null? start)
