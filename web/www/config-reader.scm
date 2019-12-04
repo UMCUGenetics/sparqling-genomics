@@ -30,6 +30,8 @@
   (log-debug "read-configuration-from-file" "Reading ~s." filename)
   (catch #t
     (lambda _
+      (unless (file-exists? filename)
+        (throw 'file-does-not-exist #f))
       (let* ((sxml-data (call-with-input-file filename
                           (lambda (port)
                             (xml->sxml port #:trim-whitespace? #t))))
@@ -161,25 +163,17 @@
                     (set-ldap-enabled! #t)))]
              ;; Single-user configuration is an alternative to LDAP auth.
              [(assoc-ref authentication 'single-user)
-              (let ((user (assoc-ref authentication 'single-user)))
-                (if (not user)
-                    (begin
-                      (display "Warning: Your configuration specifies ")
-                      (display "single-user authentication, but your ")
-                      (display "configuration is incomplete.")
-                      (newline))
-                    (if (or (null? (assoc-ref user 'username))
-                            (null? (assoc-ref user 'password)))
-                        (begin
-                          (display "An empty username or password is not ")
-                          (display "allowed.")
-                          (newline))
-                        (let ((username (car (assoc-ref user 'username)))
-                              (password (car (assoc-ref user 'password))))
-                          (begin
-                            (set-authentication-username! username)
-                            (set-authentication-password! password)
-                            (set-authentication-enabled! #t))))))]))
+              (for-each (lambda (user)
+                          (if (or (null? (assoc-ref user 'username))
+                                  (null? (assoc-ref user 'password)))
+                              (begin
+                                (display "An empty username or password is not ")
+                                (display "allowed.")
+                                (newline))
+                              (let [(username (car (assoc-ref user 'username)))
+                                    (password (car (assoc-ref user 'password)))]
+                                (add-local-user! username password))))
+                        authentication)]))
           (if sys-connection
               (let [(uri         (assoc-ref sys-connection 'uri))
                     (backend     (assoc-ref sys-connection 'backend))
@@ -210,24 +204,26 @@
           #t)))
     (lambda (key . args)
       (cond
-       [eq? key 'invalid-system-connection
-            (begin
-              (display "Error: There was a problem with the ")
-              (display "'system-connection' property:")
-              (newline)
-              (display (car args))
-              (newline)
-              (exit 1)
-              #f)]
-       [eq? key 'invalid-beacon-connection
-            (begin
-              (display "Error: There was a problem with the ")
-              (display "'beacon-connection' property:")
-              (newline)
-              (display (car args))
-              (newline)
-              (exit 1)
-              #f)]
+       [(eqv? key 'invalid-system-connection)
+        (begin
+          (display "Error: There was a problem with the ")
+          (display "'system-connection' property:")
+          (newline)
+          (display (car args))
+          (newline)
+          #f)]
+       [(eqv? key 'invalid-beacon-connection)
+        (begin
+          (display "Error: There was a problem with the ")
+          (display "'beacon-connection' property:")
+          (newline)
+          (display (car args))
+          (newline)
+          #f)]
+       [(eqv? key 'file-does-not-exist)
+        (begin
+          (format #t "Error: ~s does not exist.~%" filename)
+          #f)]
        [else
         (format #t "Error: Couldn't read configuration file (~a: ~a).~%"
                 key args)

@@ -88,17 +88,19 @@
 
 (let [(config-file (assoc-ref %config 'configuration-file))]
   (if config-file
-      (read-configuration-from-file config-file)
+      (unless (read-configuration-from-file config-file)
+        (exit 1))
       (let [(sysconfig-file "@webconfdir@/sg-web.xml")]
         (if (file-exists? sysconfig-file)
-            (read-configuration-from-file sysconfig-file)
+            (unless (read-configuration-from-file sysconfig-file)
+              (exit 1))
             (begin
               (log-error "sg-web.in" "Refused to run without a configuration file.")
               (log-error "sg-web.in" "Use --configuration-file to specify one.")
               (exit 0))))))
 
 (when (and (not (ldap-enabled?))
-           (not (authentication-enabled?)))
+           (null? (local-users)))
   (log-error "sg-web.in" "Refused to run without an authentication mechanism.")
   (exit 0))
 

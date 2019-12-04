@@ -77,18 +77,14 @@
             ldap-uri
             ldap-organizational-unit
             ldap-domain
-            authentication-enabled?
-            authentication-username
-            authentication-password
+            local-users
+            add-local-user!
             set-api-enabled!
             set-beacon-enabled!
             set-ldap-enabled!
             set-ldap-uri!
             set-ldap-organizational-unit!
             set-ldap-domain!
-            set-authentication-enabled!
-            set-authentication-username!
-            set-authentication-password!
             set-beacon-connection!
             set-beacon-organization-name!
             set-beacon-organization-id!
@@ -183,17 +179,9 @@
                             #:getter get-ldap-domain
                             #:setter set-ldap-domain-private!)
 
-  (authentication-enabled?  #:init-value #f
-                            #:getter get-authentication-enabled?
-                            #:setter set-authentication-enabled-private!)
-
-  (authentication-username  #:init-value #f
-                            #:getter get-authentication-username
-                            #:setter set-authentication-username-private!)
-
-  (authentication-password  #:init-value #f
-                            #:getter get-authentication-password
-                            #:setter set-authentication-password-private!)
+  (local-users              #:init-value '()
+                            #:getter get-local-users
+                            #:setter set-local-users-private!)
 
   ;; Other settings
   ;; --------------------------------------------------------------------------
@@ -436,28 +424,14 @@
   (set-ldap-enabled-private! %runtime-configuration arg))
 
 (define-syntax-rule
-  (authentication-enabled?)
-  (get-authentication-enabled? %runtime-configuration))
+  (local-users)
+  (get-local-users %runtime-configuration))
 
 (define-syntax-rule
-  (set-authentication-enabled! arg)
-  (set-authentication-enabled-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (authentication-username)
-  (get-authentication-username %runtime-configuration))
-
-(define-syntax-rule
-  (set-authentication-username! arg)
-  (set-authentication-username-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (authentication-password)
-  (get-authentication-password %runtime-configuration))
-
-(define-syntax-rule
-  (set-authentication-password! arg)
-  (set-authentication-password-private! %runtime-configuration arg))
+  (add-local-user! username password)
+  (set-local-users-private! %runtime-configuration
+                            (cons (list username password)
+                                  (get-local-users %runtime-configuration))))
 
 (define-syntax-rule
   (set-system-connection! arg)

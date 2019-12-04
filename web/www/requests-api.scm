@@ -19,6 +19,7 @@
   #:use-module (ldap authenticate)
   #:use-module (logger)
   #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-1)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
@@ -43,11 +44,13 @@
                 (assoc-ref data 'username)
                 (assoc-ref data 'password)))
           (and (not (ldap-enabled?))
-               (authentication-enabled?)
-               (string= (authentication-username)
-                        (assoc-ref data 'username))
-               (string= (authentication-password)
-                        (string->sha256sum (assoc-ref data 'password)))))
+               (not (null? (local-users)))
+               (any (lambda (x) x)
+                    (map (lambda (user)
+                           (and (string= (car user) (assoc-ref data 'username))
+                                (string= (cadr user) (string->sha256sum
+                                                      (assoc-ref data 'password)))))
+                         (local-users)))))
       (let ((session (session-by-username (assoc-ref data 'username))))
         (unless session
           (set! session (alist->session
