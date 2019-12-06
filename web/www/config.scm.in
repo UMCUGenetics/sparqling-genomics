@@ -75,6 +75,7 @@
             api-enabled?
             ldap-enabled?
             ldap-uri
+            ldap-common-name
             ldap-organizational-unit
             ldap-domain
             local-users
@@ -83,6 +84,7 @@
             set-beacon-enabled!
             set-ldap-enabled!
             set-ldap-uri!
+            set-ldap-common-name!
             set-ldap-organizational-unit!
             set-ldap-domain!
             set-beacon-connection!
@@ -170,6 +172,10 @@
   (ldap-uri                 #:init-value #f
                             #:getter get-ldap-uri
                             #:setter set-ldap-uri-private!)
+
+  (ldap-common-name         #:init-value #f
+                            #:getter get-ldap-common-name
+                            #:setter set-ldap-common-name-private!)
 
   (ldap-organizational-unit #:init-value #f
                             #:getter get-ldap-organizational-unit
@@ -382,6 +388,14 @@
 (define-syntax-rule
   (set-ldap-uri! arg)
   (set-ldap-uri-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-common-name)
+  (get-ldap-common-name %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-common-name! arg)
+  (set-ldap-common-name-private! %runtime-configuration arg))
 
 (define-syntax-rule
   (ldap-organizational-unit)

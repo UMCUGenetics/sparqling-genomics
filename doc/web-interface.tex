@@ -160,10 +160,10 @@
 \subsection{Authentication}
 \label{sec:authentication}
 
-  There are two ways to configure authentication.  For single-user deployments
-  or environments that lack an LDAP service, a preconfigured username and
-  password can be set.  For a multi-user deployment, the web interface can be
-  configured to use an LDAP server.
+  There are two ways to configure authentication.  For isolated deployments
+  or environments, preconfigured accounts can be specified.  For organizational
+  deployments, the web interface can be configured to use an LDAP server that
+  supports version 3 of the LDAP protocol.
 
 \subsubsection{Single-user configuration}
 
@@ -190,9 +190,10 @@
 
 \subsubsection{LDAP authentication example}
 
-  To configure LDAP, three parameters must be specified: the URI to the LDAP
-  service (1), the ``organizational unit'' (2), and the ``domain'' (3).  The
-  username is used as the ``common name''.
+  To configure LDAP, four parameters must be specified: the URI to the LDAP
+  service (1), optionally, an extra ``common name'' (2), optionally the
+  ``organizational unit'' (3), and the ``domain'' (4).  The username is used
+  as a ``common name''.
 
   The following example shows how to configure LDAP authentication:
 
@@ -203,7 +204,8 @@
   ...
   <authentication>
     <ldap>
-      <uri>ldap://example.local</uri>
+      <uri>ldaps://example.local</uri>
+      <common-name>AdditionalCN</common-name>
       <organizational-unit>People</organizational-unit>
       <domain>department.organization.tld</domain>
     </ldap>

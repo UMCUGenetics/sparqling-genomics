@@ -75,6 +75,9 @@
 (define-foreign-function ldap-simple-bind-synchronous
   %ldap-handle int "ldap_simple_bind_s" '(* * *))
 
+(define-foreign-function ldap-set-option
+  %ldap-handle int "ldap_set_option" `(* ,int *))
+
 (define-foreign-function ldap-error->string
   %ldap-handle '* "ldap_err2string" (list int))
 
@@ -82,22 +85,47 @@
   %ldap-handle int "ldap_unbind" '(*))
 
 ;;
+;; LIBLDAP CONSTANTS
+;; ----------------------------------------------------------------------------
+
+(define LDAP_VERSION3 (make-c-struct (list int) (list 3)))
+(define LDAP_OPT_PROTOCOL_VERSION 17)
+
+;;
 ;; AUTHENTICATION FUNCTIONS
 ;; ----------------------------------------------------------------------------
 
-(define (may-access? ldap-server-uri organizational-unit domain username password)
-  (let* ((connection     (bytevector->pointer (make-bytevector (sizeof size_t))))
-         (bind-dn        (format #f "cn=~a,ou=~a~{,dc=~a~}"
-                                 username
-                                 organizational-unit
-                                 (string-split domain #\.))))
-    (if (zero? (ldap-initialize connection (string->pointer ldap-server-uri)))
-        (let ((result (zero? (ldap-simple-bind-synchronous
-                              (dereference-pointer connection)
-                              (string->pointer bind-dn)
-                              (string->pointer password)))))
-          (ldap-unbind (dereference-pointer connection))
-          result)
-        (begin
-          (log-error "may-access?" "Couldn't connect to ~s" ldap-server-uri)
-          #f))))
+(define (may-access? ldap-server-uri common-name organizational-unit domain
+                     username password)
+  (catch 'ldap-error
+    (lambda _
+      (let* ((connection       (bytevector->pointer
+                                (make-bytevector (sizeof size_t))))
+             (bind-dn          (string-append "cn=" username
+                                 (if common-name
+                                   (format #f "~{,~a~}"
+                                           (map (lambda (cn)
+                                                  (string-append "cn=" cn))
+                                                (string-split common-name #\.)))
+                                   "")
+                                 (if organizational-unit
+                                     (format #f ",ou=~a" organizational-unit)
+                                     "")
+                                 (format #f "~{,dc=~a~}"
+                                         (string-split domain #\.)))))
+        (if (zero? (ldap-initialize connection (string->pointer ldap-server-uri)))
+            (begin
+              (unless (zero? (ldap-set-option (dereference-pointer connection)
+                                              LDAP_OPT_PROTOCOL_VERSION
+                                              LDAP_VERSION3))
+                (throw 'ldap-error "Cannot set protocol version."))
+              (let [(result (ldap-simple-bind-synchronous
+                             (dereference-pointer connection)
+                             (string->pointer bind-dn)
+                             (string->pointer password)))]
+                (ldap-unbind (dereference-pointer connection))
+                (zero? result)))
+            (throw 'ldap-error "Couldn't connect to ~s" ldap-server-uri))))
+    (lambda (key . args)
+      (log-error "may-access?" "~s" args)
+      #f)))

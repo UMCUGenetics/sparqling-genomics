@@ -157,8 +157,11 @@
                     (newline))
                   (let ((ldap (assoc-ref authentication 'ldap)))
                     (set-ldap-uri! (car (assoc-ref ldap 'uri)))
-                    (set-ldap-organizational-unit!
-                     (car (assoc-ref ldap 'organizational-unit)))
+                    (when (assoc-ref ldap 'common-name)
+                      (set-ldap-common-name! (car (assoc-ref ldap 'common-name))))
+                    (when (assoc-ref ldap 'organizational-unit)
+                      (set-ldap-organizational-unit!
+                       (car (assoc-ref ldap 'organizational-unit))))
                     (set-ldap-domain! (car (assoc-ref ldap 'domain)))
                     (set-ldap-enabled! #t)))]
              ;; Single-user configuration is an alternative to LDAP auth.
