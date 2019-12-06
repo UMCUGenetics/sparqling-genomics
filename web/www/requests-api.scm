@@ -40,7 +40,8 @@
 
   (if (or (and (ldap-enabled?)
                (may-access?
-                (ldap-uri) (ldap-organizational-unit) (ldap-domain)
+                (ldap-uri) (ldap-common-name) (ldap-organizational-unit)
+                (ldap-domain)
                 (assoc-ref data 'username)
                 (assoc-ref data 'password)))
           (and (not (ldap-enabled?))
