@@ -27,7 +27,6 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
-  <api>1</api>
   <authentication>
     <!-- Either LDAP settings, or single-user authentication -->
   </authentication>
@@ -45,15 +44,6 @@
 
   Because web services are popular these days, \texttt{sg-web} can be configured
   to bind on an arbitrary address and an arbitrary port.
-
-\subsection{Expose API}
-
-  The programming interface described in section \ref{sec:web-api}
-  {\color{LinkGray}`\nameref{sec:web-api}'} can be enabled with the
-  \texttt{api} property. A value of \texttt{1} enables it, and a value
-  of \texttt{0} disables it.
-
-  When no option is specified, the API is enabled.
 
 \subsection{System connection}
 

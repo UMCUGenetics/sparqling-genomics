@@ -72,7 +72,6 @@
             www-root
             www-cache-root
             www-static-root
-            api-enabled?
             ldap-enabled?
             ldap-uri
             ldap-common-name
@@ -82,7 +81,6 @@
             ldap-ssl-certificate-file
             local-users
             add-local-user!
-            set-api-enabled!
             set-beacon-enabled!
             set-ldap-enabled!
             set-ldap-uri!
@@ -160,10 +158,6 @@
   (www-listen-port          #:init-value 5000
                             #:getter get-www-listen-port
                             #:setter set-www-listen-port-private!)
-
-  (api-enabled?             #:init-value #t
-                            #:getter get-api-enabled?
-                            #:setter set-api-enabled-private!)
 
   (beacon-enabled?          #:init-value #f
                             #:getter get-beacon-enabled?
@@ -440,14 +434,6 @@
 (define-syntax-rule
   (set-ldap-ssl-certificate-file! arg)
   (set-ldap-ssl-certificate-file-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (api-enabled?)
-  (get-api-enabled? %runtime-configuration))
-
-(define-syntax-rule
-  (set-api-enabled! arg)
-  (set-api-enabled-private! %runtime-configuration arg))
 
 (define-syntax-rule
   (beacon-enabled?)

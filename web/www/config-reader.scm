@@ -43,7 +43,6 @@
               (developer?        (assoc-ref config 'developer-mode))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
-              (api               (assoc-ref config 'api))
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
@@ -55,8 +54,6 @@
             (set-www-listen-port! (string->number (car port))))
           (when address
             (set-www-listen-address! (car address)))
-          (when api
-            (set-api-enabled! (string= (car api) "1")))
           (when beacon
             (let [(enabled      (assoc-ref beacon 'enabled))
                   (connection   (assoc-ref beacon 'connection))
