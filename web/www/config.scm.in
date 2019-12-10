@@ -78,6 +78,8 @@
             ldap-common-name
             ldap-organizational-unit
             ldap-domain
+            ldap-ssl-certificate-directory
+            ldap-ssl-certificate-file
             local-users
             add-local-user!
             set-api-enabled!
@@ -87,6 +89,8 @@
             set-ldap-common-name!
             set-ldap-organizational-unit!
             set-ldap-domain!
+            set-ldap-ssl-certificate-directory!
+            set-ldap-ssl-certificate-file!
             set-beacon-connection!
             set-beacon-organization-name!
             set-beacon-organization-id!
@@ -184,6 +188,14 @@
   (ldap-domain              #:init-value #f
                             #:getter get-ldap-domain
                             #:setter set-ldap-domain-private!)
+
+  (ldap-ssl-certificate-directory #:init-value #f
+                            #:getter get-ldap-ssl-certificate-directory
+                            #:setter set-ldap-ssl-certificate-directory-private!)
+
+  (ldap-ssl-certificate-file #:init-value #f
+                            #:getter get-ldap-ssl-certificate-file
+                            #:setter set-ldap-ssl-certificate-file-private!)
 
   (local-users              #:init-value '()
                             #:getter get-local-users
@@ -412,6 +424,22 @@
 (define-syntax-rule
   (set-ldap-domain! arg)
   (set-ldap-domain-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-ssl-certificate-directory)
+  (get-ldap-ssl-certificate-directory %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-ssl-certificate-directory! arg)
+  (set-ldap-ssl-certificate-directory-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (ldap-ssl-certificate-file)
+  (get-ldap-ssl-certificate-file %runtime-configuration))
+
+(define-syntax-rule
+  (set-ldap-ssl-certificate-file! arg)
+  (set-ldap-ssl-certificate-file-private! %runtime-configuration arg))
 
 (define-syntax-rule
   (api-enabled?)

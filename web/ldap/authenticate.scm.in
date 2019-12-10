@@ -22,6 +22,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
   #:use-module (logger)
+  #:use-module (www config)
 
   #:re-export (%null-pointer parse-c-struct int size_t * pointer->string)
   #:export (may-access?
@@ -88,8 +89,10 @@
 ;; LIBLDAP CONSTANTS
 ;; ----------------------------------------------------------------------------
 
-(define LDAP_VERSION3 (make-c-struct (list int) (list 3)))
-(define LDAP_OPT_PROTOCOL_VERSION 17)
+(define LDAP_VERSION3               (make-c-struct (list int) (list 3)))
+(define LDAP_OPT_PROTOCOL_VERSION   17)
+(define LDAP_OPT_X_TLS_CACERTFILE   24578)
+(define LDAP_OPT_X_TLS_CACERTDIR    24579)
 
 ;;
 ;; AUTHENTICATION FUNCTIONS
@@ -113,6 +116,21 @@
                                      "")
                                  (format #f "~{,dc=~a~}"
                                          (string-split domain #\.)))))
+
+        (when (ldap-ssl-certificate-directory)
+          (unless (zero? (ldap-set-option (dereference-pointer connection)
+                                          LDAP_OPT_X_TLS_CACERTDIR
+                                          (string->pointer
+                                           (ldap-ssl-certificate-directory))))
+            (throw 'ldap-error "Cannot set SSL certificate directory.")))
+
+        (when (ldap-ssl-certificate-file)
+          (unless (zero? (ldap-set-option (dereference-pointer connection)
+                                          LDAP_OPT_X_TLS_CACERTFILE
+                                          (string->pointer
+                                           (ldap-ssl-certificate-file))))
+            (throw 'ldap-error "Cannot set SSL certificate file.")))
+
         (if (zero? (ldap-initialize connection (string->pointer ldap-server-uri)))
             (begin
               (unless (zero? (ldap-set-option (dereference-pointer connection)

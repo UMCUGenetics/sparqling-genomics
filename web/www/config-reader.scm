@@ -162,6 +162,18 @@
                     (when (assoc-ref ldap 'organizational-unit)
                       (set-ldap-organizational-unit!
                        (car (assoc-ref ldap 'organizational-unit))))
+                    (when (assoc-ref ldap 'ssl-certificate-directory)
+                      (set-ldap-ssl-certificate-directory!
+                       (car (assoc-ref ldap 'ssl-certificate-directory)))
+                      (log-debug "read-configuration-from-file"
+                                 "LDAP uses the certificate directory ~s."
+                                 (ldap-ssl-certificate-directory)))
+                    (when (assoc-ref ldap 'ssl-ca-certificate-file)
+                      (set-ldap-ssl-certificate-file!
+                       (car (assoc-ref ldap 'ssl-ca-certificate-file)))
+                      (log-debug "read-configuration-from-file"
+                                 "LDAP uses the CA certificate bundle from ~s."
+                                 (ldap-ssl-certificate-file)))
                     (set-ldap-domain! (car (assoc-ref ldap 'domain)))
                     (set-ldap-enabled! #t)))]
              ;; Single-user configuration is an alternative to LDAP auth.

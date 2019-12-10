@@ -195,6 +195,12 @@
   ``organizational unit'' (3), and the ``domain'' (4).  The username is used
   as a ``common name''.
 
+  \begin{sloppypar}
+  Additionally, an alternative SSL certificate bundle can be configured with
+  the parameters \texttt{ssl-certificate-directory} and
+  \texttt{ssl-certificate-file}.
+  \end{sloppypar}
+
   The following example shows how to configure LDAP authentication:
 
 \begin{siderules}
@@ -208,6 +214,10 @@
       <common-name>AdditionalCN</common-name>
       <organizational-unit>People</organizational-unit>
       <domain>department.organization.tld</domain>
+      <ssl-certificate-directory>/etc/ssl/certs</ssl-certificate-directory>
+      <ssl-ca-certificate-file>
+        /etc/ssl/certs/ca-certificates.crt
+      </ssl-ca-certificate-file>
     </ldap>
   </authentication>
 </web-interface>
