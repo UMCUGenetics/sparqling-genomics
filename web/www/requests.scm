@@ -111,9 +111,12 @@
   (define (resolve-module-function request-path)
     "Return FUNCTION from MODULE."
     (let* ((module (if (developer-mode?)
-                       (reload-module
-                        (resolve-module (module-path '(www pages)
-                         (string-split request-path #\/)) #:ensure #f))
+                       (catch 'wrong-type-arg
+                         (lambda _
+                           (reload-module
+                            (resolve-module (module-path '(www pages)
+                              (string-split request-path #\/)) #:ensure #f)))
+                         (lambda (key . args) #f))
                        (resolve-module (module-path '(www pages)
                          (string-split request-path #\/)) #:ensure #f)))
            (page-symbol (symbol-append 'page-
