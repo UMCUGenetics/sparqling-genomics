@@ -28,7 +28,7 @@
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
   <authentication>
-    <!-- Either LDAP settings, or single-user authentication -->
+    <!-- Either LDAP settings, or local-user authentication -->
   </authentication>
 </web-interface>
 \end{verbatim}
@@ -155,11 +155,12 @@
   deployments, the web interface can be configured to use an LDAP server that
   supports version 3 of the LDAP protocol.
 
-\subsubsection{Single-user configuration}
+\subsubsection{Local users configuration}
 
-  The simplest form of authentication is the ``single-user configuration''.
-  Configuring it involves providing a username and the SHA256 sum of a password.
-  The following example shows how to configure ``single-user authentication'':
+  The simplest form of authentication is the ``local-user configuration''.
+  Configuring it involves providing a username and the SHA256 sum of a password
+  for each account.  The following example shows how to configure
+  ``local-user authentication'':
 
 \begin{siderules}
 \begin{verbatim}
@@ -167,12 +168,16 @@
 <web-interface>
   ...
   <authentication>
-    <single-user>
+    <user>
       <username>user</username>
       <!-- The password field must contain the SHA256 sum of the
            plaintext password -->
       <password>9f86d08...0f00a08</password>
-    </single-user>>
+    </user>
+    <user>
+      <username>user2</username>
+      <password>152f347...0b7a26a</password>
+    </user>
   </authentication>
 </web-interface>
 \end{verbatim}

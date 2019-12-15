@@ -143,7 +143,7 @@
                                          "No Beacon 'info' was set."))))))))
           (when authentication
             (cond
-             ;; LDAP is preferred over single-user authentication.
+             ;; LDAP is preferred over local-user authentication.
              [(assoc-ref authentication 'ldap)
               (if (not (ldap-is-available?))
                   (begin
@@ -173,8 +173,8 @@
                                  (ldap-ssl-certificate-file)))
                     (set-ldap-domain! (car (assoc-ref ldap 'domain)))
                     (set-ldap-enabled! #t)))]
-             ;; Single-user configuration is an alternative to LDAP auth.
-             [(assoc-ref authentication 'single-user)
+             ;; Local-user configuration is an alternative to LDAP auth.
+             [(assoc-ref authentication 'user)
               (for-each (lambda (user)
                           (if (or (null? (assoc-ref user 'username))
                                   (null? (assoc-ref user 'password)))
