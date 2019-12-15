@@ -64,6 +64,8 @@ docs-clean:
 		  $(doc_NAME).idv			\
 		  $(doc_NAME).tmp			\
 		  $(doc_NAME).lg			\
+		  $(doc_NAME).pdf                       \
+		  $(doc_NAME).html                      \
 		  texput.log
 
 clean-local: docs-clean
