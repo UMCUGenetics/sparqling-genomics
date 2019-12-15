@@ -87,6 +87,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   doc/version.tex
+  tools/Makefile
   tools/bam2rdf/Makefile
   tools/ega2rdf/Makefile
   tools/folder2rdf/Makefile
@@ -96,8 +97,8 @@ AC_CONFIG_FILES([
   tools/xml2rdf/Makefile
   web/Makefile
   web/ldap/authenticate.scm
-  web/www/config.scm
   web/sg-web.service
+  web/www/config.scm
 ])
 
 PKG_PROG_PKG_CONFIG
