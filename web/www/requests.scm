@@ -474,12 +474,13 @@
         (respond-303 client-port "/login" #f)]))))
 
 (define (start-server request-handler)
-  (let ((s (socket PF_INET SOCK_STREAM 0)))
+  (let* ((family (www-listen-address-family))
+         (s (socket family SOCK_STREAM 0)))
     (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
 
-    (bind s AF_INET (if (string? (www-listen-address))
-                        (inet-pton AF_INET (www-listen-address))
-                        (www-listen-address))
+    (bind s family (if (string? (www-listen-address))
+                       (inet-pton family (www-listen-address))
+                       (www-listen-address))
           (www-listen-port))
 
     (listen s 10)
