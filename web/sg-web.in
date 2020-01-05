@@ -129,10 +129,13 @@
       ;; 'random-state-from-platform' to seed the pRNG.
       (set! *random-state* (random-state-from-platform))))
 
-  (log-debug "sg-web.in" "SPARQLing-genomics is running at http://~a:~a"
-             (inet-ntop (www-listen-address-family)
-                        (www-listen-address))
-             (www-listen-port))
+  (let ((address (inet-ntop (www-listen-address-family)
+                            (www-listen-address))))
+    (log-debug "sg-web.in" "SPARQLing-genomics is running at http://~a:~a"
+               (if (eq? (www-listen-address-family) AF_INET6)
+                   (string-append "[" address "]")
+                   address)
+                   (www-listen-port)))
   (load-sessions)
   (if (fork-on-startup?)
       (let ((pid (primitive-fork)))
