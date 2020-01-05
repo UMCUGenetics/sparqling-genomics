@@ -134,19 +134,6 @@ ui_print_vcf_header_error (const char *file_name)
   return 1;
 }
 
-void
-ui_print_vcf_unknown_header (const char *header_item)
-{
-  fprintf (stderr, "WARNING: Skipped header '%s'.\n", header_item);
-}
-
-int32_t
-ui_print_memory_error (const char *file_name)
-{
-  fprintf (stderr, "ERROR: Not enough memory available for processing '%s'.\n", file_name);
-  return 1;
-}
-
 int32_t
 ui_print_general_memory_error (void)
 {
@@ -158,13 +145,6 @@ int32_t
 ui_print_redland_error (void)
 {
   fputs ("ERROR: Couldn't initialize Redland.\n", stderr);
-  return 1;
-}
-
-int32_t
-ui_print_query_error (const char *query)
-{
-  fprintf (stderr, "ERROR: Could not execute query:\n%s\n", query);
   return 1;
 }
 

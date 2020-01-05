@@ -35,17 +35,14 @@ void ui_process_command_line (int argc, char **argv);
 
 int32_t ui_print_vcf_file_error (const char *file_name);
 int32_t ui_print_vcf_header_error (const char *file_name);
-int32_t ui_print_memory_error (const char *file_name);
 int32_t ui_print_general_memory_error (void);
 int32_t ui_print_file_format_error (void);
 int32_t ui_print_redland_error (void);
-int32_t ui_print_query_error (const char *query);
 
 /*----------------------------------------------------------------------------.
  | WARNING HANDLING                                                           |
  '----------------------------------------------------------------------------*/
 
-void ui_print_vcf_unknown_header (const char *header_item);
 void ui_show_missing_options_warning (void);
 
 #endif /* UI_H */
