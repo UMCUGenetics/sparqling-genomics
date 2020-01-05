@@ -27,6 +27,7 @@
                           connection-backend
                           default-connection))
   #:export (beacon-connection
+  #:export (backtrace-on-error?
             beacon-enabled?
             beacon-organization-name
             beacon-organization-id
@@ -89,6 +90,7 @@
             set-ldap-domain!
             set-ldap-ssl-certificate-directory!
             set-ldap-ssl-certificate-file!
+            set-backtrace-on-error!
             set-beacon-connection!
             set-beacon-organization-name!
             set-beacon-organization-id!
@@ -264,7 +266,11 @@
 
   (debug-port               #:init-value '()
                             #:getter get-default-debug-port
-                            #:setter set-default-debug-port-private!))
+                            #:setter set-default-debug-port-private!)
+
+  (backtrace-on-error?      #:init-value #f
+                            #:getter get-backtrace-on-error?
+                            #:setter set-backtrace-on-error-private!))
 
 
 ;; Create an instance of the <runtime-configuration> environment.
@@ -345,6 +351,10 @@
   (get-default-error-port %runtime-configuration))
 
 (define-syntax-rule
+  (backtrace-on-error?)
+  (get-backtrace-on-error? %runtime-configuration))
+
+(define-syntax-rule
   (set-default-debug-port! port)
   (set-default-debug-port-private! %runtime-configuration port))
 
@@ -355,6 +365,10 @@
 (define-syntax-rule
   (set-default-error-port! port)
   (set-default-error-port-private! %runtime-configuration port))
+
+(define-syntax-rule
+  (set-backtrace-on-error! arg)
+  (set-backtrace-on-error-private! %runtime-configuration arg))
 
 (define-syntax-rule
   (set-fork-on-startup! arg)

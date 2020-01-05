@@ -41,6 +41,7 @@
         ;; --------------------------------------------------------------------
         (let [(fork?             (assoc-ref config 'fork))
               (developer?        (assoc-ref config 'developer-mode))
+              (backtrace?        (assoc-ref config 'backtrace-on-error))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (beacon            (assoc-ref config 'beacon))
@@ -50,6 +51,8 @@
             (set-fork-on-startup! #t))
           (when (and developer? (string= (car developer?) "1"))
             (set-developer-mode! #t))
+          (when (and backtrace? (string= (car backtrace?) "1"))
+            (set-backtrace-on-error! #t))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

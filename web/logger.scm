@@ -16,6 +16,7 @@
 (define-module (logger)
   #:use-module (www config)
   #:use-module (ice-9 threads)
+  #:use-module (ice-9 control)
   #:use-module (ice-9 format)
   #:export (log-error
             log-warning
@@ -45,7 +46,11 @@
 
 (define (log-error function fmt . rst)
   (apply log-any
-         (append (list "ERROR" (default-error-port) function fmt) rst)))
+         (append (list "ERROR" (default-error-port) function fmt) rst))
+  (when (backtrace-on-error?)
+    (log-any "ERROR" (default-error-port) "log-error" "--- Begin backtrace ---")
+    (display-backtrace (make-stack #t) (default-error-port))
+    (log-any "ERROR" (default-error-port) "log-error" "---  End backtrace  ---")))
 
 (define (log-access username fmt . rst)
   (apply log-any
