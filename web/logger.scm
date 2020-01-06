@@ -49,7 +49,7 @@
          (append (list "ERROR" (default-error-port) function fmt) rst))
   (when (backtrace-on-error?)
     (log-any "ERROR" (default-error-port) "log-error" "--- Begin backtrace ---")
-    (display-backtrace (make-stack #t) (default-error-port))
+    (display-backtrace (make-stack #t) (default-error-port) 1)
     (log-any "ERROR" (default-error-port) "log-error" "---  End backtrace  ---")))
 
 (define (log-access username fmt . rst)
