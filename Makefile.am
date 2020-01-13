@@ -28,9 +28,13 @@ if HAVE_PDFLATEX
 SUBDIRS                += doc
 endif
 
+deploymentdir           = ${pkgdatadir}
 ontologydir             = ${pkgdatadir}
 nobase_ontology_DATA    = ontologies/sparqling-genomics.ttl
-EXTRA_DIST              = $(nobase_ontology_DATA) environment.scm
+nobase_deployment_DATA  = deployment/virtuoso-machine.scm
+EXTRA_DIST              = $(nobase_ontology_DATA)   \
+                          $(nobase_deployment_DATA) \
+                          environment.scm
 
 # Build docker image with Guix
 docker: dist
