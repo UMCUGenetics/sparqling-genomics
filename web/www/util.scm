@@ -212,7 +212,10 @@
 
 (define (respond-405 client-port allowed-methods)
   (write-response
-   (build-response #:code 405 #:headers `((Allow . ,allowed-methods)))
+   (build-response #:code 405
+                   #:headers `((Allow . ,(format #f "~a~{, ~a~}~%"
+                                                 (car allowed-methods)
+                                                 (cdr allowed-methods)))))
    client-port))
 
 (define (respond-406 client-port)
