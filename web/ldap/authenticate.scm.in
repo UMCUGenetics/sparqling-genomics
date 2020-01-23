@@ -33,7 +33,6 @@
 ;; ----------------------------------------------------------------------------
 
 (define %ldap-handle %null-pointer)
-(define %glibc-handle (dynamic-link))
 
 (define (ldap-link-library)
   (catch 'misc-error
