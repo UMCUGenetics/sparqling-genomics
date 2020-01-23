@@ -19,10 +19,10 @@
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_W3            "http://www.w3.org"
-#define URI_MASTER        "http://sparqling-genomics.org/" VERSION
+#define URI_MASTER        "https://sparqling-genomics.org/" VERSION
 
 #define STR_PREFIX_MASTER              URI_MASTER "/"
-#define STR_PREFIX_ORIGIN              URI_MASTER "/Origin/"
+#define STR_PREFIX_ORIGIN              "origin://"
 #define STR_PREFIX_RDF                 URI_W3 "/1999/02/22-rdf-syntax-ns#"
 #define STR_PREFIX_RDFS                URI_W3 "/2000/01/rdf-schema#"
 #define STR_PREFIX_OWL                 URI_W3 "/2002/07/owl#"

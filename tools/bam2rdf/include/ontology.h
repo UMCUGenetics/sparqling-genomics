@@ -27,7 +27,7 @@
 
 #define URI_BIOSEMANTICS  "http://rdf.biosemantics.org"
 #define URI_ASSEMBLIES    URI_BIOSEMANTICS "/data/genomeassemblies"
-#define URI_ONTOLOGY      URI_MASTER "/bam2rdf"
+#define URI_ONTOLOGY      "sg://" VERSION "/bam2rdf"
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"

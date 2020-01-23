@@ -102,7 +102,7 @@ process_variant_for_sample (bcf_hdr_t *header,
   else
     variant_id = config.variant_id_buf;
 
-  self = term (PREFIX_BASE, variant_id);
+  self = term (PREFIX_ORIGIN, variant_id);
   if (!self)
     {
       ui_print_redland_error ();

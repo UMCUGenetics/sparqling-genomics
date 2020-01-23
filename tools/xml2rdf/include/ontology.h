@@ -25,7 +25,7 @@
 #include "master-ontology.h"
 
 /* These string constants can be used to concatenate strings at compile-time. */
-#define URI_ONTOLOGY      URI_MASTER "/xml2rdf"
+#define URI_ONTOLOGY      "sg://" VERSION "/xml2rdf"
 
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
 #define STR_PREFIX_DYNAMIC_TYPE        URI_ONTOLOGY "/DynamicType/"

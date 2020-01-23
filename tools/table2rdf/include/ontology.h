@@ -24,11 +24,11 @@
 #include "master-ontology.h"
 
 /* These string constants can be used to concatenate strings at compile-time. */
-#define URI_ONTOLOGY                   URI_MASTER "/table2rdf"
+#define URI_ONTOLOGY                   "sg://" VERSION "/table2rdf"
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
-#define STR_PREFIX_SAMPLE              URI_MASTER "/Sample/"
+#define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
-#define STR_PREFIX_ROW                 URI_ONTOLOGY "/Row/"
+#define STR_PREFIX_ROW                 STR_PREFIX_ORIGIN
 
 typedef enum
 {
@@ -56,7 +56,6 @@ typedef enum
 typedef enum
 {
   PREDICATE_RDF_TYPE = 0,
-  PREDICATE_SHA256SUM,
   PREDICATE_CONVERTED_BY,
   PREDICATE_VERSION_INFO,
   PREDICATE_FILENAME,

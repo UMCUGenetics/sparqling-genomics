@@ -245,7 +245,7 @@ process_column (table_hdr_t* hdr, char *token, uint32_t column_index)
   trimmed_length = strlen (trimmed_token);
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = term (PREFIX_ROW, config.id_buf);
+  stmt->subject   = term (PREFIX_ORIGIN, config.id_buf);
 
   /* ------------------------------------------------------------------------
    * PREDICATE TRANSFORMATION
@@ -376,7 +376,7 @@ process_row (table_hdr_t* hdr, gzFile stream, raptor_term *origin,
           return;
         }
 
-      raptor_term *subject = term (PREFIX_ROW, config.id_buf);
+      raptor_term *subject = term (PREFIX_ORIGIN, config.id_buf);
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = subject;
       stmt->predicate = predicate (PREDICATE_RDF_TYPE);
