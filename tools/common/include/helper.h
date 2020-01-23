@@ -20,6 +20,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <gcrypt.h>
+
+#define HASH_ALGORITHM GCRY_MD_MD5
+#define HASH_ALGORITHM_NAME "md5"
 
 bool get_pretty_hash (unsigned char *hash,
                       uint32_t length,

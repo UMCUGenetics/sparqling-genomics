@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "helper.h"
+
 #include <stdio.h>
 #include <gcrypt.h>
 #include <ctype.h>
@@ -68,7 +70,7 @@ unsigned char *
 helper_get_hash_from_file (const char *filename)
 {
   const size_t READ_BUFFER_MAX_LENGTH = 4000000;
-  const int HASH_LENGTH = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+  const int HASH_LENGTH = gcry_md_get_algo_dlen (HASH_ALGORITHM);
 
   /* Initialize GCrypt.
    * ------------------------------------------------------------------------ */
@@ -76,7 +78,7 @@ helper_get_hash_from_file (const char *filename)
   gcry_md_hd_t handler = NULL;
   unsigned char *binary_digest = NULL;
 
-  error = gcry_md_open (&handler, GCRY_MD_SHA256, 0);
+  error = gcry_md_open (&handler, HASH_ALGORITHM, 0);
   if (error)
     {
       fprintf (stderr, "ERROR: %s/%s\n",
@@ -119,10 +121,11 @@ helper_get_hash_from_file (const char *filename)
     }
 
   gcry_md_write (handler, buffer, bytes_read);
-  memset (buffer, 0, READ_BUFFER_MAX_LENGTH * sizeof (char));
-  bytes_read = 0;
+  gcry_md_final (handler);
 
   fclose (file);
+  memset (buffer, 0, READ_BUFFER_MAX_LENGTH * sizeof (char));
+  bytes_read = 0;
   free (buffer);
   buffer = NULL;
 
