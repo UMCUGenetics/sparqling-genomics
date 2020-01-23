@@ -27,10 +27,8 @@
   #:use-module (srfi srfi-1)
   #:use-module (web response)
   #:use-module (web uri)
-  #:use-module (www config)
   #:use-module (www db api)
   #:export (file-extension
-            predicate-label
             string-replace-occurrence
             suffix-iri
             string-is-longer-than
@@ -73,27 +71,6 @@
        (string-drop input
                     (1+ (string-rindex input #\/))) #\")
       "unknown"))
-
-(define (predicate-label pred)
-  "Returns the rdf:label of PRED, or PRED if rdf:label is unavailable."
-  (catch 'system-error
-    (lambda _
-      (receive (header port)
-          (sparql-query
-           (format #f "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-SELECT ?label { <~a> rdf:label ?label } LIMIT 1" (string-trim-both pred #\"))
-                        #:type "text/csv")
-        (if (= (response-code header) 200)
-            (begin
-              ;; The first line is the header.
-              (read-line port)
-              (let ((line (read-line port)))
-                (if (or (eof-object? line)
-                        (string= line ""))
-                    pred
-                    (string-trim-both line #\"))))
-            pred)))
-    (lambda (key . args) pred)))
 
 (define (post-data->alist post-data)
   (catch #t
