@@ -101,7 +101,7 @@ on_start_element (void *ctx,
   config.xml_path = list_append (config.xml_path, element_name);
 
   /* There are two ways to convey information in XML:
-   * by using attributes, or by using child-elements.  Child attributes
+   * by using attributes, or by using child-elements.  Child elements
    * are handled automatically because they will trigger another
    * ‘on_start_element’ call.  Attributes do not.  So we must handle
    * attributes immediately.
@@ -139,9 +139,9 @@ on_start_element (void *ctx,
 
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_BASE, subject_name);
-          stmt->predicate = term (PREFIX_RDF, "#type");
+          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
           stmt->object    = term (PREFIX_BASE, "XmlAttribute");
-          register_statement (stmt);
+          register_statement_reuse_predicate (stmt);
 
           attribute_index += 2;
         }
@@ -215,9 +215,9 @@ on_end_element (void *ctx, const xmlChar *name)
     {
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = term (PREFIX_BASE, subject_name);
-      stmt->predicate = term (PREFIX_RDF, "#type");
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
       stmt->object    = term (PREFIX_DYNAMIC_TYPE, element_name);
-      register_statement (stmt);
+      register_statement_reuse_predicate (stmt);
 
       /* When the subject is nested inside a parent element,
        * describe its direct relationship. 
@@ -245,9 +245,9 @@ on_end_element (void *ctx, const xmlChar *name)
             {
               stmt = raptor_new_statement (config.raptor_world);
               stmt->subject   = term (PREFIX_BASE, subject_name);
-              stmt->predicate = term (PREFIX_MASTER, "isPartOf");
+              stmt->predicate = predicate (PREDICATE_ISPARTOF);
               stmt->object    = term (PREFIX_BASE, object_name);
-              register_statement (stmt);
+              register_statement_reuse_predicate (stmt);
             }
         }
 
@@ -258,9 +258,9 @@ on_end_element (void *ctx, const xmlChar *name)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_BASE, subject_name);
-          stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
+          stmt->predicate = predicate (PREDICATE_ORIGINATED_FROM);
           stmt->object    = term (PREFIX_ORIGIN, config.origin_hash);
-          register_statement (stmt);
+          register_statement_reuse_predicate (stmt);
         }
     }
 

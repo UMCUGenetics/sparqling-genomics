@@ -104,13 +104,14 @@ main (int argc, char **argv)
         file_hash = helper_get_hash_from_file (config.input_file);
       else if (!config.user_hash && config.input_from_stdin)
         {
-          unsigned char buf[32];
-          memset (buf, '\0', 32);
-          file_hash = calloc (65, sizeof (unsigned char));
+          const int buf_len = gcry_md_get_algo_dlen (HASH_ALGORITHM);
+          unsigned char buf[buf_len];
+          memset (buf, '\0', buf_len);
+          file_hash = calloc (buf_len * 2 + 1, sizeof (unsigned char));
           if (!file_hash) return 1;
 
-          gcry_randomize (buf, 32, GCRY_VERY_STRONG_RANDOM);
-          if (! get_pretty_hash (buf, 32, file_hash))
+          gcry_randomize (buf, buf_len, GCRY_VERY_STRONG_RANDOM);
+          if (! get_pretty_hash (buf, buf_len, file_hash))
             return 1;
         }
       else
@@ -125,34 +126,40 @@ main (int argc, char **argv)
       node_filename = term (PREFIX_ORIGIN, (char *)file_hash);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_RDF, "#type");
-      stmt->object    = term (PREFIX_MASTER, "Origin");
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_RDF_TYPE);
+      stmt->object    = class (CLASS_ORIGIN);
+      register_statement_reuse_all (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "sha256sum");
+      stmt->subject   = node_filename;
+      stmt->predicate = term (PREFIX_MASTER, HASH_ALGORITHM_NAME);
       stmt->object    = literal ((char *)file_hash, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_subject (stmt);
+
+      raptor_term *xml2rdf = term (PREFIX_MASTER, "xml2rdf-" VERSION);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "convertedBy");
-      stmt->object    = term (PREFIX_MASTER, "xml2rdf-" VERSION);
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_CONVERTED_BY);
+      stmt->object    = xml2rdf;
+      register_statement_reuse_all (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_MASTER, "xml2rdf-" VERSION);
-      stmt->predicate = term (PREFIX_OWL, "#versionInfo");
+      stmt->subject   = xml2rdf;
+      stmt->predicate = predicate (PREDICATE_VERSION_INFO);
       stmt->object    = literal (VERSION, XSD_STRING);
-      register_statement (stmt);
+      register_statement_reuse_predicate (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = raptor_term_copy (node_filename);
-      stmt->predicate = term (PREFIX_MASTER, "filename");
-      stmt->object    = literal (config.input_file, XSD_STRING);
-      register_statement (stmt);
+      stmt->subject   = node_filename;
+      stmt->predicate = predicate (PREDICATE_FILENAME);
+
+      stmt->object    = (config.input_from_stdin)
+        ? literal ("stdin", XSD_STRING)
+        : literal (config.input_file, XSD_STRING);
+
+      register_statement_reuse_subject_predicate (stmt);
       stmt = NULL;
 
       /* Setup and invoke the XML parser. 

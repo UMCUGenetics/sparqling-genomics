@@ -24,6 +24,7 @@
  */
 
 #include "ontology.h"
+#include "helper.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <raptor2.h>
@@ -53,8 +54,8 @@ typedef struct
   ontology_t        *ontology;
 
   /* Shared buffers. */
-  char read_id_buf[77];
-  char header_id_buf[77];
+  char read_id_buf[HASH_ALGORITHM_PRINT_LENGTH + 16];
+  char header_id_buf[HASH_ALGORITHM_PRINT_LENGTH + 16];
   char number_buffer[32];
 } RuntimeConfiguration;
 

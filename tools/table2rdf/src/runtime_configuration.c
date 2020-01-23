@@ -148,7 +148,9 @@ bool
 generate_row_id (const unsigned char *origin, char *row_id)
 {
   int32_t bytes_written;
-  bytes_written = snprintf (row_id, 77, "%s-R%010u",
+  bytes_written = snprintf (row_id,
+                            HASH_ALGORITHM_PRINT_LENGTH + 16,
+                            "%s@%u",
                             origin,
                             config.row_counter);
 

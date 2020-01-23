@@ -93,13 +93,14 @@ main (int argc, char **argv)
         }
       else
         {
-          unsigned char buf[32];
-          memset (buf, '\0', 32);
-          file_hash = calloc (65, sizeof (unsigned char));
+          const int buf_len = gcry_md_get_algo_dlen (HASH_ALGORITHM);
+          unsigned char buf[buf_len];
+          memset (buf, '\0', buf_len);
+          file_hash = calloc (buf_len * 2 + 1, sizeof (unsigned char));
           if (!file_hash) return 1;
 
-          gcry_randomize (buf, 32, GCRY_VERY_STRONG_RANDOM);
-          if (! get_pretty_hash (buf, 32, file_hash))
+          gcry_randomize (buf, buf_len, GCRY_VERY_STRONG_RANDOM);
+          if (! get_pretty_hash (buf, buf_len, file_hash))
             return 1;
         }
 
@@ -113,6 +114,12 @@ main (int argc, char **argv)
       stmt->predicate = predicate (PREDICATE_RDF_TYPE);
       stmt->object    = class (CLASS_ORIGIN);
       register_statement_reuse_all (stmt);
+
+      stmt = raptor_new_statement (config.raptor_world);
+      stmt->subject   = node_filename;
+      stmt->predicate = term (PREFIX_MASTER, HASH_ALGORITHM_NAME);
+      stmt->object    = literal ((char *)file_hash, XSD_STRING);
+      register_statement_reuse_subject (stmt);
 
       raptor_term *table2rdf = term (PREFIX_MASTER, "table2rdf-" VERSION);
 

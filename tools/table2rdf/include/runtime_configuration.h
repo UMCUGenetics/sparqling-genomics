@@ -24,7 +24,7 @@
  */
 
 #include "ontology.h"
-
+#include "helper.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <raptor2.h>
@@ -73,7 +73,7 @@ typedef struct
   uint32_t          column_counter;
   uint32_t          row_counter;
   uint32_t          prefix_name_counter;
-  char              id_buf[77];
+  char              id_buf[HASH_ALGORITHM_PRINT_LENGTH + 16];
   char              number_buffer[32];
 } RuntimeConfiguration;
 

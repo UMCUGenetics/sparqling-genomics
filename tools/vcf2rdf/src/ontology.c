@@ -125,12 +125,11 @@ ontology_init (ontology_t **ontology_ptr)
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
     if (!ontology->classes[initialized_classes]) break;
 
-  ontology->predicates_length = 17;
+  ontology->predicates_length = 16;
   ontology->predicates = calloc (ontology->predicates_length, sizeof (raptor_term*));
 
   define_predicate (ontology, PREDICATE_RDF_TYPE,        PREFIX_RDF,          "#type");
   define_predicate (ontology, PREDICATE_RDFS_LABEL,      PREFIX_RDFS,         "#label");
-  define_predicate (ontology, PREDICATE_SHA256SUM,	 PREFIX_MASTER,       "sha256sum");
   define_predicate (ontology, PREDICATE_CONVERTED_BY,	 PREFIX_MASTER,       "convertedBy");
   define_predicate (ontology, PREDICATE_VERSION_INFO,	 PREFIX_OWL,          "#versionInfo");
   define_predicate (ontology, PREDICATE_FILENAME,	 PREFIX_MASTER,       "filename");

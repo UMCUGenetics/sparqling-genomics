@@ -46,6 +46,17 @@ define_class (ontology_t *ontology, int32_t index, int32_t prefix, char *suffix)
   raptor_free_uri (uri);
 }
 
+void
+define_predicate (ontology_t *ontology, int32_t index, int32_t prefix, char *suffix)
+{
+  raptor_uri *uri = raptor_new_uri_relative_to_base (config.raptor_world,
+                                                     ontology->prefixes[prefix],
+                                                     (unsigned char *)suffix);
+
+  ontology->predicates[index] = raptor_new_term_from_uri (config.raptor_world, uri);
+  raptor_free_uri (uri);
+}
+
 bool
 ontology_init (ontology_t **ontology_ptr)
 {
@@ -79,6 +90,22 @@ ontology_init (ontology_t **ontology_ptr)
   int32_t initialized_classes = 0;
   for (; initialized_classes < ontology->classes_length; initialized_classes++)
     if (!ontology->classes[initialized_classes]) break;
+
+  ontology->predicates_length = 8;
+  ontology->predicates = calloc (ontology->predicates_length, sizeof (raptor_term*));
+
+  define_predicate (ontology, PREDICATE_RDF_TYPE,        PREFIX_RDF,    "#type");
+  define_predicate (ontology, PREDICATE_CONVERTED_BY,    PREFIX_MASTER, "convertedBy");
+  define_predicate (ontology, PREDICATE_VERSION_INFO,    PREFIX_OWL,    "#versionInfo");
+  define_predicate (ontology, PREDICATE_FILENAME,        PREFIX_MASTER, "filename");
+  define_predicate (ontology, PREDICATE_ORIGINATED_FROM, PREFIX_MASTER, "originatedFrom");
+  define_predicate (ontology, PREDICATE_FOUND_IN,        PREFIX_MASTER, "foundIn");
+  define_predicate (ontology, PREDICATE_LABEL,           PREFIX_RDFS,   "#label");
+  define_predicate (ontology, PREDICATE_ISPARTOF,        PREFIX_MASTER, "isPartOf");
+
+  int32_t initialized_predicates = 0;
+  for (; initialized_predicates < ontology->predicates_length; initialized_predicates++)
+    if (!ontology->predicates[initialized_predicates]) break;
 
   ontology->xsds_length = 4;
   ontology->xsds = calloc (ontology->xsds_length, sizeof (raptor_uri*));
@@ -122,6 +149,12 @@ ontology_free (ontology_t *ontology)
       ontology->classes[index] = NULL;
     }
 
+  for (index = 0; index < ontology->predicates_length; index++)
+    {
+      raptor_free_term (ontology->predicates[index]);
+      ontology->predicates[index] = NULL;
+    }
+
   for (index = 0; index < ontology->xsds_length; index++)
     {
       raptor_free_uri (ontology->xsds[index]);
@@ -135,6 +168,10 @@ ontology_free (ontology_t *ontology)
   free (ontology->classes);
   ontology->classes = NULL;
   ontology->classes_length = 0;
+
+  free (ontology->predicates);
+  ontology->predicates = NULL;
+  ontology->predicates_length = 0;
 
   free (ontology->xsds);
   ontology->xsds = NULL;

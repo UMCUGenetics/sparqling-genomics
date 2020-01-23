@@ -24,6 +24,7 @@
 
 #define HASH_ALGORITHM GCRY_MD_MD5
 #define HASH_ALGORITHM_NAME "md5"
+#define HASH_ALGORITHM_PRINT_LENGTH 32
 
 bool get_pretty_hash (unsigned char *hash,
                       uint32_t length,

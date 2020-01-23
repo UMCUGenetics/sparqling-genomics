@@ -48,13 +48,27 @@ typedef enum
   CLASS_ORIGIN,
 } ontology_class;
 
+typedef enum
+{
+  PREDICATE_RDF_TYPE = 0,
+  PREDICATE_CONVERTED_BY,
+  PREDICATE_VERSION_INFO,
+  PREDICATE_FILENAME,
+  PREDICATE_ORIGINATED_FROM,
+  PREDICATE_FOUND_IN,
+  PREDICATE_LABEL,
+  PREDICATE_ISPARTOF
+} ontology_predicate;
+
 typedef struct
 {
   raptor_term **classes;
+  raptor_term **predicates;
   raptor_uri  **prefixes;
   raptor_uri **xsds;
   int32_t     classes_length;
   int32_t     prefixes_length;
+  int32_t     predicates_length;
   int32_t     xsds_length;
 } ontology_t;
 
