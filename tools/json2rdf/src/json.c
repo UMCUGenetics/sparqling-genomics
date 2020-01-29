@@ -175,9 +175,11 @@ on_map_start (void *ctx_ptr)
   unnamed_map_id (ctx, buffer, NULL);
 
   raptor_statement *stmt;
-  if (ctx->last_event == EVENT_ON_MAP_KEY
-      || (ctx->predicates != NULL && ctx->last_event == EVENT_ON_ARRAY_START)
-      || ctx->last_event == EVENT_ON_MAP_END)
+  if ((ctx->last_event == EVENT_ON_MAP_KEY
+       || ctx->last_event == EVENT_ON_MAP_END
+       || ctx->last_event == EVENT_ON_ARRAY_START)
+      && ctx->predicates != NULL
+      && ctx->subjects != NULL)
     {
       list_t *parent = ctx->subjects;
       char *parent_name = parent->data;
