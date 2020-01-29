@@ -652,9 +652,11 @@
       (not (null?
             (delete '#f
                     (map (lambda (prefix)
-                           (string-prefix? (string-append
-                                            (symbol->string (car prefix)) ":")
-                                           input))
+                           (and (string-prefix?
+                                 (string-append
+                                  (symbol->string (car prefix)) ":")
+                                 input)
+                                (not (string-prefix? "sg://" input))))
                          default-uri-strings)))))
     (lambda (key . args) #f)))
 
