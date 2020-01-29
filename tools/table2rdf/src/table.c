@@ -114,7 +114,28 @@ process_header (gzFile stream, raptor_term *origin, const char *filename)
   ssize_t result = 0;
 
   if (config.header_line == NULL)
-    result = gzgetdelim (&line, &line_len, '\n', stream);
+    {
+      result = gzgetdelim (&line, &line_len, '\n', stream);
+      bool ignore_line = (config.ignore_lines_with != NULL);
+      while (ignore_line)
+        {
+          size_t ignore_length = strlen (config.ignore_lines_with);
+          size_t i = 0;
+          for (; i < ignore_length; i++)
+            if (line[i] != config.ignore_lines_with[i])
+              break;
+
+          ignore_line = (i == ignore_length);
+          if (ignore_line)
+            {
+              free (line);
+              line = NULL;
+              line_len = 0;
+
+              result = gzgetdelim (&line, &line_len, '\n', stream);
+            }
+        }
+    }
   else
     line = config.header_line;
 

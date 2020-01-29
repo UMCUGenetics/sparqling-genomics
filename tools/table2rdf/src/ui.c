@@ -60,6 +60,7 @@ ui_show_help (void)
         "  --input-file=ARG,         -i  The input file to process.\n"
         "  --stdin,                  -I  Read input from a pipe instead of a "
                                         "file.\n"
+        "  --ignore-lines-with=ARG   -j  Ignore lines starting with ARG.\n"
         "  --output-format           -O  The output format to serialize to.\n");
 }
 
@@ -88,6 +89,7 @@ ui_process_command_line (int argc, char **argv)
       { "help",                  no_argument,       0, 'h' },
       { "input-file",            required_argument, 0, 'i' },
       { "stdin",                 no_argument,       0, 'I' },
+      { "ignore-lines-with",     required_argument, 0, 'j' },
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
       { "skip-first-line",       no_argument,       0, 'S' },
@@ -100,7 +102,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:T:Iophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:T:Ij:ophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -108,6 +110,7 @@ ui_process_command_line (int argc, char **argv)
         case 'D': config.secondary_delimiter = optarg;           break;
         case 'i': config.input_file = optarg;                    break;
         case 'I': config.input_from_stdin = true;                break;
+        case 'j': config.ignore_lines_with = optarg;             break;
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
         case 'H': config.header_line = optarg;                   break;
