@@ -51,7 +51,8 @@
             respond-404
             respond-405
             respond-406
-            respond-500))
+            respond-500
+            respond-503))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -223,4 +224,7 @@
     (format #f "No acceptable format.~%")))
 
 (define (respond-500 client-port accept-type message)
+  (respond-with-error-message 500 client-port accept-type message))
+
+(define (respond-503 client-port accept-type message)
   (respond-with-error-message 500 client-port accept-type message))
