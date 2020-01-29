@@ -34,19 +34,19 @@ json_state_initialize (json_state_t *state)
 
   state->unnamed_map_id = 0;
   state->subjects = NULL;
-  state->predicate = NULL;
+  state->predicates = NULL;
   state->last_event = EVENT_UNKNOWN;
 }
 
 void
 json_state_free (json_state_t *state)
 {
-  if (state->predicate)
-    free (state->predicate);
-
   if (state->subjects)
     list_free_all (state->subjects, free);
-  
+
+  if (state->predicates)
+    list_free_all (state->predicates, free);
+
   json_state_initialize (state);
 }
 
@@ -65,11 +65,12 @@ int
 on_any_value (json_state_t *ctx, void *value, size_t value_length, int32_t xsd_type)
 {
   if (! context_is_available (ctx)) return 0;
-  ctx->last_event = EVENT_ON_VALUE;
 
   raptor_statement *stmt;
-  list_t *first = list_nth (ctx->subjects, 1);
-  char *subject = (char *)first->data;
+  list_t *subjects = list_nth (ctx->subjects, 1);
+  list_t *predicates = list_nth (ctx->predicates, 1);
+  char *subject = (char *)subjects->data;
+  char *predicate = (char *)predicates->data;
 
   char *buffer = malloc (value_length + 1);
   if (buffer == NULL)
@@ -85,10 +86,19 @@ on_any_value (json_state_t *ctx, void *value, size_t value_length, int32_t xsd_t
 
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = term (PREFIX_BASE, subject);
-  stmt->predicate = term (PREFIX_DYNAMIC_TYPE, ctx->predicate);
+  stmt->predicate = term (PREFIX_DYNAMIC_TYPE, predicate);
   stmt->object = literal (buffer, xsd_type);
   register_statement (stmt);
 
+  if (ctx->last_event == EVENT_ON_MAP_KEY
+      && ctx->predicates != NULL)
+    {
+      list_t *first = list_nth (ctx->predicates, 1);
+      free (first->data);
+      ctx->predicates = list_remove (first);
+    }
+
+  ctx->last_event = EVENT_ON_VALUE;
   free (buffer);
   return 1;
 }
@@ -111,12 +121,14 @@ on_bool_value (void *ctx_ptr, int value)
   ctx->last_event = EVENT_ON_VALUE;
 
   raptor_statement *stmt;
-  list_t *first = list_nth (ctx->subjects, 1);
-  char *subject = (char *)first->data;
+  list_t *subjects = list_nth (ctx->subjects, 1);
+  list_t *predicates = list_nth (ctx->predicates, 1);
+  char *subject = (char *)subjects->data;
+  char *predicate = (char *)predicates->data;
 
   stmt = raptor_new_statement (config.raptor_world);
   stmt->subject   = term (PREFIX_BASE, subject);
-  stmt->predicate = term (PREFIX_DYNAMIC_TYPE, ctx->predicate);
+  stmt->predicate = term (PREFIX_DYNAMIC_TYPE, predicate);
 
   if (value)
     stmt->object = literal ("true", XSD_BOOLEAN);
@@ -163,15 +175,21 @@ on_map_start (void *ctx_ptr)
   unnamed_map_id (ctx, buffer, NULL);
 
   raptor_statement *stmt;
-  if (ctx->last_event == EVENT_ON_MAP_KEY)
+  if (ctx->last_event == EVENT_ON_MAP_KEY
+      || (ctx->predicates != NULL && ctx->last_event == EVENT_ON_ARRAY_START)
+      || ctx->last_event == EVENT_ON_MAP_END)
     {
       list_t *parent = ctx->subjects;
       char *parent_name = parent->data;
+
+      list_t *predicates = ctx->predicates;
+      char *predicate_name = (char *)predicates->data;
+
       if (parent_name != NULL)
         {
           stmt = raptor_new_statement (config.raptor_world);
           stmt->subject   = term (PREFIX_BASE, parent_name);
-          stmt->predicate = term (PREFIX_DYNAMIC_TYPE, ctx->predicate);
+          stmt->predicate = term (PREFIX_DYNAMIC_TYPE, predicate_name);
           stmt->object    = term (PREFIX_BASE, buffer);
           register_statement (stmt);
         }
@@ -214,11 +232,13 @@ on_map_key (void *ctx_ptr, const unsigned char *value, size_t value_length)
       return 0;
     }
 
-  if (ctx->predicate != NULL)
-    free (ctx->predicate);
-
   snprintf (buffer, value_length + 1, "%s", (char *)value);
-  ctx->predicate = buffer;
+  ctx->predicates = list_prepend (ctx->predicates, buffer);
+  if (ctx->predicates == NULL)
+    {
+      ui_print_general_memory_error ();
+      return 0;
+    }
 
   return 1;
 }
@@ -237,6 +257,13 @@ on_map_end (void *ctx_ptr)
       ctx->subjects = list_remove (first);
     }
 
+  if (ctx->predicates != NULL)
+    {
+      list_t *first = list_nth (ctx->predicates, 1);
+      free (first->data);
+      ctx->predicates = list_remove (first);
+    }
+
   return 1;
 }
 
@@ -247,6 +274,18 @@ on_array_start (void *ctx_ptr)
   json_state_t *ctx = ctx_ptr;
   ctx->last_event = EVENT_ON_ARRAY_START;
 
+  if (ctx->predicates != NULL)
+    {
+      list_t *predicates = list_nth (ctx->predicates, 1);
+      char *predicate = strdup ((char *)predicates->data);
+      ctx->predicates = list_prepend (predicates, predicate);
+      if (ctx->predicates == NULL)
+        {
+          ui_print_general_memory_error ();
+          return 0;
+        }
+    }
+
   return 1;
 }
 
@@ -256,6 +295,13 @@ on_array_end (void *ctx_ptr)
   if (! context_is_available (ctx_ptr)) return 0;
   json_state_t *ctx = ctx_ptr;
   ctx->last_event = EVENT_ON_ARRAY_END;
+
+  if (ctx->predicates != NULL)
+    {
+      list_t *first = list_nth (ctx->predicates, 1);
+      free (first->data);
+      ctx->predicates = list_remove (first);
+    }
 
   return 1;
 }

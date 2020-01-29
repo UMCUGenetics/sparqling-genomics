@@ -54,7 +54,7 @@ typedef struct
   uint32_t unnamed_map_id;
 
   list_t *subjects;
-  char *predicate;
+  list_t *predicates;
 
   EventType last_event;
 } json_state_t;
