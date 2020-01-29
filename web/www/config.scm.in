@@ -38,6 +38,7 @@
             beacon-organization-logo-url
             beacon-organization-info
             beacon-sparql-query
+            configuration-file
             default-uri-strings
             default-prefixes
             default-debug-port
@@ -83,6 +84,7 @@
             local-users
             add-local-user!
             set-beacon-enabled!
+            set-configuration-file!
             set-ldap-enabled!
             set-ldap-uri!
             set-ldap-common-name!
@@ -209,6 +211,10 @@
   (developer-mode?          #:init-value #f
                             #:getter get-developer-mode?
                             #:setter set-developer-mode-private!)
+
+  (configuration-file       #:init-value #f
+                            #:getter get-configuration-file
+                            #:setter set-configuration-file-private!)
 
   ;; Beacon settings
   ;; --------------------------------------------------------------------------
@@ -343,6 +349,8 @@
 
 (define (default-debug-port)
   (get-default-debug-port %runtime-configuration))
+(define-syntax-rule (configuration-file)
+  (get-configuration-file %runtime-configuration))
 
 (define (default-warning-port)
   (get-default-warning-port %runtime-configuration))
@@ -377,6 +385,10 @@
 (define-syntax-rule
   (set-developer-mode! arg)
   (set-developer-mode-private! %runtime-configuration arg))
+
+(define-syntax-rule
+  (set-configuration-file! arg)
+  (set-configuration-file-private! %runtime-configuration arg))
 
 (define (set-www-listen-address! arg)
   (if (string? arg)

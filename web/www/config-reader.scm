@@ -28,6 +28,7 @@
 
 (define (read-configuration-from-file filename)
   (log-debug "read-configuration-from-file" "Reading ~s." filename)
+  (set-configuration-file! filename)
   (catch #t
     (lambda _
       (unless (file-exists? filename)
