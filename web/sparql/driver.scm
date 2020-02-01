@@ -27,6 +27,12 @@
             sparql-available-backends))
 
 ;;;
+;;; CONSTANTS
+;;; ---------------------------------------------------------------------------
+
+(define %user-agent "SPARQLing-genomics")
+
+;;;
 ;;; UTILITY FUNCTIONS
 ;;; ---------------------------------------------------------------------------
 
@@ -56,7 +62,7 @@
                        (namespace "kb")
                        (token #f)
                        (digest-auth #f))
-  "Send QUERY to STORE-BACKEND, which can be either '4store or 'virtuoso."
+  "Send QUERY to STORE-BACKEND."
   (cond
    ((eq? store-backend '4store)
     (sparql-query-4store
@@ -94,7 +100,7 @@
           #:streaming? #t
           #:headers
           (delete #f
-                  `((user-agent . "GNU Guile")
+                  `((user-agent . ,%user-agent)
                     (content-type . (application/sparql-update))
                     (accept . ((,(string->symbol type))))
                     ;; "Bearer" authorization isn't implemented in (web client),
@@ -199,7 +205,7 @@
                #:streaming? #t
                #:headers
                (delete #f
-                `((user-agent . "GNU Guile")
+                `((user-agent . ,%user-agent)
                   (content-type . (application/x-www-form-urlencoded))
                   (accept . ((,(string->symbol type)))))))))
 
@@ -224,6 +230,6 @@
                #:body (string-append "query=" (uri-encode query))
                #:streaming? #t
                #:headers
-               `((user-agent   . "GNU Guile")
+               `((user-agent   . ,%user-agent)
                  (content-type . (application/x-www-form-urlencoded))
                  (accept       . ((,(string->symbol type))))))))
