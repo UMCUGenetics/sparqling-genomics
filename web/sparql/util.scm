@@ -14,11 +14,19 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (sparql util)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
   #:use-module (ice-9 format)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 receive)
+  #:use-module (ice-9 textual-ports)
+  #:use-module (logger)
   #:use-module (srfi srfi-1)
   #:use-module (web response)
+
+  ;; The following functions are used in the macros for ‘query-results->list’
+  ;; and ‘query-results->alist’.  We re-export them from this module so that
+  ;; these modules need not to be imported when using these macros.
+  #:re-export (response-code receive read-line backtrace)
+
   #:export (display-query-results
             display-query-results-of
             query-results->list
@@ -68,9 +76,10 @@
     (if (= (response-code header) 200)
         (query-results-to-list port skip-first-line?)
         (begin
-          (format #t "Error (~a): ~a~%"
-                  (response-code header)
-                  (read-line port))
+          (log-error "query-results->list"
+                     "Response (~a) was:~%---~%~a"
+                     (response-code header)
+                     (get-string-all port))
           #f))))
 
 (define* (query-results-to-alist port #:optional (header '())
@@ -93,9 +102,10 @@
     (if (= (response-code header) 200)
         (query-results-to-alist port)
         (begin
-          (format #t "Error (~a): ~a~%"
-                  (response-code header)
-                  (read-line port))
+          (log-error "query-results->alist"
+                     "Response (~a) was:~%---~%~a"
+                     (response-code header)
+                     (get-string-all port))
           #f))))
 
 (define* (csv-read-entry port
