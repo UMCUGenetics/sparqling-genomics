@@ -16,7 +16,6 @@
 
 (define-module (www db api)
   #:use-module (www util)
-  #:use-module (www config)
   #:use-module (web response)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
