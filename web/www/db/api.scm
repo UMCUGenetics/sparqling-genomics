@@ -60,13 +60,15 @@
 (define (api-request-data->alist fmt data)
   "This function parses DATA and returns an ALIST of its contents."
   (cond
-   [(equal? fmt '(application/json))
+   [(or (equal? fmt '(application/json))
+        (member 'application/json fmt))
     (let [(json-data (json-string->scm data))]
       ;; This only works for one level of key-value pairs.
       (hash-map->list (lambda (key value)
                         `(,(string->symbol key) . ,value))
                       json-data))]
-   [(equal? fmt '(application/xml))
+   [(or (equal? fmt '(application/xml))
+        (member 'application/xml fmt))
     ;; It's unclear how this would work without introducing a top-level
     ;; keyword like <parameters>, so that we can write:
     ;; <parameters>
@@ -75,7 +77,8 @@
     ;; </parameters>
     (map (lambda (item) `(,(car item) . ,(cadr item)))
          (assoc-ref (xml->sxml data) 'parameters))]
-   [(equal? fmt '(application/s-expression))
+   [(or (equal? fmt '(application/s-expression))
+        (member 'application/s-expression fmt))
     ;; We want to end up with an S-expression, so we don't need to do
     ;; anything.
     data]
