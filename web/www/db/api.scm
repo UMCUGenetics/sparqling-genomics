@@ -32,11 +32,11 @@
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
-   [(equal? fmt '(application/json))                       #t]
+   [(equal? '(application/json) fmt)                       #t]
    [(member '(application/json) fmt)                       #t]
-   [(equal? fmt '(application/xml))                        #t]
+   [(equal? '(application/xml) fmt)                        #t]
    [(member '(application/xml) fmt)                        #t]
-   [(equal? fmt '(application/s-expression))               #t]
+   [(equal? '(application/s-expression) fmt)               #t]
    [(member '(application/s-expression) fmt)               #t]
    [else                                                   #f]))
 
