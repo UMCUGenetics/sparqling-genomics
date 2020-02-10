@@ -22,6 +22,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (json)
   #:use-module (sxml simple)
+  #:use-module (logger)
 
   #:export (api-serveable-format?
             api-format
@@ -84,7 +85,9 @@
     data]
    [(equal? fmt '(application/x-www-form-urlencoded))
     (post-data->alist data)]
-   [else #f]))
+   [else
+    (log-error "api-request-data->alist" "Unknown format: ~s" fmt)
+    #f]))
 
 
 (define* (alist->sxml input #:optional (inside-list? #f))
