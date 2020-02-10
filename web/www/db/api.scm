@@ -81,8 +81,10 @@
    [(or (equal? fmt '(application/s-expression))
         (member 'application/s-expression fmt))
     ;; We want to end up with an S-expression, so we don't need to do
-    ;; anything.
-    data]
+    ;; anything unless the input was read as a string.
+    (if (string? data)
+        (call-with-input-string data read)
+        data)]
    [(equal? fmt '(application/x-www-form-urlencoded))
     (post-data->alist data)]
    [else
