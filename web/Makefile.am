@@ -26,6 +26,8 @@ SOURCES =                                               \
   sparql/driver.scm                                     \
   sparql/lang.scm                                       \
   sparql/md5.scm                                        \
+  sparql/parser.scm                                     \
+  sparql/stream.scm                                     \
   sparql/util.scm                                       \
   www/base64.scm                                        \
   www/config.scm                                        \
