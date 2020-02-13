@@ -36,25 +36,21 @@
 
 (define-class <query> ()
 
-  (type     #:init-value #nil
-            #:getter query-type
-            #:setter set-query-type!)
+  (type            #:init-value #nil
+                   #:getter query-type
+                   #:setter set-query-type!)
 
-  (base     #:init-value #nil
-            #:getter query-base
-            #:setter set-query-base!)
+  (base            #:init-value #nil
+                   #:getter query-base
+                   #:setter set-query-base!)
 
-  (prefixes #:init-value '()
-            #:getter query-prefixes
-            #:setter set-query-prefixes!)
+  (prefixes        #:init-value '()
+                   #:getter query-prefixes
+                   #:setter set-query-prefixes!)
 
-  (quads    #:init-value '()
-            #:getter query-quads
-            #:setter set-query-quads!)
-
-  (triplets #:init-value '()
-            #:getter query-triplets
-            #:setter set-query-triplets!))
+  (triple-patterns #:init-value '()
+                   #:getter query-triple-patterns
+                   #:setter set-query-triple-patterns!))
 
 
 (define-method (write (query <query>) out)
