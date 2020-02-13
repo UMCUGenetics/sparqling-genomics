@@ -174,6 +174,22 @@
                              modes
                              (cons buffer output))]))))
 
+  (define* (read-base out text #:optional (start 0))
+    ;; We expect the URI to come after BASE to be an absolute URI because
+    ;; this is what the SPARQL spec has to say about it:
+    ;; “Base IRIs declared with the BASE keyword must be absolute IRIs.”.
+    (let* [(base-start  (string-contains-ci-surrounded-by-whitespace
+                         text "base" start))
+           (uri-start   (when base-start
+                          (string-index text #\< (+ base-start 4))))
+           (uri-end     (unless (unspecified? uri-start)
+                          (string-index text #\> (+ uri-start 1))))]
+      (if (unspecified? uri-end)
+          start
+          (begin
+            (set-query-base! out (string-copy text (+ uri-start 1) uri-end))
+            (+ uri-end 1)))))
+
   (define (read-prefixes out text start)
     (let* [(prefix-start  (string-contains-ci-surrounded-by-whitespace
                            text "prefix" start))
