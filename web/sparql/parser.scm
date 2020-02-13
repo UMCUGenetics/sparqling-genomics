@@ -56,6 +56,12 @@
             #:getter query-triplets
             #:setter set-query-triplets!))
 
+
+(define-method (write (query <query>) out)
+  (format out "#<<query> ~a, prefixes: ~a>"
+          (query-type query)
+          (length (query-prefixes query))))
+
 (define (parse-query query)
   "Returns an instace of <query>."
 
