@@ -177,10 +177,12 @@ make install
   \texttt{tools/vcf2rdf/vcf2rdf} when inside the project's root directory,
   instead of ``just'' \texttt{vcf2rdf}.
 
-  Alternatively, the individual components can be built by replacing
-  \texttt{make} with the more specific \texttt{make -C <component-directory>}.
-  So, to \emph{only} build \texttt{vcf2rdf}, the following command could be
-  used:
+  Alternatively, specify a \texttt{-{}-prefix} to the \texttt{configure}
+  script to install the tools to a user-writeable location.
+
+  Individual components can be built by replacing \texttt{make} with the
+  more specific \texttt{make -C <component-directory>}.  So, to \emph{only}
+  build \texttt{vcf2rdf}, the following command could be used:
 
 \begin{siderules}
 \begin{verbatim}
@@ -201,7 +203,7 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 \end{lstlisting}
 \end{siderules}
 
-  The container contains both SPARQLing genomics and Virtuoso (open source
+  The container includes both SPARQLing genomics and Virtuoso (open source
   edition).
 
 \chapter{The knowledge graph}
