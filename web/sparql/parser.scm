@@ -241,17 +241,17 @@
                                      text "insert" start))
                       (SELECT    . ,(string-contains-ci-surrounded-by-whitespace
                                      text "select" start)))))
-           (filtered (map car types))
-           (type   (if (> (length filtered) 1)
-                       (apply symbol-append filtered)
-                       (car filtered)))]
-      (if (null? types)
-          (begin
-            (set-query-type! out 'UNKNOWN)
-            start)
-          (begin
-            (set-query-type! out type)
-            (assoc-ref types type)))))
+           (cars  (map car types))
+           (type  (cond
+                   [(null? cars)
+                    'UNKNOWN]
+                   [(> (length cars) 1)
+                    (apply symbol-append cars)]
+                   [else (car cars)]))]
+      (set-query-type! out type)
+      (if (eq? type 'UNKNOWN)
+          start
+          (assoc-ref types type))))
 
 
   (let* [(out (make <query>))]
