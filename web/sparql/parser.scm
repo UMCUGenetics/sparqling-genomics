@@ -65,6 +65,11 @@
 (define (parse-query query)
   "Returns an instace of <query>."
 
+  (define (string-is-longer-than str length)
+    (catch 'out-of-range
+      (lambda _ (if (string-ref str length) #t))
+      (lambda (key . args) #f)))
+
   (define (string-contains-ci-surrounded-by-whitespace s1 s2 start)
     (let [(pstart (string-contains-ci s1 s2 start))]
       (cond
@@ -129,6 +134,45 @@
     (if (not (pred (string-ref str start)))
         start
         (string-non-pred-index pred str (+ start 1))))
+
+  (define* (remove-comments text #:optional (position 0)
+                                            (modes    '(none))
+                                            (output   '()))
+    (if (or (not position)
+            (not (string-is-longer-than text position)))
+        (list->string (reverse output))
+        (let [(buffer (string-ref text position))]
+          (cond
+           [(eq? buffer #\#)
+            (if (or (eq? (car modes) 'single-quoted)
+                    (eq? (car modes) 'double-quoted))
+                (remove-comments text
+                                 (+ position 1)
+                                 modes
+                                 (cons buffer output))
+                (remove-comments text
+                                 (string-index text #\newline position)
+                                 modes
+                                 output))]
+           [(eq? buffer #\")
+            (remove-comments text
+                             (+ position 1)
+                             (if (eq? (car modes) 'double-quoted)
+                                 (cdr modes)
+                                 (cons 'double-quoted modes))
+                             (cons buffer output))]
+           [(eq? buffer #\')
+            (remove-comments text
+                             (+ position 1)
+                             (if (eq? (car modes) 'single-quoted)
+                                 (cdr modes)
+                                 (cons 'single-quoted modes))
+                             (cons buffer output))]
+           [else
+            (remove-comments text
+                             (+ position 1)
+                             modes
+                             (cons buffer output))]))))
 
   (define (read-prefixes out text start)
     (let* [(prefix-start  (string-contains-ci-surrounded-by-whitespace
