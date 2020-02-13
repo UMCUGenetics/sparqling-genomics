@@ -59,34 +59,88 @@
 (define (parse-query query)
   "Returns an instace of <query>."
 
+  (define (string-contains-ci-surrounded-by-whitespace s1 s2 start)
+    (let [(pstart (string-contains-ci s1 s2 start))]
+      (cond
+       [(not pstart)                            #f]
+       [(= pstart 0)                            pstart]
+       [(and (> pstart 0)
+
+             (char-whitespace?
+              (string-ref s1 (- pstart 1)))
+
+             (catch 'out-of-range
+               (lambda _
+                 (char-whitespace?
+                  (string-ref s1
+                    (+ pstart
+                       (string-length s2)))))
+               (lambda _ #t)))                   pstart]
+       [else                                     #f])))
+
   (define (read-prefixes out text start)
-    (let* [(prefix-start  (let [(pstart (string-contains-ci
-                                         text "prefix " start))]
-                            (cond
-                             [(not pstart)                           #f]
-                             [(= pstart 0)                           pstart]
-                             [(and (> pstart 0)
-                                   (char-whitespace?
-                                    (string-ref text (- pstart 1)))) pstart]
-                             [else                                   #f])))
+    (let* [(prefix-start  (string-contains-ci-surrounded-by-whitespace
+                           text "prefix" start))
            (shortcode-end (when prefix-start
                             (string-index text #\: (+ prefix-start 7))))
            (uri-start     (unless (unspecified? shortcode-end)
                             (string-index text #\< (+ shortcode-end 1))))
            (uri-end       (unless (unspecified? uri-start)
                             (string-index text #\> (+ uri-start 1))))]
-      (unless (unspecified? uri-end)
-        (set-query-prefixes! out
-          (cons `(;; Cut out the shortcode.
-                  ,(string->symbol
-                    (string-trim-both
-                     (string-copy text (+ prefix-start 7) shortcode-end)))
-                  .
-                  ;; Cut out the URI.
-                  ,(string-copy text (+ uri-start 1) uri-end))
-                (query-prefixes out)))
-        (read-prefixes out text (+ uri-end 1)))))
+      (if (unspecified? uri-end)
+          start
+          (begin
+            (set-query-prefixes! out
+              (cons `(;; Cut out the shortcode.
+                      ,(string->symbol
+                        (string-trim-both
+                         (string-copy text (+ prefix-start 7) shortcode-end)))
+                      .
+                      ;; Cut out the URI.
+                      ,(string-copy text (+ uri-start 1) uri-end))
+                    (query-prefixes out)))
+            (read-prefixes out text (+ uri-end 1))))))
+
+  (define (determine-query-type out text start)
+    (let [(select-type    (string-contains-ci-surrounded-by-whitespace
+                           text "select" start))
+          (insert-type    (string-contains-ci-surrounded-by-whitespace
+                           text "insert" start))
+          (delete-type    (string-contains-ci-surrounded-by-whitespace
+                           text "delete" start))
+          (clear-type     (string-contains-ci-surrounded-by-whitespace
+                           text "clear graph" start))]
+      (set-query-type! out
+       (cond
+        [(and select-type
+              (not insert-type)
+              (not delete-type)
+              (not clear-type))
+         'SELECT]
+        [(and insert-type
+              delete-type
+              (not select-type)
+              (not clear-type))
+         'INSERT-DELETE]
+        [(and insert-type
+              (not select-type)
+              (not clear-type))
+         'INSERT]
+        [(and delete-type
+              (not select-type)
+              (not clear-type))
+         'DELETE]
+        [(and clear-type
+              (not select-type)
+              (not insert-type)
+              (not delete-type))
+         'CLEAR]
+        [else 'UNKNOWN]))))
 
   (let* [(out (make <query>))]
-    (read-prefixes out query 0)
+    ;; The following functions write their findings to ‘out’ as side-effects.
+    (let ((after-prefixes-position (read-prefixes out query 0)))
+      (determine-query-type out query after-prefixes-position))
     out))
+
+
