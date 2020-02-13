@@ -165,40 +165,34 @@
             (read-prefixes out text (+ uri-end 1))))))
 
   (define (determine-query-type out text start)
-    (let [(select-type    (string-contains-ci-surrounded-by-whitespace
-                           text "select" start))
-          (insert-type    (string-contains-ci-surrounded-by-whitespace
-                           text "insert" start))
-          (delete-type    (string-contains-ci-surrounded-by-whitespace
-                           text "delete" start))
-          (clear-type     (string-contains-ci-surrounded-by-whitespace
-                           text "clear graph" start))]
-      (set-query-type! out
-       (cond
-        [(and select-type
-              (not insert-type)
-              (not delete-type)
-              (not clear-type))
-         'SELECT]
-        [(and insert-type
-              delete-type
-              (not select-type)
-              (not clear-type))
-         'INSERT-DELETE]
-        [(and insert-type
-              (not select-type)
-              (not clear-type))
-         'INSERT]
-        [(and delete-type
-              (not select-type)
-              (not clear-type))
-         'DELETE]
-        [(and clear-type
-              (not select-type)
-              (not insert-type)
-              (not delete-type))
-         'CLEAR]
-        [else 'UNKNOWN]))))
+    (let* [(types  (filter
+                    (lambda (item) (cdr item))
+                    `((ASK       . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "ask" start))
+                      (CLEAR     . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "clear graph" start))
+                      (CONSTRUCT . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "construct" start))
+                      (DELETE    . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "delete" start))
+                      (DESCRIBE  . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "describe" start))
+                      (INSERT    . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "insert" start))
+                      (SELECT    . ,(string-contains-ci-surrounded-by-whitespace
+                                     text "select" start)))))
+           (filtered (map car types))
+           (type   (if (> (length filtered) 1)
+                       (apply symbol-append filtered)
+                       (car filtered)))]
+      (if (null? types)
+          (begin
+            (set-query-type! out 'UNKNOWN)
+            start)
+          (begin
+            (set-query-type! out type)
+            (assoc-ref types type)))))
+
 
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
