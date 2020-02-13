@@ -84,26 +84,83 @@
                (lambda _ #t)))                   pstart]
        [else                                     #f])))
 
+  (define (parse-uri-token out token)
+    (if (eq? (string-ref token 0) #\<)
+
+        ;; Deal with absolute URIs.
+        ;; --------------------------------------------------------------------
+        (let* [(uri-start 0)
+               (uri-end   (string-index token #\> (+ uri-start 1)))]
+          (if uri-end
+              (string-copy token (+ uri-start 1) uri-end)
+              #f))
+
+        ;; Deal with shorthand URIs.
+        ;; --------------------------------------------------------------------
+        (let [(shortcode-end (string-index token #\:))]
+          (cond
+           [(not shortcode-end)
+            #f]
+           [(> shortcode-end 0)
+            (let* [(sym      (string-trim (string-copy token 0 shortcode-end)))
+                   (sym-len  (string-length sym))
+                   (prefixes (query-prefixes out))
+                   (prefix   (assoc-ref prefixes sym))]
+              (cond
+               [(= sym-len 0)
+                (parse-uri-token out (string-trim token))]
+               [prefix
+                (string-append prefix (substring token (+ shortcode-end 1)))]
+               [else
+                #f]))]
+           [else
+            (let* [(prefixes     (query-prefixes out))
+                   (empty-prefix (assoc-ref prefixes ""))]
+              (if empty-prefix
+                  (string-append empty-prefix (substring token 1))
+                  #f))]))))
+
+  (define* (string-pred-index pred str #:optional (start 0))
+    (if (pred (string-ref str start))
+        start
+        (string-pred-index pred str (+ start 1))))
+
+  (define* (string-non-pred-index pred str #:optional (start 0))
+    (if (not (pred (string-ref str start)))
+        start
+        (string-non-pred-index pred str (+ start 1))))
+
   (define (read-prefixes out text start)
     (let* [(prefix-start  (string-contains-ci-surrounded-by-whitespace
                            text "prefix" start))
            (shortcode-end (when prefix-start
                             (string-index text #\: (+ prefix-start 7))))
            (uri-start     (unless (unspecified? shortcode-end)
-                            (string-index text #\< (+ shortcode-end 1))))
+                            (let [(uri-open (string-non-pred-index
+                                             char-whitespace?
+                                             text (+ shortcode-end 1)))]
+                              (if uri-open
+                                  uri-open
+                                  (string-non-pred-index
+                                   char-whitespace?
+                                   text (+ shortcode-end 1))))))
            (uri-end       (unless (unspecified? uri-start)
-                            (string-index text #\> (+ uri-start 1))))]
+                            (if (eq? (string-ref text uri-start) #\<)
+                                (string-index text #\> (+ uri-start 1))
+                                (string-pred-index char-whitespace?
+                                                   text (+ uri-start 1)))))]
       (if (unspecified? uri-end)
           start
           (begin
             (set-query-prefixes! out
               (cons `(;; Cut out the shortcode.
-                      ,(string->symbol
-                        (string-trim-both
-                         (string-copy text (+ prefix-start 7) shortcode-end)))
+                      ,(string-trim-both
+                        (string-copy text (+ prefix-start 7) shortcode-end))
                       .
                       ;; Cut out the URI.
-                      ,(string-copy text (+ uri-start 1) uri-end))
+                      ,(parse-uri-token out
+                         (string-trim-both
+                          (string-copy text uri-start (+ uri-end 1)))))
                     (query-prefixes out)))
             (read-prefixes out text (+ uri-end 1))))))
 
