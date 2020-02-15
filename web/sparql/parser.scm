@@ -66,6 +66,21 @@
       (lambda _ (if (string-ref str length) #t))
       (lambda (key . args) #f)))
 
+  (define* (string-pred-index pred str #:optional (start 0))
+    (if (pred (string-ref str start))
+        start
+        (string-pred-index pred str (+ start 1))))
+
+  (define* (string-non-pred-index pred str #:optional (start 0))
+    (if (not (pred (string-ref str start)))
+        start
+        (string-non-pred-index pred str (+ start 1))))
+
+  (define* (is-absolute-uri? str)
+    (if (string-contains str "://")
+        #t
+        #f))
+
   (define (string-contains-ci-surrounded-by-whitespace s1 s2 start)
     (let [(pstart (string-contains-ci s1 s2 start))]
       (cond
@@ -121,15 +136,6 @@
                   (string-append empty-prefix (substring token 1))
                   #f))]))))
 
-  (define* (string-pred-index pred str #:optional (start 0))
-    (if (pred (string-ref str start))
-        start
-        (string-pred-index pred str (+ start 1))))
-
-  (define* (string-non-pred-index pred str #:optional (start 0))
-    (if (not (pred (string-ref str start)))
-        start
-        (string-non-pred-index pred str (+ start 1))))
 
   (define* (remove-comments text #:optional (position 0)
                                             (modes    '(none))
@@ -207,18 +213,26 @@
                                                    text (+ uri-start 1)))))]
       (if (unspecified? uri-end)
           start
-          (begin
+          (let [(uri-token (parse-uri-token out
+                             (string-trim-both
+                              (string-copy text uri-start (+ uri-end 1)))))]
             (set-query-prefixes! out
               (cons `(;; Cut out the shortcode.
                       ,(string-trim-both
                         (string-copy text (+ prefix-start 7) shortcode-end))
                       .
                       ;; Cut out the URI.
-                      ,(parse-uri-token out
-                         (string-trim-both
-                          (string-copy text uri-start (+ uri-end 1)))))
+                      ,(if (and (query-base out)
+                                (is-absolute-uri? uri-token))
+                           uri-token
+                           (string-append (query-base out) uri-token)))
                     (query-prefixes out)))
             (read-prefixes out text (+ uri-end 1))))))
+
+  (define (read-prologue out query start)
+    (let* [(after-base     (read-base out query 0))
+           (after-prefixes (read-prefixes out query 0))]
+      after-prefixes))
 
   (define (determine-query-type out text start)
     (let* [(types  (filter
