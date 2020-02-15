@@ -32,6 +32,12 @@
             query-triplets
             set-query-triplets!
 
+            query-global-graphs
+            set-query-global-graphs!
+
+            query-out-variables
+            set-query-out-variables!
+
             parse-query))
 
 (define-class <query> ()
@@ -47,6 +53,14 @@
   (prefixes        #:init-value '()
                    #:getter query-prefixes
                    #:setter set-query-prefixes!)
+
+  (global-graphs   #:init-value '()
+                   #:getter query-global-graphs
+                   #:setter set-query-global-graphs!)
+
+  (out-variables   #:init-value '()
+                   #:getter query-out-variables
+                   #:setter set-query-out-variables!)
 
   (triple-patterns #:init-value '()
                    #:getter query-triple-patterns
