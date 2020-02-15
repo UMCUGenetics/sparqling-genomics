@@ -40,7 +40,7 @@
                    #:getter query-type
                    #:setter set-query-type!)
 
-  (base            #:init-value #nil
+  (base            #:init-value #f
                    #:getter query-base
                    #:setter set-query-base!)
 
