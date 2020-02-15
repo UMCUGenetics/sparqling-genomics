@@ -277,6 +277,63 @@
           start
           (assoc-ref types type))))
 
+  (define (cons-token lst tokens)
+    (let [(token (list->string (reverse lst)))]
+      (if (string= token "")
+          tokens
+          (cons token tokens))))
+
+  (define* (tokenize-select-query out text #:optional (cursor  0)
+                                                      (modes   '(none))
+                                                      (current '())
+                                                      (tokens  '()))
+    (if (or (not cursor)
+            (not (string-is-longer-than text cursor)))
+        tokens
+        (let [(buffer (string-ref text cursor))]
+          (cond
+           [(eq? buffer #\()
+            (tokenize-select-query out text (+ cursor 1)
+                                  (cons 'in-function modes)
+                                  current
+                                  tokens)]
+           [(and (eq? buffer #\))
+                 (eq? (car modes) 'in-function))
+            (tokenize-select-query out text (+ cursor 1)
+                                  (cdr modes)
+                                  '()
+                                  (cons-token current tokens))]
+           [(eq? buffer #\")
+            (tokenize-select-query out text
+                             (+ cursor 1)
+                             (if (eq? (car modes) 'double-quoted)
+                                 (cdr modes)
+                                 (cons 'double-quoted modes))
+                             (cons buffer current)
+                             tokens)]
+           [(eq? buffer #\')
+            (tokenize-select-query out text
+                             (+ cursor 1)
+                             (if (eq? (car modes) 'single-quoted)
+                                 (cdr modes)
+                                 (cons 'single-quoted modes))
+                             (cons buffer current)
+                             tokens)]
+           [(and (char-whitespace? buffer)
+                 (or (eq? (car modes) 'none)
+                     (eq? (car modes) 'in-function)))
+            (tokenize-select-query out text (+ cursor 1)
+                                  modes
+                                  '()
+                                  (cons-token current tokens))]
+           [(and (eq? buffer #\{)
+                 (eq? (car modes) 'none))
+            (cons (list->string (reverse current)) tokens)]
+           [else
+            (tokenize-select-query out text (+ cursor 1)
+                                   modes
+                                   (cons buffer current)
+                                   tokens)]))))
 
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
