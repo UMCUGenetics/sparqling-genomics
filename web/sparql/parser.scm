@@ -14,6 +14,7 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (sparql parser)
+  #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:export (<query>
 
@@ -68,9 +69,10 @@
 
 
 (define-method (write (query <query>) out)
-  (format out "#<<query> ~a, prefixes: ~a>"
+  (format out "#<<query> ~a, prefixes: ~a>, global graphs: ~a"
           (query-type query)
-          (length (query-prefixes query))))
+          (length (query-prefixes query))
+          (length (query-global-graphs query))))
 
 (define (parse-query query)
   "Returns an instace of <query>."
@@ -91,7 +93,8 @@
         (string-non-pred-index pred str (+ start 1))))
 
   (define* (is-absolute-uri? str)
-    (if (string-contains str "://")
+    (if (and (string? str)
+             (string-contains str "://"))
         #t
         #f))
 
@@ -122,7 +125,11 @@
         (let* [(uri-start 0)
                (uri-end   (string-index token #\> (+ uri-start 1)))]
           (if uri-end
-              (string-copy token (+ uri-start 1) uri-end)
+              (let [(out-token (string-copy token (+ uri-start 1) uri-end))]
+                (if (and (query-base out)
+                         (not (is-absolute-uri? out-token)))
+                    (string-append (query-base out) out-token)
+                    out-token))
               #f))
 
         ;; Deal with shorthand URIs.
@@ -236,10 +243,7 @@
                         (string-copy text (+ prefix-start 7) shortcode-end))
                       .
                       ;; Cut out the URI.
-                      ,(if (and (query-base out)
-                                (is-absolute-uri? uri-token))
-                           uri-token
-                           (string-append (query-base out) uri-token)))
+                      ,uri-token)
                     (query-prefixes out)))
             (read-prefixes out text (+ uri-end 1))))))
 
@@ -267,21 +271,27 @@
                                      text "select" start)))))
            (cars  (map car types))
            (type  (cond
-                   [(null? cars)
-                    'UNKNOWN]
-                   [(> (length cars) 1)
-                    (apply symbol-append cars)]
-                   [else (car cars)]))]
+                   [(null? cars)          'UNKNOWN]
+                   [(> (length cars) 1)   (apply symbol-append cars)]
+                   [else                  (car cars)]))]
       (set-query-type! out type)
       (if (eq? type 'UNKNOWN)
           start
           (assoc-ref types type))))
 
-  (define (cons-token lst tokens)
-    (let [(token (list->string (reverse lst)))]
-      (if (string= token "")
+  (define (cons-token out lst tokens)
+    (let [(token     (list->string (reverse lst)))
+          (from-test (and (not (null? tokens))
+                          (string? (car tokens))
+                          (string-ci= (car tokens) "from")))]
+      (if (or (string= token "")
+              (and from-test
+                   (string-ci= token "named")))
           tokens
-          (cons token tokens))))
+          (if from-test
+              (cons `(,(car tokens) . ,(parse-uri-token out token))
+                    (cdr tokens))
+              (cons token tokens)))))
 
   (define* (tokenize-select-query out text #:optional (cursor  0)
                                                       (modes   '(none))
@@ -302,7 +312,7 @@
             (tokenize-select-query out text (+ cursor 1)
                                   (cdr modes)
                                   '()
-                                  (cons-token current tokens))]
+                                  (cons-token out current tokens))]
            [(eq? buffer #\")
             (tokenize-select-query out text
                              (+ cursor 1)
@@ -325,7 +335,7 @@
             (tokenize-select-query out text (+ cursor 1)
                                   modes
                                   '()
-                                  (cons-token current tokens))]
+                                  (cons-token out current tokens))]
            [(and (eq? buffer #\{)
                  (eq? (car modes) 'none))
             (cons (list->string (reverse current)) tokens)]
@@ -335,10 +345,40 @@
                                    (cons buffer current)
                                    tokens)]))))
 
+  (define (read-global-graphs out tokens)
+    (for-each (lambda (item)
+                (match item
+                  (("FROM" . uri)
+                   (cond
+                    [(is-absolute-uri? uri)
+                     (set-query-global-graphs! out
+                       (cons uri (query-global-graphs out)))]
+                    [else
+                     (set-query-global-graphs! out
+                       (cons (parse-uri-token out uri)
+                             (query-global-graphs out)))]))
+                  (else #f)))
+              tokens))
+
+  (define (parse-select-query out query cursor)
+    (let [(tokens (tokenize-select-query out query cursor))]
+      (read-global-graphs out tokens)))
+
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
-    (let ((after-prefixes-position (read-prefixes out query 0)))
-      (determine-query-type out query after-prefixes-position))
+    (let* [(q              (remove-comments query))
+           (after-prologue (read-prologue out q 0))
+           (type-position  (determine-query-type out q after-prologue))]
+      (match (query-type out)
+        ('ASK           #f)
+        ('CLEAR         #f)
+        ('CONSTRUCT     #f)
+        ('DELETE        #f)
+        ('DELETEINSERT  #f)
+        ('DESCRIBE      #f)
+        ('INSERT        #f)
+        ('SELECT        (parse-select-query out query type-position))
+        (else           (format #t "Doesn't match anything.~%"))))
     out))
 
 
