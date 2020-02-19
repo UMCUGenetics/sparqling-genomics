@@ -471,6 +471,31 @@
                   (else #f)))
               tokens))
 
+  (define (read-out-variables out tokens)
+    (set-query-out-variables! out
+     (reverse
+      (delete #f (map (lambda (item-index)
+                        (catch #t
+                          (lambda _
+                            (let [(item (list-ref tokens item-index))
+                                  (next (list-ref tokens (- item-index 1)))]
+                              (cond
+                               [(and (string? item)
+                                     (not (string= item ""))
+                                     (not (string-ci= next "as"))
+                                     (eq? (string-ref item 0) #\?))
+                                item]
+                               [else
+                                #f])))
+                          (lambda (key . args)
+                            (let [(item (list-ref tokens item-index))]
+                              (if (and (string? item)
+                                       (not (string= item ""))
+                                       (eq? (string-ref item 0) #\?))
+                                  item
+                                  #f)))))
+                      (iota (length tokens)))))))
+
   (define (parse-select-query out query cursor)
     (let [(tokens (tokenize-select-query out query cursor))]
       (read-global-graphs out tokens)))
