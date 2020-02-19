@@ -14,6 +14,7 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (sparql parser)
+  #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:export (<query>
@@ -30,8 +31,8 @@
             query-quads
             set-query-quads!
 
-            query-triplets
-            set-query-triplets!
+            query-triple-patterns
+            set-query-triple-patterns!
 
             query-global-graphs
             set-query-global-graphs!
@@ -156,7 +157,6 @@
               (if empty-prefix
                   (string-append empty-prefix (substring token 1))
                   #f))]))))
-
 
   (define* (remove-comments text #:optional (position 0)
                                             (modes    '(none))
