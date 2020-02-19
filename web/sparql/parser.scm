@@ -294,56 +294,70 @@
               (cons token tokens)))))
 
   (define* (tokenize-select-query out text #:optional (cursor  0)
-                                                      (modes   '(none))
+                                           #:key      (modes   '(none))
                                                       (current '())
                                                       (tokens  '()))
+    (define (cons-token out lst tokens)
+      (let [(token     (list->string (reverse lst)))
+            (from-test (and (not (null? tokens))
+                            (string? (car tokens))
+                            (string-ci= (car tokens) "from")))]
+        (if (or (string= token "")
+                (and from-test
+                     (string-ci= token "named")))
+            tokens
+            (if from-test
+                (cons `(,(car tokens) . ,(parse-uri-token out token))
+                      (cdr tokens))
+                (cons token tokens)))))
+
     (if (or (not cursor)
             (not (string-is-longer-than text cursor)))
-        tokens
+        (values tokens cursor)
         (let [(buffer (string-ref text cursor))]
           (cond
            [(eq? buffer #\()
             (tokenize-select-query out text (+ cursor 1)
-                                  (cons 'in-function modes)
-                                  current
-                                  tokens)]
+              #:modes   (cons 'in-function modes)
+              #:current current
+              #:tokens  tokens)]
            [(and (eq? buffer #\))
                  (eq? (car modes) 'in-function))
             (tokenize-select-query out text (+ cursor 1)
-                                  (cdr modes)
-                                  '()
-                                  (cons-token out current tokens))]
+              #:modes   (cdr modes)
+              #:current '()
+              #:tokens  (cons-token out current tokens))]
            [(eq? buffer #\")
-            (tokenize-select-query out text
-                             (+ cursor 1)
-                             (if (eq? (car modes) 'double-quoted)
-                                 (cdr modes)
-                                 (cons 'double-quoted modes))
-                             (cons buffer current)
-                             tokens)]
+            (tokenize-select-query out text (+ cursor 1)
+              #:modes   (if (eq? (car modes) 'double-quoted)
+                            (cdr modes)
+                            (cons 'double-quoted modes))
+              #:current (cons buffer current)
+              #:tokens  tokens)]
            [(eq? buffer #\')
-            (tokenize-select-query out text
-                             (+ cursor 1)
-                             (if (eq? (car modes) 'single-quoted)
-                                 (cdr modes)
-                                 (cons 'single-quoted modes))
-                             (cons buffer current)
-                             tokens)]
+            (tokenize-select-query out text (+ cursor 1)
+              #:modes   (if (eq? (car modes) 'single-quoted)
+                            (cdr modes)
+                            (cons 'single-quoted modes))
+              #:current (cons buffer current)
+              #:tokens  tokens)]
+
            [(and (char-whitespace? buffer)
                  (or (eq? (car modes) 'none)
                      (eq? (car modes) 'in-function)))
             (tokenize-select-query out text (+ cursor 1)
-                                  modes
-                                  '()
-                                  (cons-token out current tokens))]
+              #:modes   modes
+              #:current '()
+              #:tokens  (cons-token out current tokens))]
            [(and (eq? buffer #\{)
                  (eq? (car modes) 'none))
-            (cons (list->string (reverse current)) tokens)]
+            (values (cons (list->string (reverse current)) tokens)
+                    cursor)]
            [else
             (tokenize-select-query out text (+ cursor 1)
-                                   modes
-                                   (cons buffer current)
-                                   tokens)]))))
+              #:modes   modes
+              #:current (cons buffer current)
+              #:tokens  tokens)]))))
 
   (define (read-global-graphs out tokens)
     (for-each (lambda (item)
