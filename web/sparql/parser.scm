@@ -497,8 +497,14 @@
                       (iota (length tokens)))))))
 
   (define (parse-select-query out query cursor)
-    (let [(tokens (tokenize-select-query out query cursor))]
-      (read-global-graphs out tokens)))
+    (call-with-values (lambda _ (tokenize-select-query out query cursor))
+      (lambda (tokens cursor)
+        (read-out-variables out tokens)
+        (read-global-graphs out tokens)
+        (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
+          (lambda (tokens cursor)
+            (set-query-triple-patterns! out (reverse tokens)))))))
+
 
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
@@ -513,8 +519,7 @@
         ('DELETEINSERT  #f)
         ('DESCRIBE      #f)
         ('INSERT        #f)
-        ('SELECT        (parse-select-query out query type-position))
+        ('SELECT        (parse-select-query out q type-position))
         (else           (format #t "Doesn't match anything.~%"))))
     out))
-
 
