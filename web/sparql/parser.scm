@@ -279,19 +279,116 @@
           start
           (assoc-ref types type))))
 
-  (define (cons-token out lst tokens)
-    (let [(token     (list->string (reverse lst)))
-          (from-test (and (not (null? tokens))
-                          (string? (car tokens))
-                          (string-ci= (car tokens) "from")))]
-      (if (or (string= token "")
-              (and from-test
-                   (string-ci= token "named")))
-          tokens
-          (if from-test
-              (cons `(,(car tokens) . ,(parse-uri-token out token))
-                    (cdr tokens))
-              (cons token tokens)))))
+  (define* (tokenize-triplet-pattern out text #:optional (cursor  0)
+                                              #:key      (modes   '(none))
+                                                         (current '())
+                                                         (graph   #f)
+                                                         (quads   '())
+                                                         (tokens  '()))
+
+    (define (graph-test)
+      (and (> (length tokens) 1)
+           (string? (car tokens))
+           (string-ci= (cadr tokens) "graph")))
+
+    (define (not-in-quotes mode)
+      (and (not (eq? modes 'double-quoted))
+           (not (eq? modes 'single-quoted))))
+
+    (define (cons-token out lst tokens)
+      (let [(token      (list->string (reverse lst)))]
+        (cond
+         [(null? lst)
+          tokens]
+         [else
+          (cons token tokens)])))
+
+    (if (or (not cursor)
+            (not (string-is-longer-than text cursor)))
+        (values quads cursor)
+        (let [(buffer (string-ref text cursor))]
+          (cond
+           [(and (eq? buffer #\{)
+                 (not (null? modes))
+                 (not-in-quotes (car modes)))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (if (null? tokens) modes (cons 'in-context modes))
+              #:current current
+              #:quads   quads
+              #:graph   (if (graph-test)
+                            (parse-uri-token out (car tokens))
+                            graph)
+              #:tokens  (cons-token out current tokens))]
+           [(and (eq? buffer #\})
+                 (not (null? modes))
+                 (eq? (car modes) 'in-context))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cdr modes)
+              #:current '()
+              #:quads   quads
+              #:graph   #f
+              #:tokens  (cons-token out current (drop-right tokens 2)))]
+           [(eq? buffer #\")
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (if (and (not (null? modes))
+                                 (eq? (car modes) 'double-quoted))
+                            (cdr modes)
+                            (cons 'double-quoted modes))
+              #:current (cons buffer current)
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
+           [(eq? buffer #\')
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (if (and (not (null? modes))
+                                 (eq? (car modes) 'single-quoted))
+                            (cdr modes)
+                            (cons 'single-quoted modes))
+              #:current (cons buffer current)
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
+
+           [(and (eq? buffer #\.)
+                 (not (null? modes))
+                 (not-in-quotes (car modes)))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   modes
+              #:current '()
+              #:quads   (cons (list
+                               (if (> (length tokens) 3) (list-ref tokens 3) #f)
+                               (list-ref tokens 2)
+                               (list-ref tokens 1)
+                               (list-ref tokens 0)) quads)
+              #:graph   graph
+              #:tokens  (cons-token out current (drop tokens 3)))]
+           [(and (eq? buffer #\;)
+                 (not (null? modes))
+                 (not-in-quotes (car modes)))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   modes
+              #:current '()
+              #:quads   (cons (list
+                               (if (> (length tokens) 3) (list-ref tokens 3) #f)
+                               (list-ref tokens 2)
+                               (list-ref tokens 1)
+                               (list-ref tokens 0)) quads)
+              #:graph   #f
+              #:tokens  (cons-token out current (drop tokens 2)))]
+           [(char-whitespace? buffer)
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   modes
+              #:current '()
+              #:quads   quads
+              #:graph   #f
+              #:tokens  (cons-token out current tokens))]
+           [else
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   modes
+              #:current (cons buffer current)
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]))))
 
   (define* (tokenize-select-query out text #:optional (cursor  0)
                                            #:key      (modes   '(none))
