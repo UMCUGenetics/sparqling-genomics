@@ -505,6 +505,10 @@
           (lambda (tokens cursor)
             (set-query-triple-patterns! out (reverse tokens)))))))
 
+  (define (parse-ask-query out query cursor)
+    (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
+      (lambda (tokens cursor)
+        (set-query-triple-patterns! out (reverse tokens)))))
 
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
@@ -512,14 +516,13 @@
            (after-prologue (read-prologue out q 0))
            (type-position  (determine-query-type out q after-prologue))]
       (match (query-type out)
-        ('ASK           #f)
+        ('ASK           (parse-ask-query out q (+ type-position 3)))
         ('CLEAR         #f)
         ('CONSTRUCT     #f)
         ('DELETE        #f)
         ('DELETEINSERT  #f)
         ('DESCRIBE      #f)
         ('INSERT        #f)
-        ('SELECT        (parse-select-query out q type-position))
+        ('SELECT        (parse-select-query out q (+ type-position 6)))
         (else           (format #t "Doesn't match anything.~%"))))
     out))
-
