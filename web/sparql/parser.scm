@@ -407,7 +407,7 @@
               #:graph   graph
               #:tokens  tokens)]))))
 
-  (define* (tokenize-select-query out text #:optional (cursor  0)
+  (define* (tokenize-query-header out text #:optional (cursor  0)
                                            #:key      (modes   '(none))
                                                       (current '())
                                                       (tokens  '()))
@@ -431,25 +431,25 @@
         (let [(buffer (string-ref text cursor))]
           (cond
            [(eq? buffer #\()
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   (cons 'in-function modes)
               #:current current
               #:tokens  tokens)]
            [(and (eq? buffer #\))
                  (eq? (car modes) 'in-function))
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   (cdr modes)
               #:current '()
               #:tokens  (cons-token out current tokens))]
            [(eq? buffer #\")
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   (if (eq? (car modes) 'double-quoted)
                             (cdr modes)
                             (cons 'double-quoted modes))
               #:current (cons buffer current)
               #:tokens  tokens)]
            [(eq? buffer #\')
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   (if (eq? (car modes) 'single-quoted)
                             (cdr modes)
                             (cons 'single-quoted modes))
@@ -459,7 +459,7 @@
            [(and (char-whitespace? buffer)
                  (or (eq? (car modes) 'none)
                      (eq? (car modes) 'in-function)))
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   modes
               #:current '()
               #:tokens  (cons-token out current tokens))]
@@ -468,7 +468,7 @@
             (values (cons (list->string (reverse current)) tokens)
                     cursor)]
            [else
-            (tokenize-select-query out text (+ cursor 1)
+            (tokenize-query-header out text (+ cursor 1)
               #:modes   modes
               #:current (cons buffer current)
               #:tokens  tokens)]))))
@@ -514,7 +514,7 @@
                       (iota (length tokens)))))))
 
   (define (parse-select-query out query cursor)
-    (call-with-values (lambda _ (tokenize-select-query out query cursor))
+    (call-with-values (lambda _ (tokenize-query-header out query cursor))
       (lambda (tokens cursor)
         (read-out-variables out tokens)
         (read-global-graphs out tokens)
@@ -536,6 +536,9 @@
           (set-query-global-graphs! out uri)
           #f)))
 
+  (define (parse-describe-query out query cursor)
+    (parse-select-query out query cursor))
+
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
     (let* [(q              (remove-comments query))
@@ -547,7 +550,7 @@
         ('CONSTRUCT     #f)
         ('DELETE        #f)
         ('DELETEINSERT  #f)
-        ('DESCRIBE      #f)
+        ('DESCRIBE      (parse-describe-query out query (+ type-position 8)))
         ('INSERT        #f)
         ('SELECT        (parse-select-query out q (+ type-position 6)))
         (else           (format #t "Doesn't match anything.~%"))))
