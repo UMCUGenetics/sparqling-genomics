@@ -303,13 +303,35 @@
          [else
           (cons token tokens)])))
 
+    (define (finalize-parser)
+      (if (> (length tokens) 2)
+          (values (cons (list
+                         (if (> (length tokens) 3)
+                             (list-ref tokens 3)
+                             #f)
+                         (list-ref tokens 2)
+                         (list-ref tokens 1)
+                         (list-ref tokens 0)) quads)
+                  cursor)
+          (values quads cursor)))
+
     (if (or (not cursor)
             (not (string-is-longer-than text cursor)))
-        (values quads cursor)
+        (finalize-parser)
         (let [(buffer (string-ref text cursor))]
           (cond
            [(and (eq? buffer #\{)
-                 (not (null? modes))
+                 (eq? (car modes) 'none))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cons 'initial-scope modes)
+              #:current current
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
+           [(and (eq? buffer #\})
+                 (eq? (car modes) 'initial-scope))
+            (finalize-parser)]
+           [(and (eq? buffer #\{)
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (if (null? tokens) modes (cons 'in-context modes))
@@ -320,7 +342,6 @@
                             graph)
               #:tokens  (cons-token out current tokens))]
            [(and (eq? buffer #\})
-                 (not (null? modes))
                  (eq? (car modes) 'in-context))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cdr modes)
@@ -330,8 +351,7 @@
               #:tokens  (cons-token out current (drop-right tokens 2)))]
            [(eq? buffer #\")
             (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   (if (and (not (null? modes))
-                                 (eq? (car modes) 'double-quoted))
+              #:modes   (if (eq? (car modes) 'double-quoted)
                             (cdr modes)
                             (cons 'double-quoted modes))
               #:current (cons buffer current)
@@ -340,8 +360,7 @@
               #:tokens  tokens)]
            [(eq? buffer #\')
             (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   (if (and (not (null? modes))
-                                 (eq? (car modes) 'single-quoted))
+              #:modes   (if (eq? (car modes) 'single-quoted)
                             (cdr modes)
                             (cons 'single-quoted modes))
               #:current (cons buffer current)
@@ -350,7 +369,6 @@
               #:tokens  tokens)]
 
            [(and (eq? buffer #\.)
-                 (not (null? modes))
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
@@ -363,7 +381,6 @@
               #:graph   graph
               #:tokens  (cons-token out current (drop tokens 3)))]
            [(and (eq? buffer #\;)
-                 (not (null? modes))
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
