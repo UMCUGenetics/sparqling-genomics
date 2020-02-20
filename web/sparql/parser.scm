@@ -31,6 +31,9 @@
             query-quads
             set-query-quads!
 
+            query-construct-patterns
+            set-query-construct-patterns!
+
             query-triple-patterns
             set-query-triple-patterns!
 
@@ -66,8 +69,11 @@
 
   (triple-patterns #:init-value '()
                    #:getter query-triple-patterns
-                   #:setter set-query-triple-patterns!))
+                   #:setter set-query-triple-patterns!)
 
+  (construct-patterns #:init-value '()
+                      #:getter query-construct-patterns
+                      #:setter set-query-construct-patterns!))
 
 (define-method (write (query <query>) out)
   (format out "#<<query> ~a, prefixes: ~a>, global graphs: ~a"
@@ -303,7 +309,7 @@
          [else
           (cons token tokens)])))
 
-    (define (finalize-parser)
+    (define (finalize-parser cursor)
       (if (> (length tokens) 2)
           (values (cons (list
                          (if (> (length tokens) 3)
@@ -317,7 +323,7 @@
 
     (if (or (not cursor)
             (not (string-is-longer-than text cursor)))
-        (finalize-parser)
+        (finalize-parser cursor)
         (let [(buffer (string-ref text cursor))]
           (cond
            [(and (eq? buffer #\{)
@@ -330,7 +336,7 @@
               #:tokens  tokens)]
            [(and (eq? buffer #\})
                  (eq? (car modes) 'initial-scope))
-            (finalize-parser)]
+            (finalize-parser (+ cursor 1))]
            [(and (eq? buffer #\{)
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
@@ -539,6 +545,12 @@
   (define (parse-describe-query out query cursor)
     (parse-select-query out query cursor))
 
+  (define (parse-construct-query out query cursor)
+    (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
+      (lambda (tokens cursor)
+        (set-query-construct-patterns! out (reverse tokens))
+        (parse-select-query out query cursor))))
+
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
     (let* [(q              (remove-comments query))
@@ -547,7 +559,7 @@
       (match (query-type out)
         ('ASK           (parse-ask-query out q (+ type-position 3)))
         ('CLEAR         (parse-clear-query out q type-position))
-        ('CONSTRUCT     #f)
+        ('CONSTRUCT     (parse-construct-query out query (+ type-position 9)))
         ('DELETE        #f)
         ('DELETEINSERT  #f)
         ('DESCRIBE      (parse-describe-query out query (+ type-position 8)))
