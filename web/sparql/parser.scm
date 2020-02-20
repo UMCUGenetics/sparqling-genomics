@@ -510,6 +510,15 @@
       (lambda (tokens cursor)
         (set-query-triple-patterns! out (reverse tokens)))))
 
+  (define (parse-clear-query out query cursor)
+    (let* [(tokens (string-tokenize (substring query cursor)))
+           (uri    (if (= (length tokens) 3)
+                       (parse-uri-token out (list-ref tokens 2))
+                       #f))]
+      (if uri
+          (set-query-global-graphs! out uri)
+          #f)))
+
   (let* [(out (make <query>))]
     ;; The following functions write their findings to ‘out’ as side-effects.
     (let* [(q              (remove-comments query))
@@ -517,7 +526,7 @@
            (type-position  (determine-query-type out q after-prologue))]
       (match (query-type out)
         ('ASK           (parse-ask-query out q (+ type-position 3)))
-        ('CLEAR         #f)
+        ('CLEAR         (parse-clear-query out q type-position))
         ('CONSTRUCT     #f)
         ('DELETE        #f)
         ('DELETEINSERT  #f)
