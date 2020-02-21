@@ -34,8 +34,8 @@
             query-construct-patterns
             set-query-construct-patterns!
 
-            query-triple-patterns
-            set-query-triple-patterns!
+            query-quads
+            set-query-quads!
 
             query-global-graphs
             set-query-global-graphs!
@@ -67,19 +67,20 @@
                    #:getter query-out-variables
                    #:setter set-query-out-variables!)
 
-  (triple-patterns #:init-value '()
-                   #:getter query-triple-patterns
-                   #:setter set-query-triple-patterns!)
+  (quads           #:init-value '()
+                   #:getter query-quads
+                   #:setter set-query-quads!)
 
   (construct-patterns #:init-value '()
                       #:getter query-construct-patterns
                       #:setter set-query-construct-patterns!))
 
 (define-method (write (query <query>) out)
-  (format out "#<<query> ~a, prefixes: ~a>, global graphs: ~a"
+  (format out "#<<query> ~a, prefixes: ~a, global graphs: ~a, quads: ~a>"
           (query-type query)
           (length (query-prefixes query))
-          (length (query-global-graphs query))))
+          (length (query-global-graphs query))
+          (length (query-quads query))))
 
 (define (parse-query query)
   "Returns an instace of <query>."
@@ -526,12 +527,12 @@
         (read-global-graphs out tokens)
         (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
           (lambda (tokens cursor)
-            (set-query-triple-patterns! out (reverse tokens)))))))
+            (set-query-quads! out (reverse tokens)))))))
 
   (define (parse-ask-query out query cursor)
     (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
       (lambda (tokens cursor)
-        (set-query-triple-patterns! out (reverse tokens)))))
+        (set-query-quads! out (reverse tokens)))))
 
   (define (parse-clear-query out query cursor)
     (let* [(tokens (string-tokenize (substring query cursor)))
