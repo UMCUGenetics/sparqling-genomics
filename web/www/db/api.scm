@@ -29,15 +29,16 @@
             first-acceptable-format
             alist->sxml))
 
+(define-syntax-rule (is-format a b)
+  (or (equal? a b)
+      (member a b)))
+
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
-   [(equal? '(application/json) fmt)                       #t]
-   [(member '(application/json) fmt)                       #t]
-   [(equal? '(application/xml) fmt)                        #t]
-   [(member '(application/xml) fmt)                        #t]
-   [(equal? '(application/s-expression) fmt)               #t]
-   [(member '(application/s-expression) fmt)               #t]
+   [(is-format '(application/json) fmt)                    #t]
+   [(is-format '(application/xml) fmt)                     #t]
+   [(is-format '(application/s-expression) fmt)            #t]
    [else                                                   #f]))
 
 (define (api-format fmt data)
