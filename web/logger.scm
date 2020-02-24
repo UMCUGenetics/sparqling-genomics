@@ -1,4 +1,4 @@
-;;; Copyright © 2019 Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019, 2020 Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by
@@ -14,16 +14,48 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (logger)
-  #:use-module (www config)
   #:use-module (ice-9 threads)
   #:use-module (ice-9 control)
   #:use-module (ice-9 format)
-  #:export (log-error
+  #:export (backtrace-on-error?
+            set-backtrace-on-error!
+
+            log-error
             log-warning
             log-debug
-            log-access))
+            log-access
+
+            default-debug-port
+            default-error-port
+            default-warning-port
+
+            set-default-debug-port!
+            set-default-error-port!
+            set-default-warning-port!))
 
 (define %log-mutex (make-mutex))
+
+(define %default-debug-port '())
+(define %default-error-port '())
+(define %default-warning-port '())
+(define %backtrace-on-error #f)
+
+(define (default-debug-port)   %default-debug-port)
+(define (default-warning-port) %default-warning-port)
+(define (default-error-port)   %default-error-port)
+(define (backtrace-on-error?)  %backtrace-on-error)
+
+(define (set-default-debug-port! port)
+  (set! %default-debug-port port))
+
+(define (set-default-warning-port! port)
+  (set! %default-warning-port port))
+
+(define (set-default-error-port! port)
+  (set! %default-error-port port))
+
+(define (set-backtrace-on-error! arg)
+  (set! %backtrace-on-error arg))
 
 (define (log-any type port function fmt . rst)
   (unless (null? port)
