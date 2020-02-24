@@ -74,6 +74,7 @@
             www-root
             www-cache-root
             www-static-root
+            www-upload-root
             ldap-enabled?
             ldap-uri
             ldap-common-name
@@ -83,6 +84,7 @@
             ldap-ssl-certificate-file
             local-users
             add-local-user!
+            set-www-upload-root!
             set-beacon-enabled!
             set-configuration-file!
             set-ldap-enabled!
@@ -131,6 +133,17 @@
                                   (getenv "SG_WEB_ROOT")
                                   "@WEB_ROOT@/sparqling-genomics/web"))
                             #:getter get-www-root)
+
+  (www-upload-root          #:init-value
+                            (lambda _
+                              (if (getenv "SG_WEB_UPLOAD_ROOT")
+                                  (getenv "SG_WEB_UPLOAD_ROOT")
+                                  (if (getenv "TMPDIR")
+                                      (getenv "TMPDIR")
+                                      "/tmp")))
+                            #:setter set-www-upload-root-private!
+                            #:getter get-www-upload-root)
+
   (www-cache-root           #:init-value
                             (lambda _
                               (let ((xdg-cache-home (getenv "XDG_CACHE_HOME")))
@@ -308,6 +321,14 @@
 (define-syntax-rule
   (www-root)
   ((get-www-root %runtime-configuration)))
+
+(define-syntax-rule
+  (www-upload-root)
+  (get-www-upload-root %runtime-configuration))
+
+(define-syntax-rule
+  (set-www-upload-root! arg)
+  (set-www-upload-root-private! %runtime-configuration arg))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))
