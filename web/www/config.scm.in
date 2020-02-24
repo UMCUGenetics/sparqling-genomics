@@ -20,6 +20,8 @@
   #:use-module (system foreign)
   #:use-module (www util)
   #:use-module (sparql driver)
+  #:use-module (web client)
+  #:use-module (web response)
   #:use-module (logger)
   #:use-module ((www db connections)
                 #:select (connection-uri
@@ -78,6 +80,7 @@
             ldap-ssl-certificate-file
             local-users
             add-local-user!
+            system-is-connected?
             set-www-upload-root!
             set-beacon-enabled!
             set-configuration-file!
@@ -655,3 +658,18 @@
 
 (define-syntax-rule (user-sparql-query username query)
   (sparql-query-with-connection (default-connection username) query))
+
+(define (system-is-connected?)
+  (catch 'system-error
+    (lambda _
+      (let [(uri (connection-uri (system-connection)))]
+        (call-with-values (lambda _ (http-get uri))
+          (lambda (header body)
+            (unless (or (= (response-code header) 200)
+                        (= (response-code header) 401))
+              (throw 'system-error ""))
+            #t))))
+    (lambda (key . args)
+      (log-error "system-is-connected?" "Connection to ~a failed."
+                 (connection-uri (system-connection)))
+      #f)))
