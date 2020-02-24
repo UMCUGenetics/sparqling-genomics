@@ -24,6 +24,7 @@
   #:use-module (logger)
 
   #:export (api-serveable-format?
+            api-is-rdf-format?
             api-format
             api-request-data->alist
             first-acceptable-format
@@ -32,6 +33,14 @@
 (define-syntax-rule (is-format a b)
   (or (equal? a b)
       (member a b)))
+
+(define (api-is-rdf-format? fmt)
+  (cond
+   [(is-format '(application/n-triples) fmt)               #t]
+   [(is-format '(text/turtle) fmt)                         #t]
+   [(is-format '(application/x-turtle) fmt)                #t]
+   [(is-format '(application/rdf+xml) fmt)                 #t]
+   [else                                                   #f]))
 
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
