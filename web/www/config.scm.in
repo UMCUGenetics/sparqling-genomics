@@ -341,13 +341,11 @@
   (developer-mode?)
   (get-developer-mode? %runtime-configuration))
 
-(define-syntax-rule
-  (graph-name-max-length)
+(define (graph-name-max-length)
   (get-graph-name-max-length %runtime-configuration))
 
 (define-syntax-rule (configuration-file)
   (get-configuration-file %runtime-configuration))
-
 
 (define-syntax-rule
   (set-fork-on-startup! arg)
