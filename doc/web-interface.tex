@@ -1,8 +1,10 @@
 \chapter{Web interface}
 \label{chap:web-interface}
 
-  In addition to the command-line programs, the project provides a web
-  interface for prototyping queries, and quick data reporting.  With the
+  The command-line programs described in chapter \ref{chap:command-line}
+  {\color{LinkGray}`\nameref{chap:command-line}'} provide data for layer
+  \texttt{0}.  With the web interface, described in this chapter, this
+  data can be further structured, analyzed, and shared.  In short, with the
   web interface you can:
   \begin{itemize}
   \item Write and execute SPARQL queries;
@@ -27,6 +29,8 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
+  <developer-mode>0</developer-mode>
+  <backtrace-on-error>0</backstrace-on-error>
   <upload-root>/data</upload-root>
   <authentication>
     <!-- Either LDAP settings, or local-user authentication -->
@@ -43,8 +47,31 @@
 
 \subsection{Bind address and port}
 
-  Because web services are popular these days, \texttt{sg-web} can be configured
-  to bind on an arbitrary address and an arbitrary port.
+  To enable running multiple web services on single machine, `\texttt{sg-web}'
+  can be configured to bind on an arbitrary address and an arbitrary port.
+  Both IPv4 and IPv6 addresses are supported.
+
+\subsection{Developer mode}
+
+  By default, changes to code in the `\texttt{www/pages/}' directory are
+  applied when restarting `\texttt{sg-web}'.  When turning on
+  `\texttt{developer-mode}', pages are reloaded when accessed, which makes
+  interactive development of web pages easier.
+
+\subsection{Logging and backtraces}
+\label{sec:logging}
+
+  The `\texttt{sg-web}' program keeps two logs: one for error reporting, and
+  one for access and non-critical messages.  The log files can be specified
+  as command-line options (\texttt{-e} for error reporting, \texttt{-d} for
+  non-critical messages).
+
+  Backtraces help the developer to get an idea about how something might've
+  gone wrong.  It displays the location nearby the location in the source code
+  that throwed an error.  Backstraces can get long and verbose.  Therefore we
+  don't display them by default.  To enable reporting backtraces in the error
+  log, set the `\texttt{backtrace-on-error}' option to \texttt{1}.
+
 \subsection{Upload directory}
 
   Users can upload RDF files to import it into an RDF store.  The files must
