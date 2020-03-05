@@ -175,7 +175,12 @@
           (cond
            [(eq? buffer #\#)
             (if (or (eq? (car modes) 'single-quoted)
-                    (eq? (car modes) 'double-quoted))
+                    (eq? (car modes) 'double-quoted)
+                    (and (> position 0)
+                         (string-is-longer-than text (+ position 1))
+                         (not (char-whitespace?
+                               (string-ref text (- position 1))))
+                         (eq? #\> (string-ref text (+ position 1)))))
                 (remove-comments text
                                  (+ position 1)
                                  modes
@@ -376,7 +381,8 @@
               #:tokens  tokens)]
 
            [(and (eq? buffer #\.)
-                 (not-in-quotes (car modes)))
+                 (not-in-quotes (car modes))
+                 (> (length tokens) 2))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
               #:current '()
