@@ -78,7 +78,7 @@
     `(("texlive" ,texlive)
       ("pkg-config" ,pkg-config)))
    (inputs
-    `(("guile" ,guile-2.2)
+    `(("guile" ,guile-next)
       ("htslib" ,htslib)
       ("libgcrypt" ,libgcrypt)
       ("libxml2" ,libxml2)
