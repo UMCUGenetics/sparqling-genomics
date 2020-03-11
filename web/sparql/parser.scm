@@ -334,7 +334,6 @@
                         (let [(uri (parse-uri-token out token))]
                           (if uri uri token)))
                       (reverse tokens)))]
-        (format #t "Processing quad: ~s~%" rev)
         (cond
          [(< (length rev) 1)
           (values tokens quads)]
