@@ -47,7 +47,7 @@
 ;;; ---------------------------------------------------------------------------
 
 (define (sparql-available-backends)
-  '(virtuoso blazegraph 4store))
+  '(virtuoso blazegraph 4store sparqling-genomics))
 
 ;;;
 ;;; SPARQL-QUERY using a POST request.
@@ -61,7 +61,8 @@
                        (type "text/csv")
                        (namespace "kb")
                        (token #f)
-                       (digest-auth #f))
+                       (digest-auth #f)
+                       (project-hash #f))
   "Send QUERY to STORE-BACKEND."
   (cond
    ((eq? store-backend '4store)
@@ -74,6 +75,10 @@
    ((eq? store-backend 'blazegraph)
     (sparql-query-blazegraph
      query #:uri uri #:host host #:port port #:type type #:namespace namespace))
+   ((eq? store-backend 'sparqling-genomics)
+    (sparql-query-sparqling-genomics
+     query #:uri uri #:host host #:port port #:type type #:token token
+           #:project-hash project-hash))
    (else #f)))
 
 ;;;
@@ -232,4 +237,29 @@
                #:headers
                `((user-agent   . ,%user-agent)
                  (content-type . (application/x-www-form-urlencoded))
+                 (accept       . ((,(string->symbol type))))))))
+
+;;;
+;;; SPARQLing-genomics SPARQL-QUERY using a POST request.
+;;; ---------------------------------------------------------------------------
+
+(define* (sparql-query-sparqling-genomics query
+                                          #:key
+                                          (uri #f)
+                                          (host "localhost")
+                                          (port 9999)
+                                          (type "text/csv")
+                                          (token #f)
+                                          (project-hash #f))
+  (let ((post-url (if uri
+                      (format #f "~a/sparql?project-hash=~a" uri project-hash)
+                      (format #f "http://~a:~a/sparql?project-hash=~a"
+                              host port project-hash))))
+    (http-post post-url
+               #:body query
+               #:streaming? #t
+               #:headers
+               `((Cookie       . ,(string-append "SGSession=" token))
+                 (user-agent   . ,%user-agent)
+                 (content-type . (application/sparql-update))
                  (accept       . ((,(string->symbol type))))))))
