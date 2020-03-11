@@ -1,6 +1,7 @@
 ;; (md5) -- md5 hashing in scheme
 ;; Copyright (C) 2001, 2002, 2003, 2013 Free Software Foundation, Inc.
 ;; Copyright (C) 2004 Moritz Schulte <moritz@gnu.org>.
+;; Copyright (C) 2020 Roel Janssen <roel@gnu.org>
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU Lesser General Public License as
@@ -29,6 +30,7 @@
 
 (define-module (sparql md5)
   #:use-module (ice-9 rw)
+  #:use-module (ice-9 textual-ports)
   #:export (md5
             md5-from-string))
 
@@ -414,47 +416,23 @@
 		    (word->buffer (assq-ref (assq-ref context 'values) 'c))
 		    (word->buffer (assq-ref (assq-ref context 'values) 'd))))))
 
-(define (general-read-string!/partial buffer port)
-  (if (file-port? port)
-      (read-string!/partial buffer port)
-      (let ((max-index (- (string-length buffer) 1)))
-        (let loop ((ch (read-char port))
-                   (read 0))
-          (if (eof-object? ch)
-              (if (= read 0)
-                  #f
-                  read)
-              (begin 
-                (string-set! buffer read ch)
-                (if (< read max-index)
-                    (loop (read-char port) (+ read 1))
-                    (+ read 1))))))))
-              
 (define (md5 . port)
   "Reads data from @var{port}, and returns a string containing the calculated
 md5 hash of the data.  If @var{port} is not given, then the default input
 port is used."  
-  (define (process-data buffer port callback arg)
-    (define (process-data-do)
-      (let ((bytes-read (general-read-string!/partial buffer port)))
-	(if (not bytes-read)
-	    #t
-	    (begin
-	      (callback arg buffer bytes-read)
-	      (process-data-do)))))
-    (process-data-do))
-
-  (define (process-data-callback arg data data-size)
-    (md5-write arg data data-size))
-
   (if (null? port)
       (set! port (current-input-port))
       (set! port (car port)))
 
   (let* ((context     (md5-init))
 	 (buffer-size 4096)
-	 (buffer      (make-string buffer-size #\nul)))
-    (process-data buffer port process-data-callback context)
+	 (buffer      (make-string (f-add buffer-size 1) #\nul))
+         (bytes-read  (get-string-n! port buffer 0 buffer-size)))
+    (while (= bytes-read buffer-size)
+      (md5-write context buffer bytes-read)
+      (set! bytes-read (get-string-n! port buffer 0 buffer-size)))
+
+    (md5-write context buffer bytes-read)
     (md5-finalize context)))
 
 (define (md5-from-string input)
