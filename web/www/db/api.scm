@@ -17,18 +17,19 @@
 (define-module (www db api)
   #:use-module (www util)
   #:use-module (web response)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (json)
   #:use-module (sxml simple)
   #:use-module (logger)
 
-  #:export (api-serveable-format?
-            api-is-rdf-format?
+  #:export (alist->sxml
             api-format
+            api-is-rdf-format?
             api-request-data->alist
-            first-acceptable-format
-            alist->sxml))
+            api-serveable-format?
+            first-acceptable-format))
 
 (define-syntax-rule (is-format a b)
   (or (equal? a b)
@@ -45,13 +46,28 @@
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
+   [(is-format '(text/csv) fmt)                            #t]
    [(is-format '(application/json) fmt)                    #t]
    [(is-format '(application/xml) fmt)                     #t]
    [(is-format '(application/s-expression) fmt)            #t]
    [else                                                   #f]))
 
+(define (alist->csv alist out)
+  "Writes the association list ALIST as comma-seperated values to OUT."
+  (let [(columns (map car (car alist)))]
+    (format out "~s~{,~s~}~%" (car columns) (cdr columns))
+    (for-each (lambda (row)
+                (format out "~s~{,~s~}~%" (assoc-ref row (car columns))
+                        (map (lambda (col)
+                               (assoc-ref row col))
+                             (cdr columns))))
+              alist)))
+
 (define (api-format fmt data)
   (cond
+   [(equal? fmt '(text/csv))
+    (call-with-output-string
+      (lambda (port) (alist->csv data port)))]
    [(equal? fmt '(application/json))
     (scm->json-string data)]
    [(equal? fmt '(application/xml))
