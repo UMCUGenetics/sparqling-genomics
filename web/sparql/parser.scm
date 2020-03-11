@@ -312,6 +312,8 @@
         (cond
          [(null? lst)
           tokens]
+         [(string-ci= token "optional")
+          tokens]
          [else
           (cons token tokens)])))
 
@@ -326,6 +328,38 @@
                          (list-ref tokens 0)) quads)
                   cursor)
           (values quads cursor)))
+
+    (define (process-quad tokens quads)
+      (let [(rev (map (lambda (token)
+                        (let [(uri (parse-uri-token out token))]
+                          (if uri uri token)))
+                      (reverse tokens)))]
+        (format #t "Processing quad: ~s~%" rev)
+        (cond
+         [(< (length rev) 1)
+          (values tokens quads)]
+
+         ;; A triplet patterns wrapped inside a GRAPH.
+         [(and (> (length rev) 3)
+               (string-ci= "graph" (list-ref rev 0)))
+          (values (drop tokens 3)
+                  (cons (list (list-ref rev 1)
+                              (list-ref rev 2)
+                              (list-ref rev 3)
+                              (list-ref rev 4))
+                        quads))]
+
+         ;; When no GRAPH clause is given, we emit a quad without a graph.
+         ;; It may be further confined by the list of global graphs.
+         [(= (length rev) 3)
+          (values (drop tokens 2)
+                  (cons (list #f
+                              (list-ref rev 0)
+                              (list-ref rev 1)
+                              (list-ref rev 2))
+                        quads))]
+         [else
+          (values tokens quads)])))
 
     (if (or (not cursor)
             (not (string-is-longer-than text cursor)))
@@ -355,12 +389,37 @@
               #:tokens  (cons-token out current tokens))]
            [(and (eq? buffer #\})
                  (eq? (car modes) 'in-context))
+            (call-with-values (lambda _ (process-quad tokens quads))
+              (lambda (tokens-without-quad updated-quads)
+                (tokenize-triplet-pattern out text (+ cursor 1)
+                  #:modes   (cdr modes)
+                  #:current '()
+                  #:quads   updated-quads
+                  #:graph   #f
+                  #:tokens  (drop-right tokens-without-quad 2))))]
+
+           ;; TODO: Make sure whatever occurs between #\( and #\) is
+           ;; treated as a single token.
+           [(and (eq? buffer #\()
+                 (or (string-ci= "filter" (list->string (reverse current)))
+                     (string-ci= (car tokens) "filter")
+                     (eq? (car modes) 'black-mode)))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cons 'black-mode modes)
+              #:current '()
+              #:quads   quads
+              #:graph   graph
+              #:tokens  (cdr tokens))]
+
+           [(and (eq? buffer #\))
+                 (eq? (car modes) 'black-mode))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cdr modes)
               #:current '()
               #:quads   quads
-              #:graph   #f
-              #:tokens  (cons-token out current (drop-right tokens 2)))]
+              #:graph   graph
+              #:tokens  tokens)]
+
            [(eq? buffer #\")
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (if (eq? (car modes) 'double-quoted)
@@ -383,28 +442,24 @@
            [(and (eq? buffer #\.)
                  (not-in-quotes (car modes))
                  (> (length tokens) 2))
-            (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   modes
-              #:current '()
-              #:quads   (cons (list
-                               (if (> (length tokens) 3) (list-ref tokens 3) #f)
-                               (list-ref tokens 2)
-                               (list-ref tokens 1)
-                               (list-ref tokens 0)) quads)
-              #:graph   graph
-              #:tokens  (cons-token out current (drop tokens 3)))]
+            (call-with-values (lambda _ (process-quad tokens quads))
+              (lambda (tokens-without-quad updated-quads)
+                (tokenize-triplet-pattern out text (+ cursor 1)
+                  #:modes   modes
+                  #:current '()
+                  #:quads   updated-quads
+                  #:graph   graph
+                  #:tokens  tokens-without-quad)))]
            [(and (eq? buffer #\;)
                  (not-in-quotes (car modes)))
-            (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   modes
-              #:current '()
-              #:quads   (cons (list
-                               (if (> (length tokens) 3) (list-ref tokens 3) #f)
-                               (list-ref tokens 2)
-                               (list-ref tokens 1)
-                               (list-ref tokens 0)) quads)
-              #:graph   #f
-              #:tokens  (cons-token out current (drop tokens 2)))]
+            (call-with-values (lambda _ (process-quad tokens quads))
+              (lambda (tokens-without-quad updated-quads)
+                (tokenize-triplet-pattern out text (+ cursor 1)
+                  #:modes   modes
+                  #:current '()
+                  #:quads   updated-quads
+                  #:graph   #f
+                  #:tokens  tokens-without-quad)))]
            [(char-whitespace? buffer)
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
