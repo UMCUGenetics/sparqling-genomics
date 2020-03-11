@@ -14,6 +14,9 @@
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (sparql stream)
+  #:use-module (ice-9 binary-ports)
+  #:use-module (ice-9 format)
+  #:use-module (rnrs bytevectors)
   #:use-module (sparql util)
   #:use-module (srfi srfi-1)
 
@@ -26,12 +29,25 @@
 ;; Query result streaming
 ;; ----------------------------------------------------------------------------
 ;;
-;; This module implements streaming I/O for query results in CSV format to
-;; S-expression, JSON or XML.
+;; This module implements streaming HTTP 1.1 I/O for query results in CSV
+;; format to S-expression, JSON or XML.
 ;;
+
+;; Helper functions
+;; ----------------------------------------------------------------------
+
+;; Borrowed from (www db api).
+(define-syntax-rule (is-format a b)
+  (or (equal? a b)
+      (member a b)))
+
+;; Stream functions
+;; ----------------------------------------------------------------------
 
 (define* (csv->scm-stream input-port output-port #:optional (header '()))
   "Read the query response from PORT and turn it into an S-expression."
+
+  (format output-port "Content-Type: text/csv\n\n")
   (let [(tokens (csv-read-entry input-port #\,))]
     (if (null? tokens)
         (format output-port "~a" (if (null? header) "()" ")"))
@@ -111,16 +127,49 @@
                 (format output-port "</result>")))
           (csv->xml-stream input-port output-port header)))))
 
+(define (csv->csv-stream input-port output-port)
+
+  (define (send-header-line line)
+    (format output-port "~a\n" line))
+
+  (for-each send-header-line '("Content-Type: text/csv" ""))
+
+  (let* [(buffer-size (expt 2 12))
+         (buffer      (make-bytevector buffer-size))
+         (eof-yet?    #f)]
+
+    (while (not eof-yet?)
+      (let [(nbytes (get-bytevector-some! input-port buffer 0 buffer-size))]
+        (if (eof-object? nbytes)
+            (set! eof-yet? #t)
+            (begin
+              (format output-port "~a\r\n" nbytes)
+              (put-bytevector output-port buffer 0 nbytes)
+              (format output-port "\r\n")))))
+
+    (format output-port "0\r\n\r\n")))
+
 (define (csv-stream input-port output-port fmt)
   "Stream CSV data from INPUT-PORT to OUTPUT-PORT using output format FMT."
-  (cond
-   [(or (equal? '(application/json) fmt)
-        (member '(application/json) fmt))
-    (csv->json-stream input-port output-port)]
-   [(or (equal? '(application/xml) fmt)
-        (member '(application/xml) fmt))
-    (csv->xml-stream input-port output-port)]
-   [(or (equal? '(application/s-expression) fmt)
-        (member '(application/s-expression) fmt))
-    (csv->scm-stream input-port output-port)]
-   [else #f]))
+
+  ;; This encoding makes sure that one character is equal to one byte.
+  (set-port-encoding! output-port "ISO-8859-1")
+
+  ;; Build the HTTP header.
+  (format output-port "~{~a\n~}"
+          '("HTTP/1.1 200 OK"
+            "Server: SPARQLing-genomics"
+            "Connection: close"
+            "Transfer-Encoding: chunked"))
+
+  ;; Choose the corresponding stream function.
+  (let [(stream-function
+         (cond
+          [(is-format '(application/json) fmt)         csv->json-stream]
+          [(is-format '(application/xml) fmt)          csv->xml-stream]
+          [(is-format '(application/s-expression) fmt) csv->scm-stream]
+          [(is-format '(text/csv) fmt)                 csv->csv-stream]
+          [else #f]))]
+    (if stream-function
+        (stream-function input-port output-port)
+        #f)))
