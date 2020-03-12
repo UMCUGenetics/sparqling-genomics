@@ -395,7 +395,7 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  (drop tokens 2))))]
+                  #:tokens  (drop tokens-without-quad 2))))]
 
            ;; TODO: Make sure whatever occurs between #\( and #\) is
            ;; treated as a single token.
