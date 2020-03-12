@@ -339,7 +339,7 @@
           (values tokens quads)]
 
          ;; A triplet patterns wrapped inside a GRAPH.
-         [(and (> (length rev) 3)
+         [(and (> (length rev) 4)
                (string-ci= "graph" (list-ref rev 0)))
           (values (drop tokens 3)
                   (cons (list (list-ref rev 1)
@@ -395,7 +395,7 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  (drop-right tokens-without-quad 2))))]
+                  #:tokens  (drop tokens 2))))]
 
            ;; TODO: Make sure whatever occurs between #\( and #\) is
            ;; treated as a single token.
@@ -448,7 +448,7 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   graph
-                  #:tokens  tokens-without-quad)))]
+                  #:tokens  (drop tokens 3))))]
            [(and (eq? buffer #\;)
                  (not-in-quotes (car modes)))
             (call-with-values (lambda _ (process-quad tokens quads))
@@ -458,7 +458,7 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  tokens-without-quad)))]
+                  #:tokens  (drop tokens 2))))]
            [(char-whitespace? buffer)
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
