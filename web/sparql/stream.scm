@@ -19,6 +19,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (sparql util)
   #:use-module (srfi srfi-1)
+  #:use-module (web http)
 
   #:export (csv->scm-stream
             csv->json-stream
@@ -47,7 +48,6 @@
 (define* (csv->scm-stream input-port output-port #:optional (header '()))
   "Read the query response from PORT and turn it into an S-expression."
 
-  (format output-port "Content-Type: text/csv\n\n")
   (let [(tokens (csv-read-entry input-port #\,))]
     (if (null? tokens)
         (format output-port "~a" (if (null? header) "()" ")"))
@@ -128,48 +128,53 @@
           (csv->xml-stream input-port output-port header)))))
 
 (define (csv->csv-stream input-port output-port)
-
-  (define (send-header-line line)
-    (format output-port "~a\n" line))
-
-  (for-each send-header-line '("Content-Type: text/csv" ""))
-
   (let* [(buffer-size (expt 2 12))
          (buffer      (make-bytevector buffer-size))
          (eof-yet?    #f)]
-
     (while (not eof-yet?)
       (let [(nbytes (get-bytevector-some! input-port buffer 0 buffer-size))]
         (if (eof-object? nbytes)
             (set! eof-yet? #t)
-            (begin
-              (format output-port "~a\r\n" nbytes)
-              (put-bytevector output-port buffer 0 nbytes)
-              (format output-port "\r\n")))))
-
-    (format output-port "0\r\n\r\n")))
+            (put-bytevector output-port buffer 0 nbytes))))))
 
 (define (csv-stream input-port output-port fmt)
   "Stream CSV data from INPUT-PORT to OUTPUT-PORT using output format FMT."
+
+  (define (send-last-header-line line)
+    (put-bytevector output-port
+                    (string->utf8
+                     (format #f "~a\r\n\r\n" line))))
 
   ;; This encoding makes sure that one character is equal to one byte.
   (set-port-encoding! output-port "ISO-8859-1")
 
   ;; Build the HTTP header.
-  (format output-port "~{~a\n~}"
-          '("HTTP/1.1 200 OK"
-            "Server: SPARQLing-genomics"
-            "Connection: close"
-            "Transfer-Encoding: chunked"))
+  (put-bytevector output-port
+                  (string->utf8
+                   (string-append
+                    "HTTP/1.1 200 OK\r\n"
+                    "Server: SPARQLing-genomics\r\n"
+                    "Connection: close\r\n"
+                    "Transfer-Encoding: chunked\r\n")))
 
   ;; Choose the corresponding stream function.
   (let [(stream-function
          (cond
-          [(is-format '(application/json) fmt)         csv->json-stream]
-          [(is-format '(application/xml) fmt)          csv->xml-stream]
-          [(is-format '(application/s-expression) fmt) csv->scm-stream]
-          [(is-format '(text/csv) fmt)                 csv->csv-stream]
+          [(is-format '(application/json) fmt)
+           (send-last-header-line "Content-Type: application/json")
+           csv->json-stream]
+          [(is-format '(application/xml) fmt)
+           (send-last-header-line "Content-Type: application/xml")
+           csv->xml-stream]
+          [(is-format '(application/s-expression) fmt)
+           (send-last-header-line "Content-Type: application/s-expression")
+           csv->scm-stream]
+          [(is-format '(text/csv) fmt)
+           (send-last-header-line "Content-Type: text/csv")
+           csv->csv-stream]
           [else #f]))]
     (if stream-function
-        (stream-function input-port output-port)
+        (let ((wrapped-port (make-chunked-output-port output-port)))
+          (stream-function input-port wrapped-port)
+          (close-port wrapped-port))
         #f)))
