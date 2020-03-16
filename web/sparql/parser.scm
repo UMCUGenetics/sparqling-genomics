@@ -379,7 +379,7 @@
            [(and (eq? buffer #\{)
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   (if (null? tokens) modes (cons 'in-context modes))
+              #:modes   (cons 'in-context modes)
               #:current current
               #:quads   quads
               #:graph   (if (graph-test)
@@ -395,20 +395,28 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  (drop tokens-without-quad 2))))]
+                  #:tokens  (if (not (eq? (cadr modes) 'in-context))
+                                (drop tokens-without-quad 2)
+                                tokens-without-quad))))]
 
            ;; TODO: Make sure whatever occurs between #\( and #\) is
            ;; treated as a single token.
            [(and (eq? buffer #\()
-                 (or (string-ci= "filter" (list->string (reverse current)))
-                     (string-ci= (car tokens) "filter")
-                     (eq? (car modes) 'black-mode)))
+                 (or (string-ci= (car tokens) "filter")
+                     (string-ci= (car tokens) "bind")))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'black-mode modes)
               #:current '()
               #:quads   quads
               #:graph   graph
               #:tokens  (cdr tokens))]
+           [(eq? buffer #\()
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cons 'black-mode modes)
+              #:current '()
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
 
            [(and (eq? buffer #\))
                  (eq? (car modes) 'black-mode))
@@ -485,7 +493,9 @@
            [else
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
-              #:current (cons buffer current)
+              #:current (if (eq? (car modes) 'black-mode)
+                            current
+                            (cons buffer current))
               #:quads   quads
               #:graph   graph
               #:tokens  tokens)]))))
