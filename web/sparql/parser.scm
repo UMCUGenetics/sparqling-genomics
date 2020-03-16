@@ -440,6 +440,7 @@
 
            [(and (eq? buffer #\.)
                  (not-in-quotes (car modes))
+                 (not (eq? (car modes) 'in-uri))
                  (> (length tokens) 2))
             (call-with-values (lambda _ (process-quad tokens quads))
               (lambda (tokens-without-quad updated-quads)
@@ -466,6 +467,21 @@
               #:quads   quads
               #:graph   #f
               #:tokens  (cons-token out current tokens))]
+           [(eq? buffer #\<)
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cons 'in-uri modes)
+              #:current (cons buffer current)
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
+           [(and (eq? buffer #\>)
+                 (eq? (car modes) 'in-uri))
+            (tokenize-triplet-pattern out text (+ cursor 1)
+              #:modes   (cdr modes)
+              #:current (cons buffer current)
+              #:quads   quads
+              #:graph   graph
+              #:tokens  tokens)]
            [else
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
