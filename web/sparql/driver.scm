@@ -20,7 +20,8 @@
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web uri)
-  #:use-module (logger)
+  #:use-module (web http)
+
   #:export (sparql-query
             sparql-query-4store
             sparql-query-virtuoso
@@ -255,11 +256,21 @@
                       (format #f "~a/sparql?project-hash=~a" uri project-hash)
                       (format #f "http://~a:~a/sparql?project-hash=~a"
                               host port project-hash))))
-    (http-post post-url
-               #:body query
-               #:streaming? #t
-               #:headers
-               `((Cookie       . ,(string-append "SGSession=" token))
-                 (user-agent   . ,%user-agent)
-                 (content-type . (application/sparql-update))
-                 (accept       . ((,(string->symbol type))))))))
+    (call-with-values
+        (lambda _
+          (http-post post-url
+                     #:body query
+                     #:streaming? #t
+                     #:headers
+                     `((Cookie       . ,(string-append "SGSession=" token))
+                       (user-agent   . ,%user-agent)
+                       (content-type . (application/sparql-update))
+                       (accept       . ((,(string->symbol type)))))))
+      (lambda (header port)
+        ;; The response may be encoded in HTTP 1.1 chunked encoding.
+        ;; To make it easier for the client to handle, we wrap the
+        ;; port so that chunked encoding is handled transparently.
+        (if (eq? (response-content-encoding header) '(chunked))
+            (let ((wrapped-port (make-chunked-output-port port)))
+              (values header wrapped-port))
+            (values header port))))))
