@@ -17,6 +17,8 @@
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
   #:use-module (oop goops)
+  #:use-module (logger)
+
   #:export (<query>
 
             query-type
@@ -638,19 +640,25 @@
         (set-query-construct-patterns! out (reverse tokens))
         (parse-select-query out query cursor))))
 
-  (let* [(out (make <query>))]
-    ;; The following functions write their findings to ‘out’ as side-effects.
-    (let* [(q              (remove-comments query))
-           (after-prologue (read-prologue out q 0))
-           (type-position  (determine-query-type out q after-prologue))]
-      (match (query-type out)
-        ('ASK           (parse-ask-query out q (+ type-position 3)))
-        ('CLEAR         (parse-clear-query out q type-position))
-        ('CONSTRUCT     (parse-construct-query out query (+ type-position 9)))
-        ('DELETE        #f)
-        ('DELETEINSERT  #f)
-        ('DESCRIBE      (parse-describe-query out query (+ type-position 8)))
-        ('INSERT        #f)
-        ('SELECT        (parse-select-query out q (+ type-position 6)))
-        (else           (format #t "Doesn't match anything.~%"))))
-    out))
+  (catch #t
+    (lambda _
+      (let* [(out (make <query>))]
+        ;; The following functions write their findings to ‘out’ as
+        ;; side-effects.
+        (let* [(q              (remove-comments query))
+               (after-prologue (read-prologue out q 0))
+               (cursor         (determine-query-type out q after-prologue))]
+          (match (query-type out)
+            ('ASK           (parse-ask-query out q (+ cursor 3)))
+            ('CLEAR         (parse-clear-query out q cursor))
+            ('CONSTRUCT     (parse-construct-query out query (+ cursor 9)))
+            ('DELETE        #f)
+            ('DELETEINSERT  #f)
+            ('DESCRIBE      (parse-describe-query out query (+ cursor 8)))
+            ('INSERT        #f)
+            ('SELECT        (parse-select-query out q (+ cursor 6)))
+            (else           (format #t "Doesn't match anything.~%"))))
+        out))
+    (lambda (key . args)
+      (log-error "parse-query" "Thrown: ~a: ~s" key args)
+      #f)))
