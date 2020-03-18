@@ -36,6 +36,9 @@
             query-construct-patterns
             set-query-construct-patterns!
 
+            query-insert-patterns
+            set-query-insert-patterns!
+
             query-quads
             set-query-quads!
 
@@ -75,7 +78,11 @@
 
   (construct-patterns #:init-value '()
                       #:getter query-construct-patterns
-                      #:setter set-query-construct-patterns!))
+                      #:setter set-query-construct-patterns!)
+
+  (insert-patterns #:init-value '()
+                   #:getter query-insert-patterns
+                   #:setter set-query-insert-patterns!))
 
 (define-method (write (query <query>) out)
   (format out "#<<query> ~a, prefixes: ~a, global graphs: ~a, quads: ~a>"
@@ -510,7 +517,8 @@
       (let [(token     (list->string (reverse lst)))
             (from-test (and (not (null? tokens))
                             (string? (car tokens))
-                            (string-ci= (car tokens) "from")))]
+                            (or (string-ci= (car tokens) "from")
+                                (string-ci= (car tokens) "into"))))]
         (if (or (string= token "")
                 (and from-test
                      (string-ci= token "named")))
@@ -569,17 +577,23 @@
               #:tokens  tokens)]))))
 
   (define (read-global-graphs out tokens)
+
+    (define (process-global-graph uri out)
+      (cond
+       [(is-absolute-uri? uri)
+        (set-query-global-graphs! out
+          (cons uri (query-global-graphs out)))]
+       [else
+        (set-query-global-graphs! out
+          (cons (parse-uri-token out uri)
+                (query-global-graphs out)))]))
+
     (for-each (lambda (item)
                 (match item
                   (("FROM" . uri)
-                   (cond
-                    [(is-absolute-uri? uri)
-                     (set-query-global-graphs! out
-                       (cons uri (query-global-graphs out)))]
-                    [else
-                     (set-query-global-graphs! out
-                       (cons (parse-uri-token out uri)
-                             (query-global-graphs out)))]))
+                   (process-global-graph uri out))
+                  (("INTO" . uri)
+                   (process-global-graph uri out))
                   (else #f)))
               tokens))
 
@@ -640,6 +654,15 @@
         (set-query-construct-patterns! out (reverse tokens))
         (parse-select-query out query cursor))))
 
+  (define (parse-insert-query out query cursor)
+    (call-with-values (lambda _ (tokenize-query-header out query cursor))
+      (lambda (tokens cursor)
+        (read-global-graphs out tokens)
+        (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
+          (lambda (tokens cursor)
+            (set-query-insert-patterns! out (reverse tokens))
+            (parse-select-query out query cursor))))))
+
   (catch #t
     (lambda _
       (let* [(out (make <query>))]
@@ -655,7 +678,7 @@
             ('DELETE        #f)
             ('DELETEINSERT  #f)
             ('DESCRIBE      (parse-describe-query out query (+ cursor 8)))
-            ('INSERT        #f)
+            ('INSERT        (parse-insert-query out query (+ cursor 6)))
             ('SELECT        (parse-select-query out q (+ cursor 6)))
             (else           (format #t "Doesn't match anything.~%"))))
         out))
