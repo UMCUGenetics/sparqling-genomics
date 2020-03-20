@@ -16,18 +16,12 @@
 
 (define-module (www db queries)
   #:use-module (www util)
-  #:use-module (www base64)
   #:use-module (www config)
   #:use-module (www db connections)
-  #:use-module (www db projects)
   #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (ice-9 format)
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-9)
-  #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (web response)
   #:use-module (sxml simple)
@@ -35,6 +29,7 @@
   #:export (query-add
             query-remove
             query-remove-unmarked
+            query-remove-unmarked-for-project
             all-queries
             query-by-id
             queries-by-username
@@ -55,18 +50,6 @@
             set-query-content!
             set-query-marked!))
 
-
-;; QUERY RECORD TYPE
-;; ----------------------------------------------------------------------------
-;; (define-record-type <query>
-;;   (make-query id content endpoint execution-time project marked?)
-;;   query?
-;;   (id             query-id             set-query-id!)
-;;   (content        query-content        set-query-content!)
-;;   (endpoint       query-endpoint       set-query-endpoint!)
-;;   (execution-time query-execution-time set-query-execution-time!)
-;;   (project        query-project        set-query-project!)
-;;   (marked?        query-marked?        set-query-marked!))
 
 ;; PUBLIC INTERFACE
 ;; ----------------------------------------------------------------------------
@@ -158,9 +141,11 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
    [(string= endpoint "")
     (values #f (format #f "The query must have an endpoint."))]
    [(not (string? project))
-    (values #f (sxml->xml '("Please make one of your "
-                            (a (@ (href "/projects")) "projects")
-                            " active.")))]
+    (values #f (call-with-output-string
+                 (lambda (port)
+                   (sxml->xml '("Please make one of your "
+                                (a (@ (href "/projects")) "projects")
+                                " active.") port))))]
    [(string= project "")
     (values #f (format #f "The query must have a project."))]
    [#t
@@ -212,6 +197,35 @@ WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
           (values #t (format #f "Removed unmarked."))
           (values #f (get-string-all body))))))
 
+(define (query-remove-unmarked-for-project username project-uri)
+  "Removes queries for which marked? is #f inside PROJECT-URI."
+  (let [(query (string-append
+                default-prefixes
+                "WITH <" system-state-graph ">
+DELETE { ?query ?p ?o }
+WHERE { ?query sg:executedBy agent:" username " ;
+               sg:isRelevantTo <" project-uri "> ; ?p ?o .
+  OPTIONAL {
+    ?query sg:isProtected ?isProtected .
+  }
+  FILTER (!BOUND(?isProtected) OR ?isProtected = false)
+}
+"))
+        (connection (system-connection))]
+    (receive (header body)
+        (sparql-query query
+                      #:uri (connection-uri connection)
+                      #:digest-auth
+                      (if (and (connection-username connection)
+                               (connection-password connection))
+                          (string-append
+                           (connection-username connection) ":"
+                           (connection-password connection))
+                          #f))
+      (if (= (response-code header) 200)
+          (values #t (format #f "Removed unmarked."))
+          (values #f (get-string-all body))))))
+
 
 ;; ALL-QUERIES
 ;; ----------------------------------------------------------------------------
@@ -220,7 +234,8 @@ WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
   (string-append
    default-prefixes
    "
-SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt ?executedBy 
+SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
+       (STRAFTER(STR(?executedBy), STR(agent:)) AS ?executedBy)
        AVG(?executionTime) AS ?executionTime
        ?projectTitle ?isProtected
 FROM <" system-state-graph ">
