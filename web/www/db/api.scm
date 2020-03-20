@@ -29,11 +29,17 @@
             api-is-rdf-format?
             api-request-data->alist
             api-serveable-format?
-            first-acceptable-format))
+            first-acceptable-format
+            rdf-formats))
 
 (define-syntax-rule (is-format a b)
   (or (equal? a b)
       (member a b)))
+
+(define (rdf-formats)
+  '((N-triples . application/n-triples)
+    (Turtle    . text/turtle)
+    (RDFXML    . application/rdf+xml)))
 
 (define (api-is-rdf-format? fmt)
   (cond
