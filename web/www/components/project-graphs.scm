@@ -72,7 +72,8 @@
          (members     (project-members project-uri))]
     (if (null? members)
         '(p "Could not derive project members from queries.")
-        `((table (@ (class "item-table"))
+        `((table (@ (id "project-members")
+                    (class "item-table"))
                  (tr (th "Name")
                      (th "# Queries")
                      ,(if is-creator?
