@@ -84,8 +84,6 @@
                   (set-rdf-store-uri! (car sparql-uri)))
 
               (when (string= (car backend) "virtuoso")
-                (log-debug "read-configuration-from-file"
-                           "Backend is virtuoso.")
                 (let [(isql-bin      (car (assoc-ref rdf-store 'isql-path)))
                       (isql-hostname (car (assoc-ref rdf-store 'isql-hostname)))
                       (isql-port     (car (assoc-ref rdf-store 'isql-port)))

@@ -56,7 +56,6 @@
 (define* (api-handler request request-path client-port
                       #:key (username #f) (token #f))
   "Responds to API calls."
-  (log-debug "api-handler" "Calling (api-handler ... ~a)" request-path)
   (let [(accept-type  (request-accept request))
         (content-type (request-content-type request))]
     (cond
@@ -80,7 +79,6 @@
      [(string-prefix? "/api/import-rdf" request-path)
       (if (eq? (request-method request) 'POST)
           (let [(index  (string-index request-path #\?))]
-            (format #t "Index: ~a~%" index)
             (if index
                 (let* [(metadata      (post-data->alist
                                        (substring request-path (1+ index))))
@@ -97,7 +95,6 @@
                        (bytes-to-fetch (request-content-length request))
                        (bytes-fetched  (sendfile output-port input-port
                                                  bytes-to-fetch))]
-                  (log-debug "/api/import-rdf" "Wrote file to ~s" tmp-filename)
                   (close-port output-port)
                   (if (= bytes-fetched bytes-to-fetch)
                       (cond

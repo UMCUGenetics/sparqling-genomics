@@ -43,9 +43,7 @@ AUTH-TOKEN."
                                           (connection   . ,(www-name))) port)))
                    #:streaming? #t)
       (if (= (response-code header) 200)
-          (begin
-            (log-debug "graphs-by-project" "About to read graphs-by-project.")
-            (read port))
+          (read port)
           (begin
             (log-debug "graphs-by-project" "Reading graphs-by-project failed.")
             '())))))
@@ -68,7 +66,6 @@ otherwise it returns #f."
     ;; -----------------------------------------------------------------------
     (if (not parsed)
         (let ((message (format #f "Couldn't parse:~%---~%~a~%---" query)))
-          (log-debug "may-execute?" message)
           (values #f message))
         (let [(allowed-graphs (map (lambda (item) (assoc-ref item "graph"))
                                    (graphs-by-project auth-token project-hash)))
@@ -82,13 +79,7 @@ otherwise it returns #f."
                  (and (has-unscoped-variables? parsed)
                       (not (null? (lset-difference string= global-graphs
                                                    allowed-graphs)))))
-            (format #t "Unscoped: ~s" (lset-difference string= global-graphs
-                                                   allowed-graphs))
-            (format #t "Unscoped:~%~s~%~s~%" global-graphs allowed-graphs)
-            (let ((message (format #f "Unscoped variables in query")))
-              (log-debug "may-execute?" message)
-              (log-debug "may-execute?" "Query:~%---~%~a~%---" query)
-              (values #f message))]
+            (values #f (format #f "Unscoped variables in query"))]
 
            ;; Check whether only allowed-graphs are used.
            ;; -----------------------------------------------------------------
@@ -97,8 +88,6 @@ otherwise it returns #f."
                        (lset-difference string= used-graphs allowed-graphs)))
                    (message (format #f "Disallowed graph(s): ~s~{, ~s~}."
                                     (car g) (cdr g)))]
-              (log-debug "may-execute?" message)
-              (log-debug "may-execute?" "Query:~%---~%~a~%---" query)
               (values #f message))]
 
            ;; If all previous tests passed, the query may be executed.
