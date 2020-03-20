@@ -23,6 +23,12 @@ SOURCES =                                               \
   json/syntax.scm                                       \
   ldap/authenticate.scm                                 \
   logger.scm                                            \
+  auth-manager/api.scm                                  \
+  auth-manager/config-reader.scm                        \
+  auth-manager/config.scm                               \
+  auth-manager/permission-check.scm                     \
+  auth-manager/proxy.scm                                \
+  auth-manager/virtuoso.scm                             \
   sparql/driver.scm                                     \
   sparql/lang.scm                                       \
   sparql/md5.scm                                        \
@@ -98,11 +104,11 @@ WWW_STATIC_RESOURCES =                                  \
   static/portal.js                                      \
   static/prompt.js
 
-bin_SCRIPTS     = sg-web
+bin_SCRIPTS     = sg-web sg-auth-manager
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 EXTRA_DIST     += $(WWW_STATIC_RESOURCES) sg-web.service.in
-webconf_DATA    = sg-web.xml
+webconf_DATA    = sg-web.xml sg-auth-manager.xml
 webconfdir      = @webconfdir@
 
 systemdservicedir = $(libdir)/systemd/system

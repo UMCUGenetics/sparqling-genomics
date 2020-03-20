@@ -79,6 +79,7 @@ AC_DEFINE_DIR([WEB_ROOT], [datarootdir], [Data directory for web resources.])
 
 AC_CONFIG_FILES([env], [chmod +x env])
 AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
+AC_CONFIG_FILES([web/sg-auth-manager], [chmod +x web/sg-auth-manager])
 AC_CONFIG_FILES([tools/folder2rdf/folder2rdf],
                 [chmod +x tools/folder2rdf/folder2rdf])
 AC_CONFIG_FILES([tools/ega2rdf/ega2rdf],
