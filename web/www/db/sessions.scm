@@ -17,12 +17,7 @@
 (define-module (www db sessions)
   #:use-module (www util)
   #:use-module (www base64)
-  #:use-module (www config)
-  #:use-module (sparql lang)
-  #:use-module (ice-9 format)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
+  #:use-module ((www config) #:select (www-cache-root))
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
 
@@ -30,7 +25,8 @@
             session-edit
             session-remove
             all-sessions
-            session-by-username
+            sessions-by-username
+            session-by-name
             session-by-token
             load-sessions
             persist-sessions
@@ -38,7 +34,12 @@
             alist->session
             session->alist
 
+            session-cookie-prefix
+            session->cookie
+            cookie->session
+
             make-session
+            session-name
             session-username
             session-token
             session?
@@ -49,14 +50,16 @@
 
 (define %db-sessions '())
 
+(define (session-cookie-prefix) "SGSession")
+
 ;; SESSION RECORD TYPE
 ;; ----------------------------------------------------------------------------
 (define-record-type <session>
-  (make-session username token)
+  (make-session name username token)
   session?
+  (name          session-name       set-session-name!)
   (username      session-username   set-session-username!)
   (token         session-token      set-session-token!))
-
 
 ;; ALIST->SESSION AND SESSION->ALIST
 ;; ----------------------------------------------------------------------------
@@ -64,23 +67,45 @@
   "Turns the association list INPUT into a session record."
   (catch #t
     (lambda _
-      (let ((obj (make-session (assoc-ref input 'username)
+      (let ((obj (make-session (assoc-ref input 'name)
+                               (assoc-ref input 'username)
                                (assoc-ref input 'token))))
         ;; The token will be automatically generated when none is provided.
-        ;; For this we generate 64 random numbers between 0 and 256, and
+        ;; For this we generate 63 random numbers between 0 and 256, and
         ;; we base64 it, so that it's web-compatible.
+        ;;
+        ;; We replace '/' for 0 and '+' for 1 so that the output only contains
+        ;; (alpha)numeric characters.
         (when (and (string? (session-token obj))
                    (string= (session-token obj) ""))
-          (set-session-token! obj (base64-encode
-                                   (u8-list->bytevector
-                                    (map (lambda _ (random 256)) (iota 64))))))
+          (set-session-token! obj (string-replace-occurrence
+                                   (string-replace-occurrence
+                                    (base64-encode
+                                     (u8-list->bytevector
+                                      (map (lambda _ (random 256)) (iota 63))))
+                                    #\/ #\0)
+                                   #\+ #\1)))
         obj))
     (lambda (key . args)
       #f)))
 
 (define (session->alist record)
-  `((username . ,(session-username record))
+  `((name     . ,(session-name     record))
+    (username . ,(session-username record))
     (token    . ,(session-token    record))))
+
+;; SESSIONS <-> COOKIE
+;; ----------------------------------------------------------------------------
+
+(define (session->cookie session)
+  (let [(token (session-token session))]
+    (string-append (session-cookie-prefix) "=" token)))
+
+(define (cookie->session cookie)
+  (let [(token (if (string-prefix? (session-cookie-prefix) cookie)
+                   (substring cookie 10)
+                   cookie))]
+    (session-by-token token)))
 
 ;; SESSIONS PERSISTENCE
 ;; ----------------------------------------------------------------------------
@@ -111,9 +136,12 @@
 ;; ----------------------------------------------------------------------------
 (define (session-add record)
   "Adds a reference to the internal graph for the session RECORD."
-  (let ((username (session-username record))
+  (let ((name     (session-name     record))
+        (username (session-username record))
         (token    (session-token    record)))
     (cond
+     ((string= name "")
+      (values #f (format #f "The session name cannot empty.")))
      ((string= username "")
       (values #f (format #f "The username cannot empty.")))
      ((string= token "")
@@ -145,9 +173,18 @@
       (map filter %db-sessions)
       %db-sessions))
 
-(define (session-by-username username)
+(define (sessions-by-username username)
+  "Returns a session for USERNAME."
   (let ((item (filter (lambda (session)
                         (string= (session-username session) username))
+                      %db-sessions)))
+    item))
+
+(define (session-by-name username name)
+  "Returns a session for USERNAME with NAME."
+  (let ((item (filter (lambda (session)
+                        (and (string= (session-username session) username)
+                             (string= (session-name session) name)))
                       %db-sessions)))
     (if (null? item)
         #f
