@@ -16,10 +16,8 @@
 
 (define-module (www db api)
   #:use-module (www util)
-  #:use-module (web response)
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
-  #:use-module (srfi srfi-1)
   #:use-module (json)
   #:use-module (sxml simple)
   #:use-module (logger)
