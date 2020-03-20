@@ -26,76 +26,87 @@
   #:use-module (json)
   #:export (page-prompt))
 
-(define (page-prompt-layout request-path username insert-successfully?)
+(define (page-prompt-layout request-path username hash insert-successfully?)
   (page-root-template username "Prompt" request-path
-    (let [(connections (all-connections username #:filter connection-name))]
+    (let [(connections (connections-by-user username #:filter connection-name))
+          (prompt-id   (prompt-with-tag "web-interface" username #:create? #t))]
       `((h2 "Prompt")
 
-        ,(if (not insert-successfully?)
-             `(div (@ (class "message-box failure"))
-                   (p "Inserting the triplet failed."))
-             '())
+        ,(cond
+          [(not insert-successfully?)
+           `(div (@ (class "message-box failure"))
+                 (p "Inserting the triplet failed."))]
 
-        ,(if (not (default-connection username))
-             `(p "Please " (a (@ (href "/connections"))
-                              "set a connection as default")
-                 " first.")
-             `((form
-                (div (@ (id "prompt-wrapper"))
-                     (table
-                      (tr (td (@ (class "prompt")) "#")
-                          (td (@ (class "input-field"))
-                              (input (@ (type "text")
-                                        (id "prompt-field")
-                                        (name "prompt-field")
-                                        (autocomplete "off")
-                                        (class "search-field")
-                                        (placeholder "Triplets work best"))))))))
+          [(not (default-connection username))
+           `(p "Please " (a (@ (href "/dashboard"))
+                            "set a connection as default")
+               " first.")]
+          [(not prompt-id)
+           `(div (@ (class "message-box failure"))
+                 (p "Could not initiate a prompt session."))]
+          [else
+           `((form
+              (div (@ (id "prompt-wrapper"))
+                   (table
+                    (tr (td (@ (class "prompt")) "#")
+                        (td (@ (class "input-field"))
+                            (input (@ (type "hidden")
+                                      (id "prompt-id")
+                                      (value ,prompt-id)))
+                            (input (@ (type "text")
+                                      (id "prompt-field")
+                                      (name "prompt-field")
+                                      (autocomplete "off")
+                                      (class "search-field")
+                                      (placeholder "Triplets work best"))))))))
 
-               (h3 "Session"
-                   (div (@ (id "clear-prompt-session")
-                           (class "small-action action-btn-remove"))
-                        (a (@ (href "/prompt-session-clear"))
-                           "✖")))
-               (p "")
-               (table (@ (id "prompt-session-table")
-                         (class "item-table"))
-                      (tr (th "Subject")
-                          (th "Predicate")
-                          (th "Object")))
-               (p "Store the session to the following graph:")
-               (form (@ (action "/prompt-session-save") (method "post"))
-                ,(let [(graphs (active-writable-graphs-for-user username))]
-                   (if (null? graphs)
-                       `(p "To save this session, unlock at least one graph "
-                           "in your active project.")
-                       `((select (@ (id "select-graph")
-                                    (name "select-graph"))
-                                 ,(map (lambda (graph)
-                                         `(option (@ (value ,(assoc-ref graph "graph")))
-                                                  ,(assoc-ref graph "graph")))
-                                       graphs))
-                         (input (@ (id "add-field-button")
-                                   (style "margin-left: 5pt;")
-                                   (type "submit")
-                                   (value "💾")))))))))
-        (script "
-$(document).ready(function(){
+             (h3 "Session"
+                 (div (@ (id "clear-prompt-session")
+                         (class "small-action action-btn-remove"))
+                      (a (@ (href "#")
+                            (onclick "javascript:clear_session(); return false;"))
+                         "✖")))
+             (p "")
+             (table (@ (id "prompt-session-table")
+                       (class "item-table"))
+                    (tr (th "Subject")
+                        (th "Predicate")
+                        (th "Object")))
+             (p "Store the session to the following graph:")
+             (form (@ (onsubmit "javascript:commit_session(); return false;")
+                      (method "post"))
+                   ,(let [(graphs (writable-graphs-for-user-in-project username hash))]
+                      (if (null? graphs)
+                          `(p "To save this session, unlock at least one graph "
+                              "in your active project.")
+                          `((select (@ (id "select-graph")
+                                       (name "select-graph"))
+                                    ,(map (lambda (graph)
+                                            `(option (@ (value ,(assoc-ref graph "graph")))
+                                                     ,(assoc-ref graph "graph")))
+                                          graphs))
+                            (input (@ (id "add-field-button")
+                                      (style "margin-left: 5pt;")
+                                      (type "submit")
+                                      (value "💾"))))))))])
+      (script "
+jQuery(document).ready(function(){
   enable_prompt('#prompt-field');
-  $('#prompt-field').focus();
+  jQuery('#prompt-field').focus();
 
-  $.get('/prompt-session-table', function(data){
-    $('#prompt-session-table').replaceWith(data);
+  jQuery.get('/prompt-session-table', function(data){
+    jQuery('#prompt-session-table').replaceWith(data);
   });
 });")))
-    #:dependencies '(jquery autocomplete prompt)))
+    #:dependencies '(jquery prompt)))
 
-(define* (page-prompt request-path username #:key (post-data #f))
-  (if post-data
-    (let* [(data       (json-string->scm post-data))
-           (subject    (hash-ref data "subject"))
-           (predicate  (hash-ref data "predicate"))
-           (object     (hash-ref data "object"))]
-      (page-prompt-layout request-path username
-        (prompt-insert-triplet username subject predicate object)))
-    (page-prompt-layout request-path username #t)))
+(define* (page-prompt request-path username hash #:key (post-data ""))
+  (if (not (string= post-data ""))
+    (let* [(data      (json-string->scm post-data))
+           (subject   (hash-ref data "subject"))
+           (predicate (hash-ref data "predicate"))
+           (object    (hash-ref data "object"))
+           (prompt-id (prompt-with-tag "web-interface" username #:create? #t))]
+      (page-prompt-layout request-path username hash
+        (prompt-add-triplet prompt-id username subject predicate object)))
+    (page-prompt-layout request-path username hash #t)))

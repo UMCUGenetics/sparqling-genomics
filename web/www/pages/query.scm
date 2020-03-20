@@ -21,16 +21,17 @@
   #:use-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (www components query-history)
   #:use-module (srfi srfi-1)
   #:export (page-query))
 
-(define* (page-query request-path username #:key (post-data #f))
+(define* (page-query request-path username hash #:key (post-data #f))
   (page-root-template username "Query" request-path
    `((h2 "Query the database")
-     ,(let* ((connections (all-connections username #:filter connection-name))
+     ,(let* ((connections (connections-by-user username #:filter connection-name))
              (alist       (if post-data (post-data->alist post-data) '()))
              (query       (assoc-ref alist 'query))
-             (project     (active-project-for-user username))
+             (project     (project-by-hash hash))
              (endpoint    (if (assoc-ref alist 'endpoint)
                               (assoc-ref alist 'endpoint)
                               "")))
@@ -68,22 +69,15 @@
                         (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
                                 default-prefixes)))
 
-              `((h3 "History")
+              ((h3 "History")
 
-                (p "The table below contains queries that were previously "
-                   "executed. For compactness, all " (code "PREFIX") " "
-                   "declarations and empty lines are not shown.")
+               (p "The table below contains queries that were previously "
+                  "executed. For compactness, all " (code "PREFIX") " "
+                  "declarations and empty lines are not shown.")
 
-                (div (@ (class "history-data-loader"))
-                     (div (@ (class "title")) "Loading history ...")
-                     (div (@ (class "content")) "Please wait for the results to appear.")))
+               ,(query-history-component username hash))
               (script "
 $(document).ready(function(){
-
-  $.get('/query-history', function (data){
-      $('.history-data-loader').after(data);
-      $('.history-data-loader').remove();
-  });
 
   var editor = ace.edit('editor');
   var session = editor.getSession();
@@ -129,7 +123,7 @@ $(document).ready(function(){
       $('#query-output_wrapper').remove();
 
       post_data = { query: editor.getValue(), connection: $('#connection').val() };
-      $.post('/query-response', JSON.stringify(post_data), function (data){
+      $.post('/query-response/" ,hash "', JSON.stringify(post_data), function (data){
 
         /*  Insert the results HTML table into the page. */
         $('#editor').after(data);
@@ -148,7 +142,7 @@ $(document).ready(function(){
           var dt = $('#query-output').DataTable({ 'sDom': 'lrtip', 'aaSorting': [] });
           dt.draw();
 
-          $.get('/query-history', function (data){
+          $.get('/query-history/" ,hash "', function (data){
             $('#query-history-table').replaceWith(data);
           });
 

@@ -36,45 +36,40 @@ SOURCES =                                               \
   sparql/stream.scm                                     \
   sparql/util.scm                                       \
   www/base64.scm                                        \
+  www/components/project-graphs.scm                     \
+  www/components/query-history.scm                      \
+  www/components/rdf-stores.scm                         \
+  www/components/sessions.scm                           \
   www/config.scm                                        \
   www/config-reader.scm                                 \
   www/db/api.scm                                        \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
-  www/db/portal.scm                                     \
   www/db/exploratory.scm                                \
-  www/db/overview.scm                                   \
   www/db/projects.scm                                   \
   www/db/prompt.scm                                     \
   www/db/queries.scm                                    \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
   www/pages.scm                                         \
-  www/pages/connections.scm                             \
+  www/pages/connection-failure.scm                      \
+  www/pages/collect.scm                                 \
+  www/pages/create-project.scm                          \
+  www/pages/dashboard.scm                               \
+  www/pages/structure.scm                               \
+  www/pages/report.scm                                  \
+  www/pages/automate.scm                                \
   www/pages/edit-connection.scm                         \
+  www/pages/import.scm                                  \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \
-  www/pages/graphs.scm                                  \
   www/pages/login.scm                                   \
-  www/pages/overview-table.scm                          \
-  www/pages/plottable-query.scm                         \
-  www/pages/portal.scm                                  \
-  www/pages/predicates.scm                              \
-  www/pages/project-assigned-graphs.scm                 \
-  www/pages/project-dependent-graphs.scm                \
   www/pages/project-details.scm                         \
-  www/pages/project-members.scm                         \
-  www/pages/project-queries.scm                         \
-  www/pages/projects.scm                                \
   www/pages/prompt-session-table.scm                    \
   www/pages/prompt.scm                                  \
-  www/pages/query-history-mark.scm                      \
   www/pages/query-history.scm                           \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
-  www/pages/samples.scm                                 \
-  www/pages/types.scm                                   \
-  www/pages/welcome.scm                                 \
   www/requests.scm                                      \
   www/requests-api.scm                                  \
   www/requests-beacon.scm                               \
@@ -82,6 +77,7 @@ SOURCES =                                               \
 
 WWW_STATIC_RESOURCES =                                  \
   static/css/main.css                                   \
+  static/css/datatables.min.css                         \
   static/fonts/FiraMono-Regular.ttf                     \
   static/fonts/FiraMono-Bold.ttf                        \
   static/fonts/Roboto-Bold.ttf                          \
@@ -92,17 +88,17 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \
   static/images/sort_desc.png                           \
-  static/ace/ace.js                                     \
-  static/ace/ext-language_tools.js                      \
-  static/ace/mode-sparql.js                             \
-  static/ace/theme-crimson_editor.js                    \
-  static/d3.min.js                                      \
-  static/datatables.min.css                             \
-  static/jquery-3.2.1.min.js                            \
-  static/jquery.dataTables.min.js                       \
-  static/plottable-query.js                             \
-  static/portal.js                                      \
-  static/prompt.js
+  static/js/ace/ace.js                                  \
+  static/js/ace/ext-language_tools.js                   \
+  static/js/ace/mode-sparql.js                          \
+  static/js/ace/theme-crimson_editor.js                 \
+  static/js/d3.min.js                                   \
+  static/js/exploratory.js                              \
+  static/js/import.js                                   \
+  static/js/jquery-3.2.1.min.js                         \
+  static/js/jquery.dataTables.min.js                    \
+  static/js/plottable-query.js                          \
+  static/js/prompt.js
 
 bin_SCRIPTS     = sg-web sg-auth-manager
 webdir          = $(pkgdatadir)/web

@@ -107,6 +107,8 @@
   (log-error "sg-web" "Refused to run without an authentication mechanism.")
   (exit 0))
 
+(set-persist-connection-lock! (make-mutex))
+
 ;; ----------------------------------------------------------------------------
 ;; RANDOM NUMBER GENERATOR
 ;; ----------------------------------------------------------------------------

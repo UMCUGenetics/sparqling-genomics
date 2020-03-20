@@ -15,20 +15,15 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www pages query-response)
-  #:use-module (www pages)
-  #:use-module (www util)
   #:use-module (www html)
   #:use-module (www config)
   #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db queries)
-  #:use-module (sparql driver)
   #:use-module (sparql util)
   #:use-module (web response)
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
   #:use-module (ice-9 format)
-  #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
@@ -92,7 +87,7 @@
               (format output-port "]")
               (stream-json-response input-port output-port header (+ number-of-rows 1)))))))
 
-(define* (page-query-response request-path username #:key (post-data "")
+(define* (page-query-response request-path username hash token #:key (post-data "")
                               (return-type '(text/html)))
 
   (define (respond-with-error port)
@@ -105,53 +100,45 @@
   (if (string= post-data "")
       '(p "Please send a POST request with a SPARQL query.")
       (let* ((parsed-data (json-string->scm post-data))
-             (connection  (connection-by-name (hash-ref parsed-data "connection") username))
-             (backend     (connection-backend connection))
+             (connection  (connection-by-name
+                           (hash-ref parsed-data "connection") username))
              (query       (hash-ref parsed-data "query"))
              (start-time  (current-time))
+             (hash        (basename request-path))
              (result
               (catch #t
                 (lambda _
                   (receive (header port)
-                      (sparql-query query
-                                    #:type "text/csv"
-                                    #:store-backend backend
-                                    #:uri (connection-uri connection)
-                                    #:digest-auth
-                                    (if (and (connection-username connection)
-                                             (connection-password connection))
-                                        (string-append
-                                         (connection-username connection) ":"
-                                         (connection-password connection))
-                                        #f))
-                    (cond
-                     [(= (response-code header) 200)
-                      (let* ((end-time (current-time))
-                             (time-spent (time-difference end-time start-time))
-                             (seconds (+ (time-second time-spent)
-                                         (* (time-nanosecond time-spent)
-                                            (expt 10 -9) 1.0))))
-                        (query-add query
-                                   (connection-name connection)
-                                   username
-                                   seconds
-                                   (active-project-for-user username))
+                      (sparql-query-with-connection connection query token hash)
+                    (begin
+                      (cond
+                       [(= (response-code header) 200)
+                        (let* ((end-time   (current-time))
+                               (time-spent (time-difference end-time start-time))
+                               (seconds (+ (time-second time-spent)
+                                           (* (time-nanosecond time-spent)
+                                              (expt 10 -9) 1.0))))
+                          (query-add query
+                                     (connection-name connection)
+                                     username
+                                     seconds
+                                     (project-id (project-by-hash hash)))
+                          (lambda (output-port)
+                            (cond
+                             ((equal? return-type '(application/javascript))
+                              (stream-json-response port output-port))
+                             ((equal? return-type '(text/html))
+                              (stream-html-response port output-port))
+                             ;; Fall back to a HTML response.
+                             (else
+                              (stream-html-response port output-port)))))]
+                       [(= (response-code header) 401)
                         (lambda (output-port)
-                          (cond
-                            ((equal? return-type '(application/javascript))
-                             (stream-json-response port output-port))
-                            ((equal? return-type '(text/html))
-                             (stream-html-response port output-port))
-                            ;; Fall back to a HTML response.
-                            (else
-                             (stream-html-response port output-port)))))]
-                     [(= (response-code header) 401)
-                      (lambda (output-port)
-                        (sxml->xml (call-with-input-string "Authentication failed."
-                                     respond-with-error) output-port))]
-                     [else
-                      (lambda (output-port)
-                        (sxml->xml (respond-with-error port) output-port))])))
+                          (sxml->xml (call-with-input-string (get-string-all port)
+                                       respond-with-error) output-port))]
+                       [else
+                        (lambda (output-port)
+                          (sxml->xml (respond-with-error port) output-port))]))))
                 (lambda (key . args)
                   (cond
                    [(eq? key 'system-error)
@@ -166,6 +153,10 @@
                           (sxml->xml (call-with-input-string
                                          (format #f "An error occurred with details:~%~a~%" args)
                                        respond-with-error) output-port)))]
+                   [(eq? key 'bad-header)
+                    (lambda (output-port)
+                      (sxml->xml (call-with-input-string "The transmission was cut short."
+                                   respond-with-error) output-port))]
                    [else
                     (format #t "Thrown unhandled exception in ~a: ~a: ~a~%"
                             "page-query-response" key args)])))))

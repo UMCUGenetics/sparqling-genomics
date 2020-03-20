@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -18,58 +18,94 @@
   #:use-module (srfi srfi-1)
   #:use-module (www config)
   #:use-module (www util)
+  #:use-module (www db projects)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:export (page-root-template
-            page-empty-template))
+            page-empty-template
+            page-menu))
 
 (define page-title-prefix (string-append (www-name) " | "))
 
-(define public-pages
-  '(("/portal" "Portal")
-    ("/login" "Log in")))
+(define pages
+  '(("/project-details" "Overview")
+    ("/collect"         "Collect")
+    ("/structure"       "Structure")
+    ("/query"           "Query")
+    ("/report"          "Report")
+    ("/automate"        "Automate")))
 
-(define private-pages
-  '(("/" "Overview")
-    ("/connections" "Connections")
-    ("/portal" "Portal")
-    ("/projects" "Projects")
-    ("/query" "Query")
-    ("/exploratory" "Exploratory")
-    ("/prompt" "Prompt")
-    ("/logout" "Logout")))
-
-(define (pages username)
-  (if username
-      private-pages
-      public-pages))
-
-(define (page-partial-main-menu pages request-path)
+(define (page-menu username request-path)
   `(ul
-    ,(map
-      (lambda (item)
-        (cond
-         ((string= (substring (car item) 1) (car (string-split (substring request-path 1) #\/)))
-          `(li (@ (class "active")) ,(cadr item)))
-         ((and (string= "query" (car (string-split (substring request-path 1) #\/)))
-               (string= (car item) "/query"))
-          `(li (@ (class "active")) (a (@ (href "/query")) "← New query")))
-         ((and (string= (car item) "/query")
-               (string-prefix? "/plottable-query" request-path))
-          `(li (@ (class "active")) (a (@ (href "/query")
-                                          (onclick "history.go(-1); return false;")) "← Go back")))
-         ((or (and (string= (car item) "/connections")
-                   (string-prefix? "/edit-connection" request-path))
-              (and (string= (car item) "/projects")
-                   (string-prefix? "/project-details" request-path)))
-          `(li (@ (class "active")) (a (@ (href ,(car item))) "← Go back")))
-         (else
-          `(li (a (@ (href ,(car item))) ,(cadr item))))))
-      pages)))
+    (li (@ (class ,(if (or (string-prefix? "/edit-connection" request-path)
+                           (string-prefix? "/edit-form" request-path)
+                           (string= request-path "/dashboard")) "active" "")))
+        ,(if (string= request-path "/dashboard")
+             "Dashboard"
+             (if (or (string-prefix? "/edit-connection" request-path)
+                     (string-prefix? "/edit-form" request-path))
+                 `(a (@ (href "/dashboard")) "← Go back")
+                 `(a (@ (href "/dashboard")) "Dashboard"))))
+   ,(map (lambda (item)
+           (cond
+            [(string-suffix? (project-hash item) request-path)
+             `(li (@ (class "active")) ,(project-name item))]
+            [else
+             `(li (a (@ (href ,(string-append "/project-details/"
+                                              (project-hash item))))
+                     ,(project-name item)))]))
+         (projects-by-user username))
+   (li (@ (class ,(if (string= "/create-project" request-path)
+                      "active new-menu-item"
+                      "new-menu-item")))
+       (a (@ (href "/create-project")) "✚"))
+   (li (@ (class "logout")) (a (@ (href "/logout")) "Log out"))))
 
-(define* (page-root-template username title request-path content-tree #:key (dependencies '(test)))
+(define (page-submenu username request-path)
+  (let* [(project-hash (basename request-path))
+         (show-menu-item
+          (lambda (item show-spacer?)
+            (cond
+             [(string= (substring (car item) 1)
+                       (car (string-split (substring request-path 1) #\/)))
+              `(,(if show-spacer? `(li (@ (class "spacer")) "→") '())
+                (li (@ (class "active")) ,(cadr item)))]
+             [else
+              `(,(if show-spacer? `(li (@ (class "spacer")) "→") '())
+                (li (a (@ (href ,(string-append (car item) "/" project-hash)))
+                       ,(cadr item))))])))]
+    (cond
+     ;; Sub-pages for the “structure” page.
+     [(or (string-prefix? "/exploratory" request-path)
+          (string-prefix? "/prompt" request-path))
+      `(ul
+        (li (a (@ (href ,(string-append "/structure/" project-hash)))
+               "← Go back")))]
+
+     ;; Sub-pages for the “collect” page.
+     [(or (string-prefix? "/forms" request-path)
+          (string-prefix? "/create-form" request-path)
+          (string-prefix? "/import" request-path))
+      `(ul
+        (li (a (@ (href ,(string-append "/collect/" project-hash)))
+               "← Go back")))]
+
+     ;; The regular submenu.
+     [else
+      `(ul
+        ,(show-menu-item (car pages) #f)
+        ,(map (lambda (item) (show-menu-item item #t)) (cdr pages)))])))
+
+(define (show-footer)
+  `(div (@ (id "footer"))
+        (p "v" ,(www-version) " | "
+           (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics")
+                 (target "_blank"))
+              "Source code"))))
+
+(define* (page-root-template username title request-path content-tree #:key (dependencies '()))
   `((html (@ (lang "en"))
      (head
       (title ,(string-append page-title-prefix title))
@@ -81,20 +117,29 @@
            `(script (@ (type "text/javascript") (src "/static/js/jquery-3.2.1.min.js")) "")
            `())
       ,(if (memq 'prompt dependencies)
-           `(script (@ (type "text/javascript") (src "/static/prompt.js")) "")
+           `(script (@ (type "text/javascript") (src "/static/js/prompt.js")) "")
            `())
-      ,(if (memq 'portal dependencies)
-           `(script (@ (type "text/javascript") (src "/static/portal.js")) "")
+      ,(if (memq 'projects dependencies)
+           `(script (@ (type "text/javascript") (src "/static/js/projects.js")) "")
+           `())
+      ,(if (memq 'sessions dependencies)
+           `(script (@ (type "text/javascript") (src "/static/js/sessions.js")) "")
+           `())
+      ,(if (memq 'connections dependencies)
+           `(script (@ (type "text/javascript") (src "/static/js/connections.js")) "")
+           `())
+      ,(if (memq 'import dependencies)
+           `(script (@ (type "text/javascript") (src "/static/js/import.js")) "")
+           `())
+      ,(if (memq 'exploratory dependencies)
+           `((script (@ (type "text/javascript") (src "/static/js/base32.js")) "")
+             (script (@ (type "text/javascript") (src "/static/js/exploratory.js")) ""))
            `())
       ,(if (memq 'd3 dependencies)
            `(script (@ (type "text/javascript") (src "/static/js/d3.min.js")) "")
            `())
       ,(if (memq 'plottable-query dependencies)
-           `(script (@ (type "text/javascript") (src "/static/plottable-query.js")) "")
-           `())
-      ,(if (memq 'autocomplete dependencies)
-           `((link (@ (rel "stylesheet") (type "text/css") (href "/static/ext/jquery-autocomplete.css")))
-             (script (@ (type "text/javascript") (src "/static/ext/jquery-ui-autocomplete.min.js")) ""))
+           `(script (@ (type "text/javascript") (src "/static/js/plottable-query.js")) "")
            `())
       ,(if (memq 'datatables dependencies)
            `((link (@ (rel "stylesheet") (type "text/css") (href "/static/css/datatables.min.css")))
@@ -115,16 +160,23 @@
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
                              (alt ,(www-name)))))
-                (div (@ (class "menu"))
-                     ,(page-partial-main-menu (pages username) request-path)))
-           (div (@ (id "content"))
-                ,content-tree)
-           (div (@ (id "footer"))
-                (p "v" ,(www-version) " | "
-                   (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
-                      "Download the source code of this page."))))))))
+                (div (@ (class "menu")) ,(page-menu username request-path))
+                ,(if (any (lambda (x) x)
+                          (map (lambda (path)
+                                 (string-prefix? path request-path))
+                               '("/project-details/"  "/collect/"
+                                 "/structure/"        "/query/"
+                                 "/report/"           "/automate/"
+                                 "/exploratory/"      "/prompt/"
+                                 "/forms/"            "/create-form/"
+                                 "/import/")))
+                     `(div (@ (class "submenu"))
+                           ,(page-submenu username request-path))
+                     `()))
+           (div (@ (id "content")) ,content-tree)
+           ,(show-footer))))))
 
-(define* (page-empty-template title request-path content-tree #:key (dependencies '(test)))
+(define* (page-empty-template title request-path content-tree #:key (dependencies '()))
   `((html (@ (lang "en"))
      (head
       (title ,(string-append page-title-prefix title))
@@ -142,12 +194,6 @@
                 (div (@ (class "title")
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
-                             (alt ,(www-name)))))
-                (div (@ (class "menu"))
-                     ,(page-partial-main-menu (pages #f) request-path)))
-           (div (@ (id "content"))
-                ,content-tree)
-           (div (@ (id "footer"))
-                (p "v" ,(www-version) " | "
-                   (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics"))
-                      "Download the source code of this page."))))))))
+                             (alt ,(www-name))))))
+           (div (@ (id "content")) ,content-tree)
+           ,(show-footer))))))

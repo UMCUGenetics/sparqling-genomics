@@ -19,24 +19,28 @@
   #:export (page-prompt-session-table))
 
 (define* (page-prompt-session-table request-path username #:key (post-data #f))
-  `(table (@ (id "prompt-session-table")
-             (class "item-table"))
-          (tr (th "Subject")
-              (th "Predicate")
-              (th "Object")
-              (th ""))
-          ,(map (lambda (row)
-                  `(tr (td ,(list-ref row 0))
-                       (td ,(list-ref row 1))
-                       (td ,(list-ref row 2))
-                       (td (@ (class "button-column"))
-                           (div (@ (class "action-btn remove-btn")
-                                   (name "remove")
-                                   (onclick ,(string-append
-                                              "javascript:remove_triplet('"
-                                              (list-ref row 0) "', '"
-                                              (list-ref row 1) "', '"
-                                              (list-ref row 2)
-                                            "'); return false;")))
-                                "✖"))))
-                (prompt-get-triplets username))))
+  (let* [(prompt-id (prompt-with-tag "web-interface" username))
+         (triplets  (if prompt-id
+                        (prompt-get-triplets prompt-id username)
+                        '()))]
+    `(table (@ (id "prompt-session-table")
+               (class "item-table"))
+            (tr (th "Subject")
+                (th "Predicate")
+                (th "Object")
+                (th ""))
+            ,(if (null? triplets)
+                 `(tr (td (@ (colspan "4")) "There are no triplets in this prompt session."))
+                 (map (lambda (row)
+                        `(tr (td ,(assoc-ref row "subject"))
+                             (td ,(assoc-ref row "predicate"))
+                             (td ,(assoc-ref row "object"))
+                             (td (@ (class "button-column"))
+                                 (div (@ (class "action-btn remove-btn")
+                                         (name "remove")
+                                         (onclick ,(string-append
+                                                    "javascript:remove_triplet('"
+                                                    (assoc-ref row "triplet_id")
+                                                    "'); return false;")))
+                                      "✖"))))
+                      triplets)))))

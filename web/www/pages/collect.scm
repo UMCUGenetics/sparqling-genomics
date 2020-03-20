@@ -1,4 +1,4 @@
-;;; Copyright © 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -14,23 +14,30 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www pages query-history)
-  #:use-module (www util)
-  #:use-module (www components query-history)
+(define-module (www pages collect)
+  #:use-module (www pages)
+  #:use-module (www components rdf-stores)
   #:use-module (www config)
-  #:use-module (www db connections)
+  #:use-module (www util)
   #:use-module (www db projects)
-  #:use-module (www db queries)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 format)
   #:use-module (srfi srfi-1)
-  #:use-module (json)
-  #:use-module (sxml simple)
+  #:export (page-collect))
 
-  #:export (page-query-history))
+(define* (page-collect request-path username hash #:key (post-data ""))
+  (let [(project (project-by-hash hash))]
+    (page-root-template username "Collect" request-path
+      `((h2 "Collect")
 
-(define* (page-query-history request-path username hash #:key (post-data ""))
-  (query-history-component username hash))
+        (h3 "Import RDF")
+        (p "The " (i "import") " feature allows uploading a file to an RDF"
+           " store using HTTP.")
+
+        (div (@ (class "large-action-btn"))
+          (a (@ (href ,(string-append "/import/" hash)))
+             "Import data")))
+      #:dependencies '(jquery))))
+

@@ -16,14 +16,15 @@
 
 (define-module (www pages project-details)
   #:use-module (www pages)
-  #:use-module (www pages projects)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db projects)
+  #:use-module (www db connections)
+  #:use-module (www components project-graphs)
+  #:use-module (www components query-history)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:export (page-project-details))
@@ -35,8 +36,21 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define* (page-project-details request-path username #:key (post-data ""))
+(define add-member-button
+  `(div (@ (id "add-assigned-member")
+           (class "smaller-action"))
+        (a (@ (href "#")
+              (onclick "javascript:ui_insert_member_form(); return false;"))
+           "✚")))
 
+(define add-graph-button
+  `(div (@ (id "add-assigned-graph")
+           (class "smaller-action"))
+        (a (@ (href "#")
+              (onclick "javascript:ui_insert_graph_form(); return false;"))
+           "✚")))
+
+(define* (page-project-details request-path username #:key (post-data ""))
   (let* [(hash    (last (string-split request-path #\/)))
          (project (project-by-hash hash))
          (title   (project-name project))
@@ -45,8 +59,8 @@
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
-                      [(('assign-graph . a))
-                       (project-assign-graph! (project-id project) a username)]
+                      [(('assign-graph . a) ('connection . b))
+                       (project-assign-graph! (project-id project) a b username)]
                       [(('assign-member . a))
                        (project-assign-member! (project-id project) a username)]
                       [(('remove-assigned-graph . a))
@@ -57,44 +71,40 @@
                        (project-unlock-assigned-graph! (project-id project) a)]
                       [(('remove-assigned-member . a))
                        (project-forget-member! (project-id project) a)]
-                      [else (values #t "")]))
+                      [=> (values #t "")]))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
     (page-root-template username title request-path
-     `((h2 ,title)
+     `((h2 ,title
+           (div (@ (id "remove-project") (class "small-blank-action"))
+                (form (@ (onsubmit ,(string-append
+                                     "javascript:ui_remove_project('"
+                                     (project-id project)
+                                     "'); return false;"))
+                         (method "post"))
+                      (button (@ (type "submit")
+                                 (class "action-title-btn remove-btn")))
+                              "Remove")))
+
        ;; When an action occurred (like “the project was modified”), we
        ;; display the success or error message accordingly.
        ,(if message message '())
 
-       (h3 "Members"
-           (div (@ (id "add-assigned-member")
-                   (class "smaller-action"))
-                (a (@ (href "#")
-                      (onclick "javascript:ui_insert_assigned_member_form(); return false;"))
-                   "✚")))
-       (div (@ (id "project-members")) "")
+       (h3 "Members" ,add-member-button)
+       ,(project-members-table username hash)
 
-       (h3 "Assigned graphs"
-           (div (@ (id "add-assigned-graph")
-                   (class "smaller-action"))
-                (a (@ (href "#")
-                      (onclick "javascript:ui_insert_assigned_graph_form(); return false;"))
-                   "✚")))
+       (h3 "Assigned graphs" ,add-graph-button)
        (p "Members of this project have access to the following graphs.")
-       (div (@ (id "project-assigned-graphs")) "")
-
-       (h3 "Inferred associated graphs")
-       (p "The following graphs are used in one of the queries associated with this project.")
-       (div (@ (id "project-dependent-graphs")) "")
+       ,(assigned-graphs-table username hash)
 
        (h3 "Queries")
-       (div (@ (id "project-queries")) "")
+       ,(query-history-component username hash)
 
        (script "
-function ui_insert_assigned_graph_form () {
-  $('#assigned-graphs tbody:last-child').append('"
+function ui_insert_graph_form () {
+  jQuery('#assigned-graphs tbody:last-child').append('"
          (tr (td (@ (colspan "4"))
                  (form (@ (action "/project-details/" ,hash)
                           (method "post"))
@@ -103,16 +113,23 @@ function ui_insert_assigned_graph_form () {
                                                 (id "add-uri-field")
                                                 (name "assign-graph")
                                                 (placeholder "URI"))))
+                                  (td (select (@ (id "select-connection")
+                                                 (name "connection"))
+                                        ,(map (lambda (connection)
+                                                `(option (@ (value ,connection))
+                                                         ,connection))
+                                              (map connection-name
+                                                   (load-system-wide-connections)))))
                                   (td (@ (class "item-table-right"))
                                       (input (@ (id "add-field-button")
                                                 (type "submit")
                                                 (value "↵"))))))))) "');
-  $('#add-field').focus();
-  $('#add-assigned-graph').remove();
+  jQuery('#add-field').focus();
+  jQuery('#add-assigned-graph').remove();
 }
 
-function ui_insert_assigned_member_form () {
-  $('#project-members tbody:last-child').append('"
+function ui_insert_member_form () {
+  jQuery('#project-members tbody:last-child').append('"
          (tr (td (@ (colspan "4"))
                  (form (@ (action "/project-details/" ,hash)
                           (method "post"))
@@ -125,26 +142,8 @@ function ui_insert_assigned_member_form () {
                                       (input (@ (id "add-field-button")
                                                 (type "submit")
                                                 (value "↵"))))))))) "');
-  $('#add-field').focus();
-  $('#add-assigned-member').remove();
+  jQuery('#add-field').focus();
+  jQuery('#add-assigned-member').remove();
 }
-
-$(document).ready(function(){
-  $.get('/project-queries/" ,hash "', function(data) {
-    $('#project-queries').replaceWith('" (div (@ (id "project-queries")) "'+ data +'") "');
-  });
-
-  $.get('/project-members/" ,hash "', function(data) {
-    $('#project-members').replaceWith('" (div (@ (id "project-members")) "'+ data +'") "');
-  });
-
-  $.get('/project-assigned-graphs/" ,hash "', function(data) {
-    $('#project-assigned-graphs').replaceWith('" (div (@ (id "project-assigned-graphs")) "'+ data +'") "');
-  });
-
-  $.get('/project-dependent-graphs/" ,hash "', function(data) {
-    $('#project-dependent-graphs').replaceWith('" (div (@ (id "project-dependent-graphs")) "'+ data +'") "');
-  });
-});
 "))
-     #:dependencies '(jquery))))
+     #:dependencies '(jquery projects))))

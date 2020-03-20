@@ -1,4 +1,4 @@
-;;; Copyright © 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -14,32 +14,32 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www pages project-dependent-graphs)
+(define-module (www pages structure)
   #:use-module (www pages)
-  #:use-module (www util)
   #:use-module (www config)
-  #:use-module (www db connections)
+  #:use-module (www util)
   #:use-module (www db projects)
-  #:use-module (www db queries)
   #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
-  #:use-module (json)
-  #:use-module (sxml simple)
+  #:export (page-structure))
 
-  #:export (page-project-dependent-graphs))
+(define* (page-structure request-path username hash #:key (post-data ""))
+  (page-root-template username "Collect" request-path
+   `((h2 "Structure")
+     (h3 "Exploratory")
+     (p "The exploratory provides a four-step method to dig into the "
+        "structure of data available at each connection.")
+     (div (@ (class "large-action-btn"))
+          (a (@ (href ,(string-append "/exploratory/" hash)))
+             "Go to the Exploratory"))
+   
+     (h3 "Prompt")
+     (p "The prompt provides “command-line interface”-style access to "
+        "build structures using RDF triplets.")
+     (div (@ (class "large-action-btn"))
+          (a (@ (href ,(string-append "/prompt/" hash)))
+             "Go to the Prompt")))))
 
-(define* (page-project-dependent-graphs request-path username #:key (post-data ""))
-  (let* [(hash        (basename request-path))
-         (project     (project-by-hash hash))
-         (project-uri (project-id project))
-         (graphs      (project-inferred-graphs project-uri))]
-    (if (null? graphs)
-        '(p "Could not derive associated graphs from queries.")
-        `((table (@ (class "item-table"))
-                 (tr (th "Graph"))
-                 ,(map (lambda (item)
-                         `(tr (td ,item)))
-                       graphs))))))

@@ -1,4 +1,4 @@
-;;; Copyright © 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -14,7 +14,7 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www pages project-samples)
+(define-module (www pages report)
   #:use-module (www pages)
   #:use-module (www config)
   #:use-module (www util)
@@ -24,16 +24,9 @@
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
-  #:use-module (json)
-  #:export (page-project-samples))
+  #:export (page-report))
 
-(define* (page-project-samples request-path username
-                               #:optional (fmt 'json)
-                               #:key (post-data ""))
-  (let* ((projects (all-projects username))
-         (project  (project-by-name request-path projects)))
-    (cond
-     [(eq? fmt 'json)
-      (scm->json-string (project-samples project))]
-     [(eq? fmt 'ntriples)
-      (project->ntriples project)])))
+(define* (page-report request-path username hash #:key (post-data ""))
+  (page-root-template username "Report" request-path
+    `((h2 "Report")
+      (p "Reporting features are not available."))))

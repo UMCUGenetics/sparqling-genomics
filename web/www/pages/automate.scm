@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -14,26 +14,19 @@
 ;;; License along with this program.  If not, see
 ;;; <http://www.gnu.org/licenses/>.
 
-(define-module (www pages samples)
+(define-module (www pages automate)
   #:use-module (www pages)
-  #:use-module (www util)
   #:use-module (www config)
-  #:use-module (www db overview)
-  #:use-module (sparql util)
+  #:use-module (www util)
+  #:use-module (www db projects)
+  #:use-module (sparql driver)
   #:use-module (web response)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
-  #:use-module (json)
-  #:use-module (sxml simple)
+  #:export (page-automate))
 
-  #:export (page-samples))
-
-(define* (page-samples request-path username
-                       #:key (post-data "")
-                             (type 'json))
-  (catch #t
-    (lambda _
-      (scm->json-string (map uri-suffix (all-samples username))))
-    (lambda (key . args)
-      (scm->json-string '()))))
+(define* (page-automate request-path username hash #:key (post-data ""))
+  (page-root-template username "Automate" request-path
+    `((h2 "Automate")
+      (p "Automation features have are not available."))))

@@ -16,7 +16,6 @@
 
 (define-module (www pages edit-connection)
   #:use-module (www pages)
-  #:use-module (www pages connections)
   #:use-module (www util)
   #:use-module (www config)
   #:use-module (www db connections)
@@ -38,23 +37,22 @@
 
 (define* (page-edit-connection request-path username #:key (post-data ""))
   (let* ((name       (last (string-split request-path #\/)))
-         (connections (all-connections username))
          (message
           (if (not (string= post-data ""))
               (receive (success? message)
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
                       ((('backend . a) ('name . b) ('password . c) ('uri . d) ('username . e))
-                       (connection-edit (alist->connection alist) connections username))
+                       (connection-edit (alist->connection alist) username))
                       ((('name . a) ('uri . b))
-                       (connection-edit (alist->connection alist) connections username))
+                       (connection-edit (alist->connection alist) username))
                       (else
                        (values #f "Invalid form data."))))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))
-         (connection (connection-by-name name username))
+         (connection (user-connection-by-name name username))
          (title (string-append "Edit “" name "”")))
     (page-root-template username title request-path
      `((h2 ,title)
