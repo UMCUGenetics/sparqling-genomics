@@ -43,6 +43,7 @@
             respond-200
             respond-200-with-cookie
             respond-201
+            respond-202
             respond-204
             respond-303
             respond-400
@@ -183,6 +184,9 @@
 
 (define (respond-201 client-port)
   (write-response (build-response #:code 201) client-port))
+
+(define (respond-202 client-port)
+  (write-response (build-response #:code 202) client-port))
 
 (define (respond-204 client-port)
   (write-response (build-response #:code 204) client-port))
