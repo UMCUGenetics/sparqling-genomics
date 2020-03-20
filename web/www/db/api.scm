@@ -54,14 +54,18 @@
 
 (define (alist->csv alist out)
   "Writes the association list ALIST as comma-seperated values to OUT."
-  (let [(columns (map car (car alist)))]
-    (format out "~s~{,~s~}~%" (car columns) (cdr columns))
-    (for-each (lambda (row)
-                (format out "~s~{,~s~}~%" (assoc-ref row (car columns))
-                        (map (lambda (col)
-                               (assoc-ref row col))
-                             (cdr columns))))
-              alist)))
+  (if (and (>= (length alist) 2)
+           (eq? (car alist) 'error)
+           (eq? (caadr alist) 'message))
+      (format out "~a" (cadr (cadr alist)))
+      (let [(columns (map car (car alist)))]
+        (format out "~s~{,~s~}~%" (car columns) (cdr columns))
+        (for-each (lambda (row)
+                    (format out "~s~{,~s~}~%" (assoc-ref row (car columns))
+                            (map (lambda (col)
+                                   (assoc-ref row col))
+                                 (cdr columns))))
+                  alist))))
 
 (define (api-format fmt data)
   (cond
