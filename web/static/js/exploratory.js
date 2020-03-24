@@ -42,7 +42,7 @@ function with_children_types (connection, graph, type, callback)
 {
     url = window.location.href;
     project_hash = url.substr(url.lastIndexOf('/') + 1);
-        post_data = { "project-hash": project_hash,
+    post_data = { "project-hash": project_hash,
                   "connection": connection,
                   "graph":      graph,
                   "type":       type };
@@ -52,9 +52,10 @@ function with_children_types (connection, graph, type, callback)
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
+        async: false,
         method: "POST",
         data: JSON.stringify(post_data),
-        success: function (types) { callback(types); }
+        success: function (types) { callback(types, type); }
     });
 }
 
@@ -87,28 +88,27 @@ function select_graph (graph)
             if (Object.keys(types).length == 0)
                 jQuery('#types').append('<p>No types found.</p>');
             else {
-                types.map(function (type){
-                    with_children_types (post_data["connection"], post_data["graph"], type,
-                        function (types) {
-                            if (types.length > 0) {
-                                encoded_children = base32.encode(JSON.stringify(types));
-                                jQuery('#types').append(
-                                    '<div id="type-'+ base32.encode(type) +'" class="exploratory-item"'+
-                                    ' onclick="javascript:select_hierarchical_type(\''+ base32.encode(type)
-                                        +'\', \''+ encoded_children +'\');' +
-                                    ' return false;"><span class="arrow-spacer">▸</span>' + type +'</div>');
-                            } else {
-                                jQuery('#types').append(
-                                    '<div id="type-'+ base32.encode(type) +'" class="exploratory-item"'+
-                                    ' onclick="javascript:select_type(\''+ base32.encode(type) +'\');' +
-                                    ' return false;"><span class="arrow-spacer"></span>' + type +'</div>');
-                            }
+                for (var index = 0, len = types.length; index < len; index++) {
+                    with_children_types (post_data["connection"], post_data["graph"], types[index],
+                                         function (ctypes, type) {
+                        if (ctypes.length > 0) {
+                            encoded_children = base32.encode(JSON.stringify(ctypes));
+                            jQuery('#types').append('<div id="type-'+ base32.encode(type) +'" class="exploratory-item"' +
+                                                    ' onclick="javascript:select_hierarchical_type(\''+ base32.encode(type) +
+                                                    '\', \''+ encoded_children +'\');' +
+                                                    ' return false;"><span class="arrow-spacer">▸</span>' + type +'</div>');
+                        } else {
+                            jQuery('#types').append('<div id="type-'+ base32.encode(type) +'" class="exploratory-item"'+
+                                                    ' onclick="javascript:select_type(\''+ base32.encode(type) +'\');' +
+                                                    ' return false;"><span class="arrow-spacer"></span>' + type +'</div>');
+                        }
                       });
-                });
+                }
             }
         }
     });
 }
+
 function select_hierarchical_type (encoded_type, encoded_children)
 {
     // Display the predicates of the root type.
