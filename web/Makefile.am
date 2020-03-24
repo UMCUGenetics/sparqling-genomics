@@ -100,7 +100,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/plottable-query.js                          \
   static/js/prompt.js
 
-bin_SCRIPTS     = sg-web sg-auth-manager
+bin_SCRIPTS     = sg-web sg-auth-manager sg-web-test
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 EXTRA_DIST     += $(WWW_STATIC_RESOURCES) sg-web.service.in
