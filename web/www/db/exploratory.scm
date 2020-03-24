@@ -64,7 +64,7 @@
                               (string-append
                                "BIND (\"" connection-name "\" AS ?connectionName)")
                               "")
-                          " }"))]
+                          " } ORDER BY ASC(?graph)"))]
     (query-results->alist
      (system-sparql-query query))))
 
@@ -88,7 +88,8 @@
                " BIND ((IF (isLiteral(?o), datatype(?o), ?o_type) AS ?datatype))"
                " FILTER (!BOUND(?systype) OR ?systype != 1)"
                (if graph "}" "")
-               "FILTER (?predicate != rdf:type) }"))
+               " FILTER (?predicate != rdf:type) }"
+               " ORDER BY ASC(?predicate)"))
              (cached (cached-response-for-query query))]
         (if cached cached
             (let [(response (map (lambda (item)
@@ -143,7 +144,8 @@
                          " ?s rdf:type ?type ."
                          " OPTIONAL { ?s sg:isPartOf ?parent . }"
                          " FILTER (! BOUND(?parent))"
-                         " FILTER (?type != xml2rdf:XmlAttribute) } }"))
+                         " FILTER (?type != xml2rdf:XmlAttribute) } }"
+                         " ORDER BY ASC(?type)"))
          (tree-roots
           (map uri->shorthand-uri
                (apply append
@@ -164,7 +166,8 @@
                "SELECT DISTINCT ?type { GRAPH <"
                (shorthand-uri->uri graph-uri) "> {"
                " ?s rdf:type <" (shorthand-uri->uri tree-root) "> ."
-               " ?c sg:isPartOf ?s ; rdf:type ?type . } }"))
+               " ?c sg:isPartOf ?s ; rdf:type ?type . } }"
+               " ORDER BY ASC(?type)"))
              (children
               (map uri->shorthand-uri
                    (apply append
