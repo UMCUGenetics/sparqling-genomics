@@ -22,14 +22,14 @@
   #:use-module (web uri)
   #:use-module (www config)
   #:use-module (www db api)
-  #:use-module (www pages)
   #:use-module (www util)
 
   #:export (request-beacon-handler))
 
-(define* (request-beacon-handler request request-body request-path
-                                 client-port #:key (username #f))
-  (let [(accept-type  (request-accept request))
+(define* (request-beacon-handler request request-path client-port
+                                 #:key (username #f))
+  (let [(request-body (read-request-body request))
+        (accept-type  (request-accept request))
         (content-type (request-content-type request))
         (method       (request-method request))]
     (cond
