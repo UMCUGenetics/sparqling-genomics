@@ -69,7 +69,7 @@
 
 (define (generate-query-with-filters filters)
   (string-append
-   default-prefixes
+   internal-prefixes
    "
 SELECT ?project AS ?projectId ?creator ?name ?date
 FROM <" system-state-graph ">
@@ -105,7 +105,7 @@ WHERE {
   (let* [(project-id (generate-id username name))
          (timestamp (strftime "%Y-%m-%d %H:%M:%S" (gmtime (current-time))))
          (query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "INSERT INTO <" system-state-graph "> { "
                  "project:" project-id
                  " rdf:type sg:Project ;"
@@ -159,12 +159,12 @@ WHERE {
   ;; Remove the project itself.
   ;; ------------------------------------------------------------------------
   (let [(query1 (string-append
-                 default-prefixes
+                 internal-prefixes
                  "WITH <" system-state-graph ">
 DELETE { <" project-id "> ?predicate ?object . }
 WHERE  { <" project-id "> ?predicate ?object . }"))
         (query2 (string-append
-                 default-prefixes
+                 internal-prefixes
                  "WITH <" system-state-graph ">
 DELETE { ?agent sg:isAssignedTo <" project-id "> . }
 WHERE  { ?agent sg:isAssignedTo <" project-id "> . }"))]
@@ -181,7 +181,7 @@ WHERE  { ?agent sg:isAssignedTo <" project-id "> . }"))]
 
 (define (set-project-property! project-id predicate object type)
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "WITH <" system-state-graph ">
 DELETE { ?project " predicate " ?value . }
 INSERT { ?project " predicate " " (if type
@@ -254,7 +254,7 @@ WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))]
     (lambda _
       (let* [(project-id (generate-id username name))
              (query (string-append
-                     default-prefixes
+                     internal-prefixes
                      "SELECT (COUNT(?project) AS ?projects) "
                      "FROM <" system-state-graph "> "
                      "WHERE { ?project ?p ?o . "
@@ -266,7 +266,7 @@ WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))]
 
 (define (writable-graphs-for-user-in-project username project-hash)
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "SELECT ?graph FROM <http://sparqling-genomics.org/sg-web/state>
 WHERE {
   ?project sg:hasAssignedGraph ?graph .
@@ -289,7 +289,7 @@ WHERE {
 
 (define (project-members project-id)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT DISTINCT (STRAFTER(STR(?agent), STR(agent:)) AS ?user)"
                  " COUNT(DISTINCT ?query) AS ?queries"
                  " FROM <" system-state-graph ">"
@@ -304,7 +304,7 @@ WHERE {
 
 (define (project-assign-member! project-id username auth-user)
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "INSERT INTO <" system-state-graph "> {"
                 " agent:" username " sg:isAssignedTo ?project ."
                 " } WHERE {"
@@ -317,7 +317,7 @@ WHERE {
 
 (define (project-has-member? project-id username)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT DISTINCT ?agent"
                  " FROM <" system-state-graph ">"
                  " WHERE { ?agent sg:isAssignedTo <" project-id "> . "
@@ -328,7 +328,7 @@ WHERE {
 
 (define (project-auto-assign-authorization-for-graph project-id graph-uri)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT ?auth FROM <" system-state-graph "> WHERE {"
                  " <" graph-uri "> sg:requiresAuthorization ?auth ."
                  " }"))
@@ -336,7 +336,7 @@ WHERE {
     (if (null? results)
         (let* [(auth-id (generate-id graph-uri))
                (query (string-append
-                       default-prefixes
+                       internal-prefixes
                        "INSERT INTO <" system-state-graph "> {"
                        " <" project-id "> sg:hasAuthorization ?auth ."
                        " <" graph-uri "> sg:requiresAuthorization ?auth ."
@@ -349,7 +349,7 @@ WHERE {
   (if (project-is-created-by? project-id username)
       (values #f "Cannot remove the owner of the project.")
       (let* [(query (string-append
-                     default-prefixes
+                     internal-prefixes
                      "WITH <" system-state-graph "> "
                      "DELETE {"
                      " agent:" username " sg:isAssignedTo <" project-id "> ."
@@ -362,7 +362,7 @@ WHERE {
 
 (define (project-is-created-by? project-id username)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT ?creator FROM <" system-state-graph "> WHERE {"
                  " <" project-id "> dcterms:creator ?creator ."
                  " FILTER (?creator = agent:" username ")}"))
@@ -378,7 +378,7 @@ WHERE {
 
 (define (project-assigned-graphs project-id)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT DISTINCT ?graph ?isLocked ?connectionName"
                  " FROM <" system-state-graph ">"
                  " WHERE { <" project-id "> sg:hasAssignedGraph ?graph ."
@@ -395,7 +395,7 @@ WHERE {
   ;; This only works if the graph hasn't been claimed yet.
   (project-auto-assign-authorization-for-graph project-id graph-uri)
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "INSERT INTO <" system-state-graph "> {"
                 " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
                 " <" graph-uri "> sg:inConnection \"" connection-name
@@ -412,7 +412,7 @@ WHERE {
 
 (define (project-forget-graph! project-id graph-uri)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "WITH <" system-state-graph "> "
                  "DELETE {"
                  " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
@@ -433,7 +433,7 @@ WHERE {
 (define (project-lock-or-unlock-assigned-graph! project-id graph-uri lock?)
   (let* [(delete-query
           (string-append
-           default-prefixes
+           internal-prefixes
            "WITH <" system-state-graph "> "
            "DELETE { <" graph-uri "> sg:isLocked \""
            (if lock? "false" "true") "\"^^xsd:boolean . } "
@@ -441,7 +441,7 @@ WHERE {
            (if lock? "false" "true")"\"^^xsd:boolean . }"))
          (insert-query
           (string-append
-           default-prefixes
+           internal-prefixes
            "WITH <" system-state-graph "> "
            "INSERT { <" graph-uri ">  sg:isLocked \""
            (if lock? "true" "false") "\"^^xsd:boolean . }"))]

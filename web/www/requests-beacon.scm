@@ -100,7 +100,7 @@
                    (not (null? alternate-bases)))
                 ;; Search for SNPs.
                 (let* [(query (string-append
-                               default-prefixes
+                               internal-prefixes
                                "SELECT ?graph ?chromosome ?position ?ref ?alt"
                                "WHERE { GRAPH ?graph {"
                                "  ?v rdf:type vcf2rdf:VariantCall ;"

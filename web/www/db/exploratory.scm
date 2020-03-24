@@ -19,7 +19,7 @@
   #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db cache)
-  #:use-module ((www config) #:select (default-prefixes
+  #:use-module ((www config) #:select (internal-prefixes
                                        system-state-graph
                                        system-sparql-query
                                        sparql-query-with-connection
@@ -47,7 +47,7 @@
 (define (all-graphs-in-project username connection-name project-hash)
   (let* [(id             (project-id (project-by-hash project-hash)))
          (query          (string-append
-                          default-prefixes
+                          internal-prefixes
                           "SELECT DISTINCT ?graph ?isLocked ?connectionName "
                           "FROM <" system-state-graph "> "
                           "WHERE {"
@@ -74,7 +74,7 @@
     (lambda _
       (let* [(query
               (string-append
-               default-prefixes
+               internal-prefixes
                "SELECT DISTINCT ?predicate WHERE { "
                (if graph
                    (string-append "GRAPH <" (shorthand-uri->uri graph) "> { ")
@@ -109,7 +109,7 @@
 
 (define* (all-types username connection token project-hash)
   (let* [(query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "SELECT DISTINCT ?type WHERE { ?s rdf:type ?type . }"))
          (cached           (cached-response-for-query query))]
     (cond
@@ -138,7 +138,7 @@
 (define (hierarchical-tree-roots connection graph-uri token project-hash)
   "Returns data types that have no parents for GRAPH-URI in CONNECTION."
   (let* [(query
-          (string-append default-prefixes "\n"
+          (string-append internal-prefixes "\n"
                          "SELECT DISTINCT ?type { GRAPH <"
                          (shorthand-uri->uri graph-uri) "> {"
                          " ?s rdf:type ?type ."
@@ -161,7 +161,7 @@
     (lambda _
       (let* [(query
               (string-append
-               default-prefixes
+               internal-prefixes
                "\n"
                "SELECT DISTINCT ?type { GRAPH <"
                (shorthand-uri->uri graph-uri) "> {"

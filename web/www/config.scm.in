@@ -41,8 +41,8 @@
             beacon-organization-logo-url
             beacon-organization-info
             configuration-file
-            default-uri-strings
             default-prefixes
+            internal-prefixes
             developer-mode?
             set-developer-mode!
             system-state-graph
@@ -565,37 +565,42 @@
 ;; The following symbol collects commonly used URI strings.
 ;;
 
-(define default-uri-strings
+(define internal-uri-strings
   '((agent        . "https://sparqling-genomics.org/@VERSION@/Agent/")
     (auth         . "https://sparqling-genomics.org/@VERSION@/Authorization/")
-    (col          . "sg://@VERSION@/table2rdf/Column/")
-    (dc           . "http://purl.org/dc/elements/1.1/")
     (dcterms      . "http://purl.org/dc/terms/")
-    (dctype       . "http://purl.org/dc/dcmitype/")
-    (xdt          . "sg://@VERSION@/xml2rdf/DynamicType/")
-    (jdt          . "sg://@VERSION@/json2rdf/DynamicType/")
     (faldo        . "http://biohackathon.org/resource/faldo#")
-    (form         . "https://sparqling-genomics.org/@VERSION@/Form/")
     (project      . "https://sparqling-genomics.org/@VERSION@/Project/")
+    (prov         . "http://www.w3.org/ns/prov#")
     (query        . "https://sparqling-genomics.org/@VERSION@/Query/")
-    (file         . "https://sparqling-genomics.org/@VERSION@/UploadedFile/")
     (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-    (rdfs         . "http://www.w3.org/2000/01/rdf-schema#")
-    (row          . "https://sparqling-genomics.org/@VERSION@/table2rdf/Row/")
     (sg           . "https://sparqling-genomics.org/@VERSION@/")
-    (table2rdf    . "sg://@VERSION@/table2rdf/")
-    (vcf2rdf      . "sg://@VERSION@/vcf2rdf/")
     (xml2rdf      . "sg://@VERSION@/xml2rdf/")
-    (json2rdf     . "sg://@VERSION@/json2rdf/")
     (xsd          . "http://www.w3.org/2001/XMLSchema#")))
 
-(define default-prefixes
+(define default-uri-strings
+  '((dc           . "http://purl.org/dc/elements/1.1/")
+    (dcterms      . "http://purl.org/dc/terms/")
+    (dctype       . "http://purl.org/dc/dcmitype/")
+    (faldo        . "http://biohackathon.org/resource/faldo#")
+    (jdt          . "sg://@VERSION@/json2rdf/DynamicType/")
+    (prov         . "http://www.w3.org/ns/prov#")
+    (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+    (rdfs         . "http://www.w3.org/2000/01/rdf-schema#")
+    (sg           . "https://sparqling-genomics.org/@VERSION@/")
+    (vcf2rdf      . "sg://@VERSION@/vcf2rdf/")
+    (xdt          . "sg://@VERSION@/xml2rdf/DynamicType/")
+    (xsd          . "http://www.w3.org/2001/XMLSchema#")))
+
+(define (generate-prefixes prefixes)
   (format #f "~{PREFIX ~a~%~}" (map (lambda (item)
                                       (format #f "~12a <~a>"
                                               (symbol-append (car item) ':)
                                               (cdr item)))
-                                    default-uri-strings)))
+                                    prefixes)))
 
+(define default-prefixes  (generate-prefixes default-uri-strings))
+(define internal-prefixes (generate-prefixes internal-uri-strings))
 
 (define (uri->shorthand-uri input)
   (catch #t

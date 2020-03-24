@@ -70,7 +70,7 @@
 
 (define (set-query-property! query-id predicate object type)
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "WITH <" system-state-graph ">
 DELETE { ?query " predicate " ?value . }
 INSERT { ?query " predicate " " (if type
@@ -109,7 +109,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 (define (persist-query content endpoint username execution-time project-id marked?)
   (let* [(query-id (generate-id content endpoint username project-id))
          (query (string-append
-                 default-prefixes
+                 internal-prefixes
                  "INSERT INTO <" system-state-graph "> { "
                  "query:" query-id
                  " rdf:type sg:Query ;"
@@ -158,7 +158,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 (define (query-remove query-uri username)
   "Removes the reference in the internal graph for QUERY."
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "WITH <" system-state-graph ">"
                 " DELETE { <" query-uri "> ?predicate ?object . }"
                 " WHERE  { <" query-uri "> ?predicate ?object ; "
@@ -172,7 +172,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 (define (query-remove-unmarked username)
   "Removes queries for which marked? is #f."
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "WITH <" system-state-graph ">
 DELETE { ?query ?p ?o }
 WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
@@ -200,7 +200,7 @@ WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
 (define (query-remove-unmarked-for-project username project-uri)
   "Removes queries for which marked? is #f inside PROJECT-URI."
   (let [(query (string-append
-                default-prefixes
+                internal-prefixes
                 "WITH <" system-state-graph ">
 DELETE { ?query ?p ?o }
 WHERE { ?query sg:executedBy agent:" username " ;
@@ -232,7 +232,7 @@ WHERE { ?query sg:executedBy agent:" username " ;
 
 (define (generate-query-with-filters filters)
   (string-append
-   default-prefixes
+   internal-prefixes
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
        (STRAFTER(STR(?executedBy), STR(agent:)) AS ?executedBy)
