@@ -26,7 +26,6 @@
   #:use-module (ice-9 format)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-19)
   #:use-module (json)
   #:use-module (sxml simple)
 
@@ -113,15 +112,12 @@
                     (begin
                       (cond
                        [(= (response-code header) 200)
-                        (let* ((end-time   (current-time))
-                               (time-spent (time-difference end-time start-time))
-                               (seconds (+ (time-second time-spent)
-                                           (* (time-nanosecond time-spent)
-                                              (expt 10 -9) 1.0))))
+                        (begin
                           (query-add query
                                      (connection-name connection)
                                      username
-                                     seconds
+                                     start-time
+                                     (current-time)
                                      (project-id (project-by-hash hash)))
                           (lambda (output-port)
                             (cond

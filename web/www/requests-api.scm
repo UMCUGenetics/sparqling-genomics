@@ -346,12 +346,8 @@
                   (cond
                    [(= (response-code header) 200)
                     (let* ((end-time   (current-time))
-                           (time-spent (time-difference end-time start-time))
-                           (seconds    (+ (time-second time-spent)
-                                          (* (time-nanosecond time-spent)
-                                             (expt 10 -9) 1.0)))
                            (buffer-size (expt 2 16)))
-                      (query-add query conn-name username seconds id)
+                      (query-add query conn-name username start-time end-time id)
                       ;; On cool platforms, ‘sendfile’ uses the equally named
                       ;; libc procedure.
                       (if (eq? (response-content-encoding header) '(chunked))
@@ -371,12 +367,8 @@
                     (sparql-query-with-connection connection query token hash)
                   (cond
                    [(= (response-code header) 200)
-                    (let* ((end-time   (current-time))
-                           (time-spent (time-difference end-time start-time))
-                           (seconds    (+ (time-second time-spent)
-                                          (* (time-nanosecond time-spent)
-                                             (expt 10 -9) 1.0))))
-                      (query-add query conn-name username seconds id)
+                    (let* ((end-time   (current-time)))
+                      (query-add query conn-name username start-time end-time id)
                       (csv-stream port client-port accept-type))]
                    [(= (response-code header) 401)
                     (respond-401 client-port accept-type "Authentication failed.")]

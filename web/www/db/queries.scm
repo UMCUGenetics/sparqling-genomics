@@ -42,11 +42,14 @@
             query-endpoint
             query-project
             query-execution-time
+            query-start-time
+            query-end-time
             query-marked?
             query?
 
             set-query-endpoint!
-            set-query-execution-time!
+            set-query-start-time!
+            set-query-end-time!
             set-query-content!
             set-query-marked!))
 
@@ -63,6 +66,8 @@
 (define-syntax-rule (query-content query)        (assoc-ref query "queryText"))
 (define-syntax-rule (query-endpoint query)       (assoc-ref query "executedAt"))
 (define-syntax-rule (query-username query)       (assoc-ref query "executedBy"))
+(define-syntax-rule (query-start-time query)     (assoc-ref query "startTime"))
+(define-syntax-rule (query-end-time query)       (assoc-ref query "endTime"))
 (define-syntax-rule (query-execution-time query) (assoc-ref query "executionTime"))
 (define-syntax-rule (query-project query)        (assoc-ref query "isRelevantTo"))
 (define (query-marked? query)
@@ -93,8 +98,12 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
   (set-query-property! query "sg:executedAt" value "xsd:string"))
 
 (define-syntax-rule
-  (set-query-execution-time! query value)
-  (set-query-property! query "sg:executionTime" value "xsd:float"))
+  (set-query-start-time! query value)
+  (set-query-property! query "prov:startedAtTime" value "xsd:dateTime"))
+
+(define-syntax-rule
+  (set-query-end-time! query value)
+  (set-query-property! query "prov:endedAtTime" value "xsd:dateTime"))
 
 (define-syntax-rule
   (set-query-project! query value)
@@ -106,8 +115,12 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 
 ;; QUERIES PERSISTENCE
 ;; ----------------------------------------------------------------------------
-(define (persist-query content endpoint username execution-time project-id marked?)
+(define (persist-query content endpoint username start-time end-time project-id marked?)
   (let* [(query-id (generate-id content endpoint username project-id))
+         (format-timestamp (lambda (timestamp)
+                             (format #f "~s^^xsd:dateTimeStamp"
+                                     (strftime "%Y-%m-%dT%H:%M:%SZ"
+                                               (gmtime timestamp)))))
          (query (string-append
                  internal-prefixes
                  "INSERT INTO <" system-state-graph "> { "
@@ -116,10 +129,9 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
                  " sg:queryText " (format #f "~s^^xsd:string" content) " ;"
                  " sg:executedAt " (format #f "~s^^xsd:string" endpoint) " ;"
                  " sg:executedBy agent:" username " ;"
-                 " dcterms:date " (format #f "~s^^xsd:dateTimeStamp"
-                                          (strftime "%Y-%m-%dT%H:%M:%SZ"
-                                                    (gmtime (current-time)))) " ;"
-                 " sg:executionTime " (format #f "\"~a\"^^xsd:float" execution-time) " ;"
+                 " dcterms:date " (format-timestamp (current-time)) " ;"
+                 " prov:startedAtTime " (format-timestamp start-time) " ;"
+                 " prov:endedAtTime " (format-timestamp end-time) " ;"
                  " sg:isRelevantTo <" project-id "> ."
                  "}"))
          (connection (system-connection))]
@@ -133,7 +145,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 
 ;; QUERY-ADD
 ;; ----------------------------------------------------------------------------
-(define (query-add content endpoint username execution-time project)
+(define (query-add content endpoint username start-time end-time project)
   "Adds a reference to the internal graph for the query RECORD."
   (cond
    [(string= content "")
@@ -150,7 +162,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
     (values #f (format #f "The query must have a project."))]
    [#t
     (begin
-      (persist-query content endpoint username execution-time project #f)
+      (persist-query content endpoint username start-time end-time project #f)
       (values #t ""))]))
 
 ;; QUERY-REMOVE
@@ -236,8 +248,9 @@ WHERE { ?query sg:executedBy agent:" username " ;
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
        (STRAFTER(STR(?executedBy), STR(agent:)) AS ?executedBy)
-       AVG(?executionTime) AS ?executionTime
        ?projectTitle ?isProtected
+       (MAX(?startTime) AS ?startTime) (MAX(?endTime) AS ?endTime)
+       (AVG(?executionTime) AS ?executionTime)
 FROM <" system-state-graph ">
 WHERE {
   ?query rdf:type         sg:Query ;
@@ -246,16 +259,23 @@ WHERE {
          sg:executedBy    ?executedBy    ;
          sg:isRelevantTo  ?project       .
 
-  OPTIONAL { ?query   sg:executionTime ?executionTime . }
-  OPTIONAL { ?query   sg:isProtected   ?isProtected   . }
-  OPTIONAL { ?query   dcterms:date     ?date          . }
-  OPTIONAL { ?project dcterms:title    ?projectTitle  . }
+  OPTIONAL { ?query   prov:startedAtTime ?startTime     . }
+  OPTIONAL { ?query   prov:endedAtTime   ?endTime       . }
+  OPTIONAL { ?query   sg:isProtected     ?isProtected   . }
+  OPTIONAL { ?query   dcterms:date       ?date          . }
+  OPTIONAL { ?project dcterms:title      ?projectTitle  . }
 
+  BIND(IF((BOUND(?startTime) AND BOUND(?endTime)),
+            xsd:dateTime(?endTime) - xsd:dateTime(?startTime),
+             0)
+        AS ?executionTime)
 "
    (if filters
        (format #f "~{  FILTER (~a)~%~}" filters)
        "")
-   "} ORDER BY DESC(?date)"))
+   "}
+GROUP BY ?queryId ?query ?queryText ?executedAt ?executedBy ?projectTitle ?isProtected
+ORDER BY DESC(?startTime)"))
 
 (define* (all-queries #:key (filter #f))
   "Returns a list of query records, applying FILTER to the records."
