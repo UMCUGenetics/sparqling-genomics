@@ -412,6 +412,7 @@
            ;; TODO: Make sure whatever occurs between #\( and #\) is
            ;; treated as a single token.
            [(and (eq? buffer #\()
+                 (not (null? tokens))
                  (or (string-ci= (car tokens) "filter")
                      (string-ci= (car tokens) "bind")))
             (tokenize-triplet-pattern out text (+ cursor 1)
