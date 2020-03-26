@@ -1,12 +1,15 @@
 \chapter{Getting started}
 
+  SPARQLing genomics provides tools to unify data in such a way that data
+  is \emph{discoverable}, and connecting data can be done in a
+  programming-language-independent manner using open web standards.
+
 \section{Prerequisites}
 \label{sec:prerequisites}
 
   The programs provided by this project build a knowledge graph.  However,
-  a knowledge graph store (better known as an RDF store) is not included.
-
-  Through the years various great RDF stores have been developed, including
+  a knowledge graph store (better known as an RDF store) is not included
+  because various great RDF stores already exist, including
   \href{https://virtuoso.openlinksw.com/}{Virtuoso},
   \href{https://github.com/4store/4store}{4store} and
   \href{https://www.blazegraph.com/}{BlazeGraph}.  We recommend using one of
@@ -26,7 +29,6 @@
   Each component in the repository has its own dependencies.  Table
   \ref{table:dependencies} provides an overview for each tool.  A $\bullet{}$
   indicates that the program (row) depends on the program or library (column).
-
   Care was taken to pick dependencies that are widely available on GNU/Linux
   systems.
 
@@ -44,21 +46,25 @@
       & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
       & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \texttt{vcf2rdf}    & \B & \B & \B &    & \B &    &    &    &\\
+      \texttt{vcf2rdf}         & \B & \B & \B &    & \B &    &    &    &\\
       \oddrow
-      \texttt{bam2rdf}    & \B & \B & \B &    & \B &    &    &    &\\
+      \texttt{bam2rdf}         & \B & \B & \B &    & \B &    &    &    &\\
       \evenrow
-      \texttt{table2rdf}  & \B & \B & \B &    &    & \B &    &    &\\
+      \texttt{table2rdf}       & \B & \B & \B &    &    & \B &    &    &\\
       \oddrow
-      \texttt{json2rdf}   & \B & \B & \B &    &    & \B &    &    &\\
+      \texttt{json2rdf}        & \B & \B & \B &    &    & \B &    &    &\\
       \evenrow
-      \texttt{xml2rdf}    & \B & \B & \B & \B &    & \B &    &    &\\
+      \texttt{xml2rdf}         & \B & \B & \B & \B &    & \B &    &    &\\
       \oddrow
-      \texttt{folder2rdf} &    &    &    &    &    &    & \B &    &\\
+      \texttt{folder2rdf}      &    &    &    &    &    &    & \B &    &\\
       \evenrow
-      \texttt{sg-web}     &    &    &    &    &    &    & \B & \B &\\
+      \texttt{sg-web}          &    &    &    &    &    &    & \B & \B &\\
       \oddrow
-      Documentation       &    &    &    &    &    &    &    &    & \B \\
+      \texttt{sg-web-test}     &    &    &    &    &    &    & \B & \B &\\
+      \evenrow
+      \texttt{sg-auth-manager} &    &    &    &    &    &    & \B & \B &\\
+      \oddrow
+      Documentation            &    &    &    &    &    &    &    &    & \B \\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs this
       project provides.}
@@ -78,11 +84,14 @@
 
 \begin{siderules}
 \begin{verbatim}
-apt-get install autoconf automake gcc make pkg-config libgcrypt-dev     \
-                zlib-dev guile-2.0 guile-2.0-dev libraptor2-dev texlive \
-                curl libxml2-dev
+apt-get install autoconf automake gcc make pkg-config libgcrypt20-dev   \
+                zlib1g-dev guile-2.2 guile-2.2-dev libraptor2-dev       \
+                libhts-dev texlive curl libxml2-dev
 \end{verbatim}
 \end{siderules}
+
+  This command has been tested on Debian 10.  If you're using a different
+  version of Debian, some package names may differ.
 
 \subsection{CentOS}
 
