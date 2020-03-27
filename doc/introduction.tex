@@ -1,8 +1,8 @@
 \chapter{Getting started}
 
-  SPARQLing genomics provides tools to unify data in such a way that data
-  is \emph{discoverable}, and connecting data can be done in a
-  programming-language-independent manner using open web standards.
+  SPARQLing genomics is a combination of tools and practices to create a
+  programming-language-independent knowledge graph to make \emph{discovering},
+  \emph{connecting}, and \emph{collaborating} easy.
 
 \section{Prerequisites}
 \label{sec:prerequisites}
@@ -75,7 +75,7 @@
   The manual provides example commands to import RDF using
   \href{https://curl.haxx.se/}{cURL}.
 
-\section{Setting up a build environment}
+\section{Installing the prerequisites}
 
 \subsection{Debian}
 
@@ -95,8 +95,11 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt20-dev   \
 
 \subsection{CentOS}
 
-  CentOS 7 does not include \texttt{htslib}.  All other dependencies can
-  be installed using the following command:
+  CentOS 7 and 8 do not include \texttt{htslib}.  Follow the instructions on
+  the \href{https://www.htslib.org/}{\texttt{htslib} website}%
+  \footnote{https://www.htslib.org/} to build \texttt{htslib} from source.
+
+  All other dependencies can be installed using the following command:
 
 \begin{siderules}
 \begin{verbatim}
