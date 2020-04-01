@@ -24,18 +24,6 @@ $(doc_PDF):
 	-$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
 endif
 
-if HAVE_HTLATEX
-dist_doc_DATA		+= $(doc_NAME).html		\
-			   $(doc_NAME)2.html		\
-			   $(doc_NAME)3.html		\
-			   $(doc_NAME)4.html		\
-			   $(doc_NAME).css		\
-			   figures/logo.png
-
-$(doc_HTML):
-	$(HTLATEX) $(doc_TEX)
-endif
-
 EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
 			  version.tex			\
 			  introduction.tex		\
@@ -71,4 +59,4 @@ docs-clean:
 clean-local: docs-clean
 
 # Make sure there is something to run.
-all: $(doc_PDF) $(doc_HTML)
+all: $(doc_PDF)
