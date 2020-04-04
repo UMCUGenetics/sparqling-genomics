@@ -306,8 +306,8 @@ docker exec -ti "${container_id}" /run/current-system/profile/bin/bash --login
   From a data access perspective, these inferences allow fine-grained access
   to knowledge.  For example, access to a layer 1 graph can be given, but
   not to its underlying layer 0 graph(s).  Properties can be removed (like
-  patient identifiers), or made less precise (rounding variant positions to
-  the nearest 1000).
+  patient identifiers), or made less precise (only tell that there is a
+  variant in a particular gene, rather than the variant details).
 
   \begin{sloppypar}
   The knowledge graph contains two types of nodes; uniquely identifiable
@@ -326,7 +326,7 @@ docker exec -ti "${container_id}" /run/current-system/profile/bin/bash --login
   come up with identifiers.  For example, to link facts to their original
   (non-RDF) source, we use the type \texttt{:Origin}.  When describing the
   originated file of some facts, we use \texttt{:Origin/}%
-  \emph{<SHA256 sum of the file>}, so that we can be sure that when the
+  \emph{<MD5 sum of the file>}, so that we can be sure that when the
   same identifier occurs, the originating bytes are identical.
 
   In chapter \ref{chap:command-line}

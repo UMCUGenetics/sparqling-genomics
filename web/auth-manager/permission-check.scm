@@ -65,30 +65,42 @@ otherwise it returns #f."
     ;; The parser must be able to parse the query.
     ;; -----------------------------------------------------------------------
     (if (not parsed)
-        (let ((message (format #f "Couldn't parse:~%---~%~a~%---" query)))
-          (values #f message))
-        (let [(allowed-graphs (map (lambda (item) (assoc-ref item "graph"))
-                                   (graphs-by-project auth-token project-hash)))
-              (used-graphs    (inferred-graphs parsed))
-              (global-graphs  (query-global-graphs parsed))]
+        (values #f (format #f "Couldn't parse:~%~a" query))
+        (let* [(allowed-graphs (map (lambda (item) (assoc-ref item "graph"))
+                                    (graphs-by-project auth-token
+                                                       project-hash)))
+               (global-graphs  (query-global-graphs parsed))
+               (disallowed-graphs (lset-difference string= global-graphs
+                                                   allowed-graphs))
+               (used-graphs    (inferred-graphs parsed))]
           (cond
            ;; Check whether all variables are scoped in a graph.
            ;; -----------------------------------------------------------------
            [(or  (and (has-unscoped-variables? parsed)
                       (null? global-graphs))
                  (and (has-unscoped-variables? parsed)
-                      (not (null? (lset-difference string= global-graphs
-                                                   allowed-graphs)))))
-            (values #f (format #f "Unscoped variables in query"))]
+                      (not (null? disallowed-graphs))))
+            (if (not (null? disallowed-graphs))
+                (values #f (format #f "Disallowed graphs:~{~%-> ~a~}"
+                                   disallowed-graphs))
+                (values #f
+                 (string-append
+                  "Specify the graph to search for the following triplets:"
+                  (format #f "~{~%-> ~a~}"
+                    (delete #f (map (lambda (quad)
+                                      (if (car quad) #f
+                                          (format #f "~a ~a ~a"
+                                                  (list-ref quad 1)
+                                                  (list-ref quad 2)
+                                                  (list-ref quad 3))))
+                                    (query-quads parsed)))))))]
 
            ;; Check whether only allowed-graphs are used.
            ;; -----------------------------------------------------------------
            [(not (null? (lset-difference string= used-graphs allowed-graphs)))
             (let* [(g (delete-duplicates
-                       (lset-difference string= used-graphs allowed-graphs)))
-                   (message (format #f "Disallowed graph(s): ~s~{, ~s~}."
-                                    (car g) (cdr g)))]
-              (values #f message))]
+                       (lset-difference string= used-graphs allowed-graphs)))]
+              (values #f (format #f "Disallowed graphs:~{~%-> ~a~}" g)))]
 
            ;; If all previous tests passed, the query may be executed.
            ;; -----------------------------------------------------------------
