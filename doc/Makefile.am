@@ -19,9 +19,11 @@ dist_doc_DATA           += $(doc_PDF)
 # Run pdflatex twice, so that the table of contents and references are
 # properly set up.
 $(doc_PDF):
-	-$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
-	-$(BIBTEX) $(doc_NAME)
-	-$(PDFLATEX) $(doc_TEX) $(doc_STYLE)
+	@$(PDFLATEX) $(doc_TEX) $(doc_STYLE) > /dev/null
+	@$(BIBTEX) $(doc_NAME) > /dev/null
+	@$(PDFLATEX) $(doc_TEX) $(doc_STYLE) > /dev/null
+	@$(PDFLATEX) $(doc_TEX) $(doc_STYLE) > /dev/null
+	@printf "Generated $(doc_PDF).\n"
 endif
 
 EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
@@ -52,6 +54,8 @@ docs-clean:
 		  $(doc_NAME).idv			\
 		  $(doc_NAME).tmp			\
 		  $(doc_NAME).lg			\
+		  $(doc_NAME).lof			\
+		  $(doc_NAME).lot			\
 		  $(doc_NAME).pdf                       \
 		  $(doc_NAME).html                      \
 		  texput.log
