@@ -486,7 +486,8 @@
               #:quads   quads
               #:graph   #f
               #:tokens  (cons-token out current tokens))]
-           [(eq? buffer #\<)
+           [(and (eq? buffer #\<)
+                 (not (eq? (car modes) 'black-mode)))
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'in-uri modes)
               #:current (cons buffer current)
