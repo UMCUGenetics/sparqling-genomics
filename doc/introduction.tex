@@ -1,14 +1,14 @@
 \chapter{Getting started}
 
   SPARQLing genomics is a combination of tools and practices to create a
-  programming-language-independent knowledge graph to make \emph{discovering},
-  \emph{connecting}, and \emph{collaborating} easy.
+  knowledge graph to make \emph{discovering}, \emph{connecting}, and
+  \emph{collaborating} easy.
 
 \section{Prerequisites}
 \label{sec:prerequisites}
 
-  The programs provided by this project build a knowledge graph.  However,
-  a knowledge graph store (better known as an RDF store) is not included
+  The programs provided by this project are designed to build a knowledge graph.
+  However, a knowledge graph store (better known as an RDF store) is not included
   because various great RDF stores already exist, including
   \href{https://virtuoso.openlinksw.com/}{Virtuoso},
   \href{https://github.com/4store/4store}{4store} and
@@ -27,13 +27,13 @@
   to (re)generate the documentation.
 
   Each component in the repository has its own dependencies.  Table
-  \ref{table:dependencies} provides an overview for each tool.  A $\bullet{}$
+  \ref{table:dependencies} provides an overview for each tool.  A \B{}
   indicates that the program (row) depends on the program or library (column).
   Care was taken to pick dependencies that are widely available on GNU/Linux
   systems.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}[!htbp]
     \begin{tabularx}{\textwidth}{X *{9}{!{\color{white}\VRule[1pt]}l}}
       \headrow \cellcolor{White}
       & \rotatebox[origin=l]{90}{\href{https://gcc.gnu.org/}{C compiler}\space\space\space}
@@ -66,8 +66,8 @@
       \oddrow
       Documentation            &    &    &    &    &    &    &    &    & \B \\
     \end{tabularx}
-    \caption{\small External tools required to build and run the programs this
-      project provides.}
+    \caption{\small External tools required to build and run the programs of
+      this project.}
     \label{table:dependencies}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -110,10 +110,8 @@ yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
 
 \subsection{GNU Guix}
 
-  If \href{https://www.gnu.org/software/guix}{GNU Guix} is available on your
-  system, an environment that contains all external tools required to build
-  the programs in this project can be obtained running the following command
-  from the project's repository root:
+  For GNU Guix, use the \texttt{environment.scm} file to set up the development
+  environment:
 
 \begin{siderules}
 \begin{verbatim}
@@ -129,7 +127,7 @@ guix environment -l environment.scm
 \begin{siderules}
 \begin{verbatim}
 brew install autoconf automake gcc make pkg-config libgcrypt guile \
-             htslib curl raptor libxml2
+             htslib curl raptor libxml2 zlib
 \end{verbatim}
 \end{siderules}
 
@@ -167,11 +165,9 @@ tar zxvf sparqling-genomics-(@*\sgversion{}*@).tar.gz
 
 \section{Installation instructions}
 
-  After installing the required tools (see section \ref{sec:prerequisites}
-  {\color{LinkGray}`\nameref{sec:prerequisites}'}), and obtaining the source
-  code (see section \ref{sec:obtaining-tarball} {\color{LinkGray}
-    `\nameref{sec:obtaining-tarball}'}), building involves running the following
-  commands:
+  After installing the required tools (see section \refer{sec:prerequisites}),
+  and obtaining the source code (see section \refer{sec:obtaining-tarball}),
+  building involves running the following commands:
 
 \begin{siderules}
 \begin{lstlisting}
@@ -240,8 +236,8 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 
 \begin{siderules}
 \begin{verbatim}
-image_id=`docker load < $(guix system docker-image deployment/virtuoso-machine.scm)`
-container_id=`docker create "${image_id}"`
+image=`docker load < $(guix system docker-image deployment/virtuoso-machine.scm)`
+container_id=`docker create "${image}"`
 docker start "${container_id}"
 \end{verbatim}
 \end{siderules}
@@ -252,90 +248,3 @@ To get an interactive shell inside the container, use:
 docker exec -ti "${container_id}" /run/current-system/profile/bin/bash --login
 \end{verbatim}
 \end{siderules}
-
-\chapter{The knowledge graph}
-
-  In this manual we define a \emph{knowledge graph} as a collection of
-  facts stated in a coherent way so that inferences can be drawn from
-  the explicitly stated facts.  We implement a knowledge graph using the
-  Resource Description Framework \citep{Lassila:99:RDF}, hereafter referred
-  to as RDF.  The knowledge graph is the main value obtained from this
-  project.
-
-  The programs from chapter \ref{chap:command-line}
-  {\color{LinkGray}`\nameref{chap:command-line}'} read data in a
-  domain-specific format, and translate it into \emph{facts} in the form
-  \emph{subject} $\rightarrow$ \emph{predicate} $\rightarrow$
-  \emph{object}, which is the form of an RDF triplet.
-
-  Once all desired data is described as RDF triplets, we can use the SPARQL
-  Protocol and RDF Query Language \citep{sparql-11}, better known as simply
-  ``SPARQL'', to extract knowledge from the facts.
-
-  Stating facts as RDF is a necessary first step to a more powerful inference
-  system.  To understand the knowledge graph and its intended use, we can
-  think of the knowledge graph as having multiple layers.  Figure
-  \ref{fig:layered-knowledge} displays a small example of two layers.
-
-  \begin{figure}[h]
-    \begin{center}
-    \includegraphics[width=1.0\textwidth]{figures/layered-knowledge.pdf}
-    \end{center}
-    \caption{\textit{Illustrating knowledge layers.  In the figure we have
-        knowledge from two separate sources (gene locations and genomic
-        variants) from which we can derive new knowledge in an inference
-        layer.}}
-    \label{fig:layered-knowledge}
-  \end{figure}
-
-  Programs can operate on multiple layers of knowledge.  A program operates
-  on the first layer (layer 0) when it translates a non-RDF format into RDF.
-  These programs (re)state observations.  In the second layer (layer 1) and
-  up, we find programs that operate on facts from layer 0 and generate
-  inferences.
-
-  From a computational perspective, these inferences allow programs to take
-  shortcuts, and therefore answer questions (called \emph{querying}) faster.
-  The performance of querying the graph can therefore be tuned by cleverly
-  stating facts.  For example, by using the inference drawn in figure
-  \ref{fig:layered-knowledge}, a query asking for ``all variants in a gene''
-  no longer needs to compute whether a variant is inside any of the
-  genes.  The query planner can also narrow the search space by only
-  considering the variants in the layer 1 graph.
-
-  From a data access perspective, these inferences allow fine-grained access
-  to knowledge.  For example, access to a layer 1 graph can be given, but
-  not to its underlying layer 0 graph(s).  Properties can be removed (like
-  patient identifiers), or made less precise (only tell that there is a
-  variant in a particular gene, rather than the variant details).
-
-  \begin{sloppypar}
-  The knowledge graph contains two types of nodes; uniquely identifiable
-  names having a symbolic value (1), and literal values like numbers and
-  text (2).  The symbolic values are written as URIs, for which all symbols
-  defined by programs that are part of SPARQLing genomics share a common
-  prefix: \texttt{<http://sparqling-genomics/>}.  When we describe a node
-  in the remainder of the manual, we shorten the URI with this prefix.
-  For example, to describe the URI
-  \texttt{<http://sparqling-genomics/Origin/1ec192jh5>}, we could equally
-  write \texttt{:Origin/1ec192jh5}, where the colon means ``use the
-  common prefix \texttt{<http://sparqling-genomics/>}''.
-  \end{sloppypar}
-
-  The programs that are part of SPARQLing genomics use a few patterns to
-  come up with identifiers.  For example, to link facts to their original
-  (non-RDF) source, we use the type \texttt{:Origin}.  When describing the
-  originated file of some facts, we use \texttt{:Origin/}%
-  \emph{<MD5 sum of the file>}, so that we can be sure that when the
-  same identifier occurs, the originating bytes are identical.
-
-  In chapter \ref{chap:command-line}
-  {\color{LinkGray}`\nameref{chap:command-line}'} we define more types,
-  all of them built up from the pattern \texttt{:}\emph{<type name>}%
-  \texttt{/}\emph{<string>}.  This can be used as a guideline to interact
-  and extend the knowledge graph.
-
-  We attempt to provide the practical tools to build and maintain a flexible
-  knowledge graph, and these tools may change over time.  When writing new
-  tools or changing existing ones, please consider the effect on the knowledge
-  graph first.

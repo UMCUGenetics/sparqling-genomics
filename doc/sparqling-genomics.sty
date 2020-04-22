@@ -53,6 +53,7 @@
 \definecolor{EvenRowColor}{rgb}{0.97, 0.97, 0.97}
 \definecolor{OddRowColor}{rgb}{0.93, 0.93, 0.93}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
+\definecolor{CodeBG}{rgb}{0.95, 0.95, 0.95}
 \definecolor{Code}{rgb}{0.0, 0.2, 0.4}
 \definecolor{ShadowGray}{rgb}{0.8, 0.8, 0.8}
 \definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
@@ -83,8 +84,11 @@
 \newcommand{\evenrow}{\rowcolor{EvenRowColor}}
 \newcommand{\headrow}{\rowcolor{Gray}}
 \newcommand{\B}{$\bullet{}$}
-\newcommand\code[1]{\colorbox{CodeGray}{\textcolor{Code}{\texttt{#1}}}}
+\newcommand\code[1]{\colorbox{CodeBG}{\textcolor{Code}{\texttt{#1}}}}
 \newcommand\triplet[3]{\code{#1} $\rightarrow$ \code{#2} $\rightarrow$ \code{#3}}
+\newcommand\refer[1]{\ref{#1} {\color{LinkGray}`\nameref{#1}'}}
+\newcommand\file[1]{`\texttt{#1}'}
+\newcommand\program[1]{`\texttt{#1}'}
 
 % Allow loading of graphics in the document.
 \ifdefined\HCode
