@@ -89,6 +89,15 @@
 \newcommand\refer[1]{\ref{#1} {\color{LinkGray}`\nameref{#1}'}}
 \newcommand\file[1]{`\texttt{#1}'}
 \newcommand\program[1]{`\texttt{#1}'}
+\newcommand\origin[1]{\texttt{origin://}#1}
+
+% Ontology terms shorthands.
+\newcommand\dcterms[1]{\href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-#1}{\texttt{dcterms:#1}}}
+\newcommand\dctype[1]{\href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#dcmitype-#1}{\texttt{dctype:#1}}}
+\newcommand\faldo[1]{\href{http://biohackathon.org/resource/faldo\##1}{\texttt{faldo:#1}}}
+\newcommand\prov[1]{\href{http://www.w3.org/ns/prov\##1}{\texttt{prov:#1}}}
+\newcommand\obo[1]{\href{http://purl.obolibrary.org/obo/#1}{\texttt{obo:#1}}}
+\newcommand\sg[1]{\href{https://www.sparqling-genomics.org/latest/#1}{\texttt{sg:#1}}}
 
 % Allow loading of graphics in the document.
 \ifdefined\HCode

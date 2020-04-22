@@ -1,64 +1,44 @@
 \chapter{Use of ontologies}
 \label{chap:implemented-ontologies}
 
-  Throughout \texttt{sparqling-genomics} we use ontologies defined by external
-  working groups to increase interoperability with foreign systems.  In this
-  chapter, we explain which ontologies we use, and how we use them.
+  In chapter \refer{chap:knowledge-graph} we described publicly accessible
+  symbols as the building blocks for ontologies.  In this chapter, we explain
+  which ontologies we use, and how we use them.
 
-\section{Dublin Core Terms}
-
-  In the web interface, we use the Dublin Core Terms ontology \citep{dcmi-terms}
-  to define organizations, collections, datasets, and samples.  Table
-  \ref{table:dcterms-usage} provides an overview of the properties we use.
+  The following lookup table provides the name to abbreviate an ontology,
+  and the full ontology URI.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
-    \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
+  \begin{table}[!htbp]
+    \begin{tabularx}{\textwidth}{*{1}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Term} & \textbf{Used as} & \textbf{Description}\\
+      \textbf{Abbreviation} & \textbf{Ontology URI}\\
       \evenrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-Agent}
-           {\texttt{dcterms:Agent}}
-      & Class
-      & Used by the web interface to describe the organization that produced
-      a collection or dataset.\\
+      \texttt{dcterms} &
+      \href{http://purl.org/dc/terms/}
+           {http://purl.org/dc/terms/}\\
       \oddrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#dcmitype-Collection}
-           {\texttt{dctype:Collection}}
-      & Class
-      & Used by the portal page in the web interface as a filter mechanism to browse
-        \texttt{dctype:Dataset}s..\\
+      \texttt{dc} &
+      \href{http://purl.org/dc/elements}{http://purl.org/dc/elements}\\
       \evenrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#dcmitype-Dataset}
-           {\texttt{dctype:Dataset}}
-      & Class
-      & Used by the portal page in the web interface to describe data in a graph.\\
+      \texttt{faldo} &
+      \href{http://biohackathon.org/resource/faldo\#}
+      {http://biohackathon.org/resource/faldo\#}\\
       \oddrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-isPartOf}
-           {\texttt{dcterms:isPartOf}}
-      & Predicate
-      & Used by the portal page in the web interface to express that a \texttt{dctype:Dataset}
-        is linked to a \texttt{dctype:Collection}.\\
+      \texttt{pato} &
+      \href{http://purl.obolibrary.org/obo/}
+           {http://purl.obolibrary.org/obo/}\\
       \evenrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-title}
-           {\texttt{dcterms:title}}
-      & Predicate
-      & Used by the web interface to name a \texttt{dctype:Collection} or a \texttt{dctype:Dataset}.\\
+      \texttt{prov} &
+      \href{http://www.w3.org/ns/prov\#}
+           {http://www.w3.org/ns/prov\#}\\
       \oddrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-publisher}
-           {\texttt{dcterms:publisher}}
-      & Predicate
-      & Used by the web interface to identify the organization that published
-      a collection or dataset.\\
-      \evenrow
-      \href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#elements-description}
-           {\texttt{dc:description}}
-      & Predicate
-      & Used by the web interface to provide a textual description of a
-        \texttt{dctype:Collection} or a \texttt{dctype:Dataset}.\\
+      \texttt{sg} &
+      \href{https://www.sparqling-genomics.org/latest/}
+           {https://www.sparqling-genomics.org/latest/}\\
     \end{tabularx}
-    \caption{\small Terms used from the Dublic Core Terms ontology.}
-    \label{table:dcterms-usage}
+    \caption{\small Lookup table for ontology URIs and their abbreviations.}
+    \label{table:ontology-abbreviations}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
@@ -70,23 +50,124 @@
   the properties we use.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}[!htbp]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
+      \textbf{Term}     & \textbf{Used as} & \textbf{Usage}\\
       \evenrow
-      \href{http://biohackathon.org/resource/faldo\#position}{\texttt{faldo:position}}
-      & Predicate
-      & Used by \texttt{vcf2rdf} to describe the basepair position within a
-      chromosome or contig.\\
+      \faldo{position}  & Predicate        & Used by \program{vcf2rdf} to
+                                             describe the basepair position
+                                             within a chromosome or contig.\\
       \oddrow
-      \href{http://biohackathon.org/resource/faldo\#reference}{\texttt{faldo:reference}}
-      & Predicate
-      & Used by \texttt{vcf2rdf} to describe the chromosome or contig to which
-      the \texttt{faldo:position} is relative to.\\
+      \faldo{reference} & Predicate        & Used by \program{vcf2rdf} to
+                                             describe the chromosome or contig
+                                             to which the \faldo{position} is
+                                             relative to.\\
     \end{tabularx}
     \caption{\small Terms used from FALDO.}
     \label{table:faldo-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Dublin Core Terms}
+
+  In our published datasets and the \program{sg-web} interface, we use the Dublin
+  Core Terms ontology \citep{dcmi-terms} to define organizations, collections,
+  datasets, and samples.  Table \ref{table:dcterms-usage} provides an overview of
+  the properties we use.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[!htbp]
+    \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Term}   & \textbf{Used as} & \textbf{Description}\\
+      \evenrow
+      \dcterms{Agent}       & Object     & Used by \texttt{sg-web} to describe
+                                           the user or organization that
+                                           produced a collection or dataset.\\
+      \oddrow
+      \dctype{Collection}   & Object     & Used by the portal page in the web
+                                           interface as a filter mechanism to
+                                           browse \dctype{Dataset}s.\\
+      \evenrow
+      \dctype{Dataset}      & Object     & Used by the portal page in the web
+                                           interface to describe data in a
+                                           graph.\\
+      \oddrow
+      \dcterms{date}        & Object     & Used by \program{sg-web} to describe
+                                           the time a query was run.\\
+      \evenrow
+      \dcterms{isPartOf}    & Predicate  & Used by the portal page in the web
+                                           interface to express that a
+                                           \dctype{Dataset} is linked to a
+                                           \dctype{Collection}.\\
+      \oddrow
+      \dcterms{title}       & Predicate  & Used by \program{sg-web} to name a
+                                           \dctype{Collection} or a
+                                           \dctype{Dataset}.\\
+      \evenrow
+      \dcterms{publisher}   & Predicate  & Used by \program{sg-web} to identify
+                                           the organization that published
+                                           a collection or dataset.\\
+      \oddrow
+      \dcterms{description} & Predicate  & Used by \program{sg-web} to provide
+                                           a textual description of a
+                                           \dctype{Collection} or a
+                                           \dctype{Dataset}.\\
+    \end{tabularx}
+    \caption{\small Terms used from the Dublic Core Terms ontology.}
+    \label{table:dcterms-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Provenance tracking with PROV-O}
+
+  To maintain an understanding of ``who did what?'' when it comes to importing,
+  modifying, removing, and querying data in the knowledge graph, we use parts of
+  the PROV ontology \citep{prov-o}.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[!htbp]
+    \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Term}        & \textbf{Used as} & \textbf{Usage}\\
+      \evenrow
+      \prov{startedAtTime} & Predicate        & Used by \program{sg-web} to
+                                                describe the date and time a
+                                                query was run.\\
+      \oddrow
+      \prov{endedAtTime}   & Predicate        & Used by \program{sg-web} to
+                                                describe the date and time a
+                                                query finished.\\
+    \end{tabularx}
+    \caption{\small Terms used from PROV-O.}
+    \label{table:prov-usage}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\section{Phenotype And Trait Ontology}
+
+  When describing phenotype properties, we use the Phenotype And Trait
+  Ontology (PATO) \citep{pato}.  Table \ref{table:pato-usage} provides an
+  overview of the properties we use.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[!htbp]
+    \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Term}       & \textbf{Used as} & \textbf{Usage}\\
+      \evenrow
+      \obo{PATO\_0000384} & Object           & Used in the published datasets
+                                               to describe a donor as male.\\
+      \oddrow
+      \obo{PATO\_0000383} & Object           & Used in the published datasets
+                                               to describe a donor as female.\\
+      \evenrow
+      \obo{PATO\_0001894} & Predicate        & Used in the published datasets
+                                               to describe the phenotypic sex.\\
+    \end{tabularx}
+    \caption{\small Terms used from PATO.}
+    \label{table:pato-usage}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
@@ -99,33 +180,21 @@
   terms that are waiting to be replaced by an external ontology.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}[!htbp]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\
       \evenrow
-      \href{http://sparqling-genomics/Origin}{\texttt{sg:Origin}}
-      & Class
-      & Used by the command-line tools (see chapter \ref{chap:command-line}
-           {\color{LinkGray}`\nameref{chap:command-line}'})
-      to point to the file or resource from which information was derived.\\
+      \sg{Origin}   & Object           & Used by the command-line tools (see
+                                         chapter \refer{chap:command-line})
+                                         to point to the file or resource from
+                                         which information was derived.\\
       \oddrow
-      \texttt{sg:containsDataFor}
-      & Class
-      & Used by the portal page in the web interface to express which graph
-      (object) belongs to which dataset (subject).\\
-      \evenrow
-      \texttt{sg:mappedToGenomeAssembly}
-      & Class
-      & Used by the portal page in the web interface to describe the reference
-      genome assembly used for a \texttt{dctype:Dataset}.\\
-      \oddrow
-      \texttt{sg:Sample}
-      & Class
-      & Used by \texttt{vcf2rdf} to describe a sample.\\
+      \sg{Sample}   & Object           & Used by \program{vcf2rdf} and
+                                         \program{bam2rdf} to describe a
+                                         sample.\\
     \end{tabularx}
-    \caption{\small Terms made up by us.}
+    \caption{\small Custom terms used by SPARQLing-genomics.}
     \label{table:sg-usage}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
-
