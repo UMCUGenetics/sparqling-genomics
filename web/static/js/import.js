@@ -4,11 +4,11 @@ function set_command (token, connection_uri, graph_uri, format)
     jQuery("#command-box").html(
         '<span class="terminal-prompt">$ </span>curl --cookie \"SGSession=' + token + '\" \\\n' +
         '       --request POST \\\n' +
-        '       --upload-file <strong>/path/to/your/file</strong> \\\n' +
         '       --header \"Accept: application/xml\" \\\n' +
         '       --header \"Content-Type: '+ format +'\" \\\n' +
         '       --data-urlencode "graph=' + graph_uri + '" \\\n' +
-        '       --get '+ connection_uri +'/api/import-rdf');
+        '       --get '+ connection_uri +'/api/import-rdf \\\n' +
+        '       --upload-file <strong>/path/to/your/file</strong>');
 }
 
 function set_inital_command ()
