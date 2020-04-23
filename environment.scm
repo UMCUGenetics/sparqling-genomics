@@ -55,7 +55,6 @@
     `(#:configure-flags (list (string-append
                                "--with-libldap-prefix="
                                (assoc-ref %build-inputs "openldap")))
-      #:parallel-build? #f ; It breaks building the documentation.
       #:phases
       (modify-phases %standard-phases
         (add-after 'install 'wrap-executable
