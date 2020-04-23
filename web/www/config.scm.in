@@ -589,6 +589,7 @@
     (rdfs         . "http://www.w3.org/2000/01/rdf-schema#")
     (sg           . "https://sparqling-genomics.org/@VERSION@/")
     (vcf2rdf      . "sg://@VERSION@/vcf2rdf/")
+    (col          . "sg://@VERSION@/table2rdf/Column/")
     (xdt          . "sg://@VERSION@/xml2rdf/DynamicType/")
     (xsd          . "http://www.w3.org/2001/XMLSchema#")))
 
