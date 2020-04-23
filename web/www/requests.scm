@@ -540,7 +540,7 @@
 (define (start-server request-handler)
 
   ;; Start a background thread to maintain a healthy system.
-  ;(call-with-new-thread health-maintainer)
+  (call-with-new-thread health-maintainer)
 
   ;; Listen to HTTP requests for user interaction.
   (let* ((family (www-listen-address-family))
