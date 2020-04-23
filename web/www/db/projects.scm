@@ -303,17 +303,20 @@ WHERE {
     (query-results->alist (system-sparql-query query))))
 
 (define (project-assign-member! project-id username auth-user)
-  (let [(query (string-append
-                internal-prefixes
-                "INSERT INTO <" system-state-graph "> {"
-                " agent:" username " sg:isAssignedTo ?project ."
-                " } WHERE {"
-                " agent:" auth-user " sg:isAssignedTo ?project ."
-                " FILTER (?project = <" project-id ">) }"))]
-    (receive (header body) (system-sparql-query query)
-      (if (= (response-code header) 200)
-          (values #t "")
-          (values #f (format #f "Could not assign ~a to the project." username))))))
+  (if (string= auth-user "")
+      (values #f "An empty username is not allowed.")
+      (let [(query (string-append
+                    internal-prefixes
+                    "INSERT INTO <" system-state-graph "> {"
+                    " agent:" username " sg:isAssignedTo ?project ."
+                    " } WHERE {"
+                    " agent:" auth-user " sg:isAssignedTo ?project ."
+                    " FILTER (?project = <" project-id ">) }"))]
+        (receive (header body) (system-sparql-query query)
+          (if (= (response-code header) 200)
+              (values #t "")
+              (values #f (format #f "Could not assign ~a to the project."
+                                 username)))))))
 
 (define (project-has-member? project-id username)
   (let* [(query (string-append
