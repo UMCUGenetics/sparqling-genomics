@@ -91,6 +91,48 @@ process_variant_for_sample (bcf_hdr_t *header,
                             int32_t sample_index,
                             int32_t number_of_samples)
 {
+
+  /* Skip variant when not applicable to the sample.
+   * --------------------------------------------------------------------
+   *
+   * In multi-sample VCF files, a variant that occurs in one sample may
+   * not occur in another.  Here we filter the variants that are not
+   * applicable to the current sample.  We do this by looking at the
+   * genotype (GT) format field.  When all genotypes are the same as the
+   * reference allele, we drop the variant.
+   */
+
+  if (config.process_format_fields
+      && number_of_samples > 0)
+    {
+      char **dst = NULL;
+      int32_t ndst = 0;
+      int32_t gt = bcf_get_genotypes (header, buffer, &dst, &ndst);
+      int32_t ploidy = gt / number_of_samples;
+      int32_t *ptr = (int32_t *)dst + sample_index * ploidy;
+      int32_t k;
+      uint8_t skip = 1;
+
+      for (k = 0; k < ploidy; k++)
+        {
+          if (bcf_gt_is_missing (ptr[k]))
+            continue;
+
+          if (bcf_gt_allele (ptr[k]) != 0)
+            {
+              skip = 0;
+              break;
+            }
+        }
+
+      free (dst);
+      if (skip == 1)
+        {
+          config.non_unique_variant_counter++;
+          return;
+        }
+    }
+
   /* Create 'generic' nodes and URIs.
    * -------------------------------------------------------------------- */
   raptor_term *self        = NULL;
