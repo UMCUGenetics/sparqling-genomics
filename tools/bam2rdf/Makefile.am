@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 bam2rdf_CFLAGS       = -I$(srcdir)/include -I$(srcdir)/../common/include      \
-                       $(LIBGCRYPT_CFLAGS) $(htslib_CFLAGS) $(raptor2_CFLAGS)
+                       $(gnutls_CFLAGS) $(htslib_CFLAGS) $(raptor2_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
 bam2rdf_CFLAGS      += -DENABLE_MTRACE
@@ -23,4 +23,4 @@ bam2rdf_SOURCES      = ../common/src/helper.c ../common/include/helper.h      \
                        src/bam_reads.c include/bam_reads.h
 
 bam2rdf_LDFLAGS      = # -pthread
-bam2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS) $(raptor2_LIBS)
+bam2rdf_LDADD        = $(gnutls_LIBS) $(htslib_LIBS) $(raptor2_LIBS)

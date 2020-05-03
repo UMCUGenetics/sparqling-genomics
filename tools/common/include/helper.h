@@ -20,9 +20,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <gcrypt.h>
+#include <gnutls/crypto.h>
 
-#define HASH_ALGORITHM GCRY_MD_MD5
+#define HASH_ALGORITHM GNUTLS_DIG_MD5
 #define HASH_ALGORITHM_NAME "md5"
 #define HASH_ALGORITHM_PRINT_LENGTH 32
 

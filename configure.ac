@@ -39,13 +39,6 @@ else
    AC_MSG_ERROR([Guile 2.2 required.])
 fi
 
-
-AM_PATH_LIBGCRYPT(1.5.3)
-
-if test "x${LIBGCRYPT_LIBS}" = "x"; then
-	AC_MSG_ERROR([unable to find libgcrypt])
-fi
-
 dnl This macro is used to resolve the absolute path to @datarootdir@ so that
 dnl the absolute path can be used in the configuration file for the web
 dnl interface.
@@ -107,6 +100,7 @@ PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([htslib], [htslib])
 PKG_CHECK_MODULES([raptor2], [raptor2])
 PKG_CHECK_MODULES([libxml2], [libxml-2.0])
+PKG_CHECK_MODULES([gnutls], [gnutls])
 PKG_CHECK_MODULES([zlib], [zlib])
 
 

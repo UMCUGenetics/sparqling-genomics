@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 vcf2rdf_CFLAGS       = -I$(srcdir)/include -I$(srcdir)/../common/include       \
-                       $(LIBGCRYPT_CFLAGS) $(htslib_CFLAGS) $(raptor2_CFLAGS)
+                       $(gnutls_CFLAGS) $(htslib_CFLAGS) $(raptor2_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
 vcf2rdf_CFLAGS      += -DENABLE_MTRACE
@@ -23,6 +23,6 @@ vcf2rdf_SOURCES      = ../common/src/helper.c ../common/include/helper.h      \
                        src/vcf_variants.c include/vcf_variants.h
 
 vcf2rdf_LDFLAGS      = # -pthread
-vcf2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(htslib_LIBS) $(raptor2_LIBS)
+vcf2rdf_LDADD        = $(gnutls_LIBS) $(htslib_LIBS) $(raptor2_LIBS)
 
 EXTRA_DIST           = tests/sample.vcf

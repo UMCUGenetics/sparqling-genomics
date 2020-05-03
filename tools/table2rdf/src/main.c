@@ -22,7 +22,7 @@
 #include <string.h>
 #include <time.h>
 #include <raptor2.h>
-#include <gcrypt.h>
+#include <gnutls/crypto.h>
 #include <zlib.h>
 
 #ifdef ENABLE_MTRACE
@@ -42,18 +42,6 @@ main (int argc, char **argv)
 #ifdef ENABLE_MTRACE
   mtrace ();
 #endif
-
-  /* Initialize libgcrypt. */
-  if (!gcry_check_version (GCRYPT_VERSION))
-    {
-      fputs ("libgcrypt version mismatch\n", stderr);
-      exit (2);
-    }
-
-  /* We are not dealing with passwords or confidential crypto in this
-   * program. Therefore we don't need "secure memory". */
-  gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
-  gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
 
   /* Initialize the run-time configuration.
    * ------------------------------------------------------------------------ */
@@ -93,14 +81,14 @@ main (int argc, char **argv)
         }
       else
         {
-          const int buf_len = gcry_md_get_algo_dlen (HASH_ALGORITHM);
+          const int buf_len = gnutls_hash_get_len (HASH_ALGORITHM);
           unsigned char buf[buf_len];
           memset (buf, '\0', buf_len);
           file_hash = calloc (buf_len * 2 + 1, sizeof (unsigned char));
           if (!file_hash) return 1;
 
-          gcry_randomize (buf, buf_len, GCRY_VERY_STRONG_RANDOM);
-          if (! get_pretty_hash (buf, buf_len, file_hash))
+          int status = gnutls_rnd (GNUTLS_RND_KEY, buf, buf_len);
+          if ((! status) || (! get_pretty_hash (buf, buf_len, file_hash)))
             return 1;
         }
 

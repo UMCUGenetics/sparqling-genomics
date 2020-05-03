@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 json2rdf_CFLAGS      = -I$(srcdir)/include -I$(srcdir)/../common/include            \
-                       $(LIBGCRYPT_CFLAGS) $(raptor2_CFLAGS) $(zlib_CFLAGS)
+                       $(gnutls_CFLAGS) $(raptor2_CFLAGS) $(zlib_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
 json2rdf_CFLAGS     += -DENABLE_MTRACE
@@ -29,6 +29,6 @@ json2rdf_SOURCES     = ../common/src/helper.c ../common/include/helper.h        
                        src/yajl_parser.c include/yajl_parse.h include/yajl_parser.h \
                        src/json.c include/json.h
 
-json2rdf_LDADD       = $(LIBGCRYPT_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
+json2rdf_LDADD       = $(gnutls_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
 
 EXTRA_DIST           = tests/input.json

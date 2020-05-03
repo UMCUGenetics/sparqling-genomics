@@ -17,11 +17,15 @@
 
 #include "helper.h"
 
-#include <stdio.h>
-#include <gcrypt.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gnutls/crypto.h>
+
+#define HASH_ERROR_MESSAGE "Hashing failed.\n"
 
 bool
 get_pretty_hash (unsigned char *hash, uint32_t length, unsigned char *output)
@@ -70,20 +74,18 @@ unsigned char *
 helper_get_hash_from_file (const char *filename)
 {
   const size_t READ_BUFFER_MAX_LENGTH = 4000000;
-  const int HASH_LENGTH = gcry_md_get_algo_dlen (HASH_ALGORITHM);
+  const int HASH_LENGTH = gnutls_hash_get_len (HASH_ALGORITHM);
 
-  /* Initialize GCrypt.
+  /* Initialize GnuTLS.
    * ------------------------------------------------------------------------ */
-  gcry_error_t error;
-  gcry_md_hd_t handler = NULL;
-  unsigned char *binary_digest = NULL;
+  int error;
+  gnutls_hash_hd_t handler;
+  unsigned char binary_digest[HASH_LENGTH];
 
-  error = gcry_md_open (&handler, HASH_ALGORITHM, 0);
-  if (error)
+  error = gnutls_hash_init (&handler, HASH_ALGORITHM);
+  if (error < 0)
     {
-      fprintf (stderr, "ERROR: %s/%s\n",
-               gcry_strsource (error),
-               gcry_strerror (error));
+      fprintf (stderr, "ERROR: Cannot initialize GnuTLS hash function.\n");
       return NULL;
     }
 
@@ -95,8 +97,8 @@ helper_get_hash_from_file (const char *filename)
   if (file == NULL)
     {
       fprintf (stderr, "ERROR: Cannot open '%s'.\n", filename);
-      gcry_md_close (handler);
-      return false;
+      gnutls_hash_deinit (handler, NULL);
+      return NULL;
     }
 
   buffer = calloc (sizeof (char), READ_BUFFER_MAX_LENGTH);
@@ -104,7 +106,7 @@ helper_get_hash_from_file (const char *filename)
   if (buffer == NULL)
     {
       fprintf (stderr, "ERROR: Not enough memory available for processing '%s'.\n", filename);
-      gcry_md_close (handler);
+      gnutls_hash_deinit (handler, NULL);
       fclose (file);
       return NULL;
     }
@@ -115,13 +117,22 @@ helper_get_hash_from_file (const char *filename)
   bytes_read = fread (buffer, sizeof (char), READ_BUFFER_MAX_LENGTH, file);
   while (bytes_read == READ_BUFFER_MAX_LENGTH)
     {
-      gcry_md_write (handler, buffer, bytes_read);
-      memset (buffer, 0, bytes_read);
+      error = gnutls_hash (handler, buffer, bytes_read);
+      if (error < 0)
+        {
+          fprintf (stderr, HASH_ERROR_MESSAGE);
+          return NULL;
+        }
+
       bytes_read = fread (buffer, sizeof (char), READ_BUFFER_MAX_LENGTH, file);
     }
 
-  gcry_md_write (handler, buffer, bytes_read);
-  gcry_md_final (handler);
+  error = gnutls_hash (handler, buffer, bytes_read);
+  if (error < 0)
+    {
+      fprintf (stderr, HASH_ERROR_MESSAGE);
+      return NULL;
+    }
 
   fclose (file);
   memset (buffer, 0, READ_BUFFER_MAX_LENGTH * sizeof (char));
@@ -132,19 +143,19 @@ helper_get_hash_from_file (const char *filename)
   unsigned char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
   if (!pretty_digest)
     {
-      gcry_md_close (handler);
+      gnutls_hash_deinit (handler, NULL);
       return NULL;
     }
 
-  binary_digest = gcry_md_read (handler, 0);
+  gnutls_hash_output (handler, binary_digest);
   if (!get_pretty_hash (binary_digest, HASH_LENGTH, pretty_digest))
     {
       fprintf (stderr, "ERROR: Couldn't print a hash.\n");
-      gcry_md_close (handler);
+      gnutls_hash_deinit (handler, NULL);
       return NULL;
     }
 
-  gcry_md_close (handler);
+  gnutls_hash_deinit (handler, NULL);
   return pretty_digest;
 }
 

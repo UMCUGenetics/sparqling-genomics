@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 table2rdf_CFLAGS     = -I$(srcdir)/include -I$(srcdir)/../common/include       \
-                       $(LIBGCRYPT_CFLAGS) $(raptor2_CFLAGS) $(zlib_CFLAGS)
+                       $(gnutls_CFLAGS) $(raptor2_CFLAGS) $(zlib_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
 table2rdf_CFLAGS    += -DENABLE_MTRACE
@@ -23,6 +23,6 @@ table2rdf_SOURCES    = ../common/src/helper.c ../common/include/helper.h      \
                        src/table.c include/table.h
 
 table2rdf_LDFLAGS    = # -pthread
-table2rdf_LDADD      = $(LIBGCRYPT_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
+table2rdf_LDADD      = $(gnutls_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
 
 EXTRA_DIST           = tests/headerless.tsv tests/sample.csv tests/sample.tsv

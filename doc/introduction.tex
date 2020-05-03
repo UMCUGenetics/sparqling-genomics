@@ -37,7 +37,6 @@
     \begin{tabularx}{\textwidth}{X *{9}{!{\color{white}\VRule[1pt]}l}}
       \headrow \cellcolor{White}
       & \rotatebox[origin=l]{90}{\href{https://gcc.gnu.org/}{C compiler}\space\space\space}
-      & \rotatebox[origin=l]{90}{\href{https://www.gnupg.org/related_software/libgcrypt/}{libgcrypt}}
       & \rotatebox[origin=l]{90}{\href{http://www.librdf.org/}{raptor2}}
       & \rotatebox[origin=l]{90}{\href{http://www.xmlsoft.org/}{libxml2}}
       & \rotatebox[origin=l]{90}{\href{http://www.htslib.org/}{HTSLib}}
@@ -46,25 +45,25 @@
       & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
       & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \texttt{vcf2rdf}         & \B & \B & \B &    & \B &    &    &    &\\
+      \texttt{vcf2rdf}         & \B & \B &    & \B &    &    & \B &\\
       \oddrow
-      \texttt{bam2rdf}         & \B & \B & \B &    & \B &    &    &    &\\
+      \texttt{bam2rdf}         & \B & \B &    & \B &    &    & \B &\\
       \evenrow
-      \texttt{table2rdf}       & \B & \B & \B &    &    & \B &    &    &\\
+      \texttt{table2rdf}       & \B & \B &    &    & \B &    & \B &\\
       \oddrow
-      \texttt{json2rdf}        & \B & \B & \B &    &    & \B &    &    &\\
+      \texttt{json2rdf}        & \B & \B &    &    & \B &    & \B &\\
       \evenrow
-      \texttt{xml2rdf}         & \B & \B & \B & \B &    & \B &    &    &\\
+      \texttt{xml2rdf}         & \B & \B & \B &    & \B &    & \B &\\
       \oddrow
-      \texttt{folder2rdf}      &    &    &    &    &    &    & \B &    &\\
+      \texttt{folder2rdf}      &    &    &    &    &    & \B &    &\\
       \evenrow
-      \texttt{sg-web}          &    &    &    &    &    &    & \B & \B &\\
+      \texttt{sg-web}          &    &    &    &    &    & \B & \B &\\
       \oddrow
-      \texttt{sg-web-test}     &    &    &    &    &    &    & \B & \B &\\
+      \texttt{sg-web-test}     &    &    &    &    &    & \B & \B &\\
       \evenrow
-      \texttt{sg-auth-manager} &    &    &    &    &    &    & \B & \B &\\
+      \texttt{sg-auth-manager} &    &    &    &    &    & \B & \B &\\
       \oddrow
-      Documentation            &    &    &    &    &    &    &    &    & \B \\
+      Documentation            &    &    &    &    &    &    &    & \B \\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs of
       this project.}
@@ -84,9 +83,9 @@
 
 \begin{siderules}
 \begin{verbatim}
-apt-get install autoconf automake gcc make pkg-config libgcrypt20-dev   \
-                zlib1g-dev guile-2.2 guile-2.2-dev libraptor2-dev       \
-                libhts-dev texlive curl libxml2-dev
+apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
+                guile-2.2 guile-2.2-dev libraptor2-dev libhts-dev \
+                texlive curl libxml2-dev
 \end{verbatim}
 \end{siderules}
 
@@ -103,8 +102,8 @@ apt-get install autoconf automake gcc make pkg-config libgcrypt20-dev   \
 
 \begin{siderules}
 \begin{verbatim}
-yum install autoconf automake gcc make pkgconfig libgcrypt-devel \
-            guile guile-devel raptor2-devel texlive curl libxml2-devel
+yum install autoconf automake gcc make pkgconfig guile guile-devel \
+            raptor2-devel texlive curl libxml2-devel
 \end{verbatim}
 \end{siderules}
 
@@ -126,7 +125,7 @@ guix environment -l environment.scm
 
 \begin{siderules}
 \begin{verbatim}
-brew install autoconf automake gcc make pkg-config libgcrypt guile \
+brew install autoconf automake gcc make pkg-config guile \
              htslib curl raptor libxml2 zlib
 \end{verbatim}
 \end{siderules}

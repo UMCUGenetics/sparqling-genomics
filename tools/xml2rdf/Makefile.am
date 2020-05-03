@@ -6,7 +6,7 @@
 AUTOMAKE_OPTIONS     = subdir-objects
 SUBDIRS              = .
 xml2rdf_CFLAGS       = -I$(srcdir)/include -I$(srcdir)/../common/include      \
-                       $(LIBGCRYPT_CFLAGS) $(libxml2_CFLAGS) $(raptor2_CFLAGS)\
+                       $(gnutls_CFLAGS) $(libxml2_CFLAGS) $(raptor2_CFLAGS)   \
                        $(zlib_CFLAGS)
 
 if ENABLE_MTRACE_OPTION
@@ -24,7 +24,7 @@ xml2rdf_SOURCES      = ../common/src/helper.c ../common/include/helper.h      \
                        src/ontology.c include/ontology.h                      \
                        src/xml.c include/xml.h
 
-xml2rdf_LDADD        = $(LIBGCRYPT_LIBS) $(libxml2_LIBS) $(raptor2_LIBS)      \
+xml2rdf_LDADD        = $(gnutls_LIBS) $(libxml2_LIBS) $(raptor2_LIBS)         \
                        $(zlib_LIBS)
 
 EXTRA_DIST           = tests/input.xml
