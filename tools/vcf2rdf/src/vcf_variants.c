@@ -38,7 +38,7 @@ build_field_identities (bcf_hdr_t *header)
       return;
     }
 
-  int32_t index = 0, j = 0;
+  int32_t index = 0, j;
   for (; index < header->nhrec; index++)
     {
       config.field_identities[index].id = NULL;
@@ -270,11 +270,11 @@ process_variant_for_sample (bcf_hdr_t *header,
   char *id_str           = NULL;
   void *value            = NULL;
   int32_t state          = 0;
-  int32_t type           = -1;
-  int32_t value_len      = 0;
-  int32_t index          = 0;
-  int32_t number         = -1;
-  uint32_t i             = 0;
+  int32_t type;
+  int32_t value_len;
+  int32_t index;
+  int32_t number;
+  uint32_t i;
 
   /* Process INFO fields.
    * -------------------------------------------------------------------- */
@@ -493,7 +493,7 @@ process_variant_for_sample (bcf_hdr_t *header,
                       if (content == NULL)
                         goto clean_format_iteration;
 
-                      strncpy (content, ((char *)(value + value_offset)), number);
+                      strncpy (content, (char *)value + value_offset, number);
                       content[number] = '\0';
 
                       stmt->object = literal (content, XSD_STRING);
@@ -547,14 +547,6 @@ process_variant (bcf_hdr_t *header, bcf1_t *buffer, raptor_term *origin,
    * we will end up without REF information.  Skip these records. */
   if (buffer->d.allele == NULL)
     return;
-
-  if (!origin)
-    {
-      config.non_unique_variant_counter +=
-        (number_of_samples > 0) ? number_of_samples : 1;
-      ui_print_redland_error ();
-      return;
-    }
 
   /* Some reference datasets like dbSNP don't define samples.
    * Accomodating for this use-case is a bit special, so let's deal with

@@ -197,7 +197,7 @@ main (int argc, char **argv)
           if (config.show_progress_info)
             {
               int32_t counter = 0;
-              time_t rawtime = 0;
+              time_t rawtime;
               char time_str[20];
 
               fprintf (stderr, "[ PROGRESS ] %-20s%-20s\n",
