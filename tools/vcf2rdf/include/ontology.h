@@ -27,7 +27,6 @@
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_ONTOLOGY                    "sg://" VERSION "/vcf2rdf"
 #define STR_PREFIX_BASE                 URI_ONTOLOGY "/"
-#define STR_PREFIX_SAMPLE               URI_MASTER "/Sample/"
 #define STR_PREFIX_VCF_HEADER           URI_ONTOLOGY "/header/"
 #define STR_PREFIX_VCF_HEADER_INFO      URI_ONTOLOGY "/info/"
 #define STR_PREFIX_VCF_HEADER_FORMAT    URI_ONTOLOGY "/format/"
@@ -44,7 +43,6 @@ typedef enum
 {
   PREFIX_BASE = 0,
   PREFIX_MASTER,
-  PREFIX_SAMPLE,
   PREFIX_VCF_HEADER,
   PREFIX_VCF_HEADER_INFO,
   PREFIX_VCF_HEADER_FORMAT,

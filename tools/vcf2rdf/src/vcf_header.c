@@ -56,9 +56,10 @@ process_header_item (bcf_hdr_t *vcf_header,
 }
 
 void
-process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
+process_header (bcf_hdr_t *vcf_header, raptor_term *origin,
+                const unsigned char *origin_str)
 {
-  if (!vcf_header || !origin) return;
+  if (!vcf_header || !origin || !origin_str) return;
 
   /* GENERAL NODES
    * --------------------------------------------------------------------------
@@ -87,7 +88,27 @@ process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
       if (config.sample && strcmp(vcf_header->samples[index], config.sample))
         continue;
 
-      raptor_term *subject = term (PREFIX_SAMPLE, vcf_header->samples[index]);
+      /* Resize block when needed. */
+      if ((config.sample_ids_blocks * INDEX_BLOCK_SIZE) <= config.sample_ids_len)
+        {
+          config.sample_ids_blocks++;
+          config.sample_ids = realloc (config.sample_ids,
+                                       config.sample_ids_blocks *
+                                       INDEX_BLOCK_SIZE *
+                                       sizeof (*(config.sample_ids)));
+        }
+
+      /* Store the index in the cache. */
+      if (! generate_sample_id (origin_str, index,
+                                config.sample_ids[index]))
+        {
+          ui_print_general_memory_error ();
+          return;
+        }
+      else
+        config.sample_ids_len++;
+
+      raptor_term *subject = term (PREFIX_ORIGIN, config.sample_ids[index]);
 
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = subject;
@@ -173,13 +194,13 @@ process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
            * ---------------------------------------------------------------- */
 
           /* Resize block when needed. */
-          if ((config.info_field_indexes_blocks * 1024) <=
+          if ((config.info_field_indexes_blocks * INDEX_BLOCK_SIZE) <=
               config.info_field_indexes_len)
             {
               config.info_field_indexes_blocks++;
               config.info_field_indexes = realloc (config.info_field_indexes,
-                                                   config.info_field_indexes_blocks
-                                                   * 1024 * sizeof (int *));
+                                                   config.info_field_indexes_blocks *
+                                                   INDEX_BLOCK_SIZE * sizeof (int *));
             }
 
           /* Store the index in the cache. */
@@ -204,13 +225,13 @@ process_header (bcf_hdr_t *vcf_header, raptor_term *origin)
            * ---------------------------------------------------------------- */
 
           /* Resize block when needed. */
-          if ((config.format_field_indexes_blocks * 1024) <=
+          if ((config.format_field_indexes_blocks * INDEX_BLOCK_SIZE) <=
               config.format_field_indexes_len)
             {
               config.format_field_indexes_blocks++;
               config.format_field_indexes = realloc (config.format_field_indexes,
-                                                   config.format_field_indexes_blocks
-                                                   * 1024 * sizeof (int *));
+                                                     config.format_field_indexes_blocks
+                                                     * INDEX_BLOCK_SIZE * sizeof (int *));
             }
 
           /* Store the index in the cache. */

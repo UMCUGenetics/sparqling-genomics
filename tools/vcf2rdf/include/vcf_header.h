@@ -21,7 +21,8 @@
 #include <raptor2.h>
 #include <htslib/vcf.h>
 
-void process_header (bcf_hdr_t *vcf_header, raptor_term *origin);
+void process_header (bcf_hdr_t *vcf_header, raptor_term *origin,
+                     const unsigned char *origin_str);
 
 #endif /* VCF_HEADER_H */
 

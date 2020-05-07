@@ -29,6 +29,11 @@
 #include <stdint.h>
 #include <raptor2.h>
 
+/* To reduce the number of small allocations, we use a bulk-allocate mechanism
+ * for resources that remain alive during most of program's execution.  This
+ * variable controls the size of the items to allocate in bulk. */
+#define INDEX_BLOCK_SIZE 32
+
 typedef struct
 {
   char *id;
@@ -50,6 +55,7 @@ typedef struct
   char              *caller;
   char              *output_format;
   char              *sample;
+  char              (*sample_ids)[HASH_ALGORITHM_PRINT_LENGTH + 16];
   char              *user_hash;
   uint32_t          non_unique_variant_counter;
   int32_t           reference_len;
@@ -74,6 +80,8 @@ typedef struct
   int32_t           *format_field_indexes;
   size_t            format_field_indexes_len;
   size_t            format_field_indexes_blocks;
+  size_t            sample_ids_len;
+  size_t            sample_ids_blocks;
   field_identity_t  *field_identities;
 
   /* Shared buffers. */
@@ -91,5 +99,8 @@ void runtime_configuration_free (void);
 void runtime_configuration_redland_free (void);
 
 bool generate_variant_id (const unsigned char *origin, char *variant_id);
+bool generate_sample_id (const unsigned char *origin, int32_t sample_index,
+                         char *sample_id);
+
 
 #endif  /* RUNTIMECONFIGURATION_H */

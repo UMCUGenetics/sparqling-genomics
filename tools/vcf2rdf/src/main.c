@@ -183,7 +183,7 @@ main (int argc, char **argv)
       stmt = NULL;
 
       /* Process the header. */
-      process_header (vcf_header, node_filename);
+      process_header (vcf_header, node_filename, file_hash);
 
       if (!config.header_only && !config.metadata_only)
         {

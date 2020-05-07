@@ -39,6 +39,9 @@ runtime_configuration_init (void)
   config.format_field_indexes = NULL;
   config.format_field_indexes_len = 0;
   config.format_field_indexes_blocks = 0;
+  config.sample_ids = NULL;
+  config.sample_ids_blocks = 0;
+  config.sample_ids_len = 0;
   config.header_only = false;
   config.metadata_only = false;
   config.show_progress_info = false;
@@ -96,6 +99,12 @@ runtime_configuration_free (void)
       config.format_field_indexes = NULL;
     }
 
+  if (config.sample_ids != NULL)
+    {
+      free (config.sample_ids);
+      config.sample_ids = NULL;
+    }
+
   if (config.field_identities != NULL)
     {
       free (config.field_identities);
@@ -117,6 +126,24 @@ generate_variant_id (const unsigned char *origin, char *variant_id)
                             origin,
                             config.non_unique_variant_counter);
 
+  variant_id[HASH_ALGORITHM_PRINT_LENGTH + 15] = 0;
+
   config.non_unique_variant_counter++;
+  return (bytes_written > 0);
+}
+
+bool
+generate_sample_id (const unsigned char *origin, int32_t sample_index,
+                    char sample_id[])
+{
+  int8_t bytes_written;
+  bytes_written = snprintf (sample_id,
+                            HASH_ALGORITHM_PRINT_LENGTH + 16,
+                            "%s@S%d",
+                            origin,
+                            sample_index);
+
+  sample_id[HASH_ALGORITHM_PRINT_LENGTH + 15] = 0;
+
   return (bytes_written > 0);
 }

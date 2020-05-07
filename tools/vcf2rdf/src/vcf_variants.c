@@ -162,7 +162,7 @@ process_variant_for_sample (bcf_hdr_t *header,
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = self;
       stmt->predicate = predicate (PREDICATE_SAMPLE);
-      stmt->object    = term (PREFIX_SAMPLE, header->samples[sample_index]);
+      stmt->object    = term (PREFIX_ORIGIN, config.sample_ids[sample_index]);
       register_statement_reuse_subject_predicate (stmt);
     }
 
