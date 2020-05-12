@@ -43,7 +43,7 @@
           ;; Before we can query, there must be a connection that we can query on.
           ;; The best we can do is refer to creating a connection at this point.
           `((h3 "Create a connection")
-            (p "Please " (a (@ (href "/connections")) "create a connection") " first."))]
+            (p "Please " (a (@ (href "/dashboard")) "create a connection") " first."))]
          [(null? project)
           `((h3 "Set active project")
             (p "Please set one of your " (a (@ (href "/projects")) "projects") " to active first."))]
