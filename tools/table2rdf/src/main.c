@@ -62,8 +62,6 @@ main (int argc, char **argv)
        * -------------------------------------------------------------------- */
       if (!runtime_configuration_redland_init ()) return 1;
 
-      ui_show_missing_options_warning ();
-
       gzFile stream;
       if (config.input_from_stdin)
         stream = gzdopen (fileno(stdin), "r");
@@ -133,22 +131,6 @@ main (int argc, char **argv)
         stmt->object    = literal (config.input_file, XSD_STRING);
 
       register_statement_reuse_subject_predicate (stmt);
-
-      if (config.sample_name != NULL)
-        {
-          stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
-          stmt->predicate = predicate (PREDICATE_RDF_TYPE);
-          stmt->object    = class (CLASS_SAMPLE);
-          register_statement_reuse_predicate_object (stmt);
-
-          stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_SAMPLE, config.sample_name);
-          stmt->predicate = predicate (PREDICATE_FOUND_IN);
-          stmt->object    = node_filename;
-          register_statement_reuse_predicate_object (stmt);
-        }
-
       stmt = NULL;
 
       if (config.skip_first_line)

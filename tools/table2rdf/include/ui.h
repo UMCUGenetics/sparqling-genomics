@@ -41,10 +41,4 @@ int32_t ui_print_redland_error (void);
 int32_t ui_print_query_error (const char *query);
 int32_t ui_print_file_read_error (const char *file_name);
 
-/*----------------------------------------------------------------------------.
- | WARNING HANDLING                                                           |
- '----------------------------------------------------------------------------*/
-
-void ui_show_missing_options_warning (void);
-
 #endif /* UI_H */

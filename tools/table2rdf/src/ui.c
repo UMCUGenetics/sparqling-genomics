@@ -34,8 +34,6 @@ ui_show_help (void)
 	"  --version,                -v  Show versioning information.\n"
         "  --caller=ARG,             -c  The program used to produce the input "
                                         "file.\n"
-        "  --sample-name             -s  The name of the sample to which the "
-                                        "data belongs.\n"
 	"  --delimiter,              -d  The delimiter to distinguish fields "
                                         "in the file.\n"
 	"  --secondary-delimiter,    -D  A secondary delimiter to distinguish "
@@ -85,7 +83,6 @@ ui_process_command_line (int argc, char **argv)
       { "delimiter",             required_argument, 0, 'd' },
       { "secondary-delimiter",   required_argument, 0, 'D' },
       { "header-line",           required_argument, 0, 'H' },
-      { "sample-name",           required_argument, 0, 's' },
       { "help",                  no_argument,       0, 'h' },
       { "input-file",            required_argument, 0, 'i' },
       { "stdin",                 no_argument,       0, 'I' },
@@ -102,7 +99,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:St:T:Ij:ophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:D:i:O:H:St:T:Ij:ophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -114,7 +111,6 @@ ui_process_command_line (int argc, char **argv)
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
         case 'H': config.header_line = optarg;                   break;
-        case 's': config.sample_name = optarg;                   break;
         case 'S': config.skip_first_line = true;                 break;
         case 't': preregister_object_transformer (optarg);       break;
         case 'T': preregister_predicate_transformer (optarg);    break;
@@ -187,20 +183,4 @@ ui_print_file_format_error (void)
   fprintf (stderr, "ERROR: This program only handles \".vcf\", "
                    "\".vcf.gz\", \".bcf\", and \".bcf.gz\" files.\n");
   return 1;
-}
-
-void
-ui_show_missing_options_warning (void)
-{
-  if (config.input_file)
-    {
-      if (!config.caller)
-        fputs ("Warning: No --caller has been specified.  "
-               "This may lead to incomplete and/or ambiguous information "
-               "in the database.\n", stderr);
-      if (!config.sample_name)
-        fputs ("Warning: No --sample-name has been specified.  "
-               "This may lead to incomplete and/or ambiguous information "
-               "in the database.\n", stderr);
-    }
 }

@@ -65,13 +65,12 @@ ontology_init (ontology_t **ontology_ptr)
   ontology_t *ontology = calloc (1, sizeof (ontology_t));
   if (!ontology) return false;
 
-  ontology->prefixes_length = 10;
-  ontology->prefixes_static_length = 10;
+  ontology->prefixes_length = 9;
+  ontology->prefixes_static_length = 9;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
   register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
   register_prefix (PREFIX_MASTER,            STR_PREFIX_MASTER,            "sg");
-  register_prefix (PREFIX_SAMPLE,            STR_PREFIX_SAMPLE,            "sample");
   register_prefix (PREFIX_ORIGIN,            STR_PREFIX_ORIGIN,            "orig");
   register_prefix (PREFIX_ROW,               STR_PREFIX_ROW,               "row");
   register_prefix (PREFIX_COLUMN,            STR_PREFIX_COLUMN,            "col");

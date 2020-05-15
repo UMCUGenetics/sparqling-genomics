@@ -42,7 +42,6 @@ typedef struct
   char              *delimiter;
   char              *secondary_delimiter;
   char              *header_line;
-  char              *sample_name;
   char              *ignore_lines_with;
   char              **predicate_transformers_buffer;
   char              **predicate_transformer_keys;

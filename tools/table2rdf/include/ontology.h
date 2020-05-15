@@ -26,7 +26,6 @@
 /* These string constants can be used to concatenate strings at compile-time. */
 #define URI_ONTOLOGY                   "sg://" VERSION "/table2rdf"
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
-#define STR_PREFIX_SAMPLE              URI_ONTOLOGY "/Sample/"
 #define STR_PREFIX_COLUMN              URI_ONTOLOGY "/Column/"
 #define STR_PREFIX_ROW                 STR_PREFIX_ORIGIN
 
@@ -34,7 +33,6 @@ typedef enum
 {
   PREFIX_BASE = 0,
   PREFIX_MASTER,
-  PREFIX_SAMPLE,
   PREFIX_ORIGIN,
   PREFIX_COLUMN,
   PREFIX_ROW,

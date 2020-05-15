@@ -31,7 +31,6 @@ runtime_configuration_init (void)
   config.delimiter = "\t";
   config.secondary_delimiter = NULL;
   config.header_line = NULL;
-  config.sample_name = NULL;
   config.ignore_lines_with = NULL;
   config.output_format = NULL;
   config.object_transformers_buffer = NULL;
