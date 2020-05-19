@@ -270,13 +270,14 @@ WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))]
                 "SELECT ?graph FROM <http://sparqling-genomics.org/sg-web/state>
 WHERE {
   ?project sg:hasAssignedGraph ?graph .
-  agent:" username " sg:isAssignedTo project:" project-hash " .
+  agent:" username " sg:isAssignedTo ?project .
 
   OPTIONAL {
     ?graph sg:isLocked ?locked .
   }
 
   FILTER (! BOUND(?locked) OR (?locked = 0))
+  FILTER (?project = project:" project-hash ")
 }"))]
     (query-results->alist (system-sparql-query query))))
 
