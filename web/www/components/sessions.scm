@@ -16,6 +16,7 @@
 
 (define-module (www components sessions)
   #:use-module (www db sessions)
+  #:use-module (www util)
 
   #:export (sessions-table))
 
@@ -32,7 +33,7 @@
                              (class "small-action"))
                           (a (@ (href "#")
                                 (onclick "javascript:ui_insert_session_form(); return false;"))
-                             "✚")))
+                             ,(icon 'plus))))
                  (th (@ (class "item-table-left")) "Token")
                  (th (@ (style "min-width: 30pt")) "Actions")
                  ,(map (lambda (session)
@@ -44,7 +45,7 @@
                                              (onclick ,(string-append
                                                        "javascript:ui_remove_session('"
                                                        (session-token session)
-                                                       "'); return false;"))) "✖")))))
+                                                       "'); return false;"))) ,(icon 'x-white))))))
                        sessions)))
       (script "
 function ui_insert_session_form () {
@@ -56,7 +57,7 @@ function ui_insert_session_form () {
                 (td "The token will be generated for you.")
                 (td (div (@ (class "small-action action-btn-submit"))
                          (a (@ (href "#")
-                               (onclick "javascript:ui_submit_session_form(); return false;")) "↵"))))
+                               (onclick "javascript:ui_submit_session_form(); return false;")) ,(icon 'return)))))
                  "');
   jQuery('#session-name').focus();
   jQuery('#add-session').remove();

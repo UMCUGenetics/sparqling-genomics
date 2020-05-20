@@ -17,6 +17,8 @@
 (define-module (www components rdf-stores)
   #:use-module ((sparql driver) #:select (sparql-available-backends))
   #:use-module (www db connections)
+  #:use-module (www util)
+
   #:export (rdf-stores-component
             connections-table))
 
@@ -38,9 +40,9 @@
                           (class "small-action"))
                        (a (@ (href "#")
                              (onclick "javascript:ui_insert_connection_form(); return false;"))
-                          "✚")))
-         (th (@ (style "min-width: 30pt")
-                (colspan "2")) "Actions"))
+                          ,(icon 'plus))))
+              (th (@ (style "min-width: 30pt")
+                     (colspan "2")) "Actions"))
      ,(map (lambda (record)
              (let [(name            (connection-name    record))
                    (uri             (connection-uri     record))
@@ -57,14 +59,14 @@
                                    (a (@ (href "#")
                                          (onclick ,(string-append
                                                     "javascript:ui_remove_connection('"
-                                                    name "'); return false;"))) "✖"))))
+                                                    name "'); return false;"))) ,(icon 'x)))))
                     (td (@ (class "button-column"))
                         ,(if (not is-default?)
                              `(div (@ (class "small-action action-btn-active"))
                                    (a (@ (href "#")
                                          (onclick ,(string-append
                                                     "javascript:ui_set_default_connection('"
-                                                    name "'); return false;"))) "✔"))
+                                                    name "'); return false;"))) ,(icon 'check)))
                              '())))))
            (connections-by-user username))))
 
@@ -108,7 +110,7 @@ function ui_insert_connection_form () {
                                (td (@ (style "width: 32px"))
                                    (input (@ (id "add-field-button")
                                              (type "submit")
-                                             (value "↵"))))))))) "');
+                                             (value ,(icon 'return-white #t)))))))))) "');
   jQuery('#add-field').focus();
   jQuery('#add-connection').remove();
 }

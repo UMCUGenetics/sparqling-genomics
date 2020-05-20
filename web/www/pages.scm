@@ -60,7 +60,7 @@
    (li (@ (class ,(if (string= "/create-project" request-path)
                       "active new-menu-item"
                       "new-menu-item")))
-       (a (@ (href "/create-project")) "✚"))
+       (a (@ (href "/create-project")) ,(icon 'plus #t)))
    (li (@ (class "logout")) (a (@ (href "/logout")) "Log out"))))
 
 (define (page-submenu username request-path)

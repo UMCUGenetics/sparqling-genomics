@@ -41,14 +41,14 @@
            (class "smaller-action"))
         (a (@ (href "#")
               (onclick "javascript:ui_insert_member_form(); return false;"))
-           "✚")))
+           ,(icon 'plus))))
 
 (define add-graph-button
   `(div (@ (id "add-assigned-graph")
            (class "smaller-action"))
         (a (@ (href "#")
               (onclick "javascript:ui_insert_graph_form(); return false;"))
-           "✚")))
+           ,(icon 'plus))))
 
 (define* (page-project-details request-path username #:key (post-data ""))
   (let* [(hash    (last (string-split request-path #\/)))
@@ -121,9 +121,9 @@ function ui_insert_graph_form () {
                                               (map connection-name
                                                    (load-system-wide-connections)))))
                                   (td (@ (class "item-table-right"))
-                                      (input (@ (id "add-field-button")
-                                                (type "submit")
-                                                (value "↵"))))))))) "');
+                                      (button (@ (id "add-field-button")
+                                                 (type "submit"))
+                                              ,(icon 'return-white #t)))))))) "');
   jQuery('#add-field').focus();
   jQuery('#add-assigned-graph').remove();
 }
@@ -139,9 +139,9 @@ function ui_insert_member_form () {
                                                 (name "assign-member")
                                                 (placeholder "Username"))))
                                   (td (@ (class "item-table-right"))
-                                      (input (@ (id "add-field-button")
-                                                (type "submit")
-                                                (value "↵"))))))))) "');
+                                      (button (@ (id "add-field-button")
+                                                 (type "submit"))
+                                              ,(icon 'return-white #t)))))))) "');
   jQuery('#add-field').focus();
   jQuery('#add-assigned-member').remove();
 }

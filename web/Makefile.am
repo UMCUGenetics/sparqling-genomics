@@ -83,6 +83,31 @@ WWW_STATIC_RESOURCES =                                  \
   static/fonts/Roboto-Bold.ttf                          \
   static/fonts/Roboto-LightItalic.ttf                   \
   static/fonts/Roboto-Light.ttf                         \
+  static/images/icons/check-white.png                   \
+  static/images/icons/check-white.svg                   \
+  static/images/icons/check.png                         \
+  static/images/icons/check.svg                         \
+  static/images/icons/checkmark.svg                     \
+  static/images/icons/locked.png                        \
+  static/images/icons/locked.svg                        \
+  static/images/icons/plus.png                          \
+  static/images/icons/plus.svg                          \
+  static/images/icons/return-white.png                  \
+  static/images/icons/return-white.svg                  \
+  static/images/icons/return.png                        \
+  static/images/icons/return.svg                        \
+  static/images/icons/save.png                          \
+  static/images/icons/save.svg                          \
+  static/images/icons/unlocked.png                      \
+  static/images/icons/unlocked.svg                      \
+  static/images/icons/up-white.png                      \
+  static/images/icons/up-white.svg                      \
+  static/images/icons/up.png                            \
+  static/images/icons/up.svg                            \
+  static/images/icons/x-white.png                       \
+  static/images/icons/x-white.svg                       \
+  static/images/icons/x.png                             \
+  static/images/icons/x.svg                             \
   static/images/logo.png                                \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \

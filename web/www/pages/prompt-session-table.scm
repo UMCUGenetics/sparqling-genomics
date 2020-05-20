@@ -16,6 +16,8 @@
 
 (define-module (www pages prompt-session-table)
   #:use-module (www db prompt)
+  #:use-module (www util)
+
   #:export (page-prompt-session-table))
 
 (define* (page-prompt-session-table request-path username #:key (post-data #f))
@@ -36,11 +38,11 @@
                              (td ,(assoc-ref row "predicate"))
                              (td ,(assoc-ref row "object"))
                              (td (@ (class "button-column"))
-                                 (div (@ (class "action-btn remove-btn")
+                                 (div (@ (class "small-action action-btn-remove")
                                          (name "remove")
                                          (onclick ,(string-append
                                                     "javascript:remove_triplet('"
                                                     (assoc-ref row "triplet_id")
                                                     "'); return false;")))
-                                      "✖"))))
+                                      ,(icon 'x-white)))))
                       triplets)))))

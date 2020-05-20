@@ -402,6 +402,7 @@ select#connection {
     border-radius: 4pt;
     width: 12pt;
     text-align: center;
+    cursor: pointer;
 }
 .small-blank-action {
     display: inline-block;
@@ -427,6 +428,7 @@ select#connection {
     margin: 2pt;
     border-radius: 4pt;
     width: 14pt;
+    height: 1.4em;
     text-align: center;
     cursor: pointer;
 }
@@ -817,4 +819,15 @@ input.form-submit-input:hover {
 .arrow-spacer {
     display: inline-block;
     width: 10pt;
+}
+
+.svg-icon {
+    display: inline-block;
+    width: 80%;
+}
+
+.svg-icon-btn {
+    display: inline-block;
+    width: 12pt;
+    vertical-align: middle;
 }

@@ -17,6 +17,7 @@
 (define-module (www components query-history)
   #:use-module (www db projects)
   #:use-module (www db queries)
+  #:use-module (www util)
 
   #:export (query-history-component))
 
@@ -83,7 +84,7 @@
                                                (class "action-btn remove-btn")
                                                (name "remove")
                                                (value ,(query-id query)))
-                                            "✖")))
+                                            ,(icon 'x-white #t))))
                           (td (@ (class "button-column left-button-column"))
                               (form (@ (action ,(string-append "/query/" hash))
                                        (method "post"))
@@ -94,7 +95,7 @@
                                                (class "action-btn insert-btn")
                                                (name "query")
                                                (value ,(query-content query)))
-                                            "⤴")))))
+                                            ,(icon 'up-white #t))))))
                    queries))
       (script "
 function toggle_marker (id, queryId) {

@@ -65,7 +65,7 @@
                          (class "small-action action-btn-remove"))
                       (a (@ (href "#")
                             (onclick "javascript:clear_session(); return false;"))
-                         "✖")))
+                         ,(icon 'x-white))))
              (p "")
              (table (@ (id "prompt-session-table")
                        (class "item-table"))
@@ -85,10 +85,11 @@
                                             `(option (@ (value ,(assoc-ref graph "graph")))
                                                      ,(assoc-ref graph "graph")))
                                           graphs))
-                            (input (@ (id "add-field-button")
+                            (button (@ (id "add-field-button")
                                       (style "margin-left: 5pt;")
                                       (type "submit")
-                                      (value "💾"))))))))])
+                                      (value ""))
+                                   ,(icon 'save #t)))))))])
       (script "
 jQuery(document).ready(function(){
   enable_prompt('#prompt-field');

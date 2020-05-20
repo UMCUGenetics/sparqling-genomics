@@ -15,6 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www components project-graphs)
+  #:use-module (www util)
   #:use-module (www db projects)
   #:use-module (www db connections)
 
@@ -49,8 +50,8 @@
                                                           "unlock-assigned-graph"))
                                                (value ,(assoc-ref item "graph")))
                                             ,(if (string= (assoc-ref item "isLocked") "0")
-                                                 "🔓"
-                                                 "🔒"))))
+                                                 (icon 'unlocked #t)
+                                                 (icon 'locked #t)))))
                           (td (@ (class "button-column right-button-column"))
                               (form (@ (action ,(string-append "/project-details/" hash))
                                        (method "post"))
@@ -58,7 +59,7 @@
                                                (class "action-btn remove-btn")
                                                (name "remove-assigned-graph")
                                                (value ,(assoc-ref item "graph")))
-                                            "✖")))))
+                                            ,(icon 'x-white #t))))))
                    graphs)))))
 
 ;; ----------------------------------------------------------------------------
@@ -92,6 +93,6 @@
                                                          (class "action-btn remove-btn")
                                                          (name "remove-assigned-member")
                                                          (value ,(assoc-ref item "user")))
-                                                      "✖")))
+                                                      ,(icon 'x-white #t))))
                                    '(td ""))))
                        members))))))

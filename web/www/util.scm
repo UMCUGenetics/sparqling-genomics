@@ -53,7 +53,9 @@
             respond-405
             respond-406
             respond-500
-            respond-503))
+            respond-503
+            icon
+            icon-src))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -232,3 +234,12 @@
 
 (define (respond-503 client-port accept-type message)
   (respond-with-error-message 500 client-port accept-type message))
+
+(define* (icon symbol #:optional (is-button? #f))
+  `(img (@ (src    ,(format #f "/static/images/icons/~a.png" symbol))
+           (srcset ,(format #f "/static/images/icons/~a.svg" symbol))
+           (class  ,(if is-button? "svg-icon-btn" "svg-icon"))
+           (alt    ,symbol))))
+
+(define* (icon-src symbol #:optional (type 'svg))
+  (format #f "/static/images/icons/~a.~a" symbol type))
