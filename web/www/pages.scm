@@ -38,8 +38,9 @@
     ("/automate"        "Automate")))
 
 (define (page-menu username request-path)
-  `(ul
-    (li (@ (class ,(if (or (string-prefix? "/edit-connection" request-path)
+  `(ul (@ (role "menubar"))
+    (li (@ (role "menuitem")
+           (class ,(if (or (string-prefix? "/edit-connection" request-path)
                            (string-prefix? "/edit-form" request-path)
                            (string= request-path "/dashboard")) "active" "")))
         ,(if (string= request-path "/dashboard")
@@ -51,17 +52,21 @@
    ,(map (lambda (item)
            (cond
             [(string-suffix? (project-hash item) request-path)
-             `(li (@ (class "active")) ,(project-name item))]
+             `(li (@ (role "menuitem")
+                     (class "active")) ,(project-name item))]
             [else
-             `(li (a (@ (href ,(string-append "/project-details/"
-                                              (project-hash item))))
-                     ,(project-name item)))]))
+             `(li (@ (role "menuitem"))
+               (a (@ (href ,(string-append "/project-details/"
+                                           (project-hash item))))
+                  ,(project-name item)))]))
          (projects-by-user username))
-   (li (@ (class ,(if (string= "/create-project" request-path)
+   (li (@ (role "menuitem")
+          (class ,(if (string= "/create-project" request-path)
                       "active new-menu-item"
                       "new-menu-item")))
        (a (@ (href "/create-project")) ,(icon 'plus #t)))
-   (li (@ (class "logout")) (a (@ (href "/logout")) "Log out"))))
+   (li (@ (role "menuitem")
+          (class "logout")) (a (@ (href "/logout")) "Log out"))))
 
 (define (page-submenu username request-path)
   (let* [(project-hash (basename request-path))
@@ -71,35 +76,40 @@
              [(string= (substring (car item) 1)
                        (car (string-split (substring request-path 1) #\/)))
               `(,(if show-spacer? `(li (@ (class "spacer")) "→") '())
-                (li (@ (class "active")) ,(cadr item)))]
+                (li (@ (role "menuitem")
+                       (class "active")) ,(cadr item)))]
              [else
               `(,(if show-spacer? `(li (@ (class "spacer")) "→") '())
-                (li (a (@ (href ,(string-append (car item) "/" project-hash)))
-                       ,(cadr item))))])))]
+                (li (@ (role "menuitem"))
+                 (a (@ (href ,(string-append (car item) "/" project-hash)))
+                    ,(cadr item))))])))]
     (cond
      ;; Sub-pages for the “structure” page.
      [(or (string-prefix? "/exploratory" request-path)
           (string-prefix? "/prompt" request-path))
-      `(ul
-        (li (a (@ (href ,(string-append "/structure/" project-hash)))
-               "← Go back")))]
+      `(ul (@ (role "menubar"))
+        (li (@ (role "menuitem"))
+         (a (@ (href ,(string-append "/structure/" project-hash)))
+            "← Go back")))]
 
      ;; Sub-pages for the “collect” page.
      [(or (string-prefix? "/forms" request-path)
           (string-prefix? "/create-form" request-path)
           (string-prefix? "/import" request-path))
-      `(ul
-        (li (a (@ (href ,(string-append "/collect/" project-hash)))
+      `(ul (@ (role "menubar"))
+        (li (@ (role "menuitem"))
+            (a (@ (href ,(string-append "/collect/" project-hash)))
                "← Go back")))]
 
      ;; The regular submenu.
      [else
-      `(ul
+      `(ul (@ (role "menubar"))
         ,(show-menu-item (car pages) #f)
         ,(map (lambda (item) (show-menu-item item #t)) (cdr pages)))])))
 
 (define (show-footer)
-  `(div (@ (id "footer"))
+  `(div (@ (role "contentinfo")
+           (id "footer"))
         (p "v" ,(www-version) " | "
            (a (@ (href "https://github.com/UMCUgenetics/sparqling-genomics")
                  (target "_blank"))
@@ -114,40 +124,40 @@
                (type "image/x-icon")
                (href "/static/images/favicon.ico")))
       ,(if (memq 'jquery dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/jquery-3.2.1.min.js")) "")
+           `(script (@ (src "/static/js/jquery-3.2.1.min.js")) "")
            `())
       ,(if (memq 'prompt dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/prompt.js")) "")
+           `(script (@ (src "/static/js/prompt.js")) "")
            `())
       ,(if (memq 'projects dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/projects.js")) "")
+           `(script (@ (src "/static/js/projects.js")) "")
            `())
       ,(if (memq 'sessions dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/sessions.js")) "")
+           `(script (@ (src "/static/js/sessions.js")) "")
            `())
       ,(if (memq 'connections dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/connections.js")) "")
+           `(script (@ (src "/static/js/connections.js")) "")
            `())
       ,(if (memq 'import dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/import.js")) "")
+           `(script (@ (src "/static/js/import.js")) "")
            `())
       ,(if (memq 'exploratory dependencies)
-           `((script (@ (type "text/javascript") (src "/static/js/base32.js")) "")
-             (script (@ (type "text/javascript") (src "/static/js/exploratory.js")) ""))
+           `((script (@ (src "/static/js/base32.js")) "")
+             (script (@ (src "/static/js/exploratory.js")) ""))
            `())
       ,(if (memq 'd3 dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/d3.min.js")) "")
+           `(script (@ (src "/static/js/d3.min.js")) "")
            `())
       ,(if (memq 'plottable-query dependencies)
-           `(script (@ (type "text/javascript") (src "/static/js/plottable-query.js")) "")
+           `(script (@ (src "/static/js/plottable-query.js")) "")
            `())
       ,(if (memq 'datatables dependencies)
            `((link (@ (rel "stylesheet") (type "text/css") (href "/static/css/datatables.min.css")))
-             (script (@ (type "text/javascript") (src "/static/js/jquery.dataTables.min.js")) ""))
+             (script (@ (src "/static/js/jquery.dataTables.min.js")) ""))
            `())
       ,(if (memq 'ace dependencies)
-           `((script (@ (type "text/javascript") (charset "utf-8") (src "/static/js/ace/ace.js")) "")
-             (script (@ (type "text/javascript") (charset "utf-8") (src "/static/js/ace/ext-language_tools.js")) ""))
+           `((script (@ (charset "utf-8") (src "/static/js/ace/ace.js")) "")
+             (script (@ (charset "utf-8") (src "/static/js/ace/ext-language_tools.js")) ""))
            `())
       (link (@ (rel "stylesheet")
                (href "/static/css/main.css")
@@ -155,12 +165,14 @@
                (media "screen"))))
      (body
       (div (@ (id "wrapper"))
-           (div (@ (id "header"))
+           (div (@ (role "banner")
+                   (id "header"))
                 (div (@ (class "title")
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
                              (alt ,(www-name)))))
-                (div (@ (class "menu")) ,(page-menu username request-path))
+                (div (@ (role "navigation")
+                        (class "menu")) ,(page-menu username request-path))
                 ,(if (any (lambda (x) x)
                           (map (lambda (path)
                                  (string-prefix? path request-path))
@@ -173,7 +185,8 @@
                      `(div (@ (class "submenu"))
                            ,(page-submenu username request-path))
                      `()))
-           (div (@ (id "content")) ,content-tree)
+           (div (@ (role "main")
+                   (id "content")) ,content-tree)
            ,(show-footer))))))
 
 (define* (page-empty-template title request-path content-tree #:key (dependencies '()))
@@ -190,10 +203,12 @@
                (media "screen"))))
      (body
       (div (@ (id "wrapper"))
-           (div (@ (id "header"))
+           (div (@ (role "banner")
+                   (id "header"))
                 (div (@ (class "title")
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
                              (alt ,(www-name))))))
-           (div (@ (id "content")) ,content-tree)
+           (div (@ (role "main")
+                   (id "content")) ,content-tree)
            ,(show-footer))))))

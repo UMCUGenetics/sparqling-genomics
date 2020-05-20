@@ -35,18 +35,18 @@
                                 (onclick "javascript:ui_insert_session_form(); return false;"))
                              ,(icon 'plus))))
                  (th (@ (class "item-table-left")) "Token")
-                 (th (@ (style "min-width: 30pt")) "Actions")
-                 ,(map (lambda (session)
-                         `(tr (td ,(session-name session))
-                              (td (pre ,(session-token session)))
-                              (td (@ (class "button-column"))
-                                  (div (@ (class "small-action action-btn-remove"))
-                                       (a (@ (href "#")
-                                             (onclick ,(string-append
-                                                       "javascript:ui_remove_session('"
-                                                       (session-token session)
-                                                       "'); return false;"))) ,(icon 'x-white))))))
-                       sessions)))
+                 (th (@ (style "min-width: 30pt")) "Actions"))
+             ,(map (lambda (session)
+                     `(tr (td ,(session-name session))
+                          (td (pre ,(session-token session)))
+                          (td (@ (class "button-column"))
+                              (div (@ (class "small-action action-btn-remove"))
+                                   (a (@ (href "#")
+                                         (onclick ,(string-append
+                                                    "javascript:ui_remove_session('"
+                                                    (session-token session)
+                                                    "'); return false;"))) ,(icon 'x-white))))))
+                   sessions))
       (script "
 function ui_insert_session_form () {
   jQuery('#sessions-table tbody:last-child').append('"
