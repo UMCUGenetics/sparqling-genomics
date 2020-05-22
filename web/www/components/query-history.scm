@@ -76,7 +76,7 @@
                                                    (value ,(query-id query))))
                                          (label (@ (for ,(string-append
                                                           "mark-"
-                                                          (basename (query-id query)))))))))
+                                                          (basename (query-id query))))) ""))))
                           (td (@ (class "button-column left-button-column"))
                               (form (@ (action ,(string-append "/query/" hash))
                                        (method "post"))

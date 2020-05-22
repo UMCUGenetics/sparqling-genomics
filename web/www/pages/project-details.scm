@@ -37,18 +37,18 @@
 ;;
 
 (define add-member-button
-  `(div (@ (id "add-assigned-member")
-           (class "smaller-action"))
-        (a (@ (href "#")
-              (onclick "javascript:ui_insert_member_form(); return false;"))
-           ,(icon 'plus))))
+  `(span (@ (id "add-assigned-member")
+            (class "smaller-action"))
+         (a (@ (href "#")
+               (onclick "javascript:ui_insert_member_form(); return false;"))
+            ,(icon 'plus))))
 
 (define add-graph-button
-  `(div (@ (id "add-assigned-graph")
-           (class "smaller-action"))
-        (a (@ (href "#")
-              (onclick "javascript:ui_insert_graph_form(); return false;"))
-           ,(icon 'plus))))
+  `(span (@ (id "add-assigned-graph")
+            (class "smaller-action"))
+         (a (@ (href "#")
+               (onclick "javascript:ui_insert_graph_form(); return false;"))
+            ,(icon 'plus))))
 
 (define* (page-project-details request-path username #:key (post-data ""))
   (let* [(hash    (last (string-split request-path #\/)))
@@ -77,16 +77,14 @@
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
     (page-root-template username title request-path
-     `((h2 ,title
-           (div (@ (id "remove-project") (class "small-blank-action"))
-                (form (@ (onsubmit ,(string-append
-                                     "javascript:ui_remove_project('"
-                                     (project-id project)
-                                     "'); return false;"))
-                         (method "post"))
-                      (button (@ (type "submit")
-                                 (class "action-title-btn remove-btn")))
-                              "Remove")))
+     `((h2 ,title (span (@ (id "remove-project")
+                           (class "small-blank-action"))
+                        (a (@ (class "action-title-btn remove-btn")
+                              (onclick ,(string-append
+                                         "javascript:ui_remove_project('"
+                                         (project-id project)
+                                         "'); return false;")))
+                           "Remove")))
 
        ;; When an action occurred (like “the project was modified”), we
        ;; display the success or error message accordingly.

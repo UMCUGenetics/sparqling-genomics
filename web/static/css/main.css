@@ -403,6 +403,7 @@ select#connection {
     width: 12pt;
     text-align: center;
     cursor: pointer;
+    user-select: none;
 }
 .small-blank-action {
     display: inline-block;
@@ -431,6 +432,7 @@ select#connection {
     height: 1.4em;
     text-align: center;
     cursor: pointer;
+    user-select: none;
 }
 
 .action-btn-clear-cache { background: #aa00aa; border: solid 2pt #880088; }
@@ -457,6 +459,11 @@ select#connection {
     text-decoration: none;
     outline: none;
 }
+.action-title-btn:hover {
+    color: #ffffff;
+    text-decoration: none;
+    outline: none;
+}
 .action-title-btn {
     display: inline-block;
     font-size: 9pt;
@@ -471,6 +478,7 @@ select#connection {
     border-radius: 4pt;
     margin-right: 10pt;
     cursor: pointer;
+    user-select: none;
 }
 .action-btn {
     display: inline-block;
@@ -484,6 +492,7 @@ select#connection {
     border-radius: 4pt;
     margin-right: 10pt;
     cursor: pointer;
+    user-select: none;
 }
 .action-btn-lock {
     background: none;
