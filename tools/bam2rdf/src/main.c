@@ -34,6 +34,8 @@
 #include "bam_header.h"
 #include "ontology.h"
 
+extern RuntimeConfiguration config;
+
 int
 main (int argc, char **argv)
 {

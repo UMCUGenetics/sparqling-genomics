@@ -37,6 +37,8 @@
 #include "id.h"
 #include "list.h"
 
+extern RuntimeConfiguration config;
+
 int
 main (int argc, char **argv)
 {

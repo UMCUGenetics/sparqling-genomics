@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <raptor2.h>
 
+extern RuntimeConfiguration config;
+
 void
 process_header_line (char *line, const unsigned char *origin)
 {

@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <raptor2.h>
 
+extern RuntimeConfiguration config;
+
 void
 process_header_item (bcf_hdr_t *vcf_header,
                      char      *identifier,

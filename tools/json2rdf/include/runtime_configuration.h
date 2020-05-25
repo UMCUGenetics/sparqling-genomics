@@ -52,10 +52,6 @@ typedef struct
   char *origin_hash;
 } RuntimeConfiguration;
 
-
-/* This is where we can set default values for the program's options. */
-RuntimeConfiguration config;
-
 bool runtime_configuration_init (void);
 bool runtime_configuration_redland_init (void);
 void runtime_configuration_free (void);

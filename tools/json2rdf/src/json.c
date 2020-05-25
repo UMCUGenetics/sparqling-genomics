@@ -26,6 +26,8 @@
 #include <string.h>
 #include <ctype.h>
 
+extern RuntimeConfiguration config;
+
 void
 json_state_initialize (json_state_t *state)
 {

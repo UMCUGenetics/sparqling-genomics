@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern RuntimeConfiguration config;
+
 void
 build_field_identities (bcf_hdr_t *header)
 {

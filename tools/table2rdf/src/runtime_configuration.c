@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* This is where we can set default values for the program's options. */
+RuntimeConfiguration config;
+
 bool
 runtime_configuration_init (void)
 {

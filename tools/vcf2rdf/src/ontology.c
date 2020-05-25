@@ -19,6 +19,8 @@
 #include "runtime_configuration.h"
 #include <stdlib.h>
 
+extern RuntimeConfiguration config;
+
 /* The following macros simplify the initialization code of the ontology.
  * They are specific for the variables names used in 'ontology_init', so
  * don't use them outside of 'ontology_init'.

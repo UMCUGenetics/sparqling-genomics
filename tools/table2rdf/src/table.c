@@ -27,6 +27,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+extern RuntimeConfiguration config;
+
 bool
 is_integer (const char *input, uint32_t length)
 {

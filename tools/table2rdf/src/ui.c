@@ -25,6 +25,8 @@
 
 #include "runtime_configuration.h"
 
+extern RuntimeConfiguration config;
+
 void
 ui_show_help (void)
 {

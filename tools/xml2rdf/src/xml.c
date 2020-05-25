@@ -25,6 +25,8 @@
 #include <string.h>
 #include <ctype.h>
 
+extern RuntimeConfiguration config;
+
 /*
  * We implement a streaming XML parser using SAX.  The libxml2 parser calls
  * functions upon encountering a certain event.
