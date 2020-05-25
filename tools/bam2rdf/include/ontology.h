@@ -31,7 +31,6 @@
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
-#define STR_PREFIX_SAMPLE              URI_MASTER "/Sample/"
 #define STR_PREFIX_BAM_HEADER          URI_ONTOLOGY "/HeaderItem/"
 #define STR_PREFIX_BAM_REFERENCE_SEQ   URI_ONTOLOGY "/ReferenceSequence/"
 #define STR_PREFIX_BAM_READ_GROUP      URI_ONTOLOGY "/ReadGroup/"
@@ -40,14 +39,11 @@
 #define STR_PREFIX_BAM_READ            URI_ONTOLOGY "/SequencingRead/"
 #define STR_PREFIX_SEQUENCE            URI_ONTOLOGY "/Sequence/"
 #define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
-#define STR_PREFIX_HG19                URI_ASSEMBLIES "/hg19#"
-#define STR_PREFIX_HG19_CHR            URI_ASSEMBLIES "/hg19#chr"
 
 typedef enum
 {
   PREFIX_BASE = 0,
   PREFIX_MASTER,
-  PREFIX_SAMPLE,
   PREFIX_BAM_HEADER,
   PREFIX_BAM_REFERENCE_SEQ,
   PREFIX_BAM_READ_GROUP,
@@ -61,8 +57,6 @@ typedef enum
   PREFIX_OWL,
   PREFIX_XSD,
   PREFIX_FALDO,
-  PREFIX_HG19,
-  PREFIX_HG19_CHR,
   PREFIX_UNKNOWN
 } ontology_prefix;
 
