@@ -40,7 +40,7 @@
 (define sparqling-genomics
   (package
    (name "sparqling-genomics")
-   (version "0.99.10")
+   (version "0.99.11-dev")
    (source (origin
             (method url-fetch)
             (uri (string-append
@@ -60,11 +60,14 @@
         (add-after 'install 'wrap-executable
           (lambda* (#:key outputs #:allow-other-keys)
             (let* ((out  (assoc-ref outputs "out"))
+                   (guile-version (target-guile-effective-version))
                    (guile-load-path
-                    (string-append out "/share/guile/site/2.2:"
+                    (string-append out "/share/guile/site/"
+                                   (guile-version) ":"
                                    (getenv "GUILE_LOAD_PATH")))
                    (guile-load-compiled-path
-                    (string-append out "/lib/guile/2.2/site-ccache:"
+                    (string-append out "/lib/guile/"
+                                   (guile-version) "/site-ccache:"
                                    (getenv "GUILE_LOAD_COMPILED_PATH")))
                    (web-root (string-append
                               out "/share/sparqling-genomics/web")))
@@ -75,11 +78,13 @@
                 `("SG_WEB_ROOT" ":" prefix (,web-root)))))))))
    (native-inputs
     `(("texlive" ,texlive)
+      ("autoconf" ,autoconf)
+      ("automake" ,automake)
       ("pkg-config" ,pkg-config)))
    (inputs
-    `(("guile" ,guile-next)
+    `(("guile" ,guile-3.0)
       ("htslib" ,htslib)
-      ("libgcrypt" ,libgcrypt)
+      ("gnutls" ,gnutls)
       ("libxml2" ,libxml2)
       ("openldap" ,openldap)
       ("raptor2" ,raptor2)
