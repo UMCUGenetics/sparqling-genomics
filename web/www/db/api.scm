@@ -22,8 +22,7 @@
   #:use-module (sxml simple)
   #:use-module (logger)
 
-  #:export (alist->sxml
-            api-format
+  #:export (api-format
             api-is-rdf-format?
             api-request-data->alist
             api-serveable-format?
@@ -88,6 +87,35 @@
                   alist)
         (format out "</table></body></html>"))))
 
+(define* (alist->sxml input #:optional (inside-list? #f))
+  "This function transforms an ALIST or a list of ALISTs into S-expressions
+that can be transformed by SXML->XML."
+  (cond
+   [(and (list? input)
+         (list? (car input))
+         (not inside-list?))
+    `(results
+      ,(map (lambda (item)
+              (cons 'result
+                    (map (lambda (token)
+                           (alist->sxml token #t))
+                         item)))
+            input))]
+   [(and (list? input)
+         (not inside-list?))
+    `(results
+      ,(cons 'result
+             (map (lambda (item) (alist->sxml item #t)) input)))]
+   [else
+    (let [(return-match (lambda (a b)
+                          (if (string? a)
+                              `(,(string->symbol a) ,b)
+                              `(,a ,b))))]
+      (match input
+        ((a b)    (return-match a b))
+        ((a . b)  (return-match a b))
+        (else     #f)))]))
+
 (define (api-format fmt data)
   (cond
    [(equal? fmt '(text/csv))
@@ -144,32 +172,3 @@
     (log-error "api-request-data->alist" "Unknown format: ~s" fmt)
     #f]))
 
-
-(define* (alist->sxml input #:optional (inside-list? #f))
-  "This function transforms an ALIST or a list of ALISTs into S-expressions
-that can be transformed by SXML->XML."
-  (cond
-   [(and (list? input)
-         (list? (car input))
-         (not inside-list?))
-    `(results
-      ,(map (lambda (item)
-              (cons 'result
-                    (map (lambda (token)
-                           (alist->sxml token #t))
-                         item)))
-            input))]
-   [(and (list? input)
-         (not inside-list?))
-    `(results
-      ,(cons 'result
-             (map (lambda (item) (alist->sxml item #t)) input)))]
-   [else
-    (let [(return-match (lambda (a b)
-                          (if (string? a)
-                              `(,(string->symbol a) ,b)
-                              `(,a ,b))))]
-      (match input
-        ((a b)    (return-match a b))
-        ((a . b)  (return-match a b))
-        (else     #f)))]))
