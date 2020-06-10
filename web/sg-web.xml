@@ -7,6 +7,7 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
+  <backtrace-on-error>0</backtrace-on-error>
   <authentication>
     <user>
       <username>changeme</username>
