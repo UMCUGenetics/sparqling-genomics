@@ -25,11 +25,13 @@
 
 (define (page-error-404 request-path)
   (page-empty-template "Oops!" request-path
-   `(p "The page you tried to reach cannot be found.")))
+   `((h2 "Oops!")
+     (p "The page you tried to reach cannot be found."))))
 
 (define (page-error-403 request-path)
   (page-empty-template "Oops!" request-path
-   `(p "You are not allowed to view this page, or perform this action.")))
+   `((h2 "Excuse me")
+     (p "You are not allowed to view this page, or perform this action."))))
 
 (define (page-error-filesize request-path)
   (page-empty-template "Oops!" request-path
