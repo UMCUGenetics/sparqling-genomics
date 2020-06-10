@@ -76,6 +76,18 @@
 \end{lstlisting}
 \end{siderules}
 
+\subsection{Handling multi-sample VCF files}
+
+  From version \texttt{0.99.11} onwards, \program{vcf2rdf} only writes variants
+  that have at least one alternative allele specified.  It will reserve the
+  numeric ID to preserve compatibility with previous and future versions.
+
+  The numeric IDs are calculated left-to-right, top-to-bottom.  So for a file
+  containing two samples, the first variant for the first sample will receive
+  the numeric ID $0$, and the first variant for the second sample will receive
+  numeric ID $1$.  The second variant for the first sample receives numeric ID
+  $2$, and so on.
+
 \subsection{Example usage}
 
 \begin{siderules}
