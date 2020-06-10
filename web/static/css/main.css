@@ -337,6 +337,13 @@ input[type=text],input[type=submit],input[type=password] {
     border-radius: 4pt;
     border: solid 2pt #cccccc;
 }
+input[type=date] {
+    margin-top: .5em;
+    padding: 5pt;
+    font-size: 12pt;
+    border-radius: 4pt;
+    border: solid 2pt #cccccc;
+}
 .sample-field {
     display: inline-block;
     min-width: 150pt;
@@ -710,6 +717,16 @@ input[type=submit].login-field:hover {
     height: 100%;
     background: #eeeeee;
 }
+.large-submit-btn {
+    display: inline-block;
+    font-size: 12pt;
+    background: #66cc66;
+    padding: 5pt;
+    margin: 5pt 10pt 5pt 0pt;
+    border-radius: 4pt;
+    border: solid 2pt #669966;
+    cursor: pointer;
+}
 .large-action-btn {
     display: inline-block;
     font-size: 12pt;
@@ -718,14 +735,18 @@ input[type=submit].login-field:hover {
     margin: 5pt 10pt 5pt 0pt;
     border-radius: 4pt;
     border: solid 2pt #336633;
+    cursor: pointer;
 }
-.large-action-btn a {
+.large-action-btn a, .large-submit-btn a {
     text-decoration: none;
     text-transform: uppercase;
     color: #003300;
 }
 .large-action-btn:hover {
     background: #77aa77;
+}
+.large-submit-btn:hover {
+    background: #55dd55;
 }
 
 .exploratory-item {
