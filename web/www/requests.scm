@@ -25,6 +25,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (sxml simple)
+  #:use-module (web client)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
@@ -43,6 +44,29 @@
 
   #:export (request-handler
             start-server))
+
+;; ----------------------------------------------------------------------------
+;; CONNECTION TEST
+;; ----------------------------------------------------------------------------
+;;
+;; This function makes it easier to detect a connection failure that might
+;; cause trouble later on.
+;;
+
+(define (system-is-connected?)
+  (catch 'system-error
+    (lambda _
+      (let [(uri (connection-uri (system-connection)))]
+        (call-with-values (lambda _ (http-get uri))
+          (lambda (header body)
+            (unless (or (= (response-code header) 200)
+                        (= (response-code header) 401))
+              (throw 'system-error ""))
+            #t))))
+    (lambda (key . args)
+      (log-error "system-is-connected?" "Connection to ~a failed."
+                 (connection-uri (system-connection)))
+      #f)))
 
 ;; ----------------------------------------------------------------------------
 ;; HANDLERS

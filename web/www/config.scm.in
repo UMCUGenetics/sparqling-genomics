@@ -17,19 +17,15 @@
 (define-module (www config)
   #:use-module (ice-9 format)
   #:use-module (oop goops)
-  #:use-module (system foreign)
   #:use-module (www util)
-  #:use-module ((www db connections) #:select (system-wide-connection?))
   #:use-module (sparql driver)
-  #:use-module (web client)
-  #:use-module (web response)
-  #:use-module (logger)
   #:use-module ((www db connections)
                 #:select (connection-uri
                           connection-username
                           connection-password
                           connection-backend
-                          default-connection))
+                          default-connection
+                          system-wide-connection?))
   #:export (beacon-connection
             beacon-enabled?
             beacon-organization-name
@@ -79,7 +75,6 @@
             ldap-ssl-certificate-file
             local-users
             add-local-user!
-            system-is-connected?
             set-www-upload-root!
             set-beacon-enabled!
             set-configuration-file!
@@ -675,18 +670,3 @@
 
 (define-syntax-rule (system-sparql-query query)
   (sparql-query-with-connection (system-connection) query #f #f))
-
-(define (system-is-connected?)
-  (catch 'system-error
-    (lambda _
-      (let [(uri (connection-uri (system-connection)))]
-        (call-with-values (lambda _ (http-get uri))
-          (lambda (header body)
-            (unless (or (= (response-code header) 200)
-                        (= (response-code header) 401))
-              (throw 'system-error ""))
-            #t))))
-    (lambda (key . args)
-      (log-error "system-is-connected?" "Connection to ~a failed."
-                 (connection-uri (system-connection)))
-      #f)))
