@@ -76,6 +76,8 @@ AC_CONFIG_FILES([web/sg-auth-manager], [chmod +x web/sg-auth-manager])
 AC_CONFIG_FILES([web/sg-web-test], [chmod +x web/sg-web-test])
 AC_CONFIG_FILES([tools/folder2rdf/folder2rdf],
                 [chmod +x tools/folder2rdf/folder2rdf])
+AC_CONFIG_FILES([tools/virtuoso-config/virtuoso-config],
+                [chmod +x tools/virtuoso-config/virtuoso-config])
 AC_CONFIG_FILES([tools/ega2rdf/ega2rdf],
                 [chmod +x tools/ega2rdf/ega2rdf])
 AC_CONFIG_FILES([
