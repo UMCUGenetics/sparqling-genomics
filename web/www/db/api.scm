@@ -50,6 +50,7 @@
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
+   [(is-format '(text/html) fmt)                           #t]
    [(is-format '(text/csv) fmt)                            #t]
    [(is-format '(application/json) fmt)                    #t]
    [(is-format '(application/xml) fmt)                     #t]
@@ -71,11 +72,30 @@
                                  (cdr columns))))
                   alist))))
 
+(define (alist->html alist out)
+  "Writes the association list ALIST as an HTML table to OUT."
+  (if (and (>= (length alist) 2)
+           (eq? (car alist) 'error)
+           (eq? (caadr alist) 'message))
+      (format out "<p>~a</p>" (cadr (cadr alist)))
+      (let [(columns (map car (car alist)))]
+        (format out "<html><body><table><tr>~{<th>~a</th>~}</tr>~%" columns)
+        (for-each (lambda (row)
+                    (format out "<tr>~{<td>~a</td>~}</tr>~%"
+                            (map (lambda (col)
+                                   (assoc-ref row col))
+                                 columns)))
+                  alist)
+        (format out "</table></body></html>"))))
+
 (define (api-format fmt data)
   (cond
    [(equal? fmt '(text/csv))
     (call-with-output-string
       (lambda (port) (alist->csv data port)))]
+   [(equal? fmt '(text/html))
+    (call-with-output-string
+      (lambda (port) (alist->html data port)))]
    [(equal? fmt '(application/json))
     (scm->json-string data)]
    [(equal? fmt '(application/xml))
