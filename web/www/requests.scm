@@ -30,6 +30,7 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www config)
+  #:use-module (www db api)
   #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db queries)
@@ -144,6 +145,33 @@
             (lambda (key . args) #f))
           #f)))
 
+  (define (resolve-form-module request-path)
+    "Return FUNCTION from MODULE."
+    (let* ((module (if (developer-mode?)
+                       (catch 'wrong-type-arg
+                         (lambda _
+                           (reload-module
+                            (resolve-module (module-path '(www forms)
+                              (string-split request-path #\/)) #:ensure #f)))
+                         (lambda (key . args) #f))
+                       (resolve-module (module-path '(www forms)
+                         (string-split request-path #\/)) #:ensure #f))))
+      ;; Return #f unless the expected symbols exist in 'module',
+      ;; in which case we return that.
+      (if module
+          (catch #t
+            (lambda _ `((page   . ,(module-ref module 'page))
+                        (submit . ,(module-ref module 'submit))))
+            (lambda (key . args)
+              (log-error "resolve-form-module"
+                         "Couldn't resolve the module's structure for ~s."
+                         request-path)
+              #f))
+          (begin
+            (log-error "resolve-form-module"
+                       "Couldn't resolve module for ~s." request-path)
+            #f))))
+
   (define* (submenu-route request-path #:key (post-data #f) (partial-page? #f))
     (let [(hash (basename request-path))]
       (respond-to-client 200 client-port '(text/html)
@@ -232,6 +260,43 @@
                   (format port "<!DOCTYPE html>~%")))
               (lambda (key . args) #f))
             (sxml->xml sxml-tree port)))))]
+
+   ;; Form functionality
+   ;; -------------------------------------------------------------------------
+   ;;
+   ;; Forms can be loaded outside of the source code of this project.  The
+   ;; dynamic loading of Scheme modules has been slightly modified so that
+   ;; we can carefully test whether the module implements the expected
+   ;; interface.
+
+   [(and (string-prefix? "/form/" request-path)
+         (eq? (request-method request) 'GET))
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (format port "<!DOCTYPE html>~%")
+          (let ((form (resolve-form-module (substring request-path 6))))
+            (if form
+                (sxml->xml ((assoc-ref form 'page) request-path) port)
+                (sxml->xml (page-form-error-404 request-path) port))))))]
+
+   [(and (string-prefix? "/form/" request-path)
+         (eq? (request-method request) 'POST))
+    (let ((form         (resolve-form-module (substring request-path 6)))
+          (accept-type  (request-accept request))
+          (content-type (request-content-type request)))
+      (if form
+          (cond
+           [(not (api-serveable-format? accept-type))
+            (respond-406 client-port)]
+           [else
+            ((assoc-ref form 'submit)
+             (api-request-data->alist
+              (request-content-type request)
+              (utf8->string (read-request-body request))))])
+          (respond-404 client-port accept-type
+            "The form could not be found.")))]
 
    [(string-prefix? "/logout" request-path)
     (respond-303 client-port "/" (string-append
@@ -491,6 +556,7 @@
        ;; ----------------------------------------------------------------------
        [(or (string= "/login" request-path)
             (and (beacon-enabled?) (string-prefix? "/beacon" request-path))
+            (string-prefix? "/form/" request-path)
             (string= "/api" request-path)
             (string= "/api/login" request-path)
             (string= "/api/register-connection" request-path))

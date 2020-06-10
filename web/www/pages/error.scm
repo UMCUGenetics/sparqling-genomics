@@ -21,6 +21,7 @@
   #:export (page-error-404
             page-error-403
             page-error-filesize
+            page-form-error-404
             page-error))
 
 (define (page-error-404 request-path)
@@ -37,5 +38,10 @@
   (page-empty-template "Oops!" request-path
    `(p ,(format #f "The maximum file size has been set to ~a megabytes."
                 (/ (www-max-file-size) 1000000)))))
+
+(define (page-form-error-404 request-path)
+  (page-empty-template "Oops!" request-path
+   `((h2 "Oops!")
+     (p "This form does not exist."))))
 
 (define page-error page-error-404)
