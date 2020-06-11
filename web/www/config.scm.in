@@ -285,88 +285,80 @@
 ;; details.  Each property of <runtime-configuration> can be accessed using a
 ;; parameterless function.
 ;;
+;; Instead of writing out a syntax-rule for each getter/setter, we use
+;; primitive-eval to generate the definitions.
+;;
 
-(define (persist-connection-lock)
-  (get-persist-connection-lock %runtime-configuration))
+(define (make-getter symbol)
+  (primitive-eval `(define-syntax-rule (,symbol)
+                     (,(symbol-append 'get- symbol)
+                      %runtime-configuration))))
 
-(define (set-persist-connection-lock! arg)
-  (set-persist-connection-lock-private! %runtime-configuration arg))
+(define (make-setter symbol)
+  (primitive-eval
+   `(define-syntax-rule (,(symbol-append 'set- symbol '!) val)
+      (,(symbol-append 'set- symbol '-private!)
+       %runtime-configuration val))))
 
-(define-syntax-rule
-  (www-name)
-  (get-www-name %runtime-configuration))
+(define (make-getter/setter symbol)
+  (make-getter symbol)
+  (make-setter symbol))
 
-(define-syntax-rule
-  (www-version)
-  (get-www-version %runtime-configuration))
+(for-each make-getter
+          '(beacon-enabled?
+            configuration-file
+            developer-mode?
+            fork-on-startup?
+            graph-name-max-length
+            ldap-enabled?
+            local-users
+            www-hostname
+            www-listen-address
+            www-listen-address-family
+            www-max-file-size
+            www-name
+            www-root
+            www-version))
 
-(define-syntax-rule
-  (www-hostname)
-  (get-www-hostname %runtime-configuration))
+(for-each make-setter
+          '(beacon-enabled
+            configuration-file
+            developer-mode
+            fork-on-startup
+            ldap-enabled))
 
-(define-syntax-rule
-  (www-root)
+(for-each make-getter/setter
+          '(beacon-connection
+            beacon-organization-address
+            beacon-organization-contact-url
+            beacon-organization-description
+            beacon-organization-id
+            beacon-organization-info
+            beacon-organization-logo-url
+            beacon-organization-name
+            beacon-organization-welcome-url
+            ldap-common-name
+            ldap-domain
+            ldap-organizational-unit
+            ldap-ssl-certificate-directory
+            ldap-ssl-certificate-file
+            ldap-uri
+            persist-connection-lock
+            system-connection
+            www-listen-port
+            www-upload-root))
+
+(define (www-root)
   ((get-www-root %runtime-configuration)))
 
-(define-syntax-rule
-  (www-upload-root)
-  (get-www-upload-root %runtime-configuration))
-
-(define-syntax-rule
-  (set-www-upload-root! arg)
-  (set-www-upload-root-private! %runtime-configuration arg))
+(define (www-static-root)
+  ((get-www-static-root %runtime-configuration)))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))
     (unless (file-exists? (cache-root))
       (mkdir-p (cache-root)))
     (cache-root)))
-
-(define-syntax-rule
-  (www-static-root)
-  ((get-www-static-root %runtime-configuration)))
-
-(define-syntax-rule
-  (www-max-file-size)
-  (get-www-max-file-size %runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-address-family)
-  (get-www-listen-address-family %runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-address)
-  (get-www-listen-address %runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-port)
-  (get-www-listen-port %runtime-configuration))
-
-(define-syntax-rule
-  (fork-on-startup?)
-  (get-fork-on-startup? %runtime-configuration))
-
-(define-syntax-rule
-  (developer-mode?)
-  (get-developer-mode? %runtime-configuration))
-
-(define (graph-name-max-length)
-  (get-graph-name-max-length %runtime-configuration))
-
-(define-syntax-rule (configuration-file)
-  (get-configuration-file %runtime-configuration))
-
-(define-syntax-rule
-  (set-fork-on-startup! arg)
-  (set-fork-on-startup-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (set-developer-mode! arg)
-  (set-developer-mode-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (set-configuration-file! arg)
-  (set-configuration-file-private! %runtime-configuration arg))
 
 (define (set-www-listen-address! arg)
   (if (string? arg)
@@ -387,171 +379,10 @@
            (inet-pton AF_INET arg))]))
       #f))
 
-(define-syntax-rule
-  (set-www-listen-port! arg)
-  (set-www-listen-port-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-uri)
-  (get-ldap-uri %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-uri! arg)
-  (set-ldap-uri-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-common-name)
-  (get-ldap-common-name %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-common-name! arg)
-  (set-ldap-common-name-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-organizational-unit)
-  (get-ldap-organizational-unit %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-organizational-unit! arg)
-  (set-ldap-organizational-unit-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-domain)
-  (get-ldap-domain %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-domain! arg)
-  (set-ldap-domain-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-ssl-certificate-directory)
-  (get-ldap-ssl-certificate-directory %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-ssl-certificate-directory! arg)
-  (set-ldap-ssl-certificate-directory-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-ssl-certificate-file)
-  (get-ldap-ssl-certificate-file %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-ssl-certificate-file! arg)
-  (set-ldap-ssl-certificate-file-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (beacon-enabled?)
-  (get-beacon-enabled? %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-enabled! arg)
-  (set-beacon-enabled-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (ldap-enabled?)
-  (get-ldap-enabled? %runtime-configuration))
-
-(define-syntax-rule
-  (set-ldap-enabled! arg)
-  (set-ldap-enabled-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (local-users)
-  (get-local-users %runtime-configuration))
-
-(define-syntax-rule
-  (add-local-user! username password)
+(define (add-local-user! username password)
   (set-local-users-private! %runtime-configuration
-                            (cons (list username password)
-                                  (get-local-users %runtime-configuration))))
-
-(define-syntax-rule
-  (set-system-connection! arg)
-  (set-system-connection-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (system-connection)
-  (get-system-connection %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-name! name)
-  (set-beacon-organization-name-private!
-   %runtime-configuration name))
-
-(define-syntax-rule
-  (beacon-organization-name)
-  (get-beacon-organization-name %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-id! id)
-  (set-beacon-organization-id-private!
-   %runtime-configuration id))
-
-(define-syntax-rule
-  (beacon-organization-id)
-  (get-beacon-organization-id %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-description! description)
-  (set-beacon-organization-description-private!
-   %runtime-configuration description))
-
-(define-syntax-rule
-  (beacon-organization-description)
-  (get-beacon-organization-description %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-address! address)
-  (set-beacon-organization-address-private!
-   %runtime-configuration address))
-
-(define-syntax-rule
-  (beacon-organization-address)
-  (get-beacon-organization-address %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-welcome-url! welcome-url)
-  (set-beacon-organization-welcome-url-private!
-   %runtime-configuration welcome-url))
-
-(define-syntax-rule
-  (beacon-organization-welcome-url)
-  (get-beacon-organization-welcome-url %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-contact-url! contact-url)
-  (set-beacon-organization-contact-url-private!
-   %runtime-configuration contact-url))
-
-(define-syntax-rule
-  (beacon-organization-contact-url)
-  (get-beacon-organization-contact-url %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-logo-url! logo-url)
-  (set-beacon-organization-logo-url-private!
-   %runtime-configuration logo-url))
-
-(define-syntax-rule
-  (beacon-organization-logo-url)
-  (get-beacon-organization-logo-url %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-organization-info! info)
-  (set-beacon-organization-info-private!
-   %runtime-configuration info))
-
-(define-syntax-rule
-  (beacon-organization-info)
-  (get-beacon-organization-info %runtime-configuration))
-
-(define-syntax-rule
-  (set-beacon-connection! arg)
-  (set-beacon-connection-private! %runtime-configuration arg))
-
-(define-syntax-rule
-  (beacon-connection)
-  (get-beacon-connection %runtime-configuration))
+    (cons (list username password)
+          (get-local-users %runtime-configuration))))
 
 ;; ----------------------------------------------------------------------------
 ;; DEFAULT URIS
