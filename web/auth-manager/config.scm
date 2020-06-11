@@ -187,95 +187,49 @@
 ;; parameterless function.
 ;;
 
-(define-syntax-rule
-  (www-upload-root)
-  (get-www-upload-root %am-runtime-configuration))
+(define (make-getter symbol)
+  (primitive-eval `(define-syntax-rule (,symbol)
+                     (,(symbol-append 'get- symbol)
+                      %runtime-configuration))))
 
-(define-syntax-rule
-  (set-www-upload-root! arg)
-  (set-www-upload-root-private! %am-runtime-configuration arg))
+(define (make-setter symbol)
+  (primitive-eval
+   `(define-syntax-rule (,(symbol-append 'set- symbol '!) val)
+      (,(symbol-append 'set- symbol '-private!)
+       %runtime-configuration val))))
 
-(define-syntax-rule
-  (www-name)
-  (get-www-name %am-runtime-configuration))
+(define (make-getter/setter symbol)
+  (make-getter symbol)
+  (make-setter symbol))
 
-(define-syntax-rule
-  (set-www-name! arg)
-  (set-www-name-private! %am-runtime-configuration arg))
+(for-each make-getter
+          '(developer-mode?
+            fork-on-startup?
+            www-listen-address
+            www-listen-address-family))
+
+(make-setter 'fork-on-startup)
+
+(for-each make-getter/setter
+          '(isql-bin
+            isql-hostname
+            isql-port
+            rdf-store-backend
+            rdf-store-password
+            rdf-store-uri
+            rdf-store-username
+            self-uri
+            sg-web-uri
+            www-listen-port
+            www-max-file-size
+            www-name
+            www-upload-root))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %am-runtime-configuration)))
     (unless (file-exists? (cache-root))
       (mkdir-p (cache-root)))
     (cache-root)))
-
-(define-syntax-rule
-  (www-max-file-size)
-  (get-www-max-file-size %am-runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-address-family)
-  (get-www-listen-address-family %am-runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-address)
-  (get-www-listen-address %am-runtime-configuration))
-
-(define-syntax-rule
-  (www-listen-port)
-  (get-www-listen-port %am-runtime-configuration))
-
-(define-syntax-rule
-  (fork-on-startup?)
-  (get-fork-on-startup? %am-runtime-configuration))
-
-(define-syntax-rule
-  (developer-mode?)
-  (get-developer-mode? %am-runtime-configuration))
-
-(define-syntax-rule
-  (set-fork-on-startup! arg)
-  (set-fork-on-startup-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (isql-bin)
-  (get-isql-bin %am-runtime-configuration))
-
-(define-syntax-rule
-  (isql-hostname)
-  (get-isql-hostname %am-runtime-configuration))
-
-(define-syntax-rule
-  (isql-port)
-  (get-isql-port %am-runtime-configuration))
-
-(define-syntax-rule
-  (rdf-store-username)
-  (get-rdf-store-username %am-runtime-configuration))
-
-(define-syntax-rule
-  (rdf-store-password)
-  (get-rdf-store-password %am-runtime-configuration))
-
-(define-syntax-rule
-  (set-isql-bin! arg)
-  (set-isql-bin-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (set-isql-hostname! arg)
-  (set-isql-hostname-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (set-isql-port! arg)
-  (set-isql-port-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (set-rdf-store-username! arg)
-  (set-rdf-store-username-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (set-rdf-store-password! arg)
-  (set-rdf-store-password-private! %am-runtime-configuration arg))
 
 (define (set-www-listen-address! arg)
   (if (string? arg)
@@ -295,39 +249,3 @@
             %am-runtime-configuration AF_INET)
            (inet-pton AF_INET arg))]))
       #f))
-
-(define-syntax-rule
-  (set-www-listen-port! arg)
-  (set-www-listen-port-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (set-self-uri! arg)
-  (set-www-self-uri-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (self-uri)
-  (get-www-self-uri %am-runtime-configuration))
-
-(define-syntax-rule
-  (set-sg-web-uri! arg)
-  (set-sg-web-uri-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (sg-web-uri)
-  (get-sg-web-uri %am-runtime-configuration))
-
-(define-syntax-rule
-  (set-rdf-store-uri! arg)
-  (set-rdf-store-uri-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (rdf-store-uri)
-  (get-rdf-store-uri %am-runtime-configuration))
-
-(define-syntax-rule
-  (set-rdf-store-backend! arg)
-  (set-rdf-store-backend-private! %am-runtime-configuration arg))
-
-(define-syntax-rule
-  (rdf-store-backend)
-  (get-rdf-store-backend %am-runtime-configuration))
