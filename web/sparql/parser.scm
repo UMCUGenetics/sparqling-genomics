@@ -36,8 +36,8 @@
             query-construct-patterns
             set-query-construct-patterns!
 
-            query-insert-patterns
-            set-query-insert-patterns!
+            query-modify-patterns
+            set-query-modify-patterns!
 
             query-quads
             set-query-quads!
@@ -80,9 +80,9 @@
                       #:getter query-construct-patterns
                       #:setter set-query-construct-patterns!)
 
-  (insert-patterns #:init-value '()
-                   #:getter query-insert-patterns
-                   #:setter set-query-insert-patterns!))
+  (modify-patterns #:init-value '()
+                   #:getter query-modify-patterns
+                   #:setter set-query-modify-patterns!))
 
 (define-method (write (query <query>) out)
   (format out "#<<query> ~a, prefixes: ~a, global graphs: ~a, quads: ~a>"
@@ -657,13 +657,13 @@
         (set-query-construct-patterns! out (reverse tokens))
         (parse-select-query out query cursor))))
 
-  (define (parse-insert-query out query cursor)
+  (define (parse-modify-query out query cursor)
     (call-with-values (lambda _ (tokenize-query-header out query cursor))
       (lambda (tokens cursor)
         (read-global-graphs out tokens)
         (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
           (lambda (tokens cursor)
-            (set-query-insert-patterns! out (reverse tokens))
+            (set-query-modify-patterns! out (reverse tokens))
             (parse-select-query out query cursor))))))
 
   (catch #t
@@ -678,10 +678,10 @@
             ('ASK           (parse-ask-query out q (+ cursor 3)))
             ('CLEAR         (parse-clear-query out q cursor))
             ('CONSTRUCT     (parse-construct-query out query (+ cursor 9)))
-            ('DELETE        (throw 'unimplemented-query-type #f))
+            ('DELETE        (parse-modify-query out query (+ cursor 6)))
             ('DELETEINSERT  (throw 'unimplemented-query-type #f))
             ('DESCRIBE      (parse-describe-query out query (+ cursor 8)))
-            ('INSERT        (parse-insert-query out query (+ cursor 6)))
+            ('INSERT        (parse-modify-query out query (+ cursor 6)))
             ('SELECT        (parse-select-query out q (+ cursor 6)))
             (else           (throw 'unknown-query-type #f))))
         out))
