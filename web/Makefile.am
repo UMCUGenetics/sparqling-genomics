@@ -17,18 +17,18 @@
 include guile.am
 
 SOURCES =                                               \
-  json.scm                                              \
-  json/builder.scm                                      \
-  json/parser.scm                                       \
-  json/syntax.scm                                       \
-  ldap/authenticate.scm                                 \
-  logger.scm                                            \
   auth-manager/api.scm                                  \
   auth-manager/config-reader.scm                        \
   auth-manager/config.scm                               \
   auth-manager/permission-check.scm                     \
   auth-manager/proxy.scm                                \
   auth-manager/virtuoso.scm                             \
+  json.scm                                              \
+  json/builder.scm                                      \
+  json/parser.scm                                       \
+  json/syntax.scm                                       \
+  ldap/authenticate.scm                                 \
+  logger.scm                                            \
   sparql/driver.scm                                     \
   sparql/lang.scm                                       \
   sparql/md5.scm                                        \
@@ -40,8 +40,8 @@ SOURCES =                                               \
   www/components/query-history.scm                      \
   www/components/rdf-stores.scm                         \
   www/components/sessions.scm                           \
-  www/config.scm                                        \
   www/config-reader.scm                                 \
+  www/config.scm                                        \
   www/db/api.scm                                        \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
@@ -52,17 +52,15 @@ SOURCES =                                               \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
   www/pages.scm                                         \
-  www/pages/connection-failure.scm                      \
+  www/pages/automate.scm                                \
   www/pages/collect.scm                                 \
+  www/pages/connection-failure.scm                      \
   www/pages/create-project.scm                          \
   www/pages/dashboard.scm                               \
-  www/pages/structure.scm                               \
-  www/pages/report.scm                                  \
-  www/pages/automate.scm                                \
   www/pages/edit-connection.scm                         \
-  www/pages/import.scm                                  \
   www/pages/error.scm                                   \
   www/pages/exploratory.scm                             \
+  www/pages/import.scm                                  \
   www/pages/login.scm                                   \
   www/pages/project-details.scm                         \
   www/pages/prompt-session-table.scm                    \
@@ -70,19 +68,21 @@ SOURCES =                                               \
   www/pages/query-history.scm                           \
   www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
-  www/requests.scm                                      \
+  www/pages/report.scm                                  \
+  www/pages/structure.scm                               \
   www/requests-api.scm                                  \
   www/requests-beacon.scm                               \
+  www/requests.scm                                      \
   www/util.scm
 
 WWW_STATIC_RESOURCES =                                  \
-  static/css/main.css                                   \
   static/css/datatables.min.css                         \
-  static/fonts/FiraMono-Regular.ttf                     \
+  static/css/main.css                                   \
   static/fonts/FiraMono-Bold.ttf                        \
+  static/fonts/FiraMono-Regular.ttf                     \
   static/fonts/Roboto-Bold.ttf                          \
-  static/fonts/Roboto-LightItalic.ttf                   \
   static/fonts/Roboto-Light.ttf                         \
+  static/fonts/Roboto-LightItalic.ttf                   \
   static/images/icons/check-white.png                   \
   static/images/icons/check-white.svg                   \
   static/images/icons/check.png                         \
