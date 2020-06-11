@@ -36,6 +36,7 @@
             beacon-organization-contact-url
             beacon-organization-logo-url
             beacon-organization-info
+            beacon-sparql-query
             configuration-file
             default-prefixes
             internal-prefixes
