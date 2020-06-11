@@ -401,6 +401,7 @@
     (query        . "https://sparqling-genomics.org/@VERSION@/Query/")
     (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
     (sg           . "https://sparqling-genomics.org/@VERSION@/")
+    (seq          . "sg://@VERSION@/vcf2rdf/sequence/")
     (xml2rdf      . "sg://@VERSION@/xml2rdf/")
     (xsd          . "http://www.w3.org/2001/XMLSchema#")))
 
@@ -501,3 +502,6 @@
 
 (define-syntax-rule (system-sparql-query query)
   (sparql-query-with-connection (system-connection) query #f #f))
+
+(define-syntax-rule (beacon-sparql-query query)
+  (sparql-query-with-connection (beacon-connection) query #f #f))
