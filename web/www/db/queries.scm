@@ -28,7 +28,6 @@
 
   #:export (query-add
             query-remove
-            query-remove-unmarked
             query-remove-unmarked-for-project
             all-queries
             query-by-id
@@ -179,35 +178,8 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
         (system-sparql-query query)
       (= (response-code header) 200))))
 
-;; QUERY-REMOVE-UNMARKED
+;; QUERY-REMOVE-UNMARKED-FOR-PROJECT
 ;; ----------------------------------------------------------------------------
-(define (query-remove-unmarked username)
-  "Removes queries for which marked? is #f."
-  (let [(query (string-append
-                internal-prefixes
-                "WITH <" system-state-graph ">
-DELETE { ?query ?p ?o }
-WHERE { ?query sg:executedBy agent:" username " ; ?p ?o .
-  OPTIONAL {
-    ?query sg:isProtected ?isProtected .
-  }
-  FILTER (!BOUND(?isProtected) OR ?isProtected = false)
-}
-"))
-        (connection (system-connection))]
-    (receive (header body)
-        (sparql-query query
-                      #:uri (connection-uri connection)
-                      #:digest-auth
-                      (if (and (connection-username connection)
-                               (connection-password connection))
-                          (string-append
-                           (connection-username connection) ":"
-                           (connection-password connection))
-                          #f))
-      (if (= (response-code header) 200)
-          (values #t (format #f "Removed unmarked."))
-          (values #f (get-string-all body))))))
 
 (define (query-remove-unmarked-for-project username project-uri)
   "Removes queries for which marked? is #f inside PROJECT-URI."
