@@ -381,8 +381,8 @@
      [(string= "/api/query-mark" request-path)
       (if (eq? (request-method request) 'POST)
           (let* ((data       (entire-request-data request))
-                 (state       (assoc-ref data "state"))
-                 (query-id    (assoc-ref data "query-id")))
+                 (state       (assoc-ref data 'state))
+                 (query-id    (assoc-ref data 'query-id)))
             (if (set-query-marked! query-id state)
                 (respond-200 client-port accept-type
                              `((state    . ,(not state))

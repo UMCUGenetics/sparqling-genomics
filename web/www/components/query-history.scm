@@ -97,13 +97,5 @@
                                                (value ,(query-content query)))
                                             ,(icon 'up-white #t))))))
                    queries))
-      (script "
-function toggle_marker (id, queryId) {
-  var state = document.getElementById('mark-'+ id).checked;
-  jQuery.post('/api/query-mark', { 'query-id': queryId, 'state': state },
-    function(data) {
-      var message = JSON.parse(data);
-      document.getElementById('mark-'+ id).checked = message[0].state;
-    });
-}
-"))))
+      (script (@ (type "text/javascript")
+                 (src "/static/js/query-history.js")) ""))))
