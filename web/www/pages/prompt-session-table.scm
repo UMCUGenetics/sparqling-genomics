@@ -38,11 +38,11 @@
                              (td ,(assoc-ref row "predicate"))
                              (td ,(assoc-ref row "object"))
                              (td (@ (class "button-column"))
-                                 (div (@ (class "small-action action-btn-remove")
-                                         (name "remove")
-                                         (onclick ,(string-append
-                                                    "javascript:remove_triplet('"
-                                                    (assoc-ref row "triplet_id")
-                                                    "'); return false;")))
-                                      ,(icon 'x-white)))))
+                                 ,(table-button
+                                   #:type 'remove
+                                   #:name "remove"
+                                   #:content (icon 'x-white)
+                                   #:onclick (js "remove_triplet('"
+                                                 (assoc-ref row "triplet_id")
+                                                 "')")))))
                       triplets)))))

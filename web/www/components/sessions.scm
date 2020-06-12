@@ -40,24 +40,23 @@
                      `(tr (td ,(session-name session))
                           (td (pre ,(session-token session)))
                           (td (@ (class "button-column"))
-                              (div (@ (class "small-action action-btn-remove"))
-                                   (a (@ (href "#")
-                                         (onclick ,(string-append
-                                                    "javascript:ui_remove_session('"
-                                                    (session-token session)
-                                                    "'); return false;"))) ,(icon 'x-white))))))
+                              ,(table-button
+                                #:type   'remove
+                                #:onclick (js "ui_remove_session('" (session-token session) "')")
+                                #:content (icon 'x-white)))))
                    sessions))
       (script "
 function ui_insert_session_form () {
   jQuery('#sessions-table tbody:last-child').append('"
-              (tr (td (form (@ (onsubmit "javascript:ui_submit_session_form(); return false;"))
+              (tr (td (form (@ (onsubmit ,(js "ui_submit_session_form()")))
                             (input (@ (type "text")
                                       (id "session-name")
                                       (name "session-name")))))
                 (td "The token will be generated for you.")
-                (td (div (@ (class "small-action action-btn-submit"))
-                         (a (@ (href "#")
-                               (onclick "javascript:ui_submit_session_form(); return false;")) ,(icon 'return)))))
+                (td ,(table-button
+                      #:type    'submit
+                      #:onclick (js "ui_submit_session_form()")
+                      #:content (icon 'return-white))))
                  "');
   jQuery('#session-name').focus();
   jQuery('#add-session').remove();

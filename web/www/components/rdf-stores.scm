@@ -55,18 +55,16 @@
                     (td (@ (class "button-column"))
                         ,(if (or is-default? is-system-wide?)
                              '()
-                             `(div (@ (class "small-action action-btn-remove"))
-                                   (a (@ (href "#")
-                                         (onclick ,(string-append
-                                                    "javascript:ui_remove_connection('"
-                                                    name "'); return false;"))) ,(icon 'x)))))
+                             (table-button
+                              #:type    'remove
+                              #:onclick (js "ui_remove_connection('" name "')")
+                              #:content (icon 'x-white))))
                     (td (@ (class "button-column"))
                         ,(if (not is-default?)
-                             `(div (@ (class "small-action action-btn-active"))
-                                   (a (@ (href "#")
-                                         (onclick ,(string-append
-                                                    "javascript:ui_set_default_connection('"
-                                                    name "'); return false;"))) ,(icon 'check)))
+                             (table-button
+                              #:type    'active
+                              #:onclick (js "ui_set_default_connection('" name "')")
+                              #:content (icon 'check-white))
                              '())))))
            (connections-by-user username))))
 
@@ -108,9 +106,9 @@ function ui_insert_connection_form () {
                                             `(option (@ (value ,backend)) ,backend))
                                           (map symbol->string (sparql-available-backends)))))
                                (td (@ (style "width: 32px"))
-                                   (input (@ (id "add-field-button")
-                                             (type "submit")
-                                             (value ,(icon 'return-white #t)))))))))) "');
+                                   (button (@ (id "add-field-button")
+                                              (type "submit"))
+                                           ,(icon 'return-white #t)))))))) "');
   jQuery('#add-field').focus();
   jQuery('#add-connection').remove();
 }

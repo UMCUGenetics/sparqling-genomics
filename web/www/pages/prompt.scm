@@ -61,11 +61,11 @@
                                       (placeholder "Triplets work best"))))))))
 
              (h3 "Session"
-                 (div (@ (id "clear-prompt-session")
-                         (class "small-action action-btn-remove"))
-                      (a (@ (href "#")
-                            (onclick "javascript:clear_session(); return false;"))
-                         ,(icon 'x-white))))
+                 ,(h2-button
+                   #:id      "clear-prompt-session"
+                   #:type    'remove
+                   #:onclick (js "clear_session()")
+                   #:content (icon 'x-white)))
              (p "")
              (table (@ (id "prompt-session-table")
                        (class "item-table"))

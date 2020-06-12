@@ -36,19 +36,25 @@
 ;; This function describes the SXML equivalent of the entire web page.
 ;;
 
-(define add-member-button
-  `(span (@ (id "add-assigned-member")
-            (class "smaller-action"))
-         (a (@ (href "#")
-               (onclick "javascript:ui_insert_member_form(); return false;"))
-            ,(icon 'plus))))
+(define-syntax-rule (add-member-button)
+  (h2-button #:id      "add-assigned-member"
+             #:class   "smaller-action"
+             #:href    "#"
+             #:onclick (js "ui_insert_member_form()")
+             #:content (icon 'plus)))
 
-(define add-graph-button
-  `(span (@ (id "add-assigned-graph")
-            (class "smaller-action"))
-         (a (@ (href "#")
-               (onclick "javascript:ui_insert_graph_form(); return false;"))
-            ,(icon 'plus))))
+(define-syntax-rule (add-graph-button)
+  (h2-button #:id      "add-assigned-graph"
+             #:class   "smaller-action"
+             #:href    "#"
+             #:onclick (js "ui_insert_graph_form()")
+             #:content (icon 'plus)))
+
+(define-syntax-rule (remove-project-button project-id)
+  (h2-button #:id "remove-project"
+             #:class "action-title-btn remove-btn"
+             #:onclick (js "ui_remove_project('" project-id "')")
+             #:content "Remove"))
 
 (define* (page-project-details request-path username #:key (post-data ""))
   (let* [(hash    (last (string-split request-path #\/)))
@@ -77,23 +83,16 @@
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
     (page-root-template username title request-path
-     `((h2 ,title (span (@ (id "remove-project")
-                           (class "small-blank-action"))
-                        (a (@ (class "action-title-btn remove-btn")
-                              (onclick ,(string-append
-                                         "javascript:ui_remove_project('"
-                                         (project-id project)
-                                         "'); return false;")))
-                           "Remove")))
+     `((h2 ,title ,(remove-project-button (project-id project)))
 
        ;; When an action occurred (like “the project was modified”), we
        ;; display the success or error message accordingly.
        ,(if message message '())
 
-       (h3 "Members" ,add-member-button)
+       (h3 "Members" ,(add-member-button))
        ,(project-members-table username hash)
 
-       (h3 "Assigned graphs" ,add-graph-button)
+       (h3 "Assigned graphs" ,(add-graph-button))
        (p "Members of this project have access to the following graphs.")
        ,(assigned-graphs-table username hash)
 

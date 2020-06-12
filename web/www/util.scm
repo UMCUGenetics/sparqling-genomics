@@ -55,7 +55,10 @@
             respond-500
             respond-503
             icon
-            icon-src))
+            icon-src
+            js
+            h2-button
+            table-button))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range
@@ -243,3 +246,22 @@
 
 (define* (icon-src symbol #:optional (type 'svg))
   (format #f "/static/images/icons/~a.~a" symbol type))
+
+(define (js . args)
+  (format #f "javascript:~{~a~}; return false;" args))
+
+(define* (table-button #:key type (onclick "") (href #f) (name "") (content ""))
+  `(div (@ (class ,(format #f "small-action action-btn-~a" type))
+           (onclick ,onclick)
+           (name ,name))
+        (a (@ (href ,(if href href "#"))
+              (onclick ,onclick))
+           ,content)))
+
+(define* (h2-button #:key id class onclick href content)
+  `(span (@ (id ,id)
+            (class ,class)
+            (onclick ,onclick))
+         (a (@ (href ,href)
+               (onclick ,onclick))
+            ,content)))
