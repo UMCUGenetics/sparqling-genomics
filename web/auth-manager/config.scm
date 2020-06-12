@@ -84,8 +84,8 @@
                             #:setter set-www-name-private!)
 
   (www-self-uri               #:init-value '()
-                            #:getter get-www-self-uri
-                            #:setter set-www-self-uri-private!)
+                            #:getter get-self-uri
+                            #:setter set-self-uri-private!)
 
   (www-upload-root          #:init-value
                             (lambda _
@@ -190,13 +190,13 @@
 (define (make-getter symbol)
   (primitive-eval `(define-syntax-rule (,symbol)
                      (,(symbol-append 'get- symbol)
-                      %runtime-configuration))))
+                      %am-runtime-configuration))))
 
 (define (make-setter symbol)
   (primitive-eval
    `(define-syntax-rule (,(symbol-append 'set- symbol '!) val)
       (,(symbol-append 'set- symbol '-private!)
-       %runtime-configuration val))))
+       %am-runtime-configuration val))))
 
 (define (make-getter/setter symbol)
   (make-getter symbol)
