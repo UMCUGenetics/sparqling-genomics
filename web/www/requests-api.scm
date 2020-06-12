@@ -385,7 +385,7 @@
                  (query-id    (assoc-ref data 'query-id)))
             (if (set-query-marked! query-id state)
                 (respond-200 client-port accept-type
-                             `((state    . ,(not state))
+                             `((state    . ,state)
                                (query-id . ,query-id)))
                 (respond-500 client-port accept-type
                              `((message . "An unknown error occurred.")))))

@@ -8,8 +8,7 @@ function toggle_marker (id, queryId) {
     method: 'POST',
     data: JSON.stringify({ "query-id": queryId, "state": state }),
     success: function(data) {
-      var message = JSON.parse(data);
-      document.getElementById("mark-"+ id).checked = message[0].state;
+      document.getElementById("mark-"+ id).checked = data.state;
     }
   });
 }
