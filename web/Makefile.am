@@ -124,6 +124,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/jquery.dataTables.min.js                    \
   static/js/plottable-query.js                          \
   static/js/prompt.js                                   \
+  static/js/query-editor.js                             \
   static/js/query-history.js
 
 bin_SCRIPTS     = sg-web sg-auth-manager sg-web-test

@@ -51,105 +51,30 @@
           ;; Queries are executed on a connection, so we must give users the choice
           ;; to select the appropriate connection.
           `((h3 "Select a connection")
-              (select (@ (id "connection"))
-                      ,(map (lambda (connection)
-                              `(option (@ (value ,connection)
-                                          ,(if (string= endpoint connection)
-                                               `(selected "selected")
-                                               '(class "not-selected")))
-                                       ,connection))
-                            connections))
+            (select (@ (id "connection"))
+              ,(map (lambda (connection)
+                      `(option (@ (value ,connection)
+                                  ,(if (string= endpoint connection)
+                                       `(selected "selected")
+                                       '(class "not-selected")))
+                               ,connection))
+                    connections))
 
-              (h3 "Query editor")
-              (p "Use " (strong "Ctrl + Enter") " to execute the query. ("
-                 (strong "Cmd + Enter") " for the unfortunate MacOS users.)")
-              (div (@ (id "editor"))
-                   ,(if query
-                        query
-                        (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
-                                default-prefixes)))
+            (h3 "Query editor")
+            (p "Use " (strong "Ctrl + Enter") " to execute the query. ("
+               (strong "Cmd + Enter") " for the unfortunate MacOS users.)")
+            (div (@ (id "editor"))
+                 ,(if query
+                      query
+                      (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
+                              default-prefixes)))
 
-              ((h3 "History")
+            ((h3 "History")
 
-               (p "The table below contains queries that were previously "
-                  "executed. For compactness, all " (code "PREFIX") " "
-                  "declarations and empty lines are not shown.")
+             (p "The table below contains queries that were previously "
+                "executed. For compactness, all " (code "PREFIX") " "
+                "declarations and empty lines are not shown.")
 
-               ,(query-history-component username hash))
-              (script "
-$(document).ready(function(){
-
-  var editor = ace.edit('editor');
-  var session = editor.getSession();
-  editor.setTheme('ace/theme/crimson_editor');
-  editor.setShowPrintMargin(false);
-  editor.setAutoScrollEditorIntoView(true);
-  editor.setOptions({ maxLines: 120,
-                      minLines: 2,
-                      enableBasicAutocompletion: true,
-                      enableLiveAutocompletion: true });
-  session.setMode('ace/mode/sparql');
-  session.setTabSize(2);
-
-  /* Add keybindings for copying the text and for running the query. */
-  editor.commands.addCommand({
-    name: 'copyCommand',
-    bindKey: {win: 'Ctrl-C',  mac: 'Command-C'},
-    exec: function(editor) {
-      $('#content').after('" (textarea (@ (id "copyText"))) "');
-      var temp = document.getElementById('copyText');
-      temp.value = editor.getSelectedText();
-      temp.select();
-      document.execCommand('copy');
-      temp.remove();
-      $('.ace_text-input').focus();
-      }, readOnly: true
-    });
-
-  editor.commands.addCommand({
-    name: 'executeQueryCommand',
-    bindKey: {win: 'Ctrl-Enter',  mac: 'Command-Enter'},
-    exec: function(editor) {
-      $('#editor').after(function(){ return '"
-      (div (@ (class "query-data-loader"))
-           (div (@ (class "title")) "Loading data ...")
-           (div (@ (class "content")) "Please wait for the results to appear."))
-      "' });
-
-      /* Remove the previous query results. */
-      $('.query-error').remove();
-      $('#query-results').remove();
-      $('#query-output').remove();
-      $('#query-output_wrapper').remove();
-
-      post_data = { query: editor.getValue(), connection: $('#connection').val() };
-      $.post('/query-response/" ,hash "', JSON.stringify(post_data), function (data){
-
-        /*  Insert the results HTML table into the page. */
-        $('#editor').after(data);
-        $('.query-data-loader').remove();
-        $('#note-five-thousand').remove();
-
-        /* Detect an error response. */
-        if ($('.query-error').length == 0) {
-          $('#editor').after(function(){ return '"
-      ((h3 (@ (id "query-results")) "Query results")
-       (p (@ (id "note-five-thousand"))
-          (strong "Note:") " Query results are limited to a maximum of 5000 rows.  Programmatic access does not have this limitation.")) "' });
-
-          /* Initialize DataTables. */
-          $('#query-output').addClass('display');
-          var dt = $('#query-output').DataTable({ 'sDom': 'lrtip', 'aaSorting': [] });
-          dt.draw();
-
-          $.get('/query-history/" ,hash "', function (data){
-            $('#query-history-table').replaceWith(data);
-          });
-
-        }
-      });
-      }, readOnly: true
-    });
-});
-"))])))
+             ,(query-history-component username hash))
+            (script (@ (src "/static/js/query-editor.js")) ""))])))
    #:dependencies '(ace jquery datatables)))
