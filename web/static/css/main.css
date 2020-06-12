@@ -866,3 +866,28 @@ input.form-submit-input:hover {
     width: 12pt;
     vertical-align: middle;
 }
+
+#execute-query-button {
+    width: 100%;
+    height: 26pt;
+    color: #ffffff;
+    background: #008800;
+    padding: 0;
+    border-radius: 0pt 0pt 4pt 4pt;
+    border: solid 1pt #cccccc;
+    border-top: none;
+    margin: 0pt;
+    left: 0;
+    right: 0;
+    text-align: center;
+    cursor: pointer;
+}
+#execute-query-button:hover { background: #00aa00; }
+#execute-query-button a {
+    padding: .5em;
+    line-height: 26pt;
+    color: #ffffff;
+    text-decoration: none;
+    font-family: 'Roboto-Bold';
+    outline: none;
+}

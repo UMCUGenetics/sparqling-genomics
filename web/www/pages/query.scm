@@ -69,12 +69,16 @@
                       (format #f "~a~%SELECT ?s ?p ?o { ?s ?p ?o }~%LIMIT 100~%"
                               default-prefixes)))
 
-            ((h3 "History")
+            (div (@ (id "execute-query-button")
+                    (onclick ,(js "execute_query(editor)")))
+                 (a (@ (href "#")) "Execute query"))
 
-             (p "The table below contains queries that were previously "
-                "executed. For compactness, all " (code "PREFIX") " "
-                "declarations and empty lines are not shown.")
+            (h3 "History")
 
-             ,(query-history-component username hash))
+            (p "The table below contains queries that were previously "
+               "executed. For compactness, all " (code "PREFIX") " "
+               "declarations and empty lines are not shown.")
+
+            ,(query-history-component username hash)
             (script (@ (src "/static/js/query-editor.js")) ""))])))
    #:dependencies '(ace jquery datatables)))

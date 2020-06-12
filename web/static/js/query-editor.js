@@ -1,9 +1,11 @@
+var editor = null;
+
 function execute_query (editor) {
 
     url = window.location.href;
     project_hash = url.substr(url.lastIndexOf('/') + 1);
 
-    jQuery("#editor").after(function(){ return "<div class=\"query-data-loader\"><div class=\"title\">Loading data ...</div><div class=\"content\">Please wait for the results to appear.</div></div>" });
+    jQuery("#execute-query-button").after(function(){ return "<div class=\"query-data-loader\"><div class=\"title\">Loading data ...</div><div class=\"content\">Please wait for the results to appear.</div></div>" });
 
     /* Remove the previous query results. */
     jQuery(".query-error").remove();
@@ -16,13 +18,13 @@ function execute_query (editor) {
       JSON.stringify(post_data),
       function (data) {
           /* Insert the results HTML table into the page. */
-          jQuery("#editor").after(data);
+          jQuery("#execute-query-button").after(data);
           jQuery(".query-data-loader").remove();
           jQuery("#note-five-thousand").remove();
 
           /* Detect an error response. */
           if (jQuery(".query-error").length == 0) {
-              jQuery("#editor").after(function() {
+              jQuery("#execute-query-button").after(function() {
                   return "<h3 id=\"query-results\">Query results</h3><p id=\"note-five-thousand\"><strong>Note:</strong> Query results are limited to a maximum of 5000 rows.  Programmatic access does not have this limitation.</p>" });
 
               /* Initialize DataTables. */
@@ -39,7 +41,7 @@ function execute_query (editor) {
 
 jQuery(document).ready(function() {
 
-  var editor = ace.edit("editor");
+  editor = ace.edit("editor");
   var session = editor.getSession();
   editor.setTheme("ace/theme/crimson_editor");
   editor.setShowPrintMargin(false);
