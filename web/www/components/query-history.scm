@@ -97,5 +97,4 @@
                                                (value ,(query-content query)))
                                             ,(icon 'up-white #t))))))
                    queries))
-      (script (@ (type "text/javascript")
-                 (src "/static/js/query-history.js")) ""))))
+      (script (@ (src "/static/js/query-history.js")) ""))))
