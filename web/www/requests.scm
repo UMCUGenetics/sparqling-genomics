@@ -645,7 +645,7 @@
     (listen s 50)
     (while #t
       (let* [(client-connection (accept s))
-             (client-details    (cdr client-connection))
+             ;(client-details    (cdr client-connection))
              (client-port       (car client-connection))]
 
         ;; Each request is handled in a separate thread.
