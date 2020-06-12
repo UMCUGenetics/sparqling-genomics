@@ -168,10 +168,8 @@
                    out)))
          ((eq? 'ace dependency)
           (dependent-scripts-and-styles remainder
-            (cons* '(script (@ (charset "utf-8")
-                               (src "/static/js/ace/ace.js")) "")
-                   '(script (@ (charset "utf-8")
-                               (src "/static/js/ace/ext-language_tools.js")) "")
+            (cons* '(script (@ (src "/static/js/ace/ace.js")) "")
+                   '(script (@ (src "/static/js/ace/ext-language_tools.js")) "")
                    out)))
          ((eq? 'forms dependency)
           (dependent-scripts-and-styles remainder
