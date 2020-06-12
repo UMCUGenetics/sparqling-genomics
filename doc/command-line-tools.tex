@@ -8,51 +8,47 @@
   chapter can be invoked with the \texttt{-{}-help} argument to get a complete
   overview of options for that particular tool.
 
-\section{Preparing variant call data with \texttt{vcf2rdf}}
+\section{Preparing variant call data with \program{vcf2rdf}}
 \label{sec:vcf2rdf}
 
-  Obtaining variants from sequenced data is a task performed by \emph{variant
-    callers}.  These programs often output the variants they found in the
-  \emph{Variant Call Format} (VCF).  The \texttt{vcf2rdf} program extracts
-  knowledge from a VCF file and writes it as RDF.
+  Variant callers extract variation from sequenced data.  These programs
+  often output the variants they found in the \emph{Variant Call Format}
+  (VCF).  The \program{vcf2rdf} program extracts knowledge from a VCF file
+  and writes it as RDF.
 
-\subsection{Knowledge extracted by \texttt{vcf2rdf}}
+\subsection{Knowledge extracted by \program{vcf2rdf}}
 
   The program treats the VCF as its own ontology.  It uses the VCF header as
   a guide.  All fields described in the header of the VCF file will be
   translated into triples.  In addition to the knowledge from the VCF file,
-  \texttt{vcf2rdf} provides the following triples:
+  \program{vcf2rdf} provides the following triples:
 
-  \begin{table}[H]
+  \begin{table}[!htbp]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      \textbf{Subject}     & \textbf{Predicate}   & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
+      \origin{\emph{MD5}}  & \rdf{type}       & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
-      \emph{filename}
+      \origin{\emph{MD5}}  & \sg{filename}    & \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:sha256sum} &
-      \emph{SHA256 sum}
-      & This triple states the SHA256 sum of the content of the original file.\\
+      \origin{\emph{MD5}}  & \sg{md5}         & \emph{MD5 sum}
+      & This triple states the MD5 sum of the content of the original file.\\
       \oddrow
-      \texttt{:Sample/}\emph{sample name} & \texttt{rdf:type} & \texttt{:Sample}
+      \sample{\emph{name}} & \rdf{type}       & \sg{Sample}
       & This states that there is a sample with \emph{sample name}.\\
       \evenrow
-      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{identifier}
+      \sample{\emph{name}} & \sg{foundIn}     & \origin{\emph{MD5}}
       & This triple states that a sample can be found in a file identified by
       the \texttt{:Origin} with a specific identifier.\\
       \oddrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:convertedBy} &
-             {\fontfamily{\ttdefault}\selectfont :vcf2rdf-\sgversion{}}
-      & This triple states that the file was converted with \texttt{vcf2rdf}.\\
+      \origin{\emph{MD5}}  & \sg{convertedBy} & \sg{vcf2rdf-0.99.11-dev}
+      & This triple states that the file was converted with \program{vcf2rdf}.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns provided by \texttt{vcf2rdf}.}
+    \caption{\small The additional triple patterns provided by \program{vcf2rdf}.}
     \label{table:vcf2rdf-ontology}
   \end{table}
 
@@ -60,19 +56,19 @@
 
 \begin{siderules}
 \begin{lstlisting}
-<http://sparqling-genomics/Origin/14f2b609b>
-    :convertedBy :vcf2rdf-(@*\sgversion{}*@) ;
-    :filename "clone_ref_tumor.vcf.gz"^^xsd:string ;
-    :sha256sum "14f2b609b" ;
-    a :Origin .
+@prefix sg: <https://sparqling-genomics.org/(@*\sgversion{}*@)/> .
+@prefix orig: <origin://> .
 
-<http://sparqling-genomics/Sample/CLONE_REF>
-    :foundIn <http://sparqling-genomics/Origin/14f2b609b3> ;
-    a :Sample .
+orig:e9e38f2e4279eda346918ba69fd86c5f
+    a sg:Origin ;
+    sg:convertedBy <https://sparqling-genomics.org/(@*\sgversion{}*@)/vcf2rdf-(@*\sgversion{}*@)> ;
+    sg:filename "tests/sample.vcf"^^xsd:string ;
+    sg:md5 "e9e38f2e4279eda346918ba69fd86c5f"^^xsd:string .
 
-<http://sparqling-genomics/Sample/CLONE_TUMOR>
-    :foundIn <http://sparqling-genomics/Origin/14f2b609b3> ;
-    a :Sample .
+<origin://e9e38f2e4279eda346918ba69fd86c5f@S0>
+    a sg:Sample ;
+    rdfs:label "SAMLPEA"^^xsd:string ;
+    sg:foundIn orig:e9e38f2e4279eda346918ba69fd86c5f .
 \end{lstlisting}
 \end{siderules}
 
@@ -90,9 +86,11 @@
 
 \subsection{Example usage}
 
+The following command invocation will produce RDF in the \texttt{ntriples}
+format:
 \begin{siderules}
 \begin{verbatim}
-vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.ttl
+vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.n3
 \end{verbatim}
 \end{siderules}
 
@@ -115,11 +113,11 @@ vcf2rdf --help
 
   We recommend using the \texttt{ntriples} format for large input files, and
   \texttt{turtle} for small input files.  The following example illustrates how to
-  use \texttt{ntriples} mode.
+  use \texttt{turtle} mode.
 
 \begin{siderules}
 \begin{verbatim}
-vcf2rdf -i /path/to/my/variants.vcf -O ntriples > /path/to/my/variants.n3
+vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.n3
 \end{verbatim}
 \end{siderules}
 
