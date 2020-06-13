@@ -38,14 +38,14 @@
 
 (define-syntax-rule (add-member-button)
   (h2-button #:id      "add-assigned-member"
-             #:class   "smaller-action"
+             #:class   "smaller-action smaller-action-add"
              #:href    "#"
              #:onclick (js "ui_insert_member_form()")
              #:content (icon 'plus)))
 
 (define-syntax-rule (add-graph-button)
   (h2-button #:id      "add-assigned-graph"
-             #:class   "smaller-action"
+             #:class   "smaller-action smaller-action-add"
              #:href    "#"
              #:onclick (js "ui_insert_graph_form()")
              #:content (icon 'plus)))

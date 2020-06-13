@@ -63,7 +63,7 @@
              (h3 "Session"
                  ,(h2-button
                    #:id      "clear-prompt-session"
-                   #:type    'remove
+                   #:class    "smaller-action remove-btn"
                    #:onclick (js "clear_session()")
                    #:content (icon 'x-white)))
              (p "")

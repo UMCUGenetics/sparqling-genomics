@@ -425,13 +425,10 @@ select#connection {
 }
 .smaller-action a { text-decoration: none; }
 .smaller-action a:hover { color: #000000; }
-.smaller-action:hover { background: #ffeeaa; }
 .smaller-action {
     display: inline-block;
     font-size: 14pt;
     font-weight: normal;
-    background: #ffdd55;
-    border: solid 2pt #aa8800;
     padding: 0pt 3pt 0pt 3pt;
     margin: 2pt;
     border-radius: 4pt;
@@ -441,6 +438,8 @@ select#connection {
     cursor: pointer;
     user-select: none;
 }
+.smaller-action-add:hover { background: #ffeeaa; }
+.smaller-action-add { background: #ffdd55; border: solid 2pt #aa8800; }
 
 .action-btn-clear-cache { background: #aa00aa; border: solid 2pt #880088; }
 .action-btn-clear-cache:hover { background: #cc00cc; }
@@ -478,6 +477,8 @@ select#connection {
 }
 .action-title-btn {
     display: inline-block;
+    height: 1.5em;
+    width: auto;
     font-size: 11pt;
     text-transform: uppercase;
     font-weight: bold;
@@ -874,8 +875,7 @@ input.form-submit-input:hover {
     background: #008800;
     padding: 0;
     border-radius: 0pt 0pt 4pt 4pt;
-    border: solid 1pt #cccccc;
-    border-top: none;
+    border: solid 1pt #008800;
     margin: 0pt;
     left: 0;
     right: 0;

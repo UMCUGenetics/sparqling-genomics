@@ -35,10 +35,11 @@
                                 (onclick "javascript:ui_insert_session_form(); return false;"))
                              ,(icon 'plus))))
                  (th (@ (class "item-table-left")) "Token")
-                 (th (@ (style "min-width: 30pt")) "Actions"))
+                 (th (@ (style "min-width: 30pt") (colspan 2)) "Actions"))
              ,(map (lambda (session)
                      `(tr (td ,(session-name session))
                           (td (pre ,(session-token session)))
+                          (td (@ (class "button-column")) "")
                           (td (@ (class "button-column"))
                               ,(table-button
                                 #:type   'remove
@@ -52,12 +53,13 @@ function ui_insert_session_form () {
                             (input (@ (type "text")
                                       (id "session-name")
                                       (name "session-name")))))
-                (td "The token will be generated for you.")
-                (td ,(table-button
-                      #:type    'submit
-                      #:onclick (js "ui_submit_session_form()")
-                      #:content (icon 'return-white))))
-                 "');
+                  (td "The token will be generated for you.")
+                  (td (@ (class "button-column")) "")
+                  (td ,(table-button
+                        #:type    'submit
+                        #:onclick (js "ui_submit_session_form()")
+                        #:content (icon 'return-white))))
+              "');
   jQuery('#session-name').focus();
   jQuery('#add-session').remove();
 }

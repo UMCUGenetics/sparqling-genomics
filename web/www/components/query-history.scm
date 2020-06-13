@@ -36,11 +36,11 @@
                                            (project-by-hash hash))))]
     `((table (@ (id "query-history-table")
                 (class "item-table"))
-             (tr (th "Query")
+             (tr (th (@ (style "width: auto;")) "Query")
                  (th "Connection")
-                 (th "Executed by")
-                 (th "Duration (in seconds)")
-                 (th (@ (style "width: 150pt; text-align: right;")
+                 (th (@ (style "white-space: nowrap;")) "Executed by")
+                 (th (@ (style "white-space: nowrap;")) "Duration (in seconds)")
+                 (th (@ (style "white-space: nowrap; text-align: right;")
                         (colspan "4"))
                      "Actions "
                      (span (@ (class "table-header-small-text"))
