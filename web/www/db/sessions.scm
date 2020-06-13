@@ -141,11 +141,13 @@
         (token    (session-token    record)))
     (cond
      ((string= name "")
-      (values #f (format #f "The session name cannot empty.")))
+      (values #f "The session name cannot empty."))
+     ((string-is-longer-than name 32)
+      (values #f "The session name may not be longer than 32 characters."))
      ((string= username "")
-      (values #f (format #f "The username cannot empty.")))
+      (values #f "The username cannot empty."))
      ((string= token "")
-      (values #f (format #f "The session token cannot empty.")))
+      (values #f "The session token cannot empty."))
      (#t (begin
            (set! %db-sessions (cons record %db-sessions))
            (persist-sessions)
