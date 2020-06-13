@@ -26,7 +26,7 @@
       (h3 "Session tokens")
       (p "Session tokens can be used to authenticate with the API.  The API "
          "expects the token to be sent as a HTTP cookie in the form "
-         (code "<name>=<token>") ".")
+         (code "SGSession=<token>") ".")
       ,(sessions-table username)
       (h3 "RDF stores")
       (p "The main data sources for SPARQLing-genomics are RDF stores.")
