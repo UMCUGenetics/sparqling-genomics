@@ -49,6 +49,7 @@
 (define (api-serveable-format? fmt)
   "This function returns #t when FMT can be served, #f otherwise."
   (cond
+   [(is-format '(*/*) fmt)                                 #t]
    [(is-format '(text/html) fmt)                           #t]
    [(is-format '(text/csv) fmt)                            #t]
    [(is-format '(application/json) fmt)                    #t]
@@ -132,11 +133,15 @@ that can be transformed by SXML->XML."
    [(equal? fmt '(application/s-expression))
     (call-with-output-string
       (lambda (port) (write data port)))]
+   [(equal? fmt '(*/*))
+    (api-format '(application/s-expression) data)]
    [else #f]))
 
 (define (first-acceptable-format fmts)
   (if (api-serveable-format? (car fmts))
-      (car fmts)
+      (if (equal? (car fmts) '(*/*))
+          '(application/s-expression)
+          (car fmts))
       (first-acceptable-format (cdr fmts))))
 
 (define (api-request-data->alist fmt data)
