@@ -14,6 +14,7 @@ $(guile_install_go_files): install-nobase_modDATA
 CLEANFILES = $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
+OPTIMIZATION_FLAGS = -O2
 SUFFIXES = .scm .go
 .scm.go:
-	$(AM_V_GEN)$(top_builddir)/env $(GUILE_TOOLS) compile $(CFLAGS) $(GUILE_WARNINGS) -o "$@" "$<" > /dev/null
+	$(AM_V_GEN)$(top_builddir)/env $(GUILE_TOOLS) compile $(OPTIMIZATION_FLAGS) $(GUILE_WARNINGS) -o "$@" "$<" > /dev/null

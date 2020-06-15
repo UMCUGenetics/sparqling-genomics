@@ -55,6 +55,12 @@
     `(#:configure-flags (list (string-append
                                "--with-libldap-prefix="
                                (assoc-ref %build-inputs "openldap")))
+      #:modules ((guix build gnu-build-system)
+                 ((guix build guile-build-system)
+                  #:select (target-guile-effective-version))
+                 (guix build utils))
+      #:imported-modules ((guix build guile-build-system)
+                          ,@%gnu-build-system-modules)
       #:phases
       (modify-phases %standard-phases
         (add-after 'install 'wrap-executable
@@ -63,11 +69,11 @@
                    (guile-version (target-guile-effective-version))
                    (guile-load-path
                     (string-append out "/share/guile/site/"
-                                   (guile-version) ":"
+                                   guile-version ":"
                                    (getenv "GUILE_LOAD_PATH")))
                    (guile-load-compiled-path
                     (string-append out "/lib/guile/"
-                                   (guile-version) "/site-ccache:"
+                                   guile-version "/site-ccache:"
                                    (getenv "GUILE_LOAD_COMPILED_PATH")))
                    (web-root (string-append
                               out "/share/sparqling-genomics/web")))

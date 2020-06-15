@@ -13,11 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AUTOMAKE_OPTIONS 	= subdir-objects
+AUTOMAKE_OPTIONS        = subdir-objects
 SUBDIRS                 = bam2rdf         \
                           ega2rdf         \
                           folder2rdf      \
                           json2rdf        \
                           table2rdf       \
                           vcf2rdf         \
+                          virtuoso-config \
                           xml2rdf

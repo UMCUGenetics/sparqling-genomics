@@ -36,7 +36,7 @@ AC_SUBST([godir])
 if $GUILE_TOOLS | grep -q compile; then
    true
 else
-   AC_MSG_ERROR([Guile 2.2 required.])
+   AC_MSG_ERROR([Guile 3.0, 2.2, or 2.0 required.])
 fi
 
 dnl This macro is used to resolve the absolute path to @datarootdir@ so that
@@ -90,6 +90,7 @@ AC_CONFIG_FILES([
   tools/folder2rdf/Makefile
   tools/json2rdf/Makefile
   tools/table2rdf/Makefile
+  tools/virtuoso-config/Makefile
   tools/vcf2rdf/Makefile
   tools/xml2rdf/Makefile
   web/Makefile

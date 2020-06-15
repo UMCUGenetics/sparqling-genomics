@@ -6,6 +6,7 @@
 AUTOMAKE_OPTIONS 	= subdir-objects
 SUBDIRS                 = . 
 
+docdir                  = ${pkgdatadir}
 doc_NAME                = sparqling-genomics
 doc_PDF                 = $(doc_NAME).pdf
 doc_HTML                = $(doc_NAME).html
