@@ -1,26 +1,24 @@
 \chapter{Web interface}
 \label{chap:web-interface}
+\index{sg-web}
 
-  The command-line programs described in chapter \ref{chap:command-line}
-  {\color{LinkGray}`\nameref{chap:command-line}'} provide data for layer
-  \texttt{0}.  With the web interface, described in this chapter, this
-  data can be further structured, analyzed, and shared.  In short, with the
-  web interface you can:
+  The command-line programs described in chapter \refer{chap:command-line}
+  provide data for layer \texttt{0}.  With the web interface described in
+  this chapter, this data can be further structured, analyzed, and shared.
+  In short, with the web interface you can:
   \begin{itemize}
-  \item Write and execute SPARQL queries;
-  \item Collaborate within ``projects'';
-  \item Browse available datasets;
+  \item Manage data and data access across RDF stores;
+  \item Write, execute, and share SPARQL queries;
   \item Explore the inner-structure of datasets.
   \end{itemize}
 
-\section{Configuring the web interface}
+\section{Setting up the web interface}
 \label{sec:configuring-sg-web}
 
   Before the web interface can be started, a few parameters have to be
   configured.  This is done through an XML file.  The following example
   displays all options, except for the authentication part, which is
-  discussed separately in section \ref{sec:authentication}
-  {\color{LinkGray}`\nameref{sec:authentication}'}.
+  discussed separately in section \refer{sec:authentication}.
 
 \begin{siderules}
 \begin{verbatim}
@@ -32,6 +30,12 @@
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
   <upload-root>/data</upload-root>
+  <system-connection>
+    <uri>http://localhost:8890/sparql-auth</uri>
+    <backend>virtuoso</backend>
+    <username>dba</username>
+    <password>dba</password>
+  </system-connection>
   <authentication>
     <!-- Either LDAP settings, or local-user authentication -->
   </authentication>
@@ -42,26 +46,26 @@
 \subsection{To fork or not to fork}
 
   The \texttt{fork} property can be either \texttt{0} to keep the
-  \texttt{sg-web} process in the foreground of your shell, or
-  \texttt{1} to run the \texttt{sg-web} process as a daemon.
+  \program{sg-web} process in the foreground of your shell, or
+  \texttt{1} to run the \program{sg-web} process as a daemon.
 
 \subsection{Bind address and port}
 
-  To enable running multiple web services on single machine, `\texttt{sg-web}'
+  To enable running multiple web services on single machine, \program{sg-web}
   can be configured to bind on an arbitrary address and an arbitrary port.
   Both IPv4 and IPv6 addresses are supported.
 
 \subsection{Developer mode}
 
-  By default, changes to code in the `\texttt{www/pages/}' directory are
-  applied when restarting `\texttt{sg-web}'.  When turning on
+  By default, changes to code in the \file{www/pages/} directory are
+  applied when restarting \program{sg-web}.  When turning on
   `\texttt{developer-mode}', pages are reloaded when accessed, which makes
   interactive development of web pages easier.
 
 \subsection{Logging and backtraces}
 \label{sec:logging}
 
-  The `\texttt{sg-web}' program keeps two logs: one for error reporting, and
+  The \program{sg-web} program keeps two logs: one for error reporting, and
   one for access and non-critical messages.  The log files can be specified
   as command-line options (\texttt{-e} for error reporting, \texttt{-d} for
   non-critical messages).
@@ -79,7 +83,7 @@
   the upload directory can be changed.  It can also be set using the
   environment variable \texttt{SG\_WEB\_UPLOAD\_ROOT}.  If none of these are
   specified, the value of the environment variable \texttt{TMPDIR} will be
-  used, or when that is not set, \texttt{/tmp} will be used.
+  used, or when that is not set, \file{/tmp} will be used.
 
 \subsection{System connection}
 
@@ -130,6 +134,7 @@
 \end{siderules}
 
 \subsection{Beacon support}
+\label{sec:beacon}
 
   Beacon is an interface to create a ``global search engine for genetic
   mutations'' \citep{beacon-network}.  It achieves this by defining a
@@ -183,13 +188,39 @@
     identifier.
   \end{itemize}
 
-\subsection{Authentication}
+\subsection{User management and authentication}
 \label{sec:authentication}
 
-  There are two ways to configure authentication.  For isolated deployments
-  or environments, preconfigured accounts can be specified.  For organizational
-  deployments, the web interface can be configured to use an LDAP server that
-  supports version 3 of the LDAP protocol.
+  The \program{sg-web} assumes every user of the system has a username
+  and a password to authenticate oneself. There are two ways to configure
+  authentication.  For isolated deployments or environments, preconfigured
+  accounts can be specified.  For organizational deployments, the web interface
+  can be configured to use an LDAP server that supports version 3 of the LDAP
+  protocol.
+
+  Regardless of the authentication mechanism, there are a few reserved users
+  that carry out a specific task within \texttt{sg-web}.  The table below
+  describes the reserved users.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Username} & \textbf{Task}\\
+      \evenrow
+      \texttt{beacon}
+      & When the BEACON API (see section \refer{sec:beacon}) is enabled, and
+      this user is added to a project, the data that is accessible by the
+      project will be exposed to the BEACON network.\\
+      \oddrow
+      \texttt{portal}
+      & When this user is added to a project, the data accessible by the
+      project is exposed in the portal (see section ...).\\
+    \end{tabularx}
+    \caption{\small Reserved users for \texttt{sg-web}.}
+    \label{table:reserved-users}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
 
 \subsubsection{Local users configuration}
 
@@ -255,7 +286,7 @@
 \end{verbatim}
 \end{siderules}
 
-\section{Running the web interface}
+\subsection{Running the web interface}
 
   The web interface can be started using the \texttt{sg-web} command:
 
@@ -266,43 +297,143 @@ sg-web --configuration-file=file.xml
 \end{siderules}
 
   $\ldots{}$ where \texttt{file.xml} is a configuration file as
-  discussed in section \ref{sec:configuring-sg-web}
-  {\color{LinkGray}`\nameref{sec:configuring-sg-web}'}.
+  discussed in section \refer{sec:configuring-sg-web}.
 
-\section{Configuring connections}
-\label{sec:configure-connections}
+\section{Managing multi-node setups with \program{sg-auth-manager}}
 
-  The first useful step is to configure a connection to a SPARQL endpoint.
+  When the knowledge graph grows beyond the capabilities of a single machine,
+  one can consider scaling out to another.  The provided solution to manage
+  multiple RDF stores while maintaining a single-point-of-entry for users
+  involves running helper program called \program{sg-auth-manager} alongside
+  a secondary RDF store.  This program communicates with \program{sg-web} to
+  manage permissions, and handle data import and export.  Figure
+  \ref{fig:sg-auth-manager} provides a schematic overview of the deployment
+  model.
 
-  \begin{figure}[h]
+  \begin{figure}[H]
     \begin{center}
-      \includegraphics[width=1.0\textwidth]{figures/web-connections.png}
+    \includegraphics[width=0.8\textwidth]{figures/sg-auth-manager-scaleout.pdf}
     \end{center}
-    \caption{The \emph{connections} page enables users to configure accessible
-      SPARQL endpoints.  Adding a connection here will provide an option to
-      query it on the \emph{query} page.}
-    \label{fig:web-connections}
+    \caption{\textit{Illustrating a three-node setup.}}
+    \label{fig:sg-auth-manager}
   \end{figure}
 
-\section{Managing projects}
+  %At least one instance of \program{sg-web} must run, so that the
+  %\program{sg-auth-manager} can verify the validity of a request that was sent
+  %to it.
+
+  The \program{sg-auth-manager} program verifies the validity of the user's session
+  token with the \program{sg-web} instance before acting as a proxy to the managed
+  RDF store.
+
+\subsection{Importing data into secondary stores}
+
+  RDF importing is handled by an API call to the instance managed by
+  \program{sg-auth-manager}.
+
+  When \program{sg-web} receives a request to import data into an
+  \program{sg-auth-manager}-managed RDF store, it passes the data directly
+  to the \program{sg-auth-manager}, which in turn handles the importing of data
+  into that store.
+
+\subsection{How \texttt{sg-web} handles downtime of a \program{sg-auth-manager}}
+
+  The \program{sg-auth-manager} registers itself with the pre-configured
+  \program{sg-web} instance upon start.  In turn, the \program{sg-web} instance
+  polls the availability of the \program{sg-auth-manager} instance every 10
+  seconds.  When the \program{sg-auth-manager} instance is unavailable for 30
+  consecutive seconds, \program{sg-web} removes the connection, and the
+  \program{sg-auth-manager} instance must re-register itself.
+
+\subsection{Federated querying of protected endpoints}
+
+  The \texttt{sg-auth-manager} provides a mechanism to execute federated queries
+  using protected endpoints by allowing the session token (see section
+  \ref{sec:tokens}) as part of the URI in the \texttt{SERVICE} specification.
+
+\section{Using the web interface}
+\label{sec:using-web-interface}
+
+  Once the web interface is up and running, a logged-in user will land
+  on the \emph{Dashboard}.
+
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-dashboard.pdf}
+    \end{center}
+    \caption{On the \emph{Dashboard}, tokens and connections can be
+      configured.}
+    \label{fig:web-dashboard}
+  \end{figure}
+
+  The dashboard provides access to two resources: \emph{session tokens}
+  and \emph{RDF stores}.  Session tokens will be discussed in section
+  \refer{sec:tokens}.  This leaves us with \emph{RDF stores} for now.
+
+\subsection{Configuring connections}
+\label{sec:configure-connections}
+
+  The web interface supports two types of connections; \emph{user-specific
+    connections} and \emph{system-wide connections}.  Users can add the
+  former using the \texttt{+} button.  Such a connection will only be visible
+  to the user who added it.  On the contrary, \emph{system-wide connections}
+  are visible to all users.
+
+  System-wide connections are therefore not configured by a user, but by a
+  program called \program{sg-auth-manager}.  This program works as a middle-man
+  between a private RDF store, and a running instance of \program{sg-web}.  It
+  uses the user management from \program{sg-web} described in section
+  \refer{sec:authentication} to allow users to access graphs assigned to one
+  of their projects.
+
+  An instance of \program{sg-auth-manager} registers itself with
+  \program{sg-web} as a system-wide connection: making itself available to
+  all users of the \program{sg-web} instance.
+
+\subsection{Projects}
 \label{sec:web-projects}
 
-  Projects are a loosely-defined way to group queries and to collaborate with
-  other users.  Projects provide a way to manage access to \emph{graphs}, and
-  to share previously-executed queries among project members.
+  The main way to access the knowledge graph, and to collaborate with other
+  users is through a \emph{project}.  Projects combine \emph{users},
+  \emph{access to data} and \emph{queries}.  The structure of a project
+  attempts to capture general phases of analyzing data: \emph{collect}
+  $\rightarrow$ \emph{structure} $\rightarrow$ \emph{query} $\rightarrow$
+  \emph{report} $\rightarrow$ \emph{automate}.
 
-  Marking a project as ``active'' indicates that queries executed using the web
-  interface relate to that project.  See also section \ref{sec:query-history}
-  {\color{LinkGray}`\nameref{sec:query-history}'}.
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-project-details.pdf}
+    \end{center}
+    \caption{The project overview page.}
+    \label{fig:web-project-overview}
+  \end{figure}
 
-\section{Executing queries}
+\subsubsection{Collecting data}
+
+  Before data can be analyzed, it must be collected and stored.  Graphs are
+  the primary place to store data.  Graphs are identified by a uniform resource
+  identifier (URI).  So before data can be imported, a project must assign a
+  graph.
+
+  After assigning a graph to the project on the \emph{Overview} page, the
+  command to load a file can be generated in three steps.
+
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-import-rdf.pdf}
+    \end{center}
+    \caption{Importing RDF in three steps}
+    \label{fig:web-import-rdf}
+  \end{figure}
+
+\subsection{Executing queries}
 
   After configuring at least one endpoint, it can be chosen on the \emph{query}
   page to execute a query against it.
 
   \begin{figure}[H]
     \begin{center}
-      \includegraphics[width=1.0\textwidth]{figures/web-query.png}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-query.pdf}
     \end{center}
     \caption{The \emph{query} page enables users to execute a query against a
       SPARQL endpoint.  The connections configured at the \emph{connections} page
@@ -316,18 +447,15 @@ sg-web --configuration-file=file.xml
   When prototyping SPARQL queries, better known as ``SPARQLing around'', it's
   good to know that all queries that yielded a result are stored in the
   \emph{query history}.  The history is shown on the \emph{query} page below the
-  query editor.
+  query editor.  Each \emph{project} has its own query history.
 
-  Each \emph{project} has its own query history, and newly executed queries are
-  added to the current \emph{active} project.
-
-\section{Explore graphs with the Exploratory}
+\subsection{Explore graphs with the Exploratory}
 
   Another utility aimed at SPARQLing around faster is the \emph{exploratory}.
 
   \begin{figure}[H]
     \begin{center}
-      \includegraphics[width=1.0\textwidth]{figures/web-exploratory.png}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-exploratory.pdf}
     \end{center}
     \caption{The \emph{exploratory} page enables users to learn about the
       structure of the triplets in a graph.}
@@ -337,14 +465,12 @@ sg-web --configuration-file=file.xml
   The exploratory uses a common pattern in RDF to help writing queries.  Its
   interface provides a four-step selection process to find \emph{predicates}
   associated with an \texttt{rdf:type}.  The programs described in chapter
-  \ref{chap:command-line} {\color{LinkGray}`\nameref{chap:command-line}'}
-  automatically add the \texttt{rdf:type} annotations.
+  \refer{chap:command-line} automatically add the \texttt{rdf:type} annotations.
 
 \subsection{Connections and graphs}
 
   The first step in finding predicates involves choosing a connection
-  (see section \ref{sec:configure-connections} {\color{LinkGray}%
-    `\nameref{sec:configure-connections}'}).  The second step involves
+  (see section \refer{sec:configure-connections}).  The second step involves
   choosing a graph.  If the connection does not support the use of graphs,
   the journey ends here.
 
@@ -353,8 +479,8 @@ sg-web --configuration-file=file.xml
   The third step looks for triplets that match the pattern \emph{subject}
   $\rightarrow$ \texttt{rdf:type} $\rightarrow$ \emph{type}.  All matches for
   \emph{type} are displayed.  For data imported with \texttt{vcf2rdf} (see
-  section \ref{sec:vcf2rdf} {\color{LinkGray}`\nameref{sec:vcf2rdf}'}), this
-  will display (among other types) the \texttt{VariantCall} type.
+  section \refer{sec:vcf2rdf}), this will display (among other types) the
+  \texttt{VariantCall} type.
 
 \subsection{Predicates}
 
@@ -375,7 +501,7 @@ sg-web --configuration-file=file.xml
   supported formats.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Content-Type} & \textbf{Example response}\\
@@ -473,7 +599,7 @@ this example for improved readability.
   with the following parameters:
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -497,6 +623,26 @@ curl --cookie-jar - http://localhost/api/login \
   The response contains a cookie with the session token.  Use this cookie in
   subsequent requests.  When authentication fails, the service will respond
   with HTTP status-code \texttt{401}.
+
+\subsection{Token-based authentication}
+\label{sec:tokens}
+
+  When automating data importing and running queries there comes the point
+  at which you have a choice: Do I put in my login credentials in a script,
+  a separate file, or anywhere else on the filesystem?  This bad security
+  practice can be overcome by using \emph{tokens}.
+
+  A token is a randomly generated string that can be used to authenticate
+  with, instead of your username and password.  Tokens are easy to create,
+  and more importantly, easy to revoke.
+
+  Generating a token can be done on the \emph{Dashboard}, or using the API call
+  \texttt{/api/new-session-token}.  Removing a token can be done on the
+  \emph{Dashboard}, or using the API call \texttt{/api/delete-token}.
+
+  After generating a token, it can be used as a cookie in API calls.  The name
+  of the cookie is always \texttt{SGSession}, regardless of the name of the
+  token.
 
 \subsection{Managing connections}
 
@@ -528,7 +674,7 @@ curl http://localhost/api/connections \
   The table below summarizes the parameters that can be used in this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -570,7 +716,7 @@ curl http://localhost/api/add-connection          \
   used in this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -581,8 +727,7 @@ curl http://localhost/api/add-connection          \
   \hypersetup{urlcolor=LinkGray}
 
   The following cURL command would remove the connection that was created in
-  section \ref{sec:api-create-connection} {\color{LinkGray}`%
-    \nameref{sec:api-create-connection}'}:
+  section \refer{sec:api-create-connection}:
 
 \begin{siderules}
 \begin{verbatim}
@@ -596,7 +741,7 @@ curl http://localhost/api/remove-connection       \
 \subsection{Managing projects}
 
   The API has various resources to manage projects, as described in
-  section \ref{sec:web-projects} {\color{LinkGray}`\nameref{sec:web-projects}'}.
+  section \refer{sec:web-projects}.
 
 \subsubsection{Retrieve a list of projects with \texttt{/api/projects}}
 
@@ -621,7 +766,7 @@ curl http://localhost/api/projects      \
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -649,7 +794,7 @@ curl http://localhost/api/add-project      \
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[H]
+  \begin{table}
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter}   & \textbf{Example} & \textbf{Required?}\\
@@ -660,9 +805,22 @@ curl http://localhost/api/add-project      \
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
+  Alternatively, instead of the full URI, the project's hash can be used.
+  In that case, the parameters are:
+
+  \hypersetup{urlcolor=black}
+  \begin{table}
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Parameter}    & \textbf{Example} & \textbf{Required?}\\
+      \evenrow
+      \texttt{project-hash} & \texttt{640c0...5a6d2} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
   The following cURL command would remove the project created in
-  \ref{sec:api-add-project} {\color{LinkGray}`%
-    \nameref{sec:api-add-project}'}:
+  \refer{sec:api-add-project}:
 
 \begin{siderules}
 \begin{verbatim}
@@ -670,53 +828,6 @@ curl http://localhost/api/remove-project      \
      --cookie "$COOKIE"                       \
      -H "Accept: application/xml"             \
      --data "project-uri=http://sparqling-genomics.org/Project/640c0...5a6d2"
-\end{verbatim}
-\end{siderules}
-
-\subsubsection{Retrieve the active project with \texttt{/api/active-project}}
-
-  This resource expects a \texttt{GET} request and needs no parameters.
-  It returns a record of the current active project.
-
-  The following cURL command retrieves the active project record as
-  S-expression:
-
-\begin{siderules}
-\begin{verbatim}
-curl http://localhost/api/active-project      \
-     --cookie "$COOKIE"                       \
-     -H "Accept: application/s-expression"
-\end{verbatim}
-\end{siderules}
-
-\subsubsection{Make a project active with \texttt{/api/set-as-active-project}}
-
-  The \texttt{/api/set-as-active-project} call can be used to change the
-  ``active project''.  This resource expects a \texttt{POST} request with
-  a \texttt{project-uri} as its parameter.  The \texttt{project-uri} can be
-  obtained from a call to \texttt{/api/projects}.
-
-  The following table summarizes the parameters that can be used with this call.
-
-  \hypersetup{urlcolor=black}
-  \begin{table}[H]
-    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
-      \headrow
-      \textbf{Parameter}   & \textbf{Example} & \textbf{Required?}\\
-      \evenrow
-      \texttt{project-uri} & \texttt{http://example/project} & Yes\\
-    \end{tabularx}
-  \end{table}
-  \hypersetup{urlcolor=LinkGray}
-
-  The following cURL command changes the \emph{active project}:
-
-\begin{siderules}
-\begin{verbatim}
-curl http://localhost/api/set-as-active-project \
-     --cookie "$COOKIE"                         \
-     -H "Accept: application/xml"               \
-     --data "project-uri=${PROJECT_URI}"
 \end{verbatim}
 \end{siderules}
 
@@ -728,6 +839,8 @@ curl http://localhost/api/set-as-active-project \
   \begin{itemize}
     \item{\texttt{project-uri}: This can be obtained from a call to
       \texttt{/api/projects}.}
+    \item{\texttt{connection}: The name of a connection obtained from
+      a call to \texttt{/api/connections}.}
     \item{\texttt{graph-uri}: The graph URI to assign.}
   \end{itemize}
 
@@ -739,6 +852,7 @@ curl -X POST                                               \
      -H "Content-Type: application/json"                   \
      --cookie "SGSession=..."                              \
      --data '{ "project-uri": "http://the-project-uri",    \
+               "connection": "wikidata",                   \
                "graph-uri": "http://the-new-graph-name" }' \
      http://localhost/api/assign-graph
 \end{verbatim}

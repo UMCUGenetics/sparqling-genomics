@@ -27,20 +27,24 @@ $(doc_PDF):
 	@printf "Generated $(doc_PDF).\n"
 endif
 
-EXTRA_DIST              = $(doc_TEX) $(doc_STYLE) 	\
-			  version.tex			\
-			  introduction.tex		\
-			  command-line-tools.tex	\
-			  web-interface.tex		\
-			  information-management.tex	\
-			  information-retrieval.tex	\
-			  implemented-ontologies.tex	\
-			  knowledge-graph.tex		\
-			  programming-with-sparql.tex	\
-			  figures/logo.pdf		\
-			  figures/logo.png		\
-			  figures/web-connections.png	\
-			  figures/web-query.png
+EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
+                          command-line-tools.tex               \
+                          figures/logo.pdf                     \
+                          figures/logo.png                     \
+                          figures/sg-auth-manager-scaleout.pdf \
+                          figures/sg-web-dashboard.pdf         \
+                          figures/sg-web-exploratory.pdf       \
+                          figures/sg-web-import-rdf.pdf        \
+                          figures/sg-web-project-details.pdf   \
+                          figures/sg-web-query.pdf             \
+                          implemented-ontologies.tex           \
+                          information-management.tex           \
+                          information-retrieval.tex            \
+                          introduction.tex                     \
+                          knowledge-graph.tex                  \
+                          programming-with-sparql.tex          \
+                          version.tex                          \
+                          web-interface.tex
 
 docs-clean:
 	$(RM) -rf $(doc_NAME).aux			\
