@@ -593,10 +593,10 @@ folder2rdf --input-directory=/vcf-data   \
     \label{table:folder2rdf-ontology}
   \end{table}
 
-\section{Importing data with \texttt{curl}}
+\section{Importing data with \program{curl}}
 \label{sec:curl}
 
-  To load RDF data into a triple store (our database), we can use \texttt{curl}.
+  To load RDF data into a triple store (our database), we can use \program{curl}.
 
   The triple stores typically store data in \emph{graphs}.  One triple store
   can host multiple graphs, so we must tell the triple store which graph we
@@ -638,7 +638,7 @@ curl -X POST                                                 \
 
 \subsubsection{4store example}
 
-Similar to the Virtuoso example, for \texttt{4store} the command looks like
+Similar to the Virtuoso example, for \program{4store} the command looks like
 this:
 
 \begin{siderules}
@@ -650,12 +650,12 @@ curl -X POST                                                 \
 \end{verbatim}
 \end{siderules}
 
-Notice that \texttt{4store} does not provide an authentication mechanism.
+Notice that \program{4store} does not provide an authentication mechanism.
 
 \subsubsection{Sending \texttt{gzip}-compressed data}
 
-  When the RDF file is compressed with \texttt{gzip}, extra HTTP headers must
-  be added to the \texttt{curl} command:
+  When the RDF file is compressed with \program{gzip}, extra HTTP headers must
+  be added to the \program{curl} command:
 \begin{siderules}
 \begin{verbatim}
 curl -X POST                                                 \
