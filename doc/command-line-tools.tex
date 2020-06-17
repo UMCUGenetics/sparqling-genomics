@@ -188,7 +188,7 @@ bam2rdf --help
 \label{sec:table2rdf}
 
   Data that can be represented as a table, like comma-separated values (CSV)
-  or BED files, can be imported using \texttt{table2rdf}.  The column headers
+  or BED files, can be imported using \program{table2rdf}.  The column headers
   are used as predicates, and each row gets a unique row ID.  Non-alphanumeric
   characters in the header line are replaced by underscores, and all characters
   are replaced by their lowercase equivalent to make a consistent scheme for
@@ -198,12 +198,12 @@ bam2rdf --help
   \texttt{-{}-header-line} argument.  When using this command-line argument, the
   delimiter must be a semicolon (\texttt{;}).
 
-  The program can also read files compressed with \texttt{gzip}.
+  The program can also read files compressed with \program{gzip}.
 
 \subsection{Transforming objects}
 
-  Unfortunately, \texttt{table2rdf} knows nothing about ontologies.  So when
-  the input table has a column ``Chromosome'', by default \texttt{table2rdf}
+  Unfortunately, \program{table2rdf} knows nothing about ontologies.  So when
+  the input table has a column ``Chromosome'', by default \program{table2rdf}
   will treat these cells as literal values (as a \texttt{string}).  A
   \emph{transformer} can be used to express a column as an \emph{individual} in
   RDF.  An example might explain this best.
@@ -218,7 +218,7 @@ chrMT   11000
 \end{verbatim}
 \end{siderules}
 
-  Running \texttt{table2rdf} with its default settings will produce:
+  Running \program{table2rdf} with its default settings will produce:
 
 \begin{siderules}
 \begin{verbatim}
@@ -243,7 +243,7 @@ $ table2rdf -i test.tsv
   When we know that the data in a column refers to items in an ontology, like
   chromosomes defined in
   \href{http://rdf.biosemantics.org/data/genomeassemblies/hg19}%
-  {<http://rdf.biosemantics.org/data/genomeassemblies/hg19>}, \texttt{table2rdf}
+  {<http://rdf.biosemantics.org/data/genomeassemblies/hg19>}, \program{table2rdf}
   can be told to use that ontology to describe that column.
   \end{sloppypar}
 
@@ -370,40 +370,30 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";"
   Notice how the \texttt{col:filter} predicate now describes a
   connection to four objects instead of one.
 
-\subsection{Knowledge extracted by \texttt{table2rdf}}
+\subsection{Knowledge extracted by \program{table2rdf}}
 
-  The \texttt{table2rdf} program extracts all fields in the table.  In addition
-  to the knowledge from the table file, \texttt{table2rdf} stores the following
+  The \program{table2rdf} program extracts all fields in the table.  In addition
+  to the knowledge from the table file, \program{table2rdf} stores the following
   metadata:
 
     \begin{table}[H]
       \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      \textbf{Subject}     & \textbf{Predicate}    & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
+      \origin{\emph{MD5}}  & \rdf{type}            & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating
         file.\\
       \oddrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
-      \emph{filename}
+      \origin{\emph{MD5}}  & \texttt{:filename}    & \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:convertedBy} &
-      \texttt{:table2rdf}
+      \origin{\emph{MD5}}  & \texttt{:convertedBy} & \sgv{table2rdf}
       & This triple states that the file was converted with
-        \texttt{table2rdf}.\\
-      \oddrow
-      \texttt{:Sample/}\emph{sample name} & \texttt{rdf:type} & \texttt{:Sample}
-      & This states that there is a sample with \emph{sample name}.\\
-      \evenrow
-      \texttt{:Sample/}\emph{sample name} & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{identifier}
-      & This triple states that a sample can be found in a file identified by
-      the \texttt{:Origin} with a specific identifier.\\
+        \program{table2rdf}.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns provided by \texttt{table2rdf}.}
+    \caption{\small The additional triple patterns provided by \program{table2rdf}.}
     \label{table:table2rdf-ontology}
   \end{table}
 
@@ -424,15 +414,24 @@ sample:grch37
 
 \subsection{Example usage}
 
+The following command invocation will produce RDF in the \texttt{ntriples}
+format:
 \begin{siderules}
 \begin{verbatim}
-table2rdf -i /path/to/my/table.tsv > /path/to/my/table.ttl
+table2rdf -i /path/to/my/table.tsv > /path/to/my/table.n3
 \end{verbatim}
 \end{siderules}
 
-\section{Converting MySQL data to RDF with \texttt{table2rdf}}
+To get a complete overview of options for this program, use:
+\begin{siderules}
+\begin{verbatim}
+table2rdf --help
+\end{verbatim}
+\end{siderules}
 
-  Relational databases store data in tables.  With \texttt{table2rdf} we
+\section{Converting MySQL data to RDF with \program{table2rdf}}
+
+  Relational databases store data in tables.  With \program{table2rdf} we
   can oftentimes convert the data in a single go to RDF triples.  The following
   example extracts the \texttt{regions} table from a MySQL server in a database
   called \texttt{example}.
@@ -440,84 +439,15 @@ table2rdf -i /path/to/my/table.tsv > /path/to/my/table.ttl
 \begin{siderules}
 \begin{verbatim}
 mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
-      --batch | table2rdf --stdin -O ntriples > regions.n3
+      --batch | table2rdf --stdin > regions.n3
 \end{verbatim}
 \end{siderules}
 
-  The \texttt{mysql} command outputs the table in tab-delimited form when using
+  The \program{mysql} command outputs the table in tab-delimited form when using
   the \texttt{-{}-batch} argument, which is the default input type for
-  \texttt{table2rdf}.  To accept input from a UNIX pipe \texttt{table2rdf} must
+  \program{table2rdf}.  To accept input from a UNIX pipe \program{table2rdf} must
   be invoked with the \texttt{-{}-stdin} argument.
 
-%% \section{Preparing sequence data with \texttt{fasta2rdf}}
-%% \label{sec:fasta2rdf}
-
-%%   Resources like pre-composed reference genomes are often distributed in the
-%%   FASTA file format.  The \texttt{fasta2rdf} program generates RDF that
-%%   describes each nucleotide, its position (where the first nucleotide is at
-%%   position 1, not 0), and to which sequence the nucleotide belongs.
-
-%%   Its main aim is to describe a sequence to allow for querying the sequence
-%%   context of a variant.
-
-%% \subsection{Knowledge extracted by \texttt{fasta2rdf}}
-
-%%   The \texttt{fasta2rdf} program extracts a nucleotide and describes it along
-%%   with its position in the sequence.
-
-%%   In addition to the knowledge from the FASTA file, \texttt{fasta2rdf} stores the
-%%   following metadata:
-
-%%   \begin{table}[H]
-%%     \begin{tabularx}{\textwidth}{ l l l L }
-%%       \headrow
-%%       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
-%%       & \textbf{Description}\\
-%%       \evenrow
-%%       :Origin & rdf:type & owl:Class
-%%       & \texttt{:Origin} is used to identify a data origin (which
-%%       is usually a file).\\
-%%       \oddrow
-%%       :Sample & rdf:type & owl:Class
-%%       & \texttt{:Sample} is used to identify a sample name.\\
-%%       \evenrow
-%%       :Sequence & rdf:type & owl:Class
-%%       & \texttt{:Sequence} is used to identify a sequence within the file.
-%%       This is typically a chromosome or contig\\
-%%       \oddrow
-%%       :filename & rdf:type & xsd:string
-%%       & \texttt{:filename} contains the path to the file that \texttt{:Origin}
-%%       represents.\\
-%%       \evenrow
-%%       :convertedBy & rdf:type & owl:AnnotationProperty
-%%       & \texttt{:convertedBy} is used to identify the program that performed
-%%       the VCF->RDF conversion.\\
-%%       \oddrow
-%%       :foundIn & rdf:type & owl:AnnotationProperty
-%%       & \texttt{:foundIn} relates the \texttt{:Origin} to a \texttt{:Sample}.\\
-%%     \end{tabularx}
-%%     \caption{\small The additional triple patterns described by \texttt{fasta2rdf}.}
-%%     \label{table:fasta2rdf-ontology}
-%%   \end{table}
-
-%%   The following snippet is an example of the extra data in Turtle-format:
-
-%%   \begin{siderules}
-%% \begin{verbatim}
-%% <http://sparqling-genomics/fasta2rdf/14f2b609b>
-%%     :convertedBy :vcf2rdf ;
-%%     :filename "grch37.fasta.gz"^^xsd:string ;
-%%     a :Origin .
-
-%% sample:grch37
-%%     :foundIn <http://sparqling-genomics/fasta2rdf/14f2b609b3> ;
-%%     a :Sample .
-
-%% sample:CLONE_TUMOR
-%%     :foundIn <http://sparqling-genomics/fasta2rdf/14f2b609b3> ;
-%%     a :Sample .
-%% \end{verbatim}
-%% \end{siderules}
 
 \section{Extracting knowledge from folders with \texttt{folder2rdf}}
 \label{sec:folder2rdf}
