@@ -43,9 +43,9 @@
       \evenrow
       \sample{\emph{name}} & \sg{foundIn}     & \origin{\emph{MD5}}
       & This triple states that a sample can be found in a file identified by
-      the \texttt{:Origin} with a specific identifier.\\
+      the \sg{Origin} with a specific identifier.\\
       \oddrow
-      \origin{\emph{MD5}}  & \sg{convertedBy} & \sg{vcf2rdf-0.99.11-dev}
+      \origin{\emph{MD5}}  & \sg{convertedBy} & \sgv{vcf2rdf}
       & This triple states that the file was converted with \program{vcf2rdf}.\\
     \end{tabularx}
     \caption{\small The additional triple patterns provided by \program{vcf2rdf}.}
@@ -121,65 +121,69 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
 \end{verbatim}
 \end{siderules}
 
-\section{Preparing sequence alignment maps with \texttt{bam2rdf}}
+\section{Preparing sequence alignment maps with \program{bam2rdf}}
 
-  Aligning reads from a DNA sequencer to a predetermined \emph{reference genome}
-  is a task performed by \emph{read mapper} programs.  Oftentimes, the output
-  produced by these programs are in the \emph{sequence alignment map} (SAM) format,
-  or its equivalent \emph{binary alignment map} (BAM) format.  The \texttt{bam2rdf}
-  program can read data in either format.
+  When DNA sequencing reads are aligned to a predetermined \emph{reference
+  genome}, it's often formatted in the \emph{sequence alignment map} (SAM)
+  format, its equivalent \emph{binary alignment map} (BAM) format, or its
+  equivalent CRAM format.  The \program{bam2rdf} program can read data in all
+  three formats.
 
-\subsection{Knowledge extracted by \texttt{bam2rdf}}
+\subsection{Knowledge extracted by \program{bam2rdf}}
 
-  The current version of \texttt{bam2rdf} merely extracts information from the
+  The current version of \program{bam2rdf} merely extracts information from the
   alignment map header.
 
-  \begin{table}[H]
-    \begin{tabularx}{\linewidth}{>{\hsize=0.2\hsize}X
-        !{\VRule[-1pt]}>{\hsize=0.15\hsize}X
-        !{\VRule[-1pt]}>{\hsize=0.35\hsize}L
+  \begin{table}[ht]
+    \begin{tabularx}{\linewidth}{>{\hsize=0.18\hsize}X
+        !{\VRule[-1pt]}>{\hsize=0.20\hsize}X
+        !{\VRule[-1pt]}>{\hsize=0.32\hsize}L
         !{\VRule[-1pt]}>{\hsize=0.30\hsize}L}
-      %\begin{tabularx}{\textwidth}{L l L L }
       \headrow
       \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
+      \origin{\emph{MD5}} & \rdf{type}    & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{:filename} &
-      \emph{filename}
+      \origin{\emph{MD5}} & \sg{filename} &  \emph{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \texttt{:bam2rdf/}\emph{unique identifier}
-      & \texttt{rdf:type} & One of: \texttt{:bam2rdf/HeaderItem},
-      \texttt{:bam2rdf/ReferenceSequence}, \texttt{:bam2rdf/ReadGroup},
-      \texttt{:bam2rdf/Program}, \texttt{:bam2rdf/Comment}.
+      \origin{\emph{MD5}} & \rdf{type}    & One of: \bamrdf{HeaderItem},
+      \bamrdf{ReferenceSequence}, \bamrdf{ReadGroup}, \bamrdf{Program},
+      \bamrdf{Comment}.
       & The \emph{objects} correspond to the various types of header lines that
       can occur in the SAM format.\\
       \oddrow
-      \texttt{:bam2rdf/}\emph{unique identifier}
-      & \texttt{:foundIn}
-      & \texttt{:Origin/}\emph{identifier}
-      & This triple states that a header line can be found in a file identified
-      by the \texttt{:Origin} with a specific identifier.\\
-      \evenrow
-      \texttt{:bam2rdf/}\emph{unique identifier}
-      & \emph{type class}\texttt{/}\emph{key}
-      & Literal value.
+      \origin{\emph{MD5}} & \bamrdf{\emph{type}/\emph{key}} & Literal value.
       & Each header field consists of a key/value pair.  The key is used as
       predicate.\\
       \oddrow
-      \texttt{:Origin/}\emph{identifier}
-      & \texttt{:convertedBy}
-      & \texttt{:bam2rdf}
-      & This triple states that the file was converted with \texttt{bam2rdf}.\\
+      \origin{\emph{MD5}} & \sg{convertedBy} & \sgv{bam2rdf}
+      & This triple states that the file was converted with \program{bam2rdf}.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns provided by \texttt{bam2rdf}.}
+    \caption{\small The additional triple patterns provided by \program{bam2rdf}.}
     \label{table:bam2rdf-ontology}
   \end{table}
 
-\section{Preparing tabular data with \texttt{table2rdf}}
+\subsection{Example usage}
+
+The following command invocation will produce RDF in the \texttt{ntriples}
+format:
+\begin{siderules}
+\begin{verbatim}
+bam2rdf -i /path/to/my/sequencing_data.bam > /path/to/my/sequencing_data.n3
+\end{verbatim}
+\end{siderules}
+
+To get a complete overview of options for this program, use:
+\begin{siderules}
+\begin{verbatim}
+bam2rdf --help
+\end{verbatim}
+\end{siderules}
+
+\section{Preparing tabular data with \program{table2rdf}}
 \label{sec:table2rdf}
 
   Data that can be represented as a table, like comma-separated values (CSV)
