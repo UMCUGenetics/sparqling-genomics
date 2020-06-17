@@ -123,11 +123,11 @@ main (int argc, char **argv)
       stmt = raptor_new_statement (config.raptor_world);
       stmt->subject   = raptor_term_copy (node_filename);
       stmt->predicate = term (PREFIX_MASTER, "convertedBy");
-      stmt->object    = term (PREFIX_MASTER, "bam2rdf");
+      stmt->object    = term (PREFIX_MASTER, "bam2rdf-" VERSION);
       register_statement (stmt);
 
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_MASTER, "bam2rdf");
+      stmt->subject   = term (PREFIX_MASTER, "bam2rdf-" VERSION);
       stmt->predicate = term (PREFIX_OWL, "#versionInfo");
       stmt->object    = literal (VERSION, XSD_STRING);
       register_statement (stmt);

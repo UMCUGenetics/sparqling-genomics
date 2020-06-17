@@ -25,20 +25,17 @@
 
 #include "master-ontology.h"
 
-#define URI_BIOSEMANTICS  "http://rdf.biosemantics.org"
-#define URI_ASSEMBLIES    URI_BIOSEMANTICS "/data/genomeassemblies"
 #define URI_ONTOLOGY      "sg://" VERSION "/bam2rdf"
 
 /* These string constants can be used to concatenate strings at compile-time. */
 #define STR_PREFIX_BASE                URI_ONTOLOGY "/"
-#define STR_PREFIX_BAM_HEADER          URI_ONTOLOGY "/HeaderItem/"
-#define STR_PREFIX_BAM_REFERENCE_SEQ   URI_ONTOLOGY "/ReferenceSequence/"
-#define STR_PREFIX_BAM_READ_GROUP      URI_ONTOLOGY "/ReadGroup/"
-#define STR_PREFIX_BAM_PROGRAM         URI_ONTOLOGY "/Program/"
-#define STR_PREFIX_BAM_COMMENT         URI_ONTOLOGY "/Comment/"
-#define STR_PREFIX_BAM_READ            URI_ONTOLOGY "/SequencingRead/"
-#define STR_PREFIX_SEQUENCE            URI_ONTOLOGY "/Sequence/"
-#define STR_PREFIX_FALDO               "http://biohackathon.org/resource/faldo#"
+#define STR_PREFIX_BAM_HEADER          URI_ONTOLOGY "/header/"
+#define STR_PREFIX_BAM_REFERENCE_SEQ   URI_ONTOLOGY "/refseq/"
+#define STR_PREFIX_BAM_READ_GROUP      URI_ONTOLOGY "/readgroup/"
+#define STR_PREFIX_BAM_PROGRAM         URI_ONTOLOGY "/program/"
+#define STR_PREFIX_BAM_COMMENT         URI_ONTOLOGY "/comment/"
+#define STR_PREFIX_BAM_READ            URI_ONTOLOGY "/read/"
+#define STR_PREFIX_SEQUENCE            URI_ONTOLOGY "/sequence/"
 
 typedef enum
 {
@@ -53,10 +50,8 @@ typedef enum
   PREFIX_SEQUENCE,
   PREFIX_ORIGIN,
   PREFIX_RDF,
-  PREFIX_RDFS,
   PREFIX_OWL,
   PREFIX_XSD,
-  PREFIX_FALDO,
   PREFIX_UNKNOWN
 } ontology_prefix;
 

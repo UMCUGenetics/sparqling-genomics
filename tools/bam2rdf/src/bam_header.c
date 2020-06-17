@@ -83,13 +83,13 @@ process_header_line (char *line, const unsigned char *origin)
     header_id = config.header_id_buf;
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = term (PREFIX_BASE, header_id);
+  stmt->subject   = term (PREFIX_ORIGIN, (char *)header_id);
   stmt->predicate = term (PREFIX_RDF, "#type");
   stmt->object    = class (ont_class);
-  register_statement (stmt);
+  register_statement_reuse_object (stmt);
 
   stmt = raptor_new_statement (config.raptor_world);
-  stmt->subject   = term (PREFIX_BASE, (char *)header_id);
+  stmt->subject   = term (PREFIX_ORIGIN, (char *)header_id);
   stmt->predicate = term (PREFIX_MASTER, "originatedFrom");
   stmt->object    = term (PREFIX_ORIGIN, (char *)origin);
   register_statement (stmt);
@@ -117,7 +117,7 @@ process_header_line (char *line, const unsigned char *origin)
 
           /* Add the RDF statements. */
           stmt = raptor_new_statement (config.raptor_world);
-          stmt->subject   = term (PREFIX_BASE, (char *)header_id);
+          stmt->subject   = term (PREFIX_ORIGIN, (char *)header_id);
           stmt->predicate = term (ont_prefix, key);
 
           /* Most values should be interpreted as strings, but the following
@@ -133,7 +133,7 @@ process_header_line (char *line, const unsigned char *origin)
   else if (tab != NULL)
     {
       stmt = raptor_new_statement (config.raptor_world);
-      stmt->subject   = term (PREFIX_BASE, (char *)header_id);
+      stmt->subject   = term (PREFIX_ORIGIN, (char *)header_id);
       stmt->predicate = term (PREFIX_BAM_COMMENT, "text");
       stmt->object    = literal (tab + 1, XSD_STRING);
     }

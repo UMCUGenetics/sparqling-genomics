@@ -84,7 +84,7 @@ generate_read_id (const unsigned char *origin, char *read_id)
   int32_t bytes_written;
   bytes_written = snprintf (read_id,
                             HASH_ALGORITHM_PRINT_LENGTH + 16,
-                            "%s@%u",
+                            "%s@R%u",
                             origin,
                             config.non_unique_read_counter);
 
@@ -98,7 +98,7 @@ generate_header_id (const unsigned char *origin, char *header_id)
   int32_t bytes_written;
   bytes_written = snprintf (header_id,
                             HASH_ALGORITHM_PRINT_LENGTH + 16,
-                            "%s@%u",
+                            "%s@H%u",
                             origin,
                             config.header_counter);
 

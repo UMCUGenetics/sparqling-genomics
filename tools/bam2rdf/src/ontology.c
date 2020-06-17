@@ -56,7 +56,7 @@ ontology_init (ontology_t **ontology_ptr)
   ontology_t *ontology = calloc (1, sizeof (ontology_t));
   if (!ontology) return false;
 
-  ontology->prefixes_length = 15;
+  ontology->prefixes_length = 13;
   ontology->prefixes = calloc (ontology->prefixes_length, sizeof (raptor_uri*));
 
   register_prefix (PREFIX_BASE,              STR_PREFIX_BASE,              "");
@@ -70,10 +70,8 @@ ontology_init (ontology_t **ontology_ptr)
   register_prefix (PREFIX_BAM_READ,          STR_PREFIX_BAM_READ,          "read");
   register_prefix (PREFIX_SEQUENCE,          STR_PREFIX_SEQUENCE,          "seq");
   register_prefix (PREFIX_RDF,               STR_PREFIX_RDF,               "rdf");
-  register_prefix (PREFIX_RDFS,              STR_PREFIX_RDFS,              "rdfs");
   register_prefix (PREFIX_XSD,               STR_PREFIX_XSD,               "xsd");
   register_prefix (PREFIX_OWL,               STR_PREFIX_OWL,               "owl");
-  register_prefix (PREFIX_FALDO,             STR_PREFIX_FALDO,             "faldo");
 
   int32_t initialized_prefixes = 0;
   for (; initialized_prefixes < ontology->prefixes_length; initialized_prefixes++)
