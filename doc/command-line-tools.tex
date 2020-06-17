@@ -132,7 +132,8 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
 \subsection{Knowledge extracted by \program{bam2rdf}}
 
   The current version of \program{bam2rdf} merely extracts information from the
-  alignment map header.
+  alignment map header.  In addition to the knowledge from the file, it also
+  produces the following metadata:
 
   \begin{table}[ht]
     \begin{tabularx}{\linewidth}{>{\hsize=0.18\hsize}X
