@@ -1,20 +1,18 @@
 \chapter{Information retrieval with SPARQL}
 \label{chap:information-retrieval}
 
-  In section \ref{sec:vcf2rdf} {\color{LinkGray}`%
-  \nameref{sec:vcf2rdf}'} we discussed how to extract triples from common data
-  formats.  In section \ref{sec:curl} {\color{LinkGray}`\nameref{sec:curl}'} we
-  discussed how we could insert those triples into a SPARQL endpoint.
+  In section \refer{sec:vcf2rdf} we discussed how to extract triples from
+  common data formats.  In section \refer{sec:curl} we discussed how we
+  could insert those triples into a SPARQL endpoint.
 
   In this section, we will start exploring the inserted data by using a
   query language called \emph{SPARQL}.  Understanding SPARQL will be crucial
   for the integration in our own programs or scripts --- something we will
-  discuss in chapter \ref{chap:programming} {\color{LinkGray}%
-  `\nameref{chap:programming}'}.
+  discuss in chapter \refer{chap:programming}.
 
   The queries in the remainder of this chapter can be readily copy/pasted into
-  the query editor of the web interface (see chapter \ref{chap:web-interface}
-  {\color{LinkGray}`\nameref{chap:web-interface}'}).
+  the query editor of the web interface (see chapter
+  \refer{chap:web-interface}).
 
 \section{Local querying}
 
@@ -27,8 +25,7 @@
   Combining information from multiple SPARQL endpoints is called \emph{federated
     querying}.
 
-  Federated querying is discussed in section \ref{sec:federated-querying}
-  {\color{LinkGray}`\nameref{sec:federated-querying}'}.
+  Federated querying is discussed in section \refer{sec:federated-querying}.
 
 \subsection{Listing non-empty graphs}
 \label{sec:non-empty-graphs}
@@ -86,8 +83,7 @@ WHERE { ?s ?p ?o }
 \end{siderules}
 
   The \texttt{graph-name} must be one of the graphs returned by the query from
-  section \ref{sec:non-empty-graphs} {\color{LinkGray}%
-    `\nameref{sec:non-empty-graphs}'}.
+  section \refer{sec:non-empty-graphs}.
 
   Without the \texttt{FROM} clause, the RDF store will search in all graphs.
   We can repeat the \texttt{FROM} clause to query over multiple graphs in the
@@ -102,9 +98,8 @@ WHERE { ?s ?p ?o }
 \end{verbatim}
 \end{siderules}
 
-  In section \ref{sec:federated-querying} {\color{LinkGray}%
-  `\nameref{sec:federated-querying}'} we will look at querying over multiple
-  RDF stores.
+  In section \refer{sec:federated-querying} we will look at querying over
+  multiple RDF stores.
 
 \subsection{Exploring the structure of knowledge in a graph}
 
