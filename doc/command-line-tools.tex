@@ -448,6 +448,50 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
   \program{table2rdf}.  To accept input from a UNIX pipe \program{table2rdf} must
   be invoked with the \texttt{-{}-stdin} argument.
 
+\section{Preparing XML data with \program{xml2rdf}}
+\label{sec:xml2rdf}
+
+  Data encoded in the EXtensible Markup Language (XML) can be converted to RDF
+  in a naive way by \program{xml2rdf}.  A child element refers to its parent with
+  the \sg{isPartOf} predicate.
+
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
+      \headrow
+      \textbf{Subject}    & \textbf{Predicate}    & \textbf{Object}
+      & \textbf{Description}\\
+      \evenrow
+      \origin{\emph{MD5}} & \rdf{type}            & \sg{Origin}
+      & This defines a uniquely identifiable reference to the originating
+        file.\\
+      \oddrow
+      \origin{\emph{MD5}} & \sg{filename}         & \emph{filename}
+      & This triple states the originating filename.\\
+      \evenrow
+      \origin{\emph{MD5}} & \sg{convertedBy}      & \sgv{xml2rdf}
+      & This triple states that the file was converted with
+        \program{xml2rdf}.\\
+    \end{tabularx}
+    \caption{\small The triplet patterns used by \program{xml2rdf}.}
+    \label{table:xml2rdf-ontology}
+  \end{table}
+
+\subsection{Example usage}
+The following command invocation will produce RDF in the \texttt{ntriples}
+format:
+\begin{siderules}
+\begin{verbatim}
+xml2rdf -i /path/to/my/data.xml > /path/to/my/data.n3
+\end{verbatim}
+\end{siderules}
+
+To get a complete overview of options for this program, use:
+\begin{siderules}
+\begin{verbatim}
+xml2rdf --help
+\end{verbatim}
+\end{siderules}
+
 
 \section{Extracting knowledge from folders with \texttt{folder2rdf}}
 \label{sec:folder2rdf}
