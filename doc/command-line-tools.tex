@@ -492,6 +492,57 @@ xml2rdf --help
 \end{verbatim}
 \end{siderules}
 
+\section{Preparing JSON data with \program{json2rdf}}
+\label{sec:json2rdf}
+
+  The JavaScript Object Notation (JSON) has become a popular format
+  for encoding information from and to web APIs.  With \program{json2rdf},
+  a layer 0 representation in RDF can be created.
+
+\subsection{Knowledge extracted by \program{json2rdf}}
+
+  Each key-value pair is translated into \triplet{Unique ID}{key}{value}.
+  When the value of a pair contains a structure with more key-value pairs,
+  the triplet's value refers to the \texttt{unique-id} assigned to that
+  structure.  In addition to the key-value pairs, \program{json2rdf} stores
+  the following metadata:
+
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
+      \headrow
+      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      & \textbf{Description}\\
+      \evenrow
+      \origin{\emph{MD5}}  & \rdf{type}       & \sg{Origin}
+      & This defines a uniquely identifiable reference to the originating file.\\
+      \oddrow
+      \origin{\emph{MD5}}  & \sg{filename}    & \emph{filename}
+      & This triple states the originating filename.\\
+      \evenrow
+      \origin{\emph{MD5}} & \sg{convertedBy}  & \sgv{json2rdf}
+      & This triple states that the file was converted with
+        \program{json2rdf}.\\
+    \end{tabularx}
+    \caption{\small The triplet patterns used by \program{xml2rdf}.}
+    \label{table:json2rdf-ontology}
+  \end{table}
+
+\subsection{Example usage}
+
+The following command invocation will produce RDF in the \texttt{ntriples}
+format:
+\begin{siderules}
+\begin{verbatim}
+json2rdf -i /path/to/my/data.json > /path/to/my/data.n3
+\end{verbatim}
+\end{siderules}
+
+To get a complete overview of options for this program, use:
+\begin{siderules}
+\begin{verbatim}
+json2rdf --help
+\end{verbatim}
+\end{siderules}
 
 \section{Extracting knowledge from folders with \texttt{folder2rdf}}
 \label{sec:folder2rdf}
