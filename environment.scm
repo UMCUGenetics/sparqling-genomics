@@ -1,4 +1,4 @@
-;; Copyright (C) 2017, 2018  Roel Janssen
+;; Copyright (C) 2017, 2018, 2019, 2020  Roel Janssen
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
              ((guix licenses) #:prefix license:)
              (gnu packages autotools)
              (gnu packages bioinformatics)
+             (gnu packages certs)
              (gnu packages compression)
              (gnu packages curl)
              (gnu packages gnupg)
@@ -76,12 +77,15 @@
                                    guile-version "/site-ccache:"
                                    (getenv "GUILE_LOAD_COMPILED_PATH")))
                    (web-root (string-append
-                              out "/share/sparqling-genomics/web")))
+                              out "/share/sparqling-genomics/web"))
+                   (certs (assoc-ref inputs "nss-certs"))
+                   (certs-dir (string-append certs "/etc/ssl/certs")))
               (wrap-program (string-append out "/bin/sg-web")
                 `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
                 `("GUILE_LOAD_COMPILED_PATH" ":" prefix
                   (,guile-load-compiled-path))
-                `("SG_WEB_ROOT" ":" prefix (,web-root)))))))))
+                `("SG_WEB_ROOT" ":" prefix (,web-root))
+                `("SSL_CERT_DIR" ":" prefix (,certs-dir)))))))))
    (native-inputs
     `(("texlive" ,texlive)
       ("autoconf" ,autoconf)
@@ -92,6 +96,7 @@
       ("htslib" ,htslib)
       ("gnutls" ,gnutls)
       ("libxml2" ,libxml2)
+      ("nss-certs" ,nss-certs)
       ("openldap" ,openldap)
       ("raptor2" ,raptor2)
       ("xz" ,xz)
