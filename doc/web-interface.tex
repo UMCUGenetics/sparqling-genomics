@@ -896,3 +896,46 @@ curl http://localhost/api/queries \
      -H "Accept: application/xml"
 \end{verbatim}
 \end{siderules}
+
+\subsubsection{Toggle query marks}
+
+\begin{sloppypar}
+  Previously executed queries can be marked as \emph{important}, which means
+  they will survive a call to \texttt{/api/queries-remove-unmarked}.
+\end{sloppypar}
+
+  The following example based on cURL shows how to mark a query as
+  \emph{important}:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "query-id": "...", "state": true }'
+     http://localhost/api/query-mark
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Remove unmarked queries}
+
+  Removing unmarked queries for a project can be done by sending a
+  \texttt{POST} request to \texttt{/api/queries-remove-unmarked}.
+  The required parameters are:
+
+  \begin{itemize}
+    \item{\texttt{project-uri}: This can be obtained from a call to
+      \texttt{/api/projects}.}
+  \end{itemize}
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri" }'
+     http://localhost/api/queries-remove-unmarked
+\end{verbatim}
+\end{siderules}
