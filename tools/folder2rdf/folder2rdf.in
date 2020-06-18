@@ -125,15 +125,15 @@
       (() #t))))
 
 ;; ---------------------------------------------------------------------------
-;; SHA256 HASHING FUNCTIONS
+;; MD5 HASHING FUNCTIONS
 ;; ---------------------------------------------------------------------------
 ;;
-;; The following section implements a SHA256 hashing function by using the
-;; external 'sha256sum' program.
+;; The following section implements a MD5 hashing function by using the
+;; external 'md5sum' program.
 ;;
 
-(define (file->sha256-sum file-name)
-  (let* ((port   (open-pipe* OPEN_READ "sha256sum" "--" file-name))
+(define (file->md5-sum file-name)
+  (let* ((port   (open-pipe* OPEN_READ "md5sum" "--" file-name))
          (result (read-delimited " " port)))
     (close-pipe port)
     result))
@@ -147,7 +147,7 @@
 
 (define (add-ownership-info project filename fs-stat)
   (let ((port        (open-file project-file "a"))
-        (origin-hash (file->sha256-sum filename)))
+        (origin-hash (file->md5-sum filename)))
     (setvbuf port 'block (expt 2 24)) ; Increase the write throughput.
     (catch #t
       (lambda _
@@ -157,20 +157,20 @@
                   owner-name
                   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
                   "http://sparqling-genomics/User")
-          (format port "<http://sparqling-genomics/Origin/~a> <~a> <http://sparqling-genomics/User/~a> .~%"
+          (format port "<origin://~a> <~a> <http://sparqling-genomics/User/~a> .~%"
                   origin-hash
                   "http://sparqling-genomics/fileOwner"
                   owner-name)
-          (format port "<http://sparqling-genomics/Origin/~a> <~a> ~s^^<~a> .~%"
+          (format port "<origin://~a> <~a> ~s^^<~a> .~%"
                   origin-hash
                   "http://sparqling-genomics/fileSize"
                   (number->string file-size)
                   "http://www.w3.org/2001/XMLSchema#integer")
-          (format port "<http://sparqling-genomics/Origin/~a> <~a> <http://sparqling-genomics/Project/~a> .~%"
+          (format port "<origin://~a> <~a> <http://sparqling-genomics/Project/~a> .~%"
                   origin-hash
                   "http://sparqling-genomics/inProject"
                   project)
-          (format port "<http://sparqling-genomics/Origin/~a> <~a> \"~a\"^^xsd:dateTimeStamp .~%"
+          (format port "<origin://~a> <~a> \"~a\"^^xsd:dateTimeStamp .~%"
                   origin-hash
                   "http://purl.org/dc/terms/modified"
                   (strftime "%Y-%m-%dT%H-%M-%SZ" (gmtime (stat:mtime fs-stat))))))
