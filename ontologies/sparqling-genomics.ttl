@@ -6,12 +6,14 @@
 @prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
-@prefix vcf2rdf:   <https://sparqling-genomics.org/0.99.10/vcf2rdf/> .
-@prefix variant:   <https://sparqling-genomics.org/0.99.10/vcf2rdf/VariantCall/> .
-@prefix table2rdf: <https://sparqling-genomics.org/0.99.10/table2rdf/> .
-@prefix :          <https://sparqling-genomics.org/0.99.10/> .
+@prefix vcf2rdf:   <sg://0.99.11/vcf2rdf/> .
+@prefix variant:   <sg://0.99.11/vcf2rdf/variant/> .
+@prefix table2rdf: <sg://0.99.11/table2rdf/> .
+@prefix json2rdf:  <sg://0.99.11/json2rdf/> .
+@prefix xml2rdf:   <sg://0.99.11/xml2rdf/> .
+@prefix :          <https://sparqling-genomics.org/0.99.11/> .
 
-<https://sparqling-genomics.org/0.99.10>
+<https://sparqling-genomics.org/0.99.11>
     rdf:type        owl:Ontology ;
     dc:title        "Ontology describing the output of sparqling-genomics tools." ;
     rdfs:comment    "This ontology describes the structure exported by tools in sparqling-genomics." ;
@@ -188,9 +190,9 @@ xml2rdf:XmlAttribute rdf:type owl:Class ;
     rdfs:comment "A file path or file name." ;
     rdfs:domain :Origin .
 
-:sha256sum
+:md5
     rdf:type owl:DatatypeProperty ;
-    rdfs:label "SHA256 sum" ;
+    rdfs:label "MD5 sum" ;
     rdfs:domain :Origin .
 
 ## Annotation properties
@@ -233,23 +235,23 @@ xml2rdf:XmlAttribute rdf:type owl:Class ;
 ## Individuals
 ## ----------------------------------------------------------------------------
 
-:vcf2rdf rdf:type :SoftwareProgram ;
+:vcf2rdf-0.99.11 rdf:type :SoftwareProgram ;
     rdfs:label   "vcf2rdf" ;
     rdfs:comment "Tool to convert VCF files to RDF." .
 
-:table2rdf rdf:type :SoftwareProgram ;
+:table2rdf-0.99.11 rdf:type :SoftwareProgram ;
     rdfs:label   "table2rdf" ;
     rdfs:comment "Tool to convert tabular data to RDF." .
 
-:folder2rdf rdf:type :SoftwareProgram ;
+:folder2rdf-0.99.11 rdf:type :SoftwareProgram ;
     rdfs:label   "folder2rdf" ;
     rdfs:comment "Tool to extract RDF from files in a directory." .
 
-:json2rdf rdf:type :SoftwareProgram ;
+:json2rdf-0.99.11 rdf:type :SoftwareProgram ;
     rdfs:label   "json2rdf" ;
     rdfs:comment "Tool to convert JSON data to RDF." .
 
-:xml2rdf rdf:type :SoftwareProgram ;
+:xml2rdf-0.99.11 rdf:type :SoftwareProgram ;
     rdfs:label   "xml2rdf" ;
     rdfs:comment "Tool to convert XML data to RDF." .
 
