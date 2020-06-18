@@ -547,11 +547,11 @@ json2rdf --help
 \section{Extracting knowledge from folders with \texttt{folder2rdf}}
 \label{sec:folder2rdf}
 
-  The \texttt{folder2rdf} program finds files in a directory to extract
+  The \program{folder2rdf} program finds files in a directory to extract
   knowledge from.  It attempts to convert files with extensions
   \texttt{.vcf}, \texttt{.vcf.gz}, \texttt{.bcf}, and \texttt{.bcf.gz}
-  using \texttt{vcf2rdf}, and files with extensions \texttt{.sam},
-  \texttt{.bam}, and \texttt{.cram} using \texttt{bam2rdf}.
+  using \program{vcf2rdf}, and files with extensions \texttt{.sam},
+  \texttt{.bam}, and \texttt{.cram} using \program{bam2rdf}.
 
 \subsection{Example usage}
 
@@ -569,27 +569,28 @@ folder2rdf --input-directory=/vcf-data   \
   $\ldots{}$ where \texttt{/vcf-data} is a directory containing VCF files,
   and \texttt{/rdf-data} is the directory to store the converted files.
 
-\subsection{Knowledge extracted by \texttt{folder2rdf}}
+\subsection{Knowledge extracted by \program{folder2rdf}}
 
-  In addition to the knowledge extracted by \texttt{vcf2rdf}, this program
+  In addition to the knowledge extracted by \program{vcf2rdf}, this program
   extracts the following data:
 
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
+      \textbf{Subject}                 & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \texttt{:Project/}\emph{project-name} & \texttt{rdf:type} & \texttt{:Project}
+      \sg{Project/\emph{project-name}} & \rdf{type}         & \sg{Project}
       & This defines the identifier for the project.\\
       \oddrow
-      \texttt{:User/}\emph{username} & \texttt{rdf:type} & \texttt{:User}
+      \sg{User/\emph{username}}        & \rdf{type}         & \sg{User}
       & This defines the identifier for the file owner (username).\\
       \evenrow
-      \texttt{:Origin/}\emph{identifier} & \texttt{rdf:type} & \texttt{:Origin}
-      & This defines a uniquely identifiable reference to the originating file.\\
+      \origin{\emph{MD5}}              & \rdf{type}         & \sg{Origin}
+      & This defines a uniquely identifiable reference to the originating
+      file.\\
     \end{tabularx}
-    \caption{\small The additional triple patterns produced by \texttt{folder2rdf}.}
+    \caption{\small The additional triple patterns produced by \program{folder2rdf}.}
     \label{table:folder2rdf-ontology}
   \end{table}
 
