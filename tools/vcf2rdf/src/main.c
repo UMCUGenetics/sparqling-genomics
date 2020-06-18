@@ -140,7 +140,7 @@ main (int argc, char **argv)
           if (!file_hash) return 1;
 
           int status = gnutls_rnd (GNUTLS_RND_KEY, buf, buf_len);
-          if ((! status) || (! get_pretty_hash (buf, buf_len, file_hash)))
+          if (status || (! get_pretty_hash (buf, buf_len, file_hash)))
             return 1;
         }
       else
