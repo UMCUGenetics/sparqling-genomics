@@ -41,7 +41,7 @@
 (define sparqling-genomics
   (package
    (name "sparqling-genomics")
-   (version "0.99.11-dev")
+   (version "0.99.11")
    (source (origin
             (method url-fetch)
             (uri (string-append
