@@ -403,6 +403,7 @@
     (rdf          . "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
     (sg           . "https://sparqling-genomics.org/@VERSION@/")
     (seq          . "sg://@VERSION@/vcf2rdf/sequence/")
+    (vc           . "sg://@VERSION@/vcf2rdf/variant/")
     (xml2rdf      . "sg://@VERSION@/xml2rdf/")
     (xsd          . "http://www.w3.org/2001/XMLSchema#")))
 
