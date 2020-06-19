@@ -9,7 +9,7 @@
   and the full ontology URI.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{1}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Abbreviation} & \textbf{Ontology URI}\\
@@ -35,11 +35,33 @@
       \oddrow
       \texttt{sg} &
       https://www.sparqling-genomics.org/\sgversion{}/\\
-      \evenrow
-      \texttt{bam2rdf} & \texttt{sg://\sgversion{}/bam2rdf/}\\
     \end{tabularx}
     \caption{\small Lookup table for ontology URIs and their abbreviations.}
     \label{table:ontology-abbreviations}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  In addition to these ontologies, we use the following internal prefixes in
+  the remainder of the document.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{*{1}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
+      \headrow
+      \textbf{Abbreviation} & \textbf{Ontology URI}\\
+      \evenrow
+      \texttt{bam2rdf} & \texttt{sg://\sgversion{}/bam2rdf/}\\
+      \oddrow
+      \texttt{table2rdf} & \texttt{sg://\sgversion{}/table2rdf/}\\
+      \evenrow
+      \texttt{json2rdf} & \texttt{sg://\sgversion{}/json2rdf/}\\
+      \oddrow
+      \texttt{vcf2rdf} & \texttt{sg://\sgversion{}/vcf2rdf/}\\
+      \evenrow
+      \texttt{xml2rdf} & \texttt{sg://\sgversion{}/xml2rdf/}\\
+    \end{tabularx}
+    \caption{\small Internal abbreviations used in the manual.}
+    \label{table:internal-abbreviations}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
@@ -51,7 +73,7 @@
   the properties we use.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term}     & \textbf{Used as} & \textbf{Usage}\\
@@ -78,7 +100,7 @@
   the properties we use.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term}   & \textbf{Used as} & \textbf{Description}\\
@@ -87,18 +109,18 @@
                                            the user or organization that
                                            produced a collection or dataset.\\
       \oddrow
-      \dctype{Collection}   & Object     & Used by the portal page in the web
+      \dctype{Collection}   & Object     & Reserved for a portal page in the web
                                            interface as a filter mechanism to
                                            browse \dctype{Dataset}s.\\
       \evenrow
-      \dctype{Dataset}      & Object     & Used by the portal page in the web
+      \dctype{Dataset}      & Object     & Reserved for a portal page in the web
                                            interface to describe data in a
                                            graph.\\
       \oddrow
       \dcterms{date}        & Object     & Used by \program{sg-web} to describe
                                            the time a query was run.\\
       \evenrow
-      \dcterms{isPartOf}    & Predicate  & Used by the portal page in the web
+      \dcterms{isPartOf}    & Predicate  & Reserved for a portal page in the web
                                            interface to express that a
                                            \dctype{Dataset} is linked to a
                                            \dctype{Collection}.\\
@@ -128,7 +150,7 @@
   the PROV ontology \citep{prov-o}.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term}        & \textbf{Used as} & \textbf{Usage}\\
@@ -153,7 +175,7 @@
   overview of the properties we use.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term}       & \textbf{Used as} & \textbf{Usage}\\
@@ -181,7 +203,7 @@
   terms that are waiting to be replaced by an external ontology.
 
   \hypersetup{urlcolor=black}
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{2}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}X}
       \headrow
       \textbf{Term} & \textbf{Used as} & \textbf{Usage}\\

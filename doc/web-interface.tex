@@ -203,7 +203,7 @@
   describes the reserved users.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Username} & \textbf{Task}\\
@@ -214,8 +214,8 @@
       project will be exposed to the BEACON network.\\
       \oddrow
       \texttt{portal}
-      & When this user is added to a project, the data accessible by the
-      project is exposed in the portal (see section ...).\\
+      & This username has been reserved for an implementation of a data
+      portal.\\
     \end{tabularx}
     \caption{\small Reserved users for \texttt{sg-web}.}
     \label{table:reserved-users}
@@ -501,7 +501,7 @@ sg-web --configuration-file=file.xml
   supported formats.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Content-Type} & \textbf{Example response}\\
@@ -599,7 +599,7 @@ this example for improved readability.
   with the following parameters:
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -674,7 +674,7 @@ curl http://localhost/api/connections \
   The table below summarizes the parameters that can be used in this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -716,7 +716,7 @@ curl http://localhost/api/add-connection          \
   used in this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -766,7 +766,7 @@ curl http://localhost/api/projects      \
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
@@ -794,7 +794,7 @@ curl http://localhost/api/add-project      \
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter}   & \textbf{Example} & \textbf{Required?}\\
@@ -809,7 +809,7 @@ curl http://localhost/api/add-project      \
   In that case, the parameters are:
 
   \hypersetup{urlcolor=black}
-  \begin{table}
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
       \textbf{Parameter}    & \textbf{Example} & \textbf{Required?}\\

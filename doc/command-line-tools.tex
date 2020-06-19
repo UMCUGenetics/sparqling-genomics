@@ -23,7 +23,7 @@
   translated into triples.  In addition to the knowledge from the VCF file,
   \program{vcf2rdf} provides the following triples:
 
-  \begin{table}[!htbp]
+  \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
       \textbf{Subject}     & \textbf{Predicate}   & \textbf{Object}
@@ -135,7 +135,7 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
   alignment map header.  In addition to the knowledge from the file, it also
   produces the following metadata:
 
-  \begin{table}[ht]
+  \begin{table}[H]
     \begin{tabularx}{\linewidth}{>{\hsize=0.18\hsize}X
         !{\VRule[-1pt]}>{\hsize=0.20\hsize}X
         !{\VRule[-1pt]}>{\hsize=0.32\hsize}L
@@ -222,15 +222,15 @@ chrMT   11000
 
 \begin{siderules}
 \begin{verbatim}
-$ table2rdf -i test.tsv
+$ table2rdf -i test.tsv -O turtle
 ...
-<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+<origin://...@0>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome "chr1"^^xsd:string ;
     col:position 1500000 ;
     a :Row .
 
-<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
+<origin://...@1>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome "chrMT"^^xsd:string ;
     col:position 11000 ;
@@ -252,8 +252,8 @@ $ table2rdf -i test.tsv
 
 \begin{siderules}
 \begin{lstlisting}
-$ table2rdf     \
-    -i test.tsv \
+$ table2rdf -O turtle \
+    -i test.tsv       \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
 ...
 (@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
@@ -280,30 +280,30 @@ $ table2rdf     \
 
   Like transforming a cell in a table to a URI instead of a literal value,
   we can also specify the value for the column name.  By default, the column
-  names are transformed using the \texttt{:table2rdf/Column/} prefix (e.g.
+  names are transformed using the \tablerdf{Column/} prefix (e.g.
   \texttt{chromosome} becomes
-  \texttt{http://sparqling-genomics/table2rdf/Column/chromosome}).  By using
+  \texttt{sg://\sgversion{}/table2rdf/Column/chromosome}).  By using
   the \texttt{-{}-transform-predicate} option, or \texttt{-T} for short, a
   different transformation can be made:
 
 \begin{siderules}
 \begin{lstlisting}
-$ table2rdf     \
-    -i test.tsv \
-    -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
+$ table2rdf -O turtle \
+    -i test.tsv       \
+    -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19# \
     -T Chromosome=http://biohackathon.org/resource/faldo#reference
 ...
 (@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
 (@*\colorbox{Highlight}{@prefix p00001: <http://biohackathon.org/resource/faldo\#> .}*@)
 
-<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
+<origin://...@0>
+    sg:originatedFrom <origin://...> ;
     (@*\colorbox{Highlight}{p00001:reference p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
-<http://sparqling-genomics/table2rdf/Row/...-R0000000001>
-    sg:originatedFrom <http://sparqling-genomics/...> ;
+<origin://...@1>
+    sg:originatedFrom <origin://...> ;
     (@*\colorbox{Highlight}{p00001:reference p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
@@ -340,9 +340,9 @@ Chromosome	Position	Filter
 
 \begin{siderules}
 \begin{lstlisting}
-$ table2rdf -i multi.tsv
+$ table2rdf -i multi.tsv -O turtle
 ...
-<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+<origin://...@0>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     (@*\colorbox{Highlight}{col:filter "A;B;C;D"\^{}\^{}xsd:string ;}*@)
@@ -355,9 +355,9 @@ $ table2rdf -i multi.tsv
 
 \begin{siderules}
 \begin{lstlisting}
-$ table2rdf -i multi.tsv --secondary-delimiter ";"
+$ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 ...
-<http://sparqling-genomics/table2rdf/Row/...-R0000000000>
+<origin://...@0>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
     (@*\colorbox{Highlight}{col:filter "A"\^{}\^{}xsd:string, "B"\^{}\^{}xsd:string, "C"\^{}\^{}xsd:string,}*@)
@@ -401,13 +401,13 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";"
 
 \begin{siderules}
 \begin{verbatim}
-<http://sparqling-genomics/table2rdf/1jka8923i4>
+<origin://1jka8923i4>
     :convertedBy :table2rdf ;
     :filename "grch37.bed"^^xsd:string ;
     a :Origin .
 
 sample:grch37
-    :foundIn <http://sparqling-genomics/table2rdf/1jka8923i4> ;
+    :foundIn <origin://1jka8923i4> ;
     a :Sample .
 \end{verbatim}
 \end{siderules}
@@ -580,10 +580,10 @@ folder2rdf --input-directory=/vcf-data   \
       \textbf{Subject}                 & \textbf{Predicate} & \textbf{Object}
       & \textbf{Description}\\
       \evenrow
-      \sg{Project/\emph{project-name}} & \rdf{type}         & \sg{Project}
+      \project{\emph{project-name}}    & \rdf{type}         & \sg{Project}
       & This defines the identifier for the project.\\
       \oddrow
-      \sg{User/\emph{username}}        & \rdf{type}         & \sg{User}
+      \user{\emph{username}}           & \rdf{type}         & \sg{User}
       & This defines the identifier for the file owner (username).\\
       \evenrow
       \origin{\emph{MD5}}              & \rdf{type}         & \sg{Origin}
