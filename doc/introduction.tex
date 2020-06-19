@@ -212,38 +212,3 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 
   The container includes both SPARQLing genomics and Virtuoso (open source
   edition).
-
-\section{Deployment using Kubernetes}
-
-  The pre-built Docker container doesn't run SPARQLing genomics or Virtuoso
-  by itself.  It is left up to the user to run these programs interactively
-  from inside the container.  When deploying SPARQLing-genomics to a Kubernetes
-  cluster, this becomes tedious.
-
-  \begin{sloppypar}
-  For this use-case we maintain images created using the \texttt{operating-system}
-  declarations that can be found in the `\texttt{deployment}' folder of the
-  source tarball.  The images can be pulled from
-  \href{https://hub.docker.com/u/sparqlinggenomics}
-       {https://hub.docker.com/u/sparqlinggenomics}.
-  \end{sloppypar}
-
-  The \texttt{virtuoso} image will tune itself on startup and
-  run Virtuoso.  The \texttt{sparqling-genomics} will look for its
-  configuration file at `\texttt{/config/sg-web.xml}', and start itself with
-  that.
-
-\begin{siderules}
-\begin{verbatim}
-image=`docker load < $(guix system docker-image deployment/virtuoso-machine.scm)`
-container_id=`docker create "${image}"`
-docker start "${container_id}"
-\end{verbatim}
-\end{siderules}
-
-To get an interactive shell inside the container, use:
-\begin{siderules}
-\begin{verbatim}
-docker exec -ti "${container_id}" /run/current-system/profile/bin/bash --login
-\end{verbatim}
-\end{siderules}
