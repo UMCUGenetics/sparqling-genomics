@@ -83,7 +83,7 @@ AC_CONFIG_FILES([tools/ega2rdf/ega2rdf],
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
-  doc/version.tex
+  doc/sparqling-genomics.sty
   tools/Makefile
   tools/bam2rdf/Makefile
   tools/ega2rdf/Makefile

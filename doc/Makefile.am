@@ -43,7 +43,6 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
                           introduction.tex                     \
                           knowledge-graph.tex                  \
                           programming-with-sparql.tex          \
-                          version.tex                          \
                           web-interface.tex
 
 docs-clean:

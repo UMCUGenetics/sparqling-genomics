@@ -74,7 +74,7 @@
 \setlength{\fboxsep}{0pt}
 
 %% Create a variable that holds the current version of sparqling-genomics.
-\newcommand{\sgversion}{\input{version}}
+\def \sgversion {@VERSION@}
 
 \newcommand\VRule[1][\arrayrulewidth]{\vrule width #1}
 \newcommand{\oddcell}{\cellcolor{OddRowColor}}
@@ -101,6 +101,8 @@
 \newcommand\rdf[1]{\href{http://www.w3.org/1999/02/22-rdf-syntax-ns\##1}{{\color{black}\texttt{rdf:#1}}}}
 
 \newcommand\sgv[1]{\sg\expandafter{\texttt{#1-\sgversion{}}}}
+\newcommand\project[1]{\sg\expandafter{\texttt{Project/#1}}}
+\newcommand\user[1]{\sg\expandafter{\texttt{User/#1}}}
 
 % Allow loading of graphics in the document.
 \ifdefined\HCode
