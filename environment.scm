@@ -65,7 +65,7 @@
       #:phases
       (modify-phases %standard-phases
         (add-after 'install 'wrap-executable
-          (lambda* (#:key outputs #:allow-other-keys)
+          (lambda* (#:key inputs outputs #:allow-other-keys)
             (let* ((out  (assoc-ref outputs "out"))
                    (guile-version (target-guile-effective-version))
                    (guile-load-path
