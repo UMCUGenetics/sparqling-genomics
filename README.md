@@ -9,7 +9,7 @@ The complete documentation is available in the `doc/` directory.
 To build the programs in this repository, the following tools are required:
 - GNU Autoconf, GNU Automake, pkg-config and GNU Make
 - HTSlib
-- Libgcrypt
+- GnuTLS
 - Raptor2
 - GNU Guile
 
