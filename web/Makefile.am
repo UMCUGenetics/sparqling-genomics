@@ -118,15 +118,19 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/ace/ext-language_tools.js                   \
   static/js/ace/mode-sparql.js                          \
   static/js/ace/theme-crimson_editor.js                 \
+  static/js/base32.js                                   \
+  static/js/connections.js                              \
   static/js/d3.min.js                                   \
   static/js/exploratory.js                              \
   static/js/import.js                                   \
   static/js/jquery-3.2.1.min.js                         \
   static/js/jquery.dataTables.min.js                    \
   static/js/plottable-query.js                          \
+  static/js/projects.js                                 \
   static/js/prompt.js                                   \
   static/js/query-editor.js                             \
-  static/js/query-history.js
+  static/js/query-history.js                            \
+  static/js/sessions.js
 
 bin_SCRIPTS     = sg-web sg-auth-manager sg-web-test
 webdir          = $(pkgdatadir)/web
