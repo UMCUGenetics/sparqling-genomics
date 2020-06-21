@@ -84,8 +84,13 @@
                 `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
                 `("GUILE_LOAD_COMPILED_PATH" ":" prefix
                   (,guile-load-compiled-path))
-                `("SG_WEB_ROOT" ":" prefix (,web-root))
-                `("SSL_CERT_DIR" ":" prefix (,certs-dir)))))))))
+                `("SG_WEB_ROOT" ":" = (,web-root))
+                `("SSL_CERT_DIR" ":" = (,certs-dir)))
+              (wrap-program (string-append out "/bin/sg-web")
+                `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
+                `("GUILE_LOAD_COMPILED_PATH" ":" prefix
+                  (,guile-load-compiled-path))
+                `("SSL_CERT_DIR" ":" = (,certs-dir)))))))))
    (native-inputs
     `(("texlive" ,texlive)
       ("autoconf" ,autoconf)
@@ -101,8 +106,6 @@
       ("raptor2" ,raptor2)
       ("xz" ,xz)
       ("zlib" ,zlib)))
-   (propagated-inputs
-    `(("gnutls" ,gnutls))) ; Needed to query HTTPS endpoints.
    (home-page "https://github.com/UMCUGenetics/sparqling-genomics")
    (synopsis "Tools to use SPARQL to analyze genomics data")
    (description "This package provides various tools to extract RDF triples
