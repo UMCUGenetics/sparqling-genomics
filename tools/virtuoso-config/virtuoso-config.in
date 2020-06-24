@@ -57,18 +57,11 @@
 ;; CONFIGURATION GENERATOR
 ;; ---------------------------------------------------------------------------
 
-(let* [(grep "grep")
-       (awk  "awk")
+(let* [(awk  "awk")
        (df   "df")
        (head "head")
        (tail "tail")
-       (wc   "wc")
-       (threads (let* ((port (open-input-pipe (string-append
-                                               grep " processor /proc/cpuinfo | "
-                                               wc " -l")))
-                       (str  (read-line port)))
-                  (close-pipe port)
-                  (inexact->exact (string->number str))))
+       (threads (total-processor-count))
        (memory  (let* ((port (open-input-pipe (string-append
                                                head " -n 1 /proc/meminfo | "
                                                awk " '{ print $2 }'")))
