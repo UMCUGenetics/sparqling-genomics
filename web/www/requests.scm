@@ -65,7 +65,7 @@
               (throw 'system-error ""))
             #t))))
     (lambda (key . args)
-      (log-error "system-is-connected?" "Connection to ~a failed."
+      (log-error "system-is-connected?" "Endpoint ~a seems down."
                  (connection-uri (system-connection)))
       #f)))
 
