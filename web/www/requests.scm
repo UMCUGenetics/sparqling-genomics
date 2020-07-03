@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018, 2019  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -147,21 +147,24 @@
 
   (define (resolve-form-module request-path)
     "Return FUNCTION from MODULE."
-    (let* ((module (if (developer-mode?)
+    (let* ((full-path     (string-split request-path #\/))
+           (relevant-path (list (car full-path)))
+           (module (if (developer-mode?)
                        (catch 'wrong-type-arg
                          (lambda _
                            (reload-module
                             (resolve-module (module-path '(www forms)
-                              (string-split request-path #\/)) #:ensure #f)))
+                              relevant-path) #:ensure #f)))
                          (lambda (key . args) #f))
-                       (resolve-module (module-path '(www forms)
-                         (string-split request-path #\/)) #:ensure #f))))
+                       (resolve-module (module-path '(www forms) relevant-path)
+                                       #:ensure #f))))
       ;; Return #f unless the expected symbols exist in 'module',
       ;; in which case we return that.
       (if module
           (catch #t
-            (lambda _ `((page   . ,(module-ref module 'page))
-                        (submit . ,(module-ref module 'submit))))
+            (lambda _ `((page        . ,(module-ref module 'page))
+                        (submit      . ,(module-ref module 'submit))
+                        (api-handler . ,(module-ref module 'api-handler))))
             (lambda (key . args)
               (log-error "resolve-form-module"
                          "Couldn't resolve the module's structure for ~s."
@@ -269,34 +272,56 @@
    ;; we can carefully test whether the module implements the expected
    ;; interface.
 
-   [(and (string-prefix? "/form/" request-path)
-         (eq? (request-method request) 'GET))
-    (respond-to-client 200 client-port '(text/html)
-      (call-with-output-string
-        (lambda (port)
-          (set-port-encoding! port "utf8")
-          (format port "<!DOCTYPE html>~%")
-          (let ((form (resolve-form-module (substring request-path 6))))
-            (if form
-                (sxml->xml ((assoc-ref form 'page) request-path) port)
-                (sxml->xml (page-form-error-404 request-path) port))))))]
+   [(string-prefix? "/form/" request-path)
+    (let ((module        (resolve-form-module (substring request-path 6))))
+      (if (not module)
+          (sxml->xml (page-form-error-404 request-path) client-port)
+          (let ((page        (assoc-ref module 'page))
+                (submit      (assoc-ref module 'submit))
+                (api-handler (assoc-ref module 'api-handler)))
+            (cond
+             ;; API requests.
+             ;; ---------------------------------------------------------------
+             [(and api-handler
+                   (string-contains request-path "/api/"))
+              (let ((accept-type    (request-accept request))
+                    (content-type   (request-content-type request))
+                    (content-length (request-content-length request)))
+                (if (not (api-serveable-format? accept-type))
+                    (respond-406 client-port)
+                    (api-handler request-path
+                                 (request-port request)
+                                 client-port
+                                 accept-type
+                                 content-type
+                                 content-length)))]
 
-   [(and (string-prefix? "/form/" request-path)
-         (eq? (request-method request) 'POST))
-    (let ((form         (resolve-form-module (substring request-path 6)))
-          (accept-type  (request-accept request))
-          (content-type (request-content-type request)))
-      (if form
-          (cond
-           [(not (api-serveable-format? accept-type))
-            (respond-406 client-port)]
-           [else
-            ((assoc-ref form 'submit)
-             (api-request-data->alist
-              (request-content-type request)
-              (utf8->string (read-request-body request))))])
-          (respond-404 client-port accept-type
-            "The form could not be found.")))]
+             ;; GET requests.
+             ;; ---------------------------------------------------------------
+             [(and page
+                   (eq? (request-method request) 'GET))
+              (respond-to-client 200 client-port '(text/html)
+                (call-with-output-string
+                  (lambda (port)
+                    (set-port-encoding! port "utf8")
+                    (format port "<!DOCTYPE html>~%")
+                    (sxml->xml (page request-path) port))))]
+
+             ;; POST requests.
+             ;; ---------------------------------------------------------------
+             [(and submit
+                   (eq? (request-method request) 'POST))
+              (let ((accept-type  (request-accept request))
+                    (content-type (request-content-type request)))
+                (cond
+                 [(not (api-serveable-format? accept-type))
+                  (respond-406 client-port)]
+                 [else
+                  (submit (api-request-data->alist
+                           (request-content-type request)
+                           (utf8->string (read-request-body request))))])
+                (respond-404 client-port accept-type
+                             "The form could not be found."))]))))]
 
    [(string-prefix? "/logout" request-path)
     (respond-303 client-port "/" (string-append
