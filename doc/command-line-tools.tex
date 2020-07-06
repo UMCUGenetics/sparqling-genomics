@@ -5,14 +5,14 @@
   from various domain-specific data formats.  The programs described in this
   chapter provide the ``layer 0'' for the knowledge graph, and the tools to
   discover the data in this layer.   All tools described in the remainder of
-  this chapter can be invoked with the \texttt{-{}-help} argument to get a
+  this chapter can be invoked with the \t{-{}-help} argument to get a
   complete overview of options for that particular tool.
 
 \section{Preparing variant call data with \program{vcf2rdf}}
 \label{sec:vcf2rdf}
 
   Variant callers extract variation from sequenced data.  These programs
-  often output the variants they found in the \emph{Variant Call Format}
+  often output the variants they found in the \i{Variant Call Format}
   (VCF) or its binary equivalent (BCF).  The \program{vcf2rdf} program
   extracts knowledge from a VCF or BCF file and writes it as RDF.
 
@@ -26,26 +26,26 @@
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject}     & \textbf{Predicate}   & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject}       & \b{Predicate}    & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \origin{\emph{MD5}}  & \rdf{type}       & \sg{Origin}
+      \origin{\i{MD5}}  & \rdf{type}       & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \origin{\emph{MD5}}  & \sg{filename}    & \emph{filename}
+      \origin{\i{MD5}}  & \sg{filename}    & \i{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \origin{\emph{MD5}}  & \sg{md5}         & \emph{MD5 sum}
+      \origin{\i{MD5}}  & \sg{md5}         & \i{MD5 sum}
       & This triple states the MD5 sum of the content of the original file.\\
       \oddrow
-      \sample{\emph{name}} & \rdf{type}       & \sg{Sample}
-      & This states that there is a sample with \emph{sample name}.\\
+      \sample{\i{name}} & \rdf{type}       & \sg{Sample}
+      & This states that there is a sample with \i{sample name}.\\
       \evenrow
-      \sample{\emph{name}} & \sg{foundIn}     & \origin{\emph{MD5}}
+      \sample{\i{name}} & \sg{foundIn}     & \origin{\i{MD5}}
       & This triple states that a sample can be found in a file identified by
       the \sg{Origin} with a specific identifier.\\
       \oddrow
-      \origin{\emph{MD5}}  & \sg{convertedBy} & \sgv{vcf2rdf}
+      \origin{\i{MD5}}  & \sg{convertedBy} & \sgv{vcf2rdf}
       & This triple states that the file was converted with \program{vcf2rdf}.\\
     \end{tabularx}
     \caption{\small The additional triple patterns provided by \program{vcf2rdf}.}
@@ -74,7 +74,7 @@ orig:e9e38f2e4279eda346918ba69fd86c5f
 
 \subsection{Handling multi-sample VCF files}
 
-  From version \texttt{0.99.11} onwards, \program{vcf2rdf} only writes variants
+  From version \t{0.99.11} onwards, \program{vcf2rdf} only writes variants
   that have at least one alternative allele specified.  It will reserve the
   numeric ID to preserve compatibility with previous and future versions.
 
@@ -86,7 +86,7 @@ orig:e9e38f2e4279eda346918ba69fd86c5f
 
 \subsection{Example usage}
 
-The following command invocation will produce RDF in the \texttt{ntriples}
+The following command invocation will produce RDF in the \t{ntriples}
 format:
 \begin{siderules}
 \begin{verbatim}
@@ -104,16 +104,16 @@ vcf2rdf --help
 \subsection{Run-time properties}
 
   Depending on the serialization format, the program typically uses from two megabytes
-  (in \texttt{ntriples} mode), to multiple times the size of the input VCF
-  (in \texttt{turtle} mode).
+  (in \t{ntriples} mode), to multiple times the size of the input VCF
+  (in \t{turtle} mode).
 
-  The \texttt{ntriples} mode can output triples as soon as they are formed, while the
-  \texttt{turtle} mode waits until all triples are known, so that it can output them
+  The \t{ntriples} mode can output triples as soon as they are formed, while the
+  \t{turtle} mode waits until all triples are known, so that it can output them
   efficiently, producing compact output at the cost of using more memory.
 
-  We recommend using the \texttt{ntriples} format for large input files, and
-  \texttt{turtle} for small input files.  The following example illustrates how to
-  use \texttt{turtle} mode.
+  We recommend using the \t{ntriples} format for large input files, and
+  \t{turtle} for small input files.  The following example illustrates how to
+  use \t{turtle} mode.
 
 \begin{siderules}
 \begin{verbatim}
@@ -123,9 +123,9 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
 
 \section{Preparing sequence alignment maps with \program{bam2rdf}}
 
-  When DNA sequencing reads are aligned to a predetermined \emph{reference
-  genome}, it's often formatted in the \emph{sequence alignment map} (SAM)
-  format, its equivalent \emph{binary alignment map} (BAM) format, or its
+  When DNA sequencing reads are aligned to a predetermined \i{reference
+  genome}, it's often formatted in the \i{sequence alignment map} (SAM)
+  format, its equivalent \i{binary alignment map} (BAM) format, or its
   equivalent CRAM format.  The \program{bam2rdf} program can read data in all
   three formats.
 
@@ -141,26 +141,26 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
         !{\VRule[-1pt]}>{\hsize=0.32\hsize}L
         !{\VRule[-1pt]}>{\hsize=0.30\hsize}L}
       \headrow
-      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject}      & \b{Predicate} & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \origin{\emph{MD5}} & \rdf{type}    & \sg{Origin}
+      \origin{\i{MD5}} & \rdf{type}    & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \origin{\emph{MD5}} & \sg{filename} &  \emph{filename}
+      \origin{\i{MD5}} & \sg{filename} &  \i{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \origin{\emph{MD5}} & \rdf{type}    & One of: \bamrdf{HeaderItem},
+      \origin{\i{MD5}} & \rdf{type}    & One of: \bamrdf{HeaderItem},
       \bamrdf{ReferenceSequence}, \bamrdf{ReadGroup}, \bamrdf{Program},
       \bamrdf{Comment}.
-      & The \emph{objects} correspond to the various types of header lines that
+      & The \i{objects} correspond to the various types of header lines that
       can occur in the SAM format.\\
       \oddrow
-      \origin{\emph{MD5}} & \bamrdf{\emph{type}/\emph{key}} & Literal value.
+      \origin{\i{MD5}} & \bamrdf{\i{type}/\i{key}} & Literal value.
       & Each header field consists of a key/value pair.  The key is used as
       predicate.\\
       \oddrow
-      \origin{\emph{MD5}} & \sg{convertedBy} & \sgv{bam2rdf}
+      \origin{\i{MD5}} & \sg{convertedBy} & \sgv{bam2rdf}
       & This triple states that the file was converted with \program{bam2rdf}.\\
     \end{tabularx}
     \caption{\small The additional triple patterns provided by \program{bam2rdf}.}
@@ -169,7 +169,7 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
 
 \subsection{Example usage}
 
-The following command invocation will produce RDF in the \texttt{ntriples}
+The following command invocation will produce RDF in the \t{ntriples}
 format:
 \begin{siderules}
 \begin{verbatim}
@@ -195,8 +195,8 @@ bam2rdf --help
   predicates.
 
   When the file does not contain a header line, one can be specified using the
-  \texttt{-{}-header-line} argument.  When using this command-line argument, the
-  delimiter must be a semicolon (\texttt{;}).
+  \t{-{}-header-line} argument.  When using this command-line argument, the
+  delimiter must be a semicolon (\t{;}).
 
   The program can also read files compressed with \program{gzip}.
 
@@ -204,8 +204,8 @@ bam2rdf --help
 
   Unfortunately, \program{table2rdf} knows nothing about ontologies.  So when
   the input table has a column ``Chromosome'', by default \program{table2rdf}
-  will treat these cells as literal values (as a \texttt{string}).  A
-  \emph{transformer} can be used to express a column as an \emph{individual} in
+  will treat these cells as literal values (as a \t{string}).  A
+  \i{transformer} can be used to express a column as an \i{individual} in
   RDF.  An example might explain this best.
 
   Take the following input file:
@@ -247,7 +247,7 @@ $ table2rdf -i test.tsv -O turtle
   can be told to use that ontology to describe that column.
   \end{sloppypar}
 
-  To do so, we use the \texttt{-{}-transform-object} option, or \texttt{-t}
+  To do so, we use the \t{-{}-transform-object} option, or \t{-t}
   for short:
 
 \begin{siderules}
@@ -273,7 +273,7 @@ $ table2rdf -O turtle \
 \end{lstlisting}
 \end{siderules}
 
-  After the transformation, the output produced by \texttt{table2rdf} uses
+  After the transformation, the output produced by \t{table2rdf} uses
   URIs pointing to the ontology instead of literal values for chromosomes.
 
 \subsection{Transforming predicates}
@@ -281,9 +281,9 @@ $ table2rdf -O turtle \
   Like transforming a cell in a table to a URI instead of a literal value,
   we can also specify the value for the column name.  By default, the column
   names are transformed using the \tablerdf{Column/} prefix (e.g.
-  \texttt{chromosome} becomes
-  \texttt{sg://\sgversion{}/table2rdf/Column/chromosome}).  By using
-  the \texttt{-{}-transform-predicate} option, or \texttt{-T} for short, a
+  \t{chromosome} becomes
+  \t{sg://\sgversion{}/table2rdf/Column/chromosome}).  By using
+  the \t{-{}-transform-predicate} option, or \t{-T} for short, a
   different transformation can be made:
 
 \begin{siderules}
@@ -317,17 +317,17 @@ $ table2rdf -O turtle \
   a table, having a column-coordinate, and a row-coordinate.  To distinguish
   fields from one another we use a delimiter.  Which delimiter to use (a tab,
   a comma, or a semicolon, etc.) is up to the dataset.  The delimiter
-  can be chosen using the \texttt{-{}-delimiter} option, or \texttt{-d} for
+  can be chosen using the \t{-{}-delimiter} option, or \t{-d} for
   short.
 
   Sometimes a single field can consist of multiple ``subfields''.  To
   distinguish subfields, we use a secondary delimiter.  In RDF, we can split
   those subfields by using the same predicate as we would use for the entire
-  field.  Using the \texttt{-{}-secondary-delimiter} option, we can invoke
+  field.  Using the \t{-{}-secondary-delimiter} option, we can invoke
   this behavior.
 
-  The following example demonstrates the usage of \texttt{-{}-delimiter} and
-  \texttt{-{}-secondary-delimiter}.  Take the following input file:
+  The following example demonstrates the usage of \t{-{}-delimiter} and
+  \t{-{}-secondary-delimiter}.  Take the following input file:
 \begin{siderules}
 \begin{verbatim}
 $ cat multi.tsv
@@ -367,7 +367,7 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 \end{lstlisting}
 \end{siderules}
 
-  Notice how the \texttt{col:filter} predicate now describes a
+  Notice how the \t{col:filter} predicate now describes a
   connection to four objects instead of one.
 
 \subsection{Knowledge extracted by \program{table2rdf}}
@@ -379,17 +379,17 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
     \begin{table}[H]
       \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject}     & \textbf{Predicate}    & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject}     & \b{Predicate}    & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \origin{\emph{MD5}}  & \rdf{type}            & \sg{Origin}
+      \origin{\i{MD5}}  & \rdf{type}            & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating
         file.\\
       \oddrow
-      \origin{\emph{MD5}}  & \texttt{:filename}    & \emph{filename}
+      \origin{\i{MD5}}  & \t{:filename}    & \i{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \origin{\emph{MD5}}  & \texttt{:convertedBy} & \sgv{table2rdf}
+      \origin{\i{MD5}}  & \t{:convertedBy} & \sgv{table2rdf}
       & This triple states that the file was converted with
         \program{table2rdf}.\\
     \end{tabularx}
@@ -414,7 +414,7 @@ sample:grch37
 
 \subsection{Example usage}
 
-The following command invocation will produce RDF in the \texttt{ntriples}
+The following command invocation will produce RDF in the \t{ntriples}
 format:
 \begin{siderules}
 \begin{verbatim}
@@ -433,8 +433,8 @@ table2rdf --help
 
   Relational databases store data in tables.  With \program{table2rdf} we
   can oftentimes convert the data in a single go to RDF triples.  The following
-  example extracts the \texttt{regions} table from a MySQL server in a database
-  called \texttt{example}.
+  example extracts the \t{regions} table from a MySQL server in a database
+  called \t{example}.
 
 \begin{siderules}
 \begin{verbatim}
@@ -444,9 +444,9 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
 \end{siderules}
 
   The \program{mysql} command outputs the table in tab-delimited form when using
-  the \texttt{-{}-batch} argument, which is the default input type for
+  the \t{-{}-batch} argument, which is the default input type for
   \program{table2rdf}.  To accept input from a UNIX pipe \program{table2rdf} must
-  be invoked with the \texttt{-{}-stdin} argument.
+  be invoked with the \t{-{}-stdin} argument.
 
 \section{Preparing XML data with \program{xml2rdf}}
 \label{sec:xml2rdf}
@@ -458,17 +458,17 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject}    & \textbf{Predicate}    & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject}    & \b{Predicate}    & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \origin{\emph{MD5}} & \rdf{type}            & \sg{Origin}
+      \origin{\i{MD5}} & \rdf{type}            & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating
         file.\\
       \oddrow
-      \origin{\emph{MD5}} & \sg{filename}         & \emph{filename}
+      \origin{\i{MD5}} & \sg{filename}         & \i{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \origin{\emph{MD5}} & \sg{convertedBy}      & \sgv{xml2rdf}
+      \origin{\i{MD5}} & \sg{convertedBy}      & \sgv{xml2rdf}
       & This triple states that the file was converted with
         \program{xml2rdf}.\\
     \end{tabularx}
@@ -477,7 +477,7 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
   \end{table}
 
 \subsection{Example usage}
-The following command invocation will produce RDF in the \texttt{ntriples}
+The following command invocation will produce RDF in the \t{ntriples}
 format:
 \begin{siderules}
 \begin{verbatim}
@@ -503,23 +503,23 @@ xml2rdf --help
 
   Each key-value pair is translated into \triplet{Unique ID}{key}{value}.
   When the value of a pair contains a structure with more key-value pairs,
-  the triplet's value refers to the \texttt{unique-id} assigned to that
+  the triplet's value refers to the \t{unique-id} assigned to that
   structure.  In addition to the key-value pairs, \program{json2rdf} stores
   the following metadata:
 
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject} & \textbf{Predicate} & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject} & \b{Predicate} & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \origin{\emph{MD5}}  & \rdf{type}       & \sg{Origin}
+      \origin{\i{MD5}}  & \rdf{type}       & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating file.\\
       \oddrow
-      \origin{\emph{MD5}}  & \sg{filename}    & \emph{filename}
+      \origin{\i{MD5}}  & \sg{filename}    & \i{filename}
       & This triple states the originating filename.\\
       \evenrow
-      \origin{\emph{MD5}} & \sg{convertedBy}  & \sgv{json2rdf}
+      \origin{\i{MD5}} & \sg{convertedBy}  & \sgv{json2rdf}
       & This triple states that the file was converted with
         \program{json2rdf}.\\
     \end{tabularx}
@@ -529,7 +529,7 @@ xml2rdf --help
 
 \subsection{Example usage}
 
-The following command invocation will produce RDF in the \texttt{ntriples}
+The following command invocation will produce RDF in the \t{ntriples}
 format:
 \begin{siderules}
 \begin{verbatim}
@@ -544,14 +544,14 @@ json2rdf --help
 \end{verbatim}
 \end{siderules}
 
-\section{Extracting knowledge from folders with \texttt{folder2rdf}}
+\section{Extracting knowledge from folders with \t{folder2rdf}}
 \label{sec:folder2rdf}
 
   The \program{folder2rdf} program finds files in a directory to extract
   knowledge from.  It attempts to convert files with extensions
-  \texttt{.vcf}, \texttt{.vcf.gz}, \texttt{.bcf}, and \texttt{.bcf.gz}
-  using \program{vcf2rdf}, and files with extensions \texttt{.sam},
-  \texttt{.bam}, and \texttt{.cram} using \program{bam2rdf}.
+  \t{.vcf}, \t{.vcf.gz}, \t{.bcf}, and \t{.bcf.gz}
+  using \program{vcf2rdf}, and files with extensions \t{.sam},
+  \t{.bam}, and \t{.cram} using \program{bam2rdf}.
 
 \subsection{Example usage}
 
@@ -566,8 +566,8 @@ folder2rdf --input-directory=/vcf-data   \
 \end{verbatim}
 \end{siderules}
 
-  $\ldots{}$ where \texttt{/vcf-data} is a directory containing VCF files,
-  and \texttt{/rdf-data} is the directory to store the converted files.
+  $\ldots{}$ where \t{/vcf-data} is a directory containing VCF files,
+  and \t{/rdf-data} is the directory to store the converted files.
 
 \subsection{Knowledge extracted by \program{folder2rdf}}
 
@@ -577,16 +577,16 @@ folder2rdf --input-directory=/vcf-data   \
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{*{3}{!{\VRule[-1pt]}l}!{\VRule[-1pt]}L}
       \headrow
-      \textbf{Subject}                 & \textbf{Predicate} & \textbf{Object}
-      & \textbf{Description}\\
+      \b{Subject}                 & \b{Predicate} & \b{Object}
+      & \b{Description}\\
       \evenrow
-      \project{\emph{project-name}}    & \rdf{type}         & \sg{Project}
+      \project{\i{project-name}}    & \rdf{type}         & \sg{Project}
       & This defines the identifier for the project.\\
       \oddrow
-      \user{\emph{username}}           & \rdf{type}         & \sg{User}
+      \user{\i{username}}           & \rdf{type}         & \sg{User}
       & This defines the identifier for the file owner (username).\\
       \evenrow
-      \origin{\emph{MD5}}              & \rdf{type}         & \sg{Origin}
+      \origin{\i{MD5}}              & \rdf{type}         & \sg{Origin}
       & This defines a uniquely identifiable reference to the originating
       file.\\
     \end{tabularx}
@@ -599,7 +599,7 @@ folder2rdf --input-directory=/vcf-data   \
 
   To load RDF data into a triple store (our database), we can use \program{curl}.
 
-  The triple stores typically store data in \emph{graphs}.  One triple store
+  The triple stores typically store data in \i{graphs}.  One triple store
   can host multiple graphs, so we must tell the triple store which graph we
   would like to add the data to.
 
@@ -620,10 +620,10 @@ curl -X POST                                                 \
 \subsubsection{Virtuoso example}
 
 \begin{sloppypar}
-The following example inserts the file \texttt{vcf2rdf-variants.ttl} into
-a graph called \texttt{http://example/graph} in a Virtuoso endpoint at
-\url{http://127.0.0.1:8890} with the username \texttt{dba} and
-password \texttt{qwerty}.
+The following example inserts the file \t{vcf2rdf-variants.ttl} into
+a graph called \t{http://example/graph} in a Virtuoso endpoint at
+\url{http://127.0.0.1:8890} with the username \t{dba} and
+password \t{qwerty}.
 \end{sloppypar}
 
 \begin{siderules}
@@ -653,7 +653,7 @@ curl -X POST                                                 \
 
 Notice that \program{4store} does not provide an authentication mechanism.
 
-\subsubsection{Sending \texttt{gzip}-compressed data}
+\subsubsection{Sending \t{gzip}-compressed data}
 
   When the RDF file is compressed with \program{gzip}, extra HTTP headers must
   be added to the \program{curl} command:

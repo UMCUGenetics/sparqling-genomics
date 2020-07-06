@@ -3,7 +3,7 @@
 \index{sg-web}
 
   The command-line programs described in chapter \refer{chap:command-line}
-  provide data for layer \texttt{0}.  With the web interface described in
+  provide data for layer \t{0}.  With the web interface described in
   this chapter, this data can be further structured, analyzed, and shared.
   In short, with the web interface you can:
   \begin{itemize}
@@ -45,9 +45,9 @@
 
 \subsection{To fork or not to fork}
 
-  The \texttt{fork} property can be either \texttt{0} to keep the
+  The \t{fork} property can be either \t{0} to keep the
   \program{sg-web} process in the foreground of your shell, or
-  \texttt{1} to run the \program{sg-web} process as a daemon.
+  \t{1} to run the \program{sg-web} process as a daemon.
 
 \subsection{Bind address and port}
 
@@ -59,7 +59,7 @@
 
   By default, changes to code in the \file{www/pages/} directory are
   applied when restarting \program{sg-web}.  When turning on
-  `\texttt{developer-mode}', pages are reloaded when accessed, which makes
+  `\t{developer-mode}', pages are reloaded when accessed, which makes
   interactive development of web pages easier.
 
 \subsection{Logging and backtraces}
@@ -67,22 +67,22 @@
 
   The \program{sg-web} program keeps two logs: one for error reporting, and
   one for access and non-critical messages.  The log files can be specified
-  as command-line options (\texttt{-e} for error reporting, \texttt{-d} for
+  as command-line options (\t{-e} for error reporting, \t{-d} for
   non-critical messages).
 
   Backtraces help the developer to get an idea about how something might've
   gone wrong.  It displays the location nearby the location in the source code
   that throwed an error.  Backstraces can get long and verbose.  Therefore we
   don't display them by default.  To enable reporting backtraces in the error
-  log, set the `\texttt{backtrace-on-error}' option to \texttt{1}.
+  log, set the `\t{backtrace-on-error}' option to \t{1}.
 
 \subsection{Upload directory}
 
   Users can upload RDF files to import it into an RDF store.  The files must
-  be stored on the filesystem.  With \texttt{upload-root}, the location of
+  be stored on the filesystem.  With \t{upload-root}, the location of
   the upload directory can be changed.  It can also be set using the
-  environment variable \texttt{SG\_WEB\_UPLOAD\_ROOT}.  If none of these are
-  specified, the value of the environment variable \texttt{TMPDIR} will be
+  environment variable \t{SG\_WEB\_UPLOAD\_ROOT}.  If none of these are
+  specified, the value of the environment variable \t{TMPDIR} will be
   used, or when that is not set, \file{/tmp} will be used.
 
 \subsection{System connection}
@@ -95,12 +95,12 @@
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Graph} & \textbf{Reason}\\
+      \b{Graph} & \b{Reason}\\
       \evenrow
-      \texttt{http://sparqling-genomics.org/sg-web/state}
+      \t{http://sparqling-genomics.org/sg-web/state}
       & In this graph, queries and projects are stored.\\
       \oddrow
-      \texttt{http://sparqling-genomics.org/sg-web/cache}
+      \t{http://sparqling-genomics.org/sg-web/cache}
       & This graph is used to speed up the web interface by
       pre-running various SPARQL queries.\\
     \end{tabularx}
@@ -111,12 +111,12 @@
 
 \subsubsection{System connection example}
 
-  To configure the \emph{system connection}, two parameters need to be
-  specified: \texttt{uri}, and \texttt{backend}.  Additionally, when the
-  RDF store requires authentication for writing to it, a \texttt{username}
-  and a \texttt{password} can be provided.
+  To configure the \i{system connection}, two parameters need to be
+  specified: \t{uri}, and \t{backend}.  Additionally, when the
+  RDF store requires authentication for writing to it, a \t{username}
+  and a \t{password} can be provided.
 
-  The following example shows how to configure the \emph{system connection}:
+  The following example shows how to configure the \i{system connection}:
 
 \begin{siderules}
 \begin{verbatim}
@@ -144,11 +144,11 @@
 
   The web interface can function as a Beacon in the Beacon network
   \citep{beacon-network}.  The Beacon API uses a separate connection,
-  similar to the \texttt{system-connection}, so that access can be
+  similar to the \t{system-connection}, so that access can be
   controlled at the user level.
 
-  The following example shows how to configure \emph{Beacon} including the
-  \emph{Beacon connection}:
+  The following example shows how to configure \i{Beacon} including the
+  \i{Beacon connection}:
 
 \begin{siderules}
 \begin{verbatim}
@@ -183,7 +183,7 @@
 
   The implementation assumes the following conditions are met:
   \begin{itemize}
-  \item Variant call data was imported using \texttt{vcf2rdf};
+  \item Variant call data was imported using \t{vcf2rdf};
   \item The reference genome can be identified by the chromosome's NCBI
     identifier.
   \end{itemize}
@@ -199,25 +199,25 @@
   protocol.
 
   Regardless of the authentication mechanism, there are a few reserved users
-  that carry out a specific task within \texttt{sg-web}.  The table below
+  that carry out a specific task within \program{sg-web}.  The table below
   describes the reserved users.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Username} & \textbf{Task}\\
+      \b{Username} & \b{Task}\\
       \evenrow
-      \texttt{beacon}
+      \t{beacon}
       & When the BEACON API (see section \refer{sec:beacon}) is enabled, and
       this user is added to a project, the data that is accessible by the
       project will be exposed to the BEACON network.\\
       \oddrow
-      \texttt{portal}
+      \t{portal}
       & This username has been reserved for an implementation of a data
       portal.\\
     \end{tabularx}
-    \caption{\small Reserved users for \texttt{sg-web}.}
+    \caption{\small Reserved users for \program{sg-web}.}
     \label{table:reserved-users}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -259,8 +259,8 @@
 
   \begin{sloppypar}
   Additionally, an alternative SSL certificate bundle can be configured with
-  the parameters \texttt{ssl-certificate-directory} and
-  \texttt{ssl-certificate-file}.
+  the parameters \t{ssl-certificate-directory} and
+  \t{ssl-certificate-file}.
   \end{sloppypar}
 
   The following example shows how to configure LDAP authentication:
@@ -288,7 +288,7 @@
 
 \subsection{Running the web interface}
 
-  The web interface can be started using the \texttt{sg-web} command:
+  The web interface can be started using the \program{sg-web} command:
 
 \begin{siderules}
 \begin{verbatim}
@@ -296,7 +296,7 @@ sg-web --configuration-file=file.xml
 \end{verbatim}
 \end{siderules}
 
-  $\ldots{}$ where \texttt{file.xml} is a configuration file as
+  $\ldots{}$ where \t{file.xml} is a configuration file as
   discussed in section \refer{sec:configuring-sg-web}.
 
 \section{Managing multi-node setups with \program{sg-auth-manager}}
@@ -336,7 +336,7 @@ sg-web --configuration-file=file.xml
   to the \program{sg-auth-manager}, which in turn handles the importing of data
   into that store.
 
-\subsection{How \texttt{sg-web} handles downtime of a \program{sg-auth-manager}}
+\subsection{How \program{sg-web} handles downtime of a \program{sg-auth-manager}}
 
   The \program{sg-auth-manager} registers itself with the pre-configured
   \program{sg-web} instance upon start.  In turn, the \program{sg-web} instance
@@ -347,36 +347,36 @@ sg-web --configuration-file=file.xml
 
 \subsection{Federated querying of protected endpoints}
 
-  The \texttt{sg-auth-manager} provides a mechanism to execute federated queries
+  The \t{sg-auth-manager} provides a mechanism to execute federated queries
   using protected endpoints by allowing the session token (see section
-  \ref{sec:tokens}) as part of the URI in the \texttt{SERVICE} specification.
+  \ref{sec:tokens}) as part of the URI in the \t{SERVICE} specification.
 
 \section{Using the web interface}
 \label{sec:using-web-interface}
 
   Once the web interface is up and running, a logged-in user will land
-  on the \emph{Dashboard}.
+  on the \i{Dashboard}.
 
   \begin{figure}[H]
     \begin{center}
       \includegraphics[width=1.0\textwidth]{figures/sg-web-dashboard.pdf}
     \end{center}
-    \caption{On the \emph{Dashboard}, tokens and connections can be
+    \caption{On the \i{Dashboard}, tokens and connections can be
       configured.}
     \label{fig:web-dashboard}
   \end{figure}
 
-  The dashboard provides access to two resources: \emph{session tokens}
-  and \emph{RDF stores}.  Session tokens will be discussed in section
-  \refer{sec:tokens}.  This leaves us with \emph{RDF stores} for now.
+  The dashboard provides access to two resources: \i{session tokens}
+  and \i{RDF stores}.  Session tokens will be discussed in section
+  \refer{sec:tokens}.  This leaves us with \i{RDF stores} for now.
 
 \subsection{Configuring connections}
 \label{sec:configure-connections}
 
-  The web interface supports two types of connections; \emph{user-specific
-    connections} and \emph{system-wide connections}.  Users can add the
-  former using the \texttt{+} button.  Such a connection will only be visible
-  to the user who added it.  On the contrary, \emph{system-wide connections}
+  The web interface supports two types of connections; \i{user-specific
+    connections} and \i{system-wide connections}.  Users can add the
+  former using the \t{+} button.  Such a connection will only be visible
+  to the user who added it.  On the contrary, \i{system-wide connections}
   are visible to all users.
 
   System-wide connections are therefore not configured by a user, but by a
@@ -394,11 +394,11 @@ sg-web --configuration-file=file.xml
 \label{sec:web-projects}
 
   The main way to access the knowledge graph, and to collaborate with other
-  users is through a \emph{project}.  Projects combine \emph{users},
-  \emph{access to data} and \emph{queries}.  The structure of a project
-  attempts to capture general phases of analyzing data: \emph{collect}
-  $\rightarrow$ \emph{structure} $\rightarrow$ \emph{query} $\rightarrow$
-  \emph{report} $\rightarrow$ \emph{automate}.
+  users is through a \i{project}.  Projects combine \i{users},
+  \i{access to data} and \i{queries}.  The structure of a project
+  attempts to capture general phases of analyzing data: \i{collect}
+  $\rightarrow$ \i{structure} $\rightarrow$ \i{query} $\rightarrow$
+  \i{report} $\rightarrow$ \i{automate}.
 
   \begin{figure}[H]
     \begin{center}
@@ -415,7 +415,7 @@ sg-web --configuration-file=file.xml
   identifier (URI).  So before data can be imported, a project must assign a
   graph.
 
-  After assigning a graph to the project on the \emph{Overview} page, the
+  After assigning a graph to the project on the \i{Overview} page, the
   command to load a file can be generated in three steps.
 
   \begin{figure}[H]
@@ -428,15 +428,15 @@ sg-web --configuration-file=file.xml
 
 \subsection{Executing queries}
 
-  After configuring at least one endpoint, it can be chosen on the \emph{query}
+  After configuring at least one endpoint, it can be chosen on the \i{query}
   page to execute a query against it.
 
   \begin{figure}[H]
     \begin{center}
       \includegraphics[width=1.0\textwidth]{figures/sg-web-query.pdf}
     \end{center}
-    \caption{The \emph{query} page enables users to execute a query against a
-      SPARQL endpoint.  The connections configured at the \emph{connections} page
+    \caption{The \i{query} page enables users to execute a query against a
+      SPARQL endpoint.  The connections configured at the \i{connections} page
       can be chosen from the drop-down menu.}
     \label{fig:web-query}
   \end{figure}
@@ -446,26 +446,26 @@ sg-web --configuration-file=file.xml
 
   When prototyping SPARQL queries, better known as ``SPARQLing around'', it's
   good to know that all queries that yielded a result are stored in the
-  \emph{query history}.  The history is shown on the \emph{query} page below the
-  query editor.  Each \emph{project} has its own query history.
+  \i{query history}.  The history is shown on the \i{query} page below the
+  query editor.  Each \i{project} has its own query history.
 
 \subsection{Explore graphs with the Exploratory}
 
-  Another utility aimed at SPARQLing around faster is the \emph{exploratory}.
+  Another utility aimed at SPARQLing around faster is the \i{exploratory}.
 
   \begin{figure}[H]
     \begin{center}
       \includegraphics[width=1.0\textwidth]{figures/sg-web-exploratory.pdf}
     \end{center}
-    \caption{The \emph{exploratory} page enables users to learn about the
+    \caption{The \i{exploratory} page enables users to learn about the
       structure of the triplets in a graph.}
     \label{fig:web-exploratory}
   \end{figure}
 
   The exploratory uses a common pattern in RDF to help writing queries.  Its
-  interface provides a four-step selection process to find \emph{predicates}
-  associated with an \texttt{rdf:type}.  The programs described in chapter
-  \refer{chap:command-line} automatically add the \texttt{rdf:type} annotations.
+  interface provides a four-step selection process to find \i{predicates}
+  associated with an \t{rdf:type}.  The programs described in chapter
+  \refer{chap:command-line} automatically add the \t{rdf:type} annotations.
 
 \subsection{Connections and graphs}
 
@@ -476,20 +476,20 @@ sg-web --configuration-file=file.xml
 
 \subsection{Types}
 
-  The third step looks for triplets that match the pattern \emph{subject}
-  $\rightarrow$ \texttt{rdf:type} $\rightarrow$ \emph{type}.  All matches for
-  \emph{type} are displayed.  For data imported with \texttt{vcf2rdf} (see
+  The third step looks for triplets that match the pattern \i{subject}
+  $\rightarrow$ \t{rdf:type} $\rightarrow$ \i{type}.  All matches for
+  \i{type} are displayed.  For data imported with \t{vcf2rdf} (see
   section \refer{sec:vcf2rdf}), this will display (among other types) the
-  \texttt{VariantCall} type.
+  \t{VariantCall} type.
 
 \subsection{Predicates}
 
-  Staying with the \texttt{VariantCall} example;  All data properties extracted
+  Staying with the \t{VariantCall} example;  All data properties extracted
   from a VCF file can be found under this type.  A predicate displayed in this
-  column occurs in \emph{at least} one triplet.  It not necessarily occurs in
-  \emph{every} triplet.  Especially when using \texttt{INFO} and \texttt{FORMAT}
+  column occurs in \i{at least} one triplet.  It not necessarily occurs in
+  \i{every} triplet.  Especially when using \t{INFO} and \t{FORMAT}
   fields in a VCF file, we recommend using them in a query inside an
-  \texttt{OPTIONAL} clause.
+  \t{OPTIONAL} clause.
 
 \pagebreak{}
 \section{Programming interface}
@@ -504,31 +504,31 @@ sg-web --configuration-file=file.xml
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Content-Type} & \textbf{Example response}\\
+      \b{Content-Type} & \b{Example response}\\
       \evenrow
-      \texttt{application/json}
-      & \texttt{[\{ "message": "This is a JSON response." \}]}\\
+      \t{application/json}
+      & \t{[\{ "message": "This is a JSON response." \}]}\\
       \oddrow
-      \texttt{application/xml}
-      & \texttt{<message>This is a XML response.</message>}\\
+      \t{application/xml}
+      & \t{<message>This is a XML response.</message>}\\
       \evenrow
-      \texttt{application/s-expression}
-      & \texttt{(message . "This is a S-expression response.")}\\
+      \t{application/s-expression}
+      & \t{(message . "This is a S-expression response.")}\\
     \end{tabularx}
     \caption{\small Implemented content types for the API.  The
-      \texttt{Content-Type} can be used in the \texttt{Accept} HTTP header.}
+      \t{Content-Type} can be used in the \t{Accept} HTTP header.}
     \label{table:api-return-formats}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
-\subsection{Formatting \texttt{POST} requests}
+\subsection{Formatting \t{POST} requests}
 
-  The \texttt{Accept} parameter influences the response format of the API,
-  and the \texttt{Content-Type} parameter can be used to indicate the format
+  The \t{Accept} parameter influences the response format of the API,
+  and the \t{Content-Type} parameter can be used to indicate the format
   of the request.
 
-  In addition to the documented \texttt{Content-Type} values, the type
-  \texttt{application/x-www-form-urlencoded} is also allowed, which expects
+  In addition to the documented \t{Content-Type} values, the type
+  \t{application/x-www-form-urlencoded} is also allowed, which expects
   the following format:
 \begin{siderules}
 \begin{verbatim}
@@ -536,8 +536,8 @@ parameter1=value1&parameter2=value2&...
 \end{verbatim}
 \end{siderules}
 
-  The \texttt{Content-Type} header line does not have to be equal to the
-  \texttt{Accept} header line, so for example, parameters can be sent in
+  The \t{Content-Type} header line does not have to be equal to the
+  \t{Accept} header line, so for example, parameters can be sent in
   XML and the response can be formatted in JSON or the other way around.
 
 \subsection{Conventions when using XML}
@@ -545,7 +545,7 @@ parameter1=value1&parameter2=value2&...
 \begin{sloppypar}
   When using XML, there are a few conventions to follow.  To communicate a list
   or array of records, the API relies on using pre-defined elements. The API
-  expects parameters to be wrapped in \texttt{<parameters>...</parameters>}
+  expects parameters to be wrapped in \t{<parameters>...</parameters>}
   elements.  So, to log in using an XML request, the following message will be
   accepted:
 \end{sloppypar}
@@ -565,9 +565,9 @@ Connection: close
 \end{verbatim}
 \end{siderules}
 
-  Subsequently, when \texttt{Accept}ing XML the results are wrapped in
-  \texttt{<results>...</results>}, and data structures built from multiple
-  key-value pairs are wrapped in \texttt{<result>...<result>}.  The
+  Subsequently, when \t{Accept}ing XML the results are wrapped in
+  \t{<results>...</results>}, and data structures built from multiple
+  key-value pairs are wrapped in \t{<result>...<result>}.  The
   following example illustrates receiving a project record:
 
 \begin{siderules}
@@ -588,30 +588,30 @@ Connection: close
 \end{verbatim}
 \end{siderules}
 
-\textbf{Note}: The actual response strips the whitespace.  It was added to
+\b{Note}: The actual response strips the whitespace.  It was added to
 this example for improved readability.
 
-\subsection{Authenticating API requests with \texttt{/api/login}}
+\subsection{Authenticating API requests with \t{/api/login}}
 \label{sec:api-login}
 
   Before being able to interact with the API, a session token must be obtained.
-  This can be done by sending a \texttt{POST}-request to \texttt{/api/login},
+  This can be done by sending a \t{POST}-request to \t{/api/login},
   with the following parameters:
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter} & \b{Example} & \b{Required?}\\
       \evenrow
-      \texttt{username}  & \texttt{jdoe}   & Yes\\
+      \t{username}  & \t{jdoe}    & Yes\\
       \oddrow
-      \texttt{password}  & \texttt{secret} & Yes\\
+      \t{password}  & \t{secret}  & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
 
-  The following cURL command would log the user \texttt{jdoe} in:
+  The following cURL command would log the user \t{jdoe} in:
 
 \begin{siderules}
 \begin{verbatim}
@@ -622,7 +622,7 @@ curl --cookie-jar - http://localhost/api/login \
 
   The response contains a cookie with the session token.  Use this cookie in
   subsequent requests.  When authentication fails, the service will respond
-  with HTTP status-code \texttt{401}.
+  with HTTP status-code \t{401}.
 
 \subsection{Token-based authentication}
 \label{sec:tokens}
@@ -630,18 +630,18 @@ curl --cookie-jar - http://localhost/api/login \
   When automating data importing and running queries there comes the point
   at which you have a choice: Do I put in my login credentials in a script,
   a separate file, or anywhere else on the filesystem?  This bad security
-  practice can be overcome by using \emph{tokens}.
+  practice can be overcome by using \i{tokens}.
 
   A token is a randomly generated string that can be used to authenticate
   with, instead of your username and password.  Tokens are easy to create,
   and more importantly, easy to revoke.
 
-  Generating a token can be done on the \emph{Dashboard}, or using the API call
-  \texttt{/api/new-session-token}.  Removing a token can be done on the
-  \emph{Dashboard}, or using the API call \texttt{/api/delete-token}.
+  Generating a token can be done on the \i{Dashboard}, or using the API call
+  \t{/api/new-session-token}.  Removing a token can be done on the
+  \i{Dashboard}, or using the API call \t{/api/delete-token}.
 
   After generating a token, it can be used as a cookie in API calls.  The name
-  of the cookie is always \texttt{SGSession}, regardless of the name of the
+  of the cookie is always \t{SGSession}, regardless of the name of the
   token.
 
 \subsection{Managing connections}
@@ -649,10 +649,10 @@ curl --cookie-jar - http://localhost/api/login \
   The API can be used to store connections and refer to them by name.  The
   remainder of this section describes the API calls related to connections.
 
-\subsubsection{Retrieve connections with \texttt{/api/connections}}
+\subsubsection{Retrieve connections with \t{/api/connections}}
 
-  With a call to \texttt{/api/connections}, the pre-configured connections
-  can be viewed.  This resource expects a \texttt{GET} request and needs no
+  With a call to \t{/api/connections}, the pre-configured connections
+  can be viewed.  This resource expects a \t{GET} request and needs no
   parameters.  It returns all connection records associated with the currently
   logged-in user.
 
@@ -667,27 +667,27 @@ curl http://localhost/api/connections \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Create a new connection with \texttt{/api/add-connection}}
+\subsubsection{Create a new connection with \t{/api/add-connection}}
 \label{sec:api-create-connection}
 
-  A call to \texttt{/api/add-connection} will create a new connection.
+  A call to \t{/api/add-connection} will create a new connection.
   The table below summarizes the parameters that can be used in this call.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter} & \b{Example}            & \b{Required?}\\
       \evenrow
-      \texttt{name}      & \texttt{Example}            & Yes\\
+      \t{name}      & \t{Example}            & Yes\\
       \oddrow
-      \texttt{uri}       & \texttt{http://my/endpoint} & Yes\\
+      \t{uri}       & \t{http://my/endpoint} & Yes\\
       \evenrow
-      \texttt{username}  & \texttt{jdoe}               & No\\
+      \t{username}  & \t{jdoe}               & No\\
       \oddrow
-      \texttt{password}  & \texttt{secret}             & No\\
+      \t{password}  & \t{secret}             & No\\
       \evenrow
-      \texttt{backend}   & \texttt{4store}             & No\\
+      \t{backend}   & \t{4store}             & No\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -709,9 +709,9 @@ curl http://localhost/api/add-connection          \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Remove a connection with \texttt{/api/remove-connection}}
+\subsubsection{Remove a connection with \t{/api/remove-connection}}
 
-  A call to \texttt{/api/remove-connection} will remove an existing
+  A call to \t{/api/remove-connection} will remove an existing
   connection.  The table below summarizes the parameters that can be
   used in this call.
 
@@ -719,9 +719,9 @@ curl http://localhost/api/add-connection          \
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter} & \b{Example} & \b{Required?}\\
       \evenrow
-      \texttt{name}      & \texttt{Example} & Yes\\
+      \t{name}      & \t{Example} & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -743,10 +743,10 @@ curl http://localhost/api/remove-connection       \
   The API has various resources to manage projects, as described in
   section \refer{sec:web-projects}.
 
-\subsubsection{Retrieve a list of projects with \texttt{/api/projects}}
+\subsubsection{Retrieve a list of projects with \t{/api/projects}}
 
-  Retrieving a list of projects can be done by sending a \texttt{GET} request
-  to \texttt{/api/projects}.
+  Retrieving a list of projects can be done by sending a \t{GET} request
+  to \t{/api/projects}.
 
   The following cURL command would retrieve a list of projects:
 
@@ -758,20 +758,20 @@ curl http://localhost/api/projects      \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Create a new project with \texttt{/api/add-project}}
+\subsubsection{Create a new project with \t{/api/add-project}}
 \label{sec:api-add-project}
 
-  To create a new project, send a \texttt{POST} request to
-  \texttt{/api/add-project}.  The table below summarizes the parameters
+  To create a new project, send a \t{POST} request to
+  \t{/api/add-project}.  The table below summarizes the parameters
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter} & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter} & \b{Example}         & \b{Required?}\\
       \evenrow
-      \texttt{name}      & \texttt{Example project} & Yes\\
+      \t{name}      & \t{Example project} & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -787,20 +787,20 @@ curl http://localhost/api/add-project      \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Remove a project with \texttt{/api/remove-project}}
+\subsubsection{Remove a project with \t{/api/remove-project}}
 
-  To remove a project, send a \texttt{POST} request to
-  \texttt{/api/remove-project}.  The table below summarizes the parameters
+  To remove a project, send a \t{POST} request to
+  \t{/api/remove-project}.  The table below summarizes the parameters
   that can be used with this call.
 
   \hypersetup{urlcolor=black}
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter}   & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter}   & \b{Example} & \b{Required?}\\
       \evenrow
-      \texttt{project-uri}
-      & \texttt{http://sparqling-genomics.org/Project/640c0...5a6d2} & Yes\\
+      \t{project-uri}
+      & \t{http://sparqling-genomics.org/Project/640c0...5a6d2} & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -812,9 +812,9 @@ curl http://localhost/api/add-project      \
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
-      \textbf{Parameter}    & \textbf{Example} & \textbf{Required?}\\
+      \b{Parameter}    & \b{Example}       & \b{Required?}\\
       \evenrow
-      \texttt{project-hash} & \texttt{640c0...5a6d2} & Yes\\
+      \t{project-hash} & \t{640c0...5a6d2} & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -831,17 +831,17 @@ curl http://localhost/api/remove-project      \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Assign a graph to a project \texttt{/api/assign-graph}}
+\subsubsection{Assign a graph to a project \t{/api/assign-graph}}
 
-  Assigning a graph to a project can be done by sending a \texttt{POST} request
-  to \texttt{/api/assign-graph}.  The required parameters are:
+  Assigning a graph to a project can be done by sending a \t{POST} request
+  to \t{/api/assign-graph}.  The required parameters are:
 
   \begin{itemize}
-    \item{\texttt{project-uri}: This can be obtained from a call to
-      \texttt{/api/projects}.}
-    \item{\texttt{connection}: The name of a connection obtained from
-      a call to \texttt{/api/connections}.}
-    \item{\texttt{graph-uri}: The graph URI to assign.}
+    \item{\t{project-uri}: This can be obtained from a call to
+      \t{/api/projects}.}
+    \item{\t{connection}: The name of a connection obtained from
+      a call to \t{/api/connections}.}
+    \item{\t{graph-uri}: The graph URI to assign.}
   \end{itemize}
 
   The following example based on cURL shows how to perform the request:
@@ -858,11 +858,11 @@ curl -X POST                                               \
 \end{verbatim}
 \end{siderules}
 
-\subsubsection{Unassign a graph from a project with \texttt{/api/unassign-graph}}
+\subsubsection{Unassign a graph from a project with \t{/api/unassign-graph}}
 
   Like assigning a graph to a project, it can be unassigned as well using
-  \texttt{/api/unassign-graph} using the same parameters as
-  \texttt{/api/assign-graph}.
+  \t{/api/unassign-graph} using the same parameters as
+  \t{/api/assign-graph}.
 
   The following example based on cURL shows how to perform the request:
 \begin{siderules}
@@ -879,11 +879,11 @@ curl -X POST                                               \
 
 \subsection{Running and viewing queries}
 
-\subsubsection{Retrieve previously run queries with \texttt{/api/queries}}
+\subsubsection{Retrieve previously run queries with \t{/api/queries}}
 
   When running queries through SPARQLing-genomics's interface, each succesful
   query is stored in a ``query history''.  This query history can be retrieved
-  using a call to \texttt{/api/queries}.  This resource expects a \texttt{GET}
+  using a call to \t{/api/queries}.  This resource expects a \t{GET}
   request.
 
   The following cURL command would retrieve the entire query history, formatted
@@ -900,12 +900,12 @@ curl http://localhost/api/queries \
 \subsubsection{Toggle query marks}
 
 \begin{sloppypar}
-  Previously executed queries can be marked as \emph{important}, which means
-  they will survive a call to \texttt{/api/queries-remove-unmarked}.
+  Previously executed queries can be marked as \i{important}, which means
+  they will survive a call to \t{/api/queries-remove-unmarked}.
 \end{sloppypar}
 
   The following example based on cURL shows how to mark a query as
-  \emph{important}:
+  \i{important}:
 \begin{siderules}
 \begin{verbatim}
 curl -X POST                                               \
@@ -920,12 +920,12 @@ curl -X POST                                               \
 \subsubsection{Remove unmarked queries}
 
   Removing unmarked queries for a project can be done by sending a
-  \texttt{POST} request to \texttt{/api/queries-remove-unmarked}.
+  \t{POST} request to \t{/api/queries-remove-unmarked}.
   The required parameters are:
 
   \begin{itemize}
-    \item{\texttt{project-uri}: This can be obtained from a call to
-      \texttt{/api/projects}.}
+    \item{\t{project-uri}: This can be obtained from a call to
+      \t{/api/projects}.}
   \end{itemize}
 
   The following example based on cURL shows how to perform the request:

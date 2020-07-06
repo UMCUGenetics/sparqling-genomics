@@ -91,6 +91,7 @@
 \newcommand\sample[1]{\texttt{sample://}#1}
 \newcommand\bamrdf[1]{\texttt{bam2rdf:}#1}
 \newcommand\tablerdf[1]{\texttt{table2rdf:}#1}
+\newcommand{\dhref}[1]{\href{#1}{#1}}
 
 % Ontology terms shorthands.
 \newcommand\dcterms[1]{\href{http://www.dublincore.org/specifications/dublin-core/dcmi-terms/2012-06-14/\#terms-#1}{{\color{black}\texttt{dcterms:#1}}}}
@@ -123,6 +124,10 @@
 \usepackage{listings}
 \lstset{escapeinside={(@*}{*@)}}
 \lstset{basicstyle=\ttfamily, columns=fullflexible, keepspaces=true}
+
+\renewcommand{\t}[1]{\texttt{#1}}
+\renewcommand{\i}[1]{\emph{#1}}
+\renewcommand{\b}[1]{\textbf{#1}}
 
 % Enable code listing features.
 %\usepackage{minted}

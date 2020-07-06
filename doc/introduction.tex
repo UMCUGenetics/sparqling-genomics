@@ -1,8 +1,8 @@
 \chapter{Getting started}
 
   SPARQLing genomics is a combination of tools and practices to create a
-  knowledge graph to make \emph{discovering}, \emph{connecting}, and
-  \emph{collaborating} easy.
+  knowledge graph to make \i{discovering}, \i{connecting}, and
+  \i{collaborating} easy.
 
 \section{Prerequisites}
 \label{sec:prerequisites}
@@ -22,7 +22,7 @@
   \href{https://www.gnu.org/software/make}{GNU Make} and
   \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config}.
   Additionally, for building the documentation, a working \LaTeX{} distribution is
-  required including the \texttt{pdflatex} program.  Because \LaTeX{} distributions
+  required including the \t{pdflatex} program.  Because \LaTeX{} distributions
   are rather large, this is dependency is optional, at the cost of not being able
   to (re)generate the documentation.
 
@@ -45,25 +45,25 @@
       & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
       & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \texttt{vcf2rdf}         & \B & \B &    & \B &    &    & \B &\\
+      \t{vcf2rdf}         & \B & \B &    & \B &    &    & \B &\\
       \oddrow
-      \texttt{bam2rdf}         & \B & \B &    & \B &    &    & \B &\\
+      \t{bam2rdf}         & \B & \B &    & \B &    &    & \B &\\
       \evenrow
-      \texttt{table2rdf}       & \B & \B &    &    & \B &    & \B &\\
+      \t{table2rdf}       & \B & \B &    &    & \B &    & \B &\\
       \oddrow
-      \texttt{json2rdf}        & \B & \B &    &    & \B &    & \B &\\
+      \t{json2rdf}        & \B & \B &    &    & \B &    & \B &\\
       \evenrow
-      \texttt{xml2rdf}         & \B & \B & \B &    & \B &    & \B &\\
+      \t{xml2rdf}         & \B & \B & \B &    & \B &    & \B &\\
       \oddrow
-      \texttt{folder2rdf}      &    &    &    &    &    & \B &    &\\
+      \t{folder2rdf}      &    &    &    &    &    & \B &    &\\
       \evenrow
-      \texttt{sg-web}          &    &    &    &    &    & \B & \B &\\
+      \t{sg-web}          &    &    &    &    &    & \B & \B &\\
       \oddrow
-      \texttt{sg-web-test}     &    &    &    &    &    & \B & \B &\\
+      \t{sg-web-test}     &    &    &    &    &    & \B & \B &\\
       \evenrow
-      \texttt{sg-auth-manager} &    &    &    &    &    & \B & \B &\\
+      \t{sg-auth-manager} &    &    &    &    &    & \B & \B &\\
       \oddrow
-      Documentation            &    &    &    &    &    &    &    & \B \\
+      Documentation       &    &    &    &    &    &    &    & \B \\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs of
       this project.}
@@ -94,9 +94,9 @@ apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
 
 \subsection{CentOS}
 
-  CentOS 7 and 8 do not include \texttt{htslib}.  Follow the instructions on
-  the \href{https://www.htslib.org/}{\texttt{htslib} website}%
-  \footnote{https://www.htslib.org/} to build \texttt{htslib} from source.
+  CentOS 7 and 8 do not include \t{htslib}.  Follow the instructions on
+  the \href{https://www.htslib.org/}{\t{htslib} website}%
+  \footnote{https://www.htslib.org/} to build \t{htslib} from source.
 
   All other dependencies can be installed using the following command:
 
@@ -109,7 +109,7 @@ yum install autoconf automake gcc make pkgconfig guile guile-devel \
 
 \subsection{GNU Guix}
 
-  For GNU Guix, use the \texttt{environment.scm} file to set up the development
+  For GNU Guix, use the \t{environment.scm} file to set up the development
   environment:
 
 \begin{siderules}
@@ -120,7 +120,7 @@ guix environment -l environment.scm
 
 \subsection{MacOS}
 
-  The necessary dependencies to build \texttt{sparqling-genomics} can be
+  The necessary dependencies to build \t{sparqling-genomics} can be
   installed using \href{https://brew.sh/}{homebrew}:
 
 \begin{siderules}
@@ -153,7 +153,7 @@ download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@).tar.gz
 \end{lstlisting}
 \end{siderules}
 
-  After obtaining the tarball, it can be unpacked using the \texttt{tar}
+  After obtaining the tarball, it can be unpacked using the \t{tar}
   command:
 
 \begin{siderules}
@@ -178,18 +178,18 @@ make install
 \end{lstlisting}
 \end{siderules}
 
-  To run the \texttt{make install} command, super user privileges may be
+  To run the \t{make install} command, super user privileges may be
   required.  This step can be ignored, but will keep the tools in the project's
-  directory.  So in that case, invoking \texttt{vcf2rdf} must be done using
-  \texttt{tools/vcf2rdf/vcf2rdf} when inside the project's root directory,
-  instead of ``just'' \texttt{vcf2rdf}.
+  directory.  So in that case, invoking \t{vcf2rdf} must be done using
+  \t{tools/vcf2rdf/vcf2rdf} when inside the project's root directory,
+  instead of ``just'' \t{vcf2rdf}.
 
-  Alternatively, specify a \texttt{-{}-prefix} to the \texttt{configure}
+  Alternatively, specify a \t{-{}-prefix} to the \t{configure}
   script to install the tools to a user-writeable location.
 
-  Individual components can be built by replacing \texttt{make} with the
-  more specific \texttt{make -C <component-directory>}.  So, to \emph{only}
-  build \texttt{vcf2rdf}, the following command could be used:
+  Individual components can be built by replacing \t{make} with the
+  more specific \t{make -C <component-directory>}.  So, to \i{only}
+  build \t{vcf2rdf}, the following command could be used:
 
 \begin{siderules}
 \begin{verbatim}

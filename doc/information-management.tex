@@ -18,7 +18,7 @@
   sort of works by default.
 
   Sometimes we'd like to remove a graph altogether to make space for new
-  datasets.  For this purpose we can use the \texttt{CLEAR GRAPH} query:
+  datasets.  For this purpose we can use the \t{CLEAR GRAPH} query:
 
 \begin{siderules}
 \begin{verbatim}
@@ -27,10 +27,10 @@ CLEAR GRAPH <http://example>
 \end{siderules}
 
   After executing this query, all triples in the graph identified by
-  \texttt{<http://example>} will be sent to a pieceful place where they
+  \t{<http://example>} will be sent to a pieceful place where they
   cannot be accessed anymore.
 
-  The \texttt{CLEAR GRAPH} query is equivalent to the more elaborate:
+  The \t{CLEAR GRAPH} query is equivalent to the more elaborate:
 
 \begin{siderules}
 \begin{verbatim}
@@ -40,7 +40,7 @@ WHERE { ?s ?p ?o }
 \end{verbatim}
 \end{siderules}
 
-  Using the \texttt{DELETE} construct, we can be more specific about which
+  Using the \t{DELETE} construct, we can be more specific about which
   triples to remove from a graph by filling in one of the variables.
 
 \section{Storing inferences in new graphs}
@@ -69,7 +69,7 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
- Each \texttt{sample} returned by this query must've originated from a male
+ Each \t{sample} returned by this query must've originated from a male
  donor, because it has a Y-chromosome (and also a mutation on the
  Y-chromosome).  Note that we cannot distinguish between females and males
  without a mutation on the Y-chromosome with this data, so we cannot accurately
@@ -84,7 +84,7 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
-  To do so, we use the \texttt{INSERT} construct:
+  To do so, we use the \t{INSERT} construct:
 
 \begin{siderules}
 \begin{verbatim}
@@ -151,10 +151,10 @@ WHERE {
   Additional insights may require a combination of RDF triples and foreign
   data.  In such cases, a general-purpose programming language and SPARQL can
   form a symbiosis.  To display such a symbiosis, the following example uses
-  the output of \texttt{vcf2rdf} to find out which samples belong to which
+  the output of \t{vcf2rdf} to find out which samples belong to which
   user, by looking at the originating filenames.
 
-  Furthermore, the example uses \texttt{guile-sparql} to interact with the
+  Furthermore, the example uses \t{guile-sparql} to interact with the
   SPARQL endpoint and GNU Guile as general-purpose programming language.
 
 \begin{siderules}
@@ -209,7 +209,7 @@ WHERE {
 \end{verbatim}
 \end{siderules}
 
-  For a small amount of files, we could directly execute an \texttt{INSERT}
+  For a small amount of files, we could directly execute an \t{INSERT}
   query on the SPARQL endpoint, however, for a large amount of files we may
   want to use the RDF store's data loader for better performance.
 

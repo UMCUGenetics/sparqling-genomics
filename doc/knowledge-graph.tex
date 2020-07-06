@@ -1,14 +1,14 @@
 \chapter{The knowledge graph}
 \label{chap:knowledge-graph}
 
-  In this manual we define a \emph{knowledge graph} as a collection of
+  In this manual we define a \i{knowledge graph} as a collection of
   facts stated in a coherent way so that inferences can be drawn from
   them.  We implement a knowledge graph using the Resource Description
   Framework \citep{Lassila-99-RDF}, hereafter referred to as RDF.  The
   knowledge graph is the main value obtained from this project.
 
   The programs from chapter \refer{chap:command-line} read data in a
-  domain-specific format, and translate it into \emph{facts} in the form
+  domain-specific format, and translate it into \i{facts} in the form
   \triplet{subject}{predicate}{object}, which is the form of an RDF triplet.
 
   Once all desired data is described as RDF triplets, we can use the SPARQL
@@ -45,7 +45,7 @@
   inferences.
 
   From a computational perspective, these inferences allow programs to take
-  shortcuts, and therefore answer questions (called \emph{querying}) faster.
+  shortcuts, and therefore answer questions (called \i{querying}) faster.
   The performance of querying the graph can therefore be tuned by cleverly
   stating facts.  For example, by using the inference drawn in figure
   \ref{fig:layered-knowledge}, a query asking for ``all variants in a gene''
@@ -61,20 +61,20 @@
 
   The knowledge graph contains two types of nodes; uniquely identifiable
   names having a symbolic value (1), and literal values like numbers and
-  text (2).  Nodes with a symbolic value, or simply \emph{symbols} can be used
+  text (2).  Nodes with a symbolic value, or simply \i{symbols} can be used
   to add context to.  For example, consider the following statement:
   \triplet{<H>}{<electronegativity}{2.20}.  We can extend our knowledge
   about \code{<H>} by also stating: \triplet{<H>}{<numberOfElectrons>}{1}.
-  The identifier \texttt{<H>} by itself has no meaning.  But that there is one
-  ``thing'' for which both properties \texttt{<electronegativity>} and
-  \texttt{<numberOfElectrons>} have a certain value provides insight into a
+  The identifier \t{<H>} by itself has no meaning.  But that there is one
+  ``thing'' for which both properties \t{<electronegativity>} and
+  \t{<numberOfElectrons>} have a certain value provides insight into a
   deeper structure.
 
   We could go on and find more entities for which the properties
-  \texttt{<electronegativity>} and \texttt{<numberOfElectrons>} are bound to
+  \t{<electronegativity>} and \t{<numberOfElectrons>} are bound to
   specific values.  We can then identify the group of entities by a single
-  \emph{type} to make it easier to talk about.   In the example, the type
-  \texttt{<ChemicalElement>} may be suitable.  So we would add the triplet:
+  \i{type} to make it easier to talk about.   In the example, the type
+  \t{<ChemicalElement>} may be suitable.  So we would add the triplet:
   \triplet{<H>}{rdf:type}{<ChemicalElement>}.
 
 \section{Patterns for layer 0}
@@ -102,6 +102,6 @@
   distinct knowledge graphs.
 
   Such publicly accessible symbols are distributed in the form of a
-  \emph{vocabulary} or \emph{ontology}.  In this manual the words ``vocabulary''
+  \i{vocabulary} or \i{ontology}.  In this manual the words ``vocabulary''
   and ``ontology'' are used interchangeably.  The use of symbols from various
   ontologies is the subject of chapter \refer{chap:implemented-ontologies}.

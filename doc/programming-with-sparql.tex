@@ -4,7 +4,7 @@
 \section{Using SPARQL with R}
 \label{sec:sparql-with-r}
 
-  Before we can start, we need to install the \texttt{SPARQL} package from
+  Before we can start, we need to install the \t{SPARQL} package from
   \href{https://cran.r-project.org/web/packages/SPARQL/index.html}{CRAN}.
 
 \begin{siderules}
@@ -50,7 +50,7 @@ LIMIT 10";
 \end{verbatim}
 \end{siderules}
 
-  To actually execute the query, we can use the \texttt{SPARQL} function:
+  To actually execute the query, we can use the \t{SPARQL} function:
 \begin{siderules}
 \begin{verbatim}
 query_data <- SPARQL (endpoint, query)
@@ -58,7 +58,7 @@ query_data <- SPARQL (endpoint, query)
 \end{siderules}
 
   If the query execution went fine, we can gather the resulting
-  \texttt{dataframe} from the \texttt{results} index.
+  \t{dataframe} from the \t{results} index.
 
 \begin{siderules}
 \begin{verbatim}
@@ -69,11 +69,11 @@ query_results <- query_data$results
 \subsection{Querying with authentication}
 
   When the SPARQL endpoint we try to reach requires authentication before
-  it accepts a query, we can use the \texttt{curl\_args} parameter of the
-  \texttt{SPARQL} function.
+  it accepts a query, we can use the \t{curl\_args} parameter of the
+  \t{SPARQL} function.
 
-  In the following example, we use \texttt{dba} as username, and
-  \texttt{secret-password} as password.
+  In the following example, we use \t{dba} as username, and
+  \t{secret-password} as password.
 
 \begin{siderules}
 \begin{verbatim}
@@ -92,9 +92,9 @@ results      <- query_data$results
   {guile-sparql}\footnote{\url{https://github.com/roelj/guile-sparql}} package
   provides a SPARQL interface.
 
-  The package provides a \texttt{driver} module that communicates with the
-  SPARQL endpoint, a \texttt{lang} module to construct SPARQL queries using
-  S-expressions, and a \texttt{util} module containing convenience functions.
+  The package provides a \t{driver} module that communicates with the
+  SPARQL endpoint, a \t{lang} module to construct SPARQL queries using
+  S-expressions, and a \t{util} module containing convenience functions.
 
   After installation, the modules can be loaded using:
 
@@ -106,7 +106,7 @@ results      <- query_data$results
 \end{verbatim}
 \end{siderules}
 
-  Using the \texttt{sparql-query} function, we can execute a query:
+  Using the \t{sparql-query} function, we can execute a query:
 
 \begin{siderules}
 \begin{verbatim}
