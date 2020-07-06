@@ -676,6 +676,7 @@
         ;; Each request is handled in a separate thread.
         (call-with-new-thread
          (lambda _
+           (sigaction SIGPIPE SIG_IGN)
            (request-handler client-port)
            (close client-port))
          (lambda (key . args)
