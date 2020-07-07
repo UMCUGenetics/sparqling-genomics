@@ -162,9 +162,9 @@
       ;; in which case we return that.
       (if module
           (catch #t
-            (lambda _ `((page        . ,(module-ref module 'page))
-                        (submit      . ,(module-ref module 'submit))
-                        (api-handler . ,(module-ref module 'api-handler))))
+            (lambda _ `((page   . ,(module-ref module 'page))
+                        (submit . ,(module-ref module 'submit))
+                        (api    . ,(module-ref module 'api))))
             (lambda (key . args)
               (log-error "resolve-form-module"
                          "Couldn't resolve the module's structure for ~s."
@@ -278,7 +278,7 @@
           (sxml->xml (page-form-error-404 request-path) client-port)
           (let ((page        (assoc-ref module 'page))
                 (submit      (assoc-ref module 'submit))
-                (api-handler (assoc-ref module 'api-handler)))
+                (api-handler (assoc-ref module 'api)))
             (cond
              ;; API requests.
              ;; ---------------------------------------------------------------
@@ -317,9 +317,17 @@
                  [(not (api-serveable-format? accept-type))
                   (respond-406 client-port)]
                  [else
-                  (submit (api-request-data->alist
-                           (request-content-type request)
-                           (utf8->string (read-request-body request))))])
+                  (respond-to-client 200 client-port '(text/html)
+                    (call-with-output-string
+                      (lambda (port)
+                        (set-port-encoding! port "utf8")
+                        (format port "<!DOCTYPE html>~%")
+                        (sxml->xml
+                         (submit request-path
+                                 (api-request-data->alist
+                                  (request-content-type request)
+                                  (utf8->string (read-request-body request))))
+                                   port))))])
                 (respond-404 client-port accept-type
                              "The form could not be found."))]))))]
 
