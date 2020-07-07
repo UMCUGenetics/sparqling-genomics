@@ -299,6 +299,7 @@ sg-web --configuration-file=file.xml
   $\ldots{}$ where \t{file.xml} is a configuration file as
   discussed in section \refer{sec:configuring-sg-web}.
 
+\pagebreak{}
 \section{Managing multi-node setups with \program{sg-auth-manager}}
 
   When the knowledge graph grows beyond the capabilities of a single machine,
@@ -351,6 +352,7 @@ sg-web --configuration-file=file.xml
   using protected endpoints by allowing the session token (see section
   \ref{sec:tokens}) as part of the URI in the \t{SERVICE} specification.
 
+\pagebreak{}
 \section{Using the web interface}
 \label{sec:using-web-interface}
 
@@ -877,6 +879,7 @@ curl -X POST                                               \
 \end{verbatim}
 \end{siderules}
 
+\pagebreak{}
 \subsection{Running and viewing queries}
 
 \subsubsection{Retrieve previously run queries with \t{/api/queries}}
@@ -937,5 +940,168 @@ curl -X POST                                               \
      --cookie "SGSession=..."                              \
      --data '{ "project-uri": "http://the-project-uri" }'
      http://localhost/api/queries-remove-unmarked
+\end{verbatim}
+\end{siderules}
+
+\pagebreak{}
+\section{Forms}
+\label{sec:forms}
+
+  The \program{sg-web} program can be extended to provide a web form interface.
+  Creating a web form that leverages SPARQLing-genomics involves creating a
+  Scheme module that implements three procedures:
+  \begin{itemize}
+  \item \t{page}: This procedure should return an SXML tree that represents
+    the HTML to display the form.
+  \item \t{submit}: This function implements the action to take when a user
+    submits the form.
+  \item \t{api}: This optional function can be used to build autocompletion,
+    or other pre-submit interaction between the form and SPARQLing-genomics.
+  \end{itemize}
+
+\subsection{Example of a form module}
+
+  Creating a Scheme module to render a form to users comprises of four
+  parts.  In the remainder of this section we will address each part.
+
+\subsubsection{The Scheme module}
+
+  The first part involves defining a Scheme modules with three procedures.
+  Because \program{sg-web} is written in GNU Guile \citep{guile},
+  we use \t{define-module} to define the module for the form.
+
+\begin{siderules}
+\begin{verbatim}
+(define-module (www forms example)
+  #:use-module (www pages) ; Provides the ‘page-empty-template’ procedure.
+  #:use-module (www util)  ; Provides the ‘string-is-longer-than’ procedure.
+  #:export (page submit api))
+\end{verbatim}
+\end{siderules}
+
+  Because the name of the module is \t{(www forms example)}, the location
+  where \program{sg-web} searches for your module is `\t{www/forms/example.scm}'
+  relative to a path on \t{GUILE\_LOAD\_PATH}.  The ``\t{www form}'' module
+  prefix is hard-coded by \program{sg-web}, while \t{example} can be chosen by
+  us.
+
+  There are three symbols we export from our module: \t{page}, \t{submit}, and
+  \t{api}.  The \program{sg-web} expects these exact symbol names to be
+  exported.
+
+\subsubsection{Implementing the \t{page} procedure}
+
+  The second part involves implementing the \t{page} procedure. The \t{page}
+  procedure takes the request path as argument (ignoring optional arguments),
+  returning an SXML tree.  The request path can be used to tell where to
+  submit the form to.
+
+\begin{siderules}
+\begin{verbatim}
+(define* (page request-path #:optional (error-message #f))
+  (page-empty-template "Example" request-path
+   `((h2 "Example form")
+     ,(if error-message
+         `(div (@ (class "form-error-message")) ,error-message)
+         '())
+
+     (form (@ (method "POST")
+              (action ,request-path))
+       (h3 "Name")
+       (input (@ (type  "text")
+                 (id    "name")
+                 (name  "name")))
+       (input (@ (type  "submit")
+                 (class "form-submit-button")
+                 (value "Submit form")))))))
+\end{verbatim}
+\end{siderules}
+
+  The \t{(www pages)} module provides a template that includes the familiar
+  theme of the \program{sg-web} pages.  Our SXML tree will render to the
+  following HTML:
+
+\begin{siderules}
+\begin{verbatim}
+<h2>Example form</h2>
+<form method="POST" action="/forms/example">
+  <h3>Name</h3>
+  <input type="text" id="name" name="name" />
+  <input type="submit" class="form-submit-button" value="Submit form" />
+</form>
+\end{verbatim}
+\end{siderules}
+
+  Note that this HTML snippet is wrapped inside the template constructed by
+  \t{page-empty-template}, so when viewing the form in a web browser, we
+  will see something similar to figure \ref{fig:web-form-example}.
+
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-form-example.pdf}
+    \end{center}
+    \caption{The rendering of the \t{page} function of our example form.}
+    \label{fig:web-form-example}
+  \end{figure}
+
+\subsubsection{Implementing the \t{submit} procedure}
+
+  Our next step is to catch a form submission, which is the purpose of the
+  \t{submit} procedure.  This procedure is expected to take two arguments,
+  and return an SXML tree.
+
+\begin{siderules}
+\begin{verbatim}
+(define (submit request-path data)
+  (let* ((name (assoc-ref data 'name))
+         (state (cond
+                 [(or (not name)
+                      (not (string-is-longer-than name 0)))
+                  '(#f "Missing name.")]
+                 [(string-is-longer-than name 64)
+                  '(#f "Name may not be longer than 64 characters.")]
+                 [else
+                  '(#t)])))
+    (if (car state)
+        (page-empty-template "Thank you" request-path
+         `((h2 "Thank you, " ,name "!")))
+        (page request-path (cadr state)))))
+\end{verbatim}
+\end{siderules}
+
+  After submitting the form, it may render in the web browser as displayed
+  in figure \ref{fig:web-form-submit}.
+
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=1.0\textwidth]{figures/sg-web-form-example-submit.pdf}
+    \end{center}
+    \caption{The rendering of the \t{submit} function of our example form.}
+    \label{fig:web-form-submit}
+  \end{figure}
+
+
+\subsubsection{Implementing the \t{api} procedure}
+
+  The final part involves implementing the optional \t{api} procedure
+  takes six arguments:
+  \begin{itemize}
+  \item \t{request-path}:   The relative path of the form;
+  \item \t{input-port}:     The port to read data from;
+  \item \t{output-port}:    The port to write data to;
+  \item \t{accept-type}:    The value of the requests's \t{Accept} header;
+  \item \t{content-type}:   The value of the requests's \t{Content-Type} header;
+  \item \t{content-length}: The number of bytes that can be read from
+    \t{input-port}.
+  \end{itemize}
+
+  This procedure is primarily designed to provide autocompletion options
+  for form fields.
+
+\begin{siderules}
+\begin{verbatim}
+(define (api request-path input-port output-port
+             accept-type content-type content-length)
+  ...)
 \end{verbatim}
 \end{siderules}
