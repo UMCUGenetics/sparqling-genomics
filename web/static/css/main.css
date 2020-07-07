@@ -333,7 +333,7 @@ tr:nth-child(odd) {
     background: rgba(250, 250, 250, 0.50);
 }
 
-input[type=text],input[type=submit],input[type=password] {
+input[type=text],input[type=password] {
     width: 100%;
     height: 20pt;
     font-family: 'FiraMono', monospace;
@@ -903,3 +903,28 @@ input.form-submit-input:hover {
     font-family: 'Roboto-Bold';
     outline: none;
 }
+.form-textarea {
+    width: 100%;
+    height: 5em;
+    border-radius: 4pt;
+    border: solid 2pt #cccccc;
+    margin-top: 5pt;
+}
+.form-error-message {
+    padding: 5pt;
+    font-weight: bold;
+    background: #aa3333;
+    color: #ffffff;
+    border-radius: 4pt;
+}
+.form-submit-button {
+    margin-top: 1em;
+    padding: 5pt;
+    background: #008800;
+    border: solid 1pt #008800;
+    border-radius: 4pt;
+    color: #ffffff;
+    cursor: pointer;
+}
+.form-submit-button:hover { background: #00aa00; }
+.form-submit-button:active { background: #006600; }
