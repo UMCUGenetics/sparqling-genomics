@@ -80,13 +80,17 @@ body,html {
     border-radius: 4pt;
     margin: 10pt;
     padding: 2pt 4pt 2pt 4pt;
-    background: #e3dedb /*#d7eef4*/;
-    border: solid 2pt #6c5d53 /*#2c89a0*/;
+    background: #e3dedb;
+    border: solid 2pt #6c5d53;
     user-select: none;
 }
 #header .submenu li:hover {
-    background: #c8beb7; /*#afdde9;  #c6e9af; */
-    border: solid 2pt #483e37 /*#216778 */;
+    background: #c8beb7;
+    border: solid 2pt #483e37;
+}
+#header .submenu li:active {
+    background: #968f89;
+    border: solid 2pt #483e37;
 }
 #header .submenu li.spacer { padding: 0pt; background: none; border: none; margin: 0pt; }
 #header .submenu li.active { background: none; border: solid 2pt #ffffff; }
@@ -398,6 +402,7 @@ select#connection {
 .small-action a { text-decoration: none; }
 .small-action a:hover { color: #000000; }
 .small-action:hover { background: #ffeeaa; } 
+.small-action:active { background: #eedd99; }
 .small-action {
     display: inline-block;
     font-size: 12pt;
@@ -438,6 +443,7 @@ select#connection {
     cursor: pointer;
     user-select: none;
 }
+.smaller-action-add:active { background: #eedd99; }
 .smaller-action-add:hover { background: #ffeeaa; }
 .smaller-action-add { background: #ffdd55; border: solid 2pt #aa8800; }
 
@@ -446,12 +452,15 @@ select#connection {
 
 .action-btn-remove { background: #aa0000; border: solid 2pt #880000; }
 .action-btn-remove:hover { background: #990000; }
+.action-btn-remove:active { background: #770000; }
 
 .action-btn-active { background: #aa00aa; border: solid 2pt #880088;}
 .action-btn-active:hover { background: #cc00cc; }
+.action-btn-active:active { background: #aa00aa; }
 
 .action-btn-submit { background: #00aa00; border: solid 2pt #008800; }
 .action-btn-submit:hover { background: #009900; }
+.action-btn-submit:active { background: #007700; }
 
 .message-box {
     width: auto;
@@ -750,6 +759,9 @@ input[type=submit].login-field:hover {
 }
 .large-action-btn:hover {
     background: #77aa77;
+}
+.large-action-btn:active {
+    background: #336633;
 }
 .large-submit-btn:hover {
     background: #55dd55;
