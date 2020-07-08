@@ -726,6 +726,5 @@
             (else           (throw 'unknown-query-type #f))))
         out))
     (lambda (key . args)
-      (format #t "Thrown: ~a: ~s" key args)
-      ;(log-error "parse-query" "Thrown: ~a: ~s" key args)
+      (log-error "parse-query" "Thrown: ~a: ~s" key args)
       #f)))
