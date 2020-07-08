@@ -682,6 +682,30 @@
             (set-query-delete-patterns! out (reverse tokens))
             (parse-select-query out query cursor))))))
 
+  (define (parse-delete-insert-query out query cursor)
+    (let* ((remaining       (substring query cursor))
+           (delete-position (string-contains-ci remaining "delete"))
+           (insert-position (string-contains-ci remaining "insert"))
+           (where-position  (string-contains-ci remaining "where")))
+      (call-with-values (lambda _ (tokenize-query-header out remaining cursor))
+        (lambda (tokens cursor)
+          (read-global-graphs out tokens)
+
+          ;; Parse the INSERT part.
+          (call-with-values (lambda _ (tokenize-triplet-pattern
+                                       out remaining (+ insert-position 6)))
+            (lambda (tokens cursor)
+              (set-query-insert-patterns! out (reverse tokens))))
+
+          ;; Parse the DELETE part.
+          (call-with-values (lambda _ (tokenize-triplet-pattern
+                                       out remaining (+ delete-position 6)))
+            (lambda (tokens cursor)
+              (set-query-delete-patterns! out (reverse tokens))))
+
+          ;; Parse the WHERE part.
+          (parse-select-query out remaining (+ where-position 5))))))
+
   (catch #t
     (lambda _
       (let* [(out (make <query>))]
@@ -695,7 +719,7 @@
             ('CLEAR         (parse-clear-query out q cursor))
             ('CONSTRUCT     (parse-construct-query out query (+ cursor 9)))
             ('DELETE        (parse-delete-query out query (+ cursor 6)))
-            ('DELETEINSERT  (throw 'unimplemented-query-type #f))
+            ('DELETEINSERT  (parse-delete-insert-query out q after-prologue))
             ('DESCRIBE      (parse-describe-query out query (+ cursor 8)))
             ('INSERT        (parse-insert-query out query (+ cursor 6)))
             ('SELECT        (parse-select-query out q (+ cursor 6)))
