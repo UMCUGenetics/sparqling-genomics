@@ -675,10 +675,9 @@
                        (www-listen-address))
           (www-listen-port))
 
-    (listen s 50)
+    (listen s 128)
     (while #t
       (let* [(client-connection (accept s))
-             ;(client-details    (cdr client-connection))
              (client-port       (car client-connection))]
 
         ;; Each request is handled in a separate thread.
