@@ -154,7 +154,7 @@
         (let [(shortcode-end (string-index token #\:))]
           (cond
            [(not shortcode-end)
-            #f]
+            token]
            [(> shortcode-end 0)
             (let* [(sym      (string-trim (string-copy token 0 shortcode-end)))
                    (sym-len  (string-length sym))
