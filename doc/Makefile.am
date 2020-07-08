@@ -34,6 +34,8 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
                           figures/sg-auth-manager-scaleout.pdf \
                           figures/sg-web-dashboard.pdf         \
                           figures/sg-web-exploratory.pdf       \
+                          figures/sg-web-form-example-submit.pdf \
+                          figures/sg-web-form-example.pdf      \
                           figures/sg-web-import-rdf.pdf        \
                           figures/sg-web-project-details.pdf   \
                           figures/sg-web-query.pdf             \
