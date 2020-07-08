@@ -645,7 +645,7 @@
                        (parse-uri-token out (list-ref tokens 2))
                        #f))]
       (if uri
-          (set-query-global-graphs! out uri)
+          (set-query-global-graphs! out (list uri))
           #f)))
 
   (define (parse-describe-query out query cursor)
