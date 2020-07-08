@@ -46,7 +46,7 @@ ui_show_help (void)
                                         "argument,\n"
         "                                the header line must use ';' as the "
                                         "delimiter.\n"
-        "  --skip-first-line=ARG,    -S  Ignore the first line in the file.\n"
+        "  --skip-lines=N,           -S  Ignore the first N line in the file.\n"
         "  --transform-object=ARG    -t  A pair in the form colname=uri-prefix "
                                         "where the value\n"
         "                                for the column identified by colname "
@@ -91,7 +91,7 @@ ui_process_command_line (int argc, char **argv)
       { "ignore-lines-with",     required_argument, 0, 'j' },
       { "output-format",         required_argument, 0, 'O' },
       { "progress-info",         no_argument,       0, 'p' },
-      { "skip-first-line",       no_argument,       0, 'S' },
+      { "skip-lines",            required_argument, 0, 's' },
       { "transform-object",      required_argument, 0, 't' },
       { "transform-predicate",   required_argument, 0, 'T' },
       { "version",               no_argument,       0, 'v' },
@@ -101,7 +101,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:d:D:i:O:H:St:T:Ij:ophv", options, &index);
+      arg = getopt_long (argc, argv, "c:d:D:i:O:H:s:t:T:Ij:ophv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -113,7 +113,7 @@ ui_process_command_line (int argc, char **argv)
         case 'O': config.output_format = optarg;                 break;
         case 'p': config.show_progress_info = true;              break;
         case 'H': config.header_line = optarg;                   break;
-        case 'S': config.skip_first_line = true;                 break;
+        case 's': config.skip_lines = atoi(optarg);              break;
         case 't': preregister_object_transformer (optarg);       break;
         case 'T': preregister_predicate_transformer (optarg);    break;
         case 'h': ui_show_help ();                               break;

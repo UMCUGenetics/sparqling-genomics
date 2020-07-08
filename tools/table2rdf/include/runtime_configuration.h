@@ -57,8 +57,8 @@ typedef struct
   uint32_t          object_transformers_buffer_alloc_len;
   uint32_t          object_transformer_alloc_len;
   uint32_t          object_transformer_len;
+  int               skip_lines;
   bool              show_progress_info;
-  bool              skip_first_line;
   bool              input_from_stdin;
 
   /* Raptor-specifics */

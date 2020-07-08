@@ -54,7 +54,7 @@ runtime_configuration_init (void)
   config.row_counter = 0;
   config.prefix_name_counter = 0;
   config.show_progress_info = false;
-  config.skip_first_line = false;
+  config.skip_lines = 0;
   config.input_from_stdin = false;
 
   return true;

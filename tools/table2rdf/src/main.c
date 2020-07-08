@@ -135,12 +135,19 @@ main (int argc, char **argv)
       register_statement_reuse_subject_predicate (stmt);
       stmt = NULL;
 
-      if (config.skip_first_line)
+      if (config.skip_lines > 0)
         {
+          int index = 0;
           char *line = NULL;
           size_t line_len = 0;
-          gzgetdelim (&line, &line_len, '\n', stream);
-          free (line);
+
+          for (; index < config.skip_lines; index++)
+            {
+              gzgetdelim (&line, &line_len, '\n', stream);
+              free (line);
+              line = NULL;
+              line_len = 0;
+            }
         }
 
       /* Process the header. */
