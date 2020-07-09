@@ -41,6 +41,7 @@
             (cond
              [(= (response-code header) 200)
               (let [(data (read port))]
+                (close-port port)
                 (assoc-ref data 'username))]
              [else
               #f]))
