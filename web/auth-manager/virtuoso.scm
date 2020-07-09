@@ -16,8 +16,10 @@
 
 (define-module (auth-manager virtuoso)
   #:use-module (auth-manager config)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 popen)
 
-  #:export (stage-file start-bulk-load))
+  #:export (stage-file start-bulk-load virtuoso-isql-query))
 
 (define (stage-file filename graph-uri)
   (zero?
@@ -32,6 +34,19 @@
    (system (format #f "printf \"rdf_loader_run ();\n\" | ~a ~a -U ~a -P ~a~%"
                    (isql-bin) (isql-port)
                    (rdf-store-username) (rdf-store-password)))))
+
+(define (virtuoso-isql-query query)
+  "Executes QUERY via ISQL and returns a both an ERROR-PORT and a PORT to read CSV output from."
+  (let* ((tmp        (getenv "TMPDIR"))
+         (error-port (mkstemp! (string-append (if tmp tmp "/tmp") "/sg-XXXXXX")))
+         (port       (open-input-pipe
+                      (format #f "~a ~a -U ~a -P ~a verbose=off csv=on csv_field_separator=, exec='~:a' 2> ~a"
+                              (isql-bin) (isql-port) (rdf-store-username)
+                              (rdf-store-password)
+                              (string-append "SPARQL " query)
+                              (port-filename error-port)))))
+    (setvbuf port 'block 4096)
+    (values error-port port)))
 
 (define (load-file filename graph-uri)
   (stage-file filename graph-uri)

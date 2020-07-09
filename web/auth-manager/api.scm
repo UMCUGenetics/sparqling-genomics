@@ -19,8 +19,9 @@
   #:use-module (auth-manager permission-check)
   #:use-module (auth-manager proxy)
   #:use-module (auth-manager virtuoso)
-  #:use-module (ice-9 threads)
+  #:use-module ((ice-9 popen) #:select (close-pipe))
   #:use-module (ice-9 receive)
+  #:use-module (ice-9 threads)
   #:use-module (sparql driver)
   #:use-module (sparql stream)
   #:use-module (srfi srfi-19)
@@ -131,28 +132,44 @@
                       (lambda _ (may-execute? token hash query))
                     (lambda (answer message)
                       (if answer
-                          (call-with-values
-                            (lambda _
-                              (sparql-query query
-                                #:store-backend (rdf-store-backend)
-                                #:uri (rdf-store-uri)
-                                #:digest-auth
-                                (if (and (rdf-store-username)
-                                         (rdf-store-password))
-                                    (string-append
-                                     (rdf-store-username) ":"
-                                     (rdf-store-password))
-                                    #f)))
-                            (lambda (header port)
-                              (cond
-                               [(= (response-code header) 200)
-                                (csv-stream port client-port accept-type)]
-                               [(= (response-code header) 401)
-                                (respond-401 client-port accept-type
-                                             "Authentication failed.")]
-                               [else
-                                (respond-401 client-port accept-type
-                                             (get-string-all port))])))
+                          (cond
+                           [(eq? (rdf-store-backend) 'virtuoso)
+                            (call-with-values
+                              (lambda _ (virtuoso-isql-query query))
+                              (lambda (error-port port)
+                                (if (port-eof? port)
+                                    (let* ((error-filename (port-filename error-port))
+                                           (message (get-string-all error-port)))
+                                      (close-port error-port)
+                                      (close-pipe port)
+                                      (respond-401 client-port accept-type message))
+                                    (begin
+                                      (close-port error-port)
+                                      (csv-stream port client-port accept-type)
+                                      (close-pipe port)))))]
+                           [else
+                            (call-with-values
+                                (lambda _
+                                  (sparql-query query
+                                                #:store-backend (rdf-store-backend)
+                                                #:uri (rdf-store-uri)
+                                                #:digest-auth
+                                                (if (and (rdf-store-username)
+                                                         (rdf-store-password))
+                                                    (string-append
+                                                     (rdf-store-username) ":"
+                                                     (rdf-store-password))
+                                                    #f)))
+                              (lambda (header port)
+                                (cond
+                                 [(= (response-code header) 200)
+                                  (csv-stream port client-port accept-type)]
+                                 [(= (response-code header) 401)
+                                  (respond-401 client-port accept-type
+                                               "Authentication failed.")]
+                                 [else
+                                  (respond-401 client-port accept-type
+                                               (get-string-all port))])))])
                           (begin
                             (log-access username "/api/query"
                                         "Denied query request.")
