@@ -89,6 +89,12 @@
      (FileExtend                 . "200")
      (MaxCheckpointRemap         . ,(format #f "~a" expected-database-size))
      ""
+     "[TempDatabase]"
+     (DatabaseFile               . ,(string-append %prefix "/virtuoso-temp.db"))
+     (TransactionFile            . ,(string-append %prefix "/virtuoso-temp.trx"))
+     (MaxCheckpointRemap         . ,(format #f "~a" expected-database-size))
+     (Striping                   . "0")
+     ""
      "[Parameters]"
      (MaxClientConnections       . ,(number->string (* threads 10)))
      (DirsAllowed                . "/")
