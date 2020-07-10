@@ -88,6 +88,7 @@
      (xa_persistent_file         . ,(string-append %prefix "/virtuoso.pxa"))
      (FileExtend                 . "200")
      (MaxCheckpointRemap         . ,(format #f "~a" expected-database-size))
+     (TempStorage                . "TempDatabase")
      ""
      "[TempDatabase]"
      (DatabaseFile               . ,(string-append %prefix "/virtuoso-temp.db"))
@@ -96,6 +97,7 @@
      (Striping                   . "0")
      ""
      "[Parameters]"
+     (ServerPort                 . "localhost:1111")
      (MaxClientConnections       . ,(number->string (* threads 10)))
      (DirsAllowed                . "/")
      (VADInstallDir              . "/share/virtuoso/vad/")
@@ -137,4 +139,7 @@
      (MaxQueryCostEstimationTime . "9000000000000")
      (MaxQueryExecutionTime      . "9000000000000")
      (DefaultQuery               . "")
-     (DeferInferenceRulesInit    . "0"))))
+     (DeferInferenceRulesInit    . "0")
+     ""
+     "[Flags]"
+     (hash_join_enable           . "2"))))
