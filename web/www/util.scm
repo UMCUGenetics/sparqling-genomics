@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018, 2019  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
 ;;; Copyright © 2016  Ricardo Wurmus <rekado@elephly.net>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
@@ -39,6 +39,7 @@
             string->sha256sum
             generate-id
             is-uri?
+            random-ascii-string
             respond-to-client
             respond-200
             respond-200-with-cookie
@@ -263,3 +264,16 @@
             (onclick ,onclick))
          (a (@ (href ,href))
             ,content)))
+
+(define (random-ascii-string length)
+  (if (< length 1)
+      #f
+      (list->string
+       (map (lambda (number)
+              (let ((number (random 62)))
+                (integer->char
+                 (+ 48 (cond
+                        [(> number 35) (+ number 13)]
+                        [(> number 9)  (+ number 7)]
+                        [else          number])))))
+            (iota (1- length))))))

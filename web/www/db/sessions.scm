@@ -1,4 +1,4 @@
-;;; Copyright © 2018  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -16,7 +16,6 @@
 
 (define-module (www db sessions)
   #:use-module (www util)
-  #:use-module (www base64)
   #:use-module ((www config) #:select (www-cache-root))
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
@@ -70,21 +69,9 @@
       (let ((obj (make-session (assoc-ref input 'name)
                                (assoc-ref input 'username)
                                (assoc-ref input 'token))))
-        ;; The token will be automatically generated when none is provided.
-        ;; For this we generate 63 random numbers between 0 and 256, and
-        ;; we base64 it, so that it's web-compatible.
-        ;;
-        ;; We replace '/' for 0 and '+' for 1 so that the output only contains
-        ;; (alpha)numeric characters.
         (when (and (string? (session-token obj))
                    (string= (session-token obj) ""))
-          (set-session-token! obj (string-replace-occurrence
-                                   (string-replace-occurrence
-                                    (base64-encode
-                                     (u8-list->bytevector
-                                      (map (lambda _ (random 256)) (iota 63))))
-                                    #\/ #\0)
-                                   #\+ #\1)))
+          (set-session-token! obj (random-ascii-string 84)))
         obj))
     (lambda (key . args)
       #f)))
