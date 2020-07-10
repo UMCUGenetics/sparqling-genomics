@@ -58,9 +58,7 @@
 ;; ---------------------------------------------------------------------------
 
 (let* [(awk  "awk")
-       (df   "df")
        (head "head")
-       (tail "tail")
        (threads (total-processor-count))
        (memory  (let* ((port (open-input-pipe (string-append
                                                head " -n 1 /proc/meminfo | "
