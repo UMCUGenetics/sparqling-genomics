@@ -25,7 +25,31 @@
   #:use-module (logger)
 
   #:export (has-unscoped-variables?
-            may-execute?))
+            may-execute?
+            token->user))
+
+(define (token->user token)
+  "Resolves TOKEN to a username, or #f if the token is invalid."
+  (catch #t
+    (lambda _
+      (if (string? token)
+          (receive (header port)
+              (http-get (string-append (sg-web-uri) "/api/user-info")
+                        #:streaming? #t
+                        #:headers `((user-agent . ,%user-agent)
+                                    (Cookie . ,token)
+                                    (accept . ((application/s-expression)))))
+            (cond
+             [(= (response-code header) 200)
+              (let [(data (read port))]
+                (close-port port)
+                (assoc-ref data 'username))]
+             [else
+              #f]))
+          #f))
+    (lambda (key . args)
+      (log-error "token->user" "~a: ~a" key args)
+      #f)))
 
 (define (graphs-by-project auth-token project-hash)
   "Returns a list of graphs part of PROJECT-HASH that may be accessed using 

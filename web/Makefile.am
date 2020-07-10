@@ -21,7 +21,6 @@ SOURCES =                                               \
   auth-manager/config-reader.scm                        \
   auth-manager/config.scm                               \
   auth-manager/permission-check.scm                     \
-  auth-manager/proxy.scm                                \
   auth-manager/virtuoso.scm                             \
   json.scm                                              \
   json/builder.scm                                      \

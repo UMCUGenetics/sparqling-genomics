@@ -17,7 +17,6 @@
 (define-module (auth-manager api)
   #:use-module (auth-manager config)
   #:use-module (auth-manager permission-check)
-  #:use-module (auth-manager proxy)
   #:use-module (auth-manager virtuoso)
   #:use-module ((ice-9 popen) #:select (close-pipe))
   #:use-module (ice-9 receive)
