@@ -24,7 +24,8 @@
   #:export (csv->scm-stream
             csv->json-stream
             csv->xml-stream
-            csv-stream))
+            csv-stream
+            direct-stream))
 
 ;; ----------------------------------------------------------------------------
 ;; Query result streaming
@@ -127,7 +128,7 @@
                 (format output-port "</result>")))
           (csv->xml-stream input-port output-port header)))))
 
-(define (csv->csv-stream input-port output-port)
+(define (direct-stream input-port output-port)
   (let* [(buffer-size (expt 2 12))
          (buffer      (make-bytevector buffer-size))
          (eof-yet?    #f)]
@@ -171,7 +172,7 @@
            csv->scm-stream]
           [(is-format '(text/csv) fmt)
            (send-last-header-line "Content-Type: text/csv")
-           csv->csv-stream]
+           direct-stream]
           [else #f]))]
     (if stream-function
         (let ((wrapped-port (make-chunked-output-port output-port)))
