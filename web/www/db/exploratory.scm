@@ -45,28 +45,31 @@
    graph))
 
 (define (all-graphs-in-project username connection-name project-hash)
-  (let* [(id             (project-id (project-by-hash project-hash)))
-         (query          (string-append
-                          internal-prefixes
-                          "SELECT DISTINCT ?graph ?isLocked ?connectionName "
-                          "FROM <" system-state-graph "> "
-                          "WHERE {"
-                          " <" id "> sg:hasAssignedGraph ?graph . "
-                          " ?graph sg:inConnection "
-                          (if connection-name
-                              (string-append
-                               "\"" connection-name "\"^^xsd:string . ")
-                              "?connectionName .")
-                          " OPTIONAL { ?graph sg:isLocked ?lockState . }"
-                          " BIND(IF(BOUND(?lockState), ?lockState,"
-                          " \"false\"^^xsd:boolean) AS ?isLocked) "
-                          (if connection-name
-                              (string-append
-                               "BIND (\"" connection-name "\" AS ?connectionName)")
-                              "")
-                          " } ORDER BY ASC(?graph)"))]
-    (query-results->alist
-     (system-sparql-query query))))
+  (let [(id (project-id (project-by-hash project-hash)))]
+    (if id
+        (let [(query (string-append
+                      internal-prefixes
+                      "SELECT DISTINCT ?graph ?isLocked ?connectionName "
+                      "FROM <" system-state-graph "> "
+                      "WHERE {"
+                      " <" id "> sg:hasAssignedGraph ?graph . "
+                      " agent:" username " sg:isAssignedTo <" id "> ."
+                      " ?graph sg:inConnection "
+                      (if connection-name
+                          (string-append
+                           "\"" connection-name "\"^^xsd:string . ")
+                          "?connectionName .")
+                      " OPTIONAL { ?graph sg:isLocked ?lockState . }"
+                      " BIND(IF(BOUND(?lockState), ?lockState,"
+                      " \"false\"^^xsd:boolean) AS ?isLocked) "
+                      (if connection-name
+                          (string-append
+                           "BIND (\"" connection-name "\" AS ?connectionName)")
+                          "")
+                      " } ORDER BY ASC(?graph)"))]
+          (query-results->alist
+           (system-sparql-query query)))
+        '())))
 
 (define* (all-predicates username connection project-hash token
                          #:key (graph #f) (type #f))
