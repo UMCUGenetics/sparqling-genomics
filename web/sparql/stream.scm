@@ -71,7 +71,8 @@
                 (format output-port ") ")))
           (csv->scm-stream input-port output-port header)))))
 
-(define* (csv->json-stream input-port output-port #:optional (header '()))
+(define* (csv->json-stream input-port output-port #:optional (header '())
+                                                             (first-row? #f))
   "Read the query response from PORT and turn it into JSON."
   (let [(tokens (csv-read-entry input-port #\,))]
     (if (null? tokens)
@@ -81,9 +82,13 @@
           (if (null? header)
               (begin
                 (format output-port "[")
-                (set! header tokens))
+                (set! header tokens)
+                (set! first-row? #t))
               (let* [(pairs (zip header tokens))
                      (first (car pairs))]
+                (if first-row?
+                    (set! first-row? #f)
+                    (format output-port ","))
                 (format output-port "{ ~s: ~a "
                         (list-ref first 0)
                         (if (string->number (list-ref first 1))
@@ -98,7 +103,7 @@
                                         (format #f "~s" (list-ref pair 1)))))
                           (cdr pairs))
                 (format output-port "}")))
-          (csv->json-stream input-port output-port header)))))
+          (csv->json-stream input-port output-port header first-row?)))))
 
 (define* (csv->xml-stream input-port output-port #:optional (header '()))
   "Read the query response from PORT and turn it into XML."
