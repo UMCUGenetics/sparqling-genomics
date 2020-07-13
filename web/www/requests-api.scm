@@ -323,57 +323,66 @@
 
      [(string= "/api/query" request-path)
       (if (eq? (request-method request) 'POST)
-          (let* [(data       (entire-request-data request))
+          (let* ((data       (entire-request-data request))
                  (query      (assoc-ref data 'query))
                  (conn-name  (assoc-ref data 'connection))
-                 (connection (connection-by-name conn-name username))
-                 (hash       (assoc-ref data 'project-hash))
-                 (project    (project-by-hash hash))
-                 (id         (project-id project))
-                 (start-time (current-time))]
-            (if (system-wide-connection? connection)
+                 (hash       (assoc-ref data 'project-hash)))
+            (cond
+             [(not hash)
+              (respond-400 client-port accept-type
+                           "Missing 'project-hash' parameter.")]
+             [(not conn-name)
+              (respond-400 client-port accept-type
+                           "Missing 'connection' parameter.")]
+             [(not query)
+              (respond-400 client-port accept-type
+                           "Missing 'query' parameter.")]
+             [else
+              (let* ((connection (connection-by-name conn-name username))
+                     (project    (project-by-hash hash))
+                     (id         (project-id project))
+                     (start-time (current-time)))
+                (cond
+                 ;; SYSTEM-WIDE CONNECTIONS
+                 ;; -----------------------------------------------------------
+                 [(system-wide-connection? connection)
+                  ;; This encoding makes sure that one character is equal to one byte.
+                  (set-port-encoding! client-port "ISO-8859-1")
 
-                ;; Act as a proxy via sg-auth-manager.
-                ;; ------------------------------------------------------------
-                (receive (header port)
+                  (receive (header port)
                     (http-post (string-append (connection-uri connection)
-                                              "/api/query/" hash)
-                     #:headers `((accept       . ,accept-type)
-                                 (content-type . (application/s-expression)))
+                                              "/api/query?project-hash=" hash)
+                     #:headers
+                     `((accept           . ,accept-type)
+                       (Cookie           . ,(string-append "SGSession=" token))
+                       (content-type     . (application/sparql-update)))
                      #:streaming? #t
-                     #:body
-                     `(()))
-                  (cond
-                   [(= (response-code header) 200)
-                    (let* ((end-time   (current-time))
-                           (buffer-size (expt 2 16)))
-                      (query-add query conn-name username start-time end-time id)
-                      ;; On cool platforms, ‘sendfile’ uses the equally named
-                      ;; libc procedure.
-                      (if (eq? (response-content-encoding header) '(chunked))
-                          (let ((wrapped-port (make-chunked-input-port port)))
-                            (while (> (sendfile client-port
-                                                wrapped-port
-                                                buffer-size) 0)))
-                          (while (> (sendfile client-port port buffer-size) 0))))]
-                   [(= (response-code header) 401)
-                    (respond-401 client-port accept-type "Authentication failed.")]
-                   [else
-                    (respond-401 client-port accept-type (get-string-all port))]))
+                     #:body query)
 
-                ;; Directly query user connections.
-                ;; ------------------------------------------------------------
-                (receive (header port)
-                    (sparql-query-with-connection connection query token hash)
-                  (cond
-                   [(= (response-code header) 200)
-                    (let* ((end-time   (current-time)))
-                      (query-add query conn-name username start-time end-time id)
-                      (csv-stream port client-port accept-type))]
-                   [(= (response-code header) 401)
-                    (respond-401 client-port accept-type "Authentication failed.")]
-                   [else
-                    (respond-401 client-port accept-type (get-string-all port))]))))
+                    (if (equal? (response-transfer-encoding header) '((chunked)))
+                        (let* ((response     (write-response header client-port))
+                               (wrapped-port (make-chunked-output-port
+                                              (response-port response))))
+                          (direct-stream port wrapped-port)
+                          (close-port wrapped-port))
+                        (let* ((response     (write-response header client-port)))
+                          (direct-stream port (response-port response)))))]
+
+                 ;; USER CONNECTIONS
+                 ;; ---------------------------------------------------------
+                 [(user-connection? connection)
+                  (receive (header port)
+                      (sparql-query-with-connection connection query token hash)
+                    (cond
+                     [(= (response-code header) 200)
+                      (let* ((end-time   (current-time)))
+                        (query-add query conn-name username start-time end-time id)
+                        (csv-stream port client-port accept-type))]
+                     [(= (response-code header) 401)
+                      (respond-401 client-port accept-type "Authentication failed.")]
+                     [else
+                      (respond-to-client (response-code header)
+                                         client-port accept-type (get-string-all port))]))]))]))
           (respond-405 client-port '(POST)))]
 
      ;; QUERY-MARK
