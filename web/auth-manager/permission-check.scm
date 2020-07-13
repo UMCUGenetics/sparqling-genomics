@@ -67,11 +67,13 @@ AUTH-TOKEN."
                                           (connection   . ,(www-name))) port)))
                    #:streaming? #t)
       (if (= (response-code header) 200)
-          (read port)
+          (let ((output (read port)))
+            (close-port port)
+            output)
           (begin
             (log-debug "graphs-by-project" "Reading graphs-by-project failed.")
-            '()))
-      (close-port port))))
+            (close-port port)
+            '())))))
 
 (define (inferred-graphs query)
   "Returns a list of graph names that are used in the query."
