@@ -5,7 +5,11 @@ function execute_query (editor) {
     url = window.location.href;
     project_hash = url.substr(url.lastIndexOf('/') + 1);
 
-    jQuery("#execute-query-button").after(function(){ return "<div class=\"query-data-loader\"><div class=\"title\">Loading data ...</div><div class=\"content\">Please wait for the results to appear.</div></div>" });
+    jQuery("#execute-query-button").after(
+        "<div class=\"query-data-loader\">" +
+            "<div class=\"title\">Loading data ...</div>" +
+            "<div class=\"content\">Please wait for the results to appear.</div>" +
+        "</div>");
 
     /* Remove the previous query results. */
     jQuery(".query-error").remove();
@@ -13,30 +17,70 @@ function execute_query (editor) {
     jQuery("#query-output").remove();
     jQuery("#query-output_wrapper").remove();
 
-    post_data = { query: editor.getValue(), connection: jQuery("#connection").val() };
-    jQuery.post("/query-response/" + project_hash,
-      JSON.stringify(post_data),
-      function (data) {
-          /* Insert the results HTML table into the page. */
-          jQuery("#execute-query-button").after(data);
-          jQuery(".query-data-loader").remove();
-          jQuery("#note-five-thousand").remove();
+    jQuery.ajax("/api/query", {
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        method: "POST",
+        dataType: 'json',
+        data: JSON.stringify({
+            "query":        editor.getValue(),
+            "connection":   jQuery("#connection").val(),
+            "project-hash": project_hash
+        }),
+        success: function (data) {
+            jQuery(".query-data-loader").remove();
+            jQuery("#execute-query-button").after(
+                "<h3 id=\"query-results\">Query results</h3>");
 
-          /* Detect an error response. */
-          if (jQuery(".query-error").length == 0) {
-              jQuery("#execute-query-button").after(function() {
-                  return "<h3 id=\"query-results\">Query results</h3><p id=\"note-five-thousand\"><strong>Note:</strong> Query results are limited to a maximum of 5000 rows.  Programmatic access does not have this limitation.</p>" });
+            var columns = Object.keys(data[0]);
+            var heads = "";
+            for (var i = 0; i < columns.length; i++) {
+                heads += "<th>" + columns[i] + "</th>";
+            }
+            jQuery("#query-results").after(
+                "<table id=\"query-output\"><thead>" + heads +
+                    "</thead><tbody></tbody></table>");
 
-              /* Initialize DataTables. */
-              jQuery("#query-output").addClass("display");
-              var dt = jQuery("#query-output").DataTable({ "sDom": "lrtip", "aaSorting": [] });
-              dt.draw();
+            /* Initialize DataTables. */
+            jQuery("#query-output").addClass("display");
+            var dt = jQuery("#query-output").DataTable(
+                { "sDom": "lrtip",
+                  "aaSorting": [],
+                  "data": data,
+                  "columns": jQuery.map(columns,
+                                        function (elem, index) {
+                                            return { "data": elem };
+                                        })
+                });
+            dt.draw();
 
-              jQuery.get("/query-history/" + project_hash, function (data){
-                  jQuery("#query-history-table").replaceWith(data);
-              });
-          }
-      });
+            jQuery.get("/query-history/" + project_hash, function (data){
+                jQuery("#query-history-table").replaceWith(data);
+            });
+        },
+        error: function (request, status, error) {
+            var errorMessage = "";
+            try {
+                data = JSON.parse(request.responseText);
+                errorMessage = data.error.message;
+            }
+            catch (err) { errorMessage = error; }
+
+            if (errorMessage == "") {
+                errorMessage = "An unknown error occurred.";
+            }
+
+            jQuery(".query-data-loader").remove();
+            jQuery("#execute-query-button").after(
+                "<h3 id=\"query-results\">Query results</h3>" +
+                "<div class=\"query-error\">" +
+                    "<div class=\"title\">Error</div>" +
+                    "<div class=\"content\"><pre>" + errorMessage +
+                    "</pre></div></div>");
+        }
+    });
 }
 
 jQuery(document).ready(function() {

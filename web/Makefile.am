@@ -66,7 +66,6 @@ SOURCES =                                               \
   www/pages/prompt-session-table.scm                    \
   www/pages/prompt.scm                                  \
   www/pages/query-history.scm                           \
-  www/pages/query-response.scm                          \
   www/pages/query.scm                                   \
   www/pages/report.scm                                  \
   www/pages/structure.scm                               \
