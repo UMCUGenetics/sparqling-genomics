@@ -171,7 +171,7 @@
   (let [(response-type (first-acceptable-format accept-type))]
     (if response-type
         (respond-to-client code client-port response-type
-          (api-format response-type `(error (message ,message))))
+          (api-format response-type `((error (message . ,message)))))
         (respond-406 client-port))))
 
 (define (respond-200 client-port accept-type data)
