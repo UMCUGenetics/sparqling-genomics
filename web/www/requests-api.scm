@@ -23,7 +23,6 @@
   #:use-module (rnrs io ports)
   #:use-module (sparql stream)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-19)
   #:use-module (web client)
   #:use-module (web request)
   #:use-module (web response)
@@ -358,6 +357,11 @@
                        (content-type     . (application/sparql-update)))
                      #:streaming? #t
                      #:body query)
+
+                    ;; When succesful, add the query to the query-history.
+                    (when (= (response-code header) 200)
+                      (query-add query conn-name username start-time
+                                 (current-time) id))
 
                     (if (equal? (response-transfer-encoding header) '((chunked)))
                         (let* ((response     (write-response header client-port))
