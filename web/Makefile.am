@@ -1,4 +1,4 @@
-# Copyright © 2017, 2018, 2019 Roel Janssen <roel@gnu.org>
+# Copyright © 2017, 2018, 2019, 2020 Roel Janssen <roel@gnu.org>
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License
@@ -114,6 +114,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/sort_desc.png                           \
   static/js/ace/ace.js                                  \
   static/js/ace/ext-language_tools.js                   \
+  static/js/ace/ext-searchbox.js                        \
   static/js/ace/mode-sparql.js                          \
   static/js/ace/theme-crimson_editor.js                 \
   static/js/base32.js                                   \
