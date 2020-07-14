@@ -346,7 +346,7 @@
                  ;; SYSTEM-WIDE CONNECTIONS
                  ;; -----------------------------------------------------------
                  [(system-wide-connection? connection)
-                  ;; This encoding makes sure that one character is equal to one byte.
+                  ;; This encoding ensures one character is equal to one byte.
                   (set-port-encoding! client-port "ISO-8859-1")
 
                   (receive (header port)
@@ -361,12 +361,18 @@
 
                     (if (equal? (response-transfer-encoding header) '((chunked)))
                         (let* ((response     (write-response header client-port))
+                               (res-port     (response-port response))
                                (wrapped-port (make-chunked-output-port
-                                              (response-port response))))
+                                              res-port #:keep-alive? #t)))
                           (direct-stream port wrapped-port)
-                          (close-port wrapped-port))
-                        (let* ((response     (write-response header client-port)))
-                          (direct-stream port (response-port response)))))]
+                          (close-port port)
+                          (force-output wrapped-port)
+                          (close-port wrapped-port)
+                          (put-bytevector res-port (string->utf8 "\r\n"))
+                          (close-port res-port))
+                        (let* ((response (write-response header client-port)))
+                          (direct-stream port (response-port response))
+                          (close-port port))))]
 
                  ;; USER CONNECTIONS
                  ;; ---------------------------------------------------------

@@ -180,7 +180,12 @@
            direct-stream]
           [else #f]))]
     (if stream-function
-        (let ((wrapped-port (make-chunked-output-port output-port)))
+        (let ((wrapped-port (make-chunked-output-port output-port #:keep-alive? #t)))
           (stream-function input-port wrapped-port)
-          (close-port wrapped-port))
+          (force-output wrapped-port)
+          (close-port wrapped-port)
+          ;; The chunked-output-port doesn't terminate the session with an
+          ;; additional “\r\n”, so we force that here.
+          (put-bytevector output-port (string->utf8 "\r\n"))
+          (close-port output-port))
         #f)))
