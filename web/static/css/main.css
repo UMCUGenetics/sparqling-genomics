@@ -259,9 +259,17 @@ code {
     border: solid 1pt #cccccc;
 }
 
-#query-output {
+table#query-output {
     width: 100%;
     border: solid 2pt #444444;
+}
+
+p#query-output {
+    width: auto;
+    margin-top: .5em;
+    padding: .5em;
+    background: #ffeeaa;
+    border: solid 2pt #ffeeaa;
 }
 
 #query-output thead {

@@ -34,28 +34,33 @@ function execute_query (editor) {
             jQuery("#execute-query-button").after(
                 "<h3 id=\"query-results\">Query results</h3>");
 
-            var columns = Object.keys(data[0]);
-            var heads = "";
-            for (var i = 0; i < columns.length; i++) {
-                heads += "<th>" + columns[i] + "</th>";
+            if (data.length == 0) {
+                jQuery("#query-results").after(
+                    "<p id=\"query-output\">The query returned 0 rows.</p>");$
             }
-            jQuery("#query-results").after(
-                "<table id=\"query-output\"><thead>" + heads +
-                    "</thead><tbody></tbody></table>");
+            else {
+                var columns = Object.keys(data[0]);
+                var heads = "";
+                for (var i = 0; i < columns.length; i++) {
+                    heads += "<th>" + columns[i] + "</th>";
+                }
+                jQuery("#query-results").after(
+                    "<table id=\"query-output\"><thead>" + heads +
+                        "</thead><tbody></tbody></table>");
 
-            /* Initialize DataTables. */
-            jQuery("#query-output").addClass("display");
-            var dt = jQuery("#query-output").DataTable(
-                { "sDom": "lrtip",
-                  "aaSorting": [],
-                  "data": data,
-                  "columns": jQuery.map(columns,
-                                        function (elem, index) {
-                                            return { "data": elem };
-                                        })
-                });
-            dt.draw();
-
+                /* Initialize DataTables. */
+                jQuery("#query-output").addClass("display");
+                var dt = jQuery("#query-output").DataTable(
+                    { "sDom": "lrtip",
+                      "aaSorting": [],
+                      "data": data,
+                      "columns": jQuery.map(columns,
+                                            function (elem, index) {
+                                                return { "data": elem };
+                                            })
+                    });
+                dt.draw();
+            }
             jQuery.get("/query-history/" + project_hash, function (data){
                 jQuery("#query-history-table").replaceWith(data);
             });
