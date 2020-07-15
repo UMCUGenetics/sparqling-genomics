@@ -1,0 +1,17 @@
+# This is a "service unit file" for the systemd init system to launch
+# 'sg-auth-manager'.  Drop it in /etc/systemd/system or similar to have
+# 'sg-auth-manager' automatically started.
+
+[Unit]
+Description=SPARQLing-genomics web interface
+After=sg-web.service
+
+[Service]
+ExecStart=@prefix@/bin/sg-auth-manager --configuration-file=@webconfdir@/sg-auth-manager.xml
+Environment=LC_ALL=en_US.utf8
+RemainAfterExit=yes
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

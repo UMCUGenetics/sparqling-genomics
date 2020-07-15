@@ -136,8 +136,13 @@ webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 webconf_DATA    = sg-web.xml sg-auth-manager.xml
 webconfdir      = @webconfdir@
-EXTRA_DIST     += $(WWW_STATIC_RESOURCES) sg-web.service.in $(webconf_DATA)
+EXTRA_DIST     += $(WWW_STATIC_RESOURCES)               \
+                  sg-web.service.in                     \
+                  sg-auth-manager.service.in            \
+                  $(webconf_DATA)
 
 systemdservicedir = $(libdir)/systemd/system
-nodist_systemdservice_DATA = sg-web.service
+nodist_systemdservice_DATA = sg-web.service             \
+                             sg-auth-manager.service
+
 CLEANFILES     += $(nodist_systemdservice_DATA)

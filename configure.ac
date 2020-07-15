@@ -96,6 +96,7 @@ AC_CONFIG_FILES([
   web/Makefile
   web/ldap/authenticate.scm
   web/sg-web.service
+  web/sg-auth-manager.service
   web/www/config.scm
 ])
 
