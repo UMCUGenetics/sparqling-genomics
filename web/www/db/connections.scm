@@ -31,6 +31,7 @@
             connections-by-user
             connection-by-name
             user-connection-by-name
+            user-connections-by-user
             system-wide-connection-by-name
             load-user-connections
             load-system-wide-connections
@@ -324,7 +325,7 @@
        [(string= uri "")
         (values #f "The connection URI cannot empty.")]
        [else
-        (let* ((connections (connections-by-user username))
+        (let* ((connections (user-connections-by-user username))
                (new-state   (cons record connections)))
           (persist-user-connections new-state username)
           (connection-set-as-default! record username)
@@ -442,6 +443,14 @@
                                  (lambda (first second)
                                    (string<? (connection-name first)
                                              (connection-name second))))))
+    (if (and (not (null? connections))
+             filter)
+        (map filter connections)
+        connections)))
+
+(define* (user-connections-by-user username #:key (filter #f))
+  "Returns a list of user-connection records, applying FILTER to the records."
+  (let* ((connections (delete #f (load-user-connections username))))
     (if (and (not (null? connections))
              filter)
         (map filter connections)
