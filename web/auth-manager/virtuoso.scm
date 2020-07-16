@@ -40,7 +40,7 @@
   (let* ((tmp        (getenv "TMPDIR"))
          (error-port (mkstemp! (string-append (if tmp tmp "/tmp") "/sg-XXXXXX")))
          (port       (open-input-pipe
-                      (format #f "~a ~a -U ~a -P ~a verbose=off csv=on csv_field_separator=, exec='~:a' 2> ~a"
+                      (format #f "~a ~a -U ~a -P ~a verbose=off csv_rfc4180=on csv_rfc4180_field_separator=, exec='~:a' 2> ~a"
                               (isql-bin) (isql-port) (rdf-store-username)
                               (rdf-store-password)
                               (string-append "SPARQL " query)
