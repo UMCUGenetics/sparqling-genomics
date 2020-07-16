@@ -121,7 +121,7 @@
   (let [(character (read-char port))]
     (cond
      [(or (eof-object? character)
-          (and (eq? character #\newline)
+          (and (eq? character #\linefeed)
                (not in-quote)))
       (if (and (null? current-token)
                (null? tokens))
@@ -135,6 +135,8 @@
                      (substring item 1 (- item-length 1))]
                     [else item])))
                (reverse (cons (list->string (reverse current-token)) tokens))))]
+     [(eq? character #\return)
+      (csv-read-entry port delimiter current-token tokens in-quote)]
      [(eq? character #\")
       (if (and (not (null? current-token))
                (or (eq? (car current-token) #\\)
