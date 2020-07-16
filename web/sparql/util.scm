@@ -60,10 +60,10 @@
                 (response-code header)
                 (read-line port)))))
 
-(define* (query-results-to-list port #:optional (skip-first-line? #f)
+(define* (query-results-to-list port #:optional (skip-first-entry? #f)
                                                 (output '()))
   "Returns a list of data read from PORT."
-  (when skip-first-line? (csv-read-entry port))
+  (when skip-first-entry? (csv-read-entry port))
   (let* [(entry (csv-read-entry port))]
     (if (null? entry)
         (begin
@@ -72,11 +72,11 @@
         (query-results-to-list port #f (cons entry output)))))
 
 (define-syntax-rule
-  (query-results->list query skip-first-line?)
+  (query-results->list query skip-first-entry?)
   (receive (header port)
       query
     (if (= (response-code header) 200)
-        (query-results-to-list port skip-first-line?)
+        (query-results-to-list port skip-first-entry?)
         (begin
           (log-error "query-results->list"
                      "Response (~a) was:~%---~%~a"
