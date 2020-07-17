@@ -30,10 +30,8 @@
   #:use-module (www db api)
   #:export (file-extension
             string-replace-occurrence
-            suffix-iri
             string-is-longer-than
             post-data->alist
-            alist-symbol-key<?
             mkdir-p
             multi-line-trim
             string->sha256sum
@@ -73,13 +71,6 @@
   "Replaces every OCCURRENCE in STR with ALTERNATIVE."
   (string-map (lambda (x) (if (eq? x occurrence) alternative x)) str))
 
-(define (suffix-iri input)
-  (if input
-      (string-trim-both
-       (string-drop input
-                    (1+ (string-rindex input #\/))) #\")
-      "unknown"))
-
 (define (post-data->alist post-data)
   (catch #t
     (lambda _
@@ -88,10 +79,6 @@
                `(,(string->symbol (uri-decode (car pair))) . ,(uri-decode (cadr pair)))))
            (sort (string-split post-data #\&) string<?)))
     (lambda (key . args) '())))
-
-(define (alist-symbol-key<? a b)
-          (string<? (symbol->string (car a))
-                    (symbol->string (car b))))
 
 (define (mkdir-p dir)
   "Create directory DIR and all its ancestors."
