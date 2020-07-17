@@ -50,10 +50,10 @@
              #:onclick (js "ui_insert_graph_form()")
              #:content (icon 'plus)))
 
-(define-syntax-rule (remove-project-button project-id)
+(define-syntax-rule (remove-project-button hash)
   (h2-button #:id "remove-project"
              #:class "action-title-btn remove-btn"
-             #:onclick (js "ui_remove_project('" project-id "')")
+             #:onclick (js "ui_remove_project('" hash "')")
              #:content "Remove"))
 
 (define* (page-project-details request-path username #:key (post-data ""))
@@ -83,7 +83,7 @@
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
     (page-root-template username title request-path
-     `((h2 ,title ,(remove-project-button (project-id project)))
+     `((h2 ,title ,(remove-project-button (project-hash project)))
 
        ;; When an action occurred (like “the project was modified”), we
        ;; display the success or error message accordingly.

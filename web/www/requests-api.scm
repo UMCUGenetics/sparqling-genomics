@@ -172,9 +172,23 @@
                  (project-hash (assoc-ref data 'project-hash))
                  (graph        (assoc-ref data 'graph))
                  (rdf-type     (assoc-ref data 'type))]
-            (respond-200 client-port accept-type
-              (hierarchical-tree-children
-               connection token project-hash graph rdf-type)))
+            (cond
+             [(not conn-name)
+              (respond-400 client-port accept-type
+                           "Missing 'connection' parameter.")]
+             [(not graph)
+              (respond-400 client-port accept-type
+                           "Missing 'graph' parameter.")]
+             [(not project-hash)
+              (respond-400 client-port accept-type
+                           "Missing 'project-hash' parameter.")]
+             [(not rdf-type)
+              (respond-400 client-port accept-type
+                           "Missing 'type' parameter.")]
+             [else
+              (respond-200 client-port accept-type
+                           (hierarchical-tree-children
+                            connection token project-hash graph rdf-type))]))
           (respond-405 client-port '(POST)))]
 
      ;; PREDICATES-BY-TYPE
@@ -187,9 +201,23 @@
                  (project-hash (assoc-ref data 'project-hash))
                  (graph        (assoc-ref data 'graph))
                  (rdf-type     (assoc-ref data 'type))]
-            (respond-200 client-port accept-type
-              (all-predicates username connection project-hash token
-                              #:graph graph #:type rdf-type)))
+            (cond
+             [(not conn-name)
+              (respond-400 client-port accept-type
+                           "Missing 'connection' parameter.")]
+             [(not graph)
+              (respond-400 client-port accept-type
+                           "Missing 'graph' parameter.")]
+             [(not project-hash)
+              (respond-400 client-port accept-type
+                           "Missing 'project-hash' parameter.")]
+             [(not rdf-type)
+              (respond-400 client-port accept-type
+                           "Missing 'type' parameter.")]
+             [else
+              (respond-200 client-port accept-type
+               (all-predicates username connection project-hash token
+                               #:graph graph #:type rdf-type))]))
           (respond-405 client-port '(POST)))]
 
      ;; KNOWN-TYPES
@@ -201,12 +229,20 @@
                  (connection   (connection-by-name conn-name username))
                  (project-hash (assoc-ref data 'project-hash))
                  (graph        (assoc-ref data 'graph))]
-            (if (not project-hash)
-                (respond-400 client-port accept-type
-                             "Missing the 'project-hash' parameter.")
-                (respond-200 client-port accept-type
-                             (all-types username connection
-                                        token project-hash))))
+            (cond
+             [(not conn-name)
+              (respond-400 client-port accept-type
+                           "Missing 'connection' parameter.")]
+             [(not graph)
+              (respond-400 client-port accept-type
+                           "Missing 'graph' parameter.")]
+             [(not project-hash)
+              (respond-400 client-port accept-type
+                           "Missing 'project-hash' parameter.")]
+             [else
+              (respond-200 client-port accept-type
+                           (all-types username connection
+                                      token project-hash))]))
           (respond-405 client-port '(POST)))]
 
      ;; ASSIGN-GRAPH
@@ -217,12 +253,24 @@
                  (project-uri     (assoc-ref data 'project-uri))
                  (connection-name (assoc-ref data 'connection))
                  (graph-uri       (assoc-ref data 'graph-uri))]
-            (if (project-has-member? project-uri username)
-                (if (project-assign-graph!
-                     project-uri graph-uri connection-name username)
-                    (respond-201 client-port)
-                    (respond-500 client-port accept-type "Not OK"))
-                (respond-401 client-port accept-type "Not allowed.")))
+            (cond
+             [(not project-uri)
+              (respond-400 client-port accept-type
+                           "Missing 'project-uri' parameter.")]
+             [(not graph-uri)
+              (respond-400 client-port accept-type
+                           "Missing 'graph-uri' parameter.")]
+             [(not connection-name)
+              (respond-400 client-port accept-type
+                           "Missing 'connection' parameter.")]
+             [else
+              (if (project-has-member? project-uri username)
+                  (if (project-assign-graph! project-uri graph-uri
+                                             connection-name username)
+                      (respond-201 client-port)
+                      (respond-500 client-port accept-type "Not OK"))
+                  (respond-401 client-port accept-type
+                               "You are not a member of this project.."))]))
           (respond-405 client-port '(POST)))]
 
      ;; UNASSIGN-GRAPH
@@ -232,37 +280,19 @@
           (let* [(data        (entire-request-data request))
                  (project-uri (assoc-ref data 'project-uri))
                  (graph-uri   (assoc-ref data 'graph-uri))]
-            (if (project-has-member? project-uri username)
-                (if (project-forget-graph! project-uri graph-uri)
-                    (respond-204 client-port)
-                    (respond-500 client-port accept-type "Not OK"))
-                (respond-401 client-port accept-type "Not allowed.")))
-          (respond-405 client-port '(POST)))]
-
-     ;; ADD-FORM
-     ;; ---------------------------------------------------------------------
-     [(string= "/api/add-form" request-path)
-      (if (eq? (request-method request) 'POST)
-          (let* [(data      (entire-request-data request))
-                 (title     (assoc-ref data 'title))
-                 (form-id   (if title (generate-id "form-" title) #f))]
-            (if form-id
-                (respond-200 client-port accept-type `((form-id . ,form-id)))
-                (respond-400 client-port accept-type
-                             "Missing 'form-id' parameter.")))
-          (respond-405 client-port '(POST)))]
-
-     ;; SUBMIT-FORM
-     ;; ---------------------------------------------------------------------
-     [(string= "/api/submit-form" request-path)
-      (if (eq? (request-method request) 'POST)
-          (let* [(data        (entire-request-data request))
-                 (form-id     (assoc-ref data 'form-id))]
-            (if form-id
-                (begin
-                  #t)
-                (respond-400 client-port accept-type
-                             "Missing 'form-id' parameter.")))
+            (cond
+             [(not project-uri)
+              (respond-400 client-port accept-type
+                           "Missing 'project-uri' parameter.")]
+             [(not graph-uri)
+              (respond-400 client-port accept-type
+                           "Missing 'graph-uri' parameter.")]
+             [else
+              (if (project-has-member? project-uri username)
+                  (if (project-forget-graph! project-uri graph-uri)
+                      (respond-204 client-port)
+                      (respond-500 client-port accept-type "Not OK"))
+                  (respond-401 client-port accept-type "Not allowed."))]))
           (respond-405 client-port '(POST)))]
 
      ;; PROJECTS
@@ -282,30 +312,39 @@
       (if (eq? (request-method request) 'POST)
           (let* [(data        (entire-request-data request))
                  (name        (assoc-ref data 'name))]
-            (receive (state message project-id)
-                (project-add name username)
-              (if state
-                  (respond-200 client-port accept-type
-                               `((project-id . ,project-id)))
-                  (respond-403 client-port accept-type message))))
+            (cond
+             [(not name)
+              (respond-400 client-port accept-type
+                           "Missing 'name' parameter.")]
+             [else
+              (receive (state message project-id)
+                  (project-add name username)
+                (if state
+                    (respond-200 client-port accept-type
+                                 `((project-id . ,project-id)))
+                    (respond-403 client-port accept-type message)))]))
           (respond-405 client-port '(POST)))]
 
      ;; REMOVE-PROJECT
      ;; ---------------------------------------------------------------------
      [(string= "/api/remove-project" request-path)
       (if (eq? (request-method request) 'POST)
-          (let* [(data        (entire-request-data request))
-                 (uri   (assoc-ref data 'project-uri))
+          (let* [(data  (entire-request-data request))
                  (hash  (assoc-ref data 'project-hash))
-                 (id    (if uri uri (project-id (project-by-hash hash))))]
-             (if (project-has-member? id username)
-                (receive (state message)
-                    (project-remove id username)
-                  (if state
-                      (respond-204 client-port)
-                      (respond-403 client-port accept-type message)))
-                (respond-403 client-port accept-type
-                             "You are not a member of this project.")))
+                 (id    (project-id (project-by-hash hash)))]
+            (cond
+             [(not project-hash)
+              (respond-400 client-port accept-type
+                           "Missing 'project-hash' parameter.")]
+             [else
+              (if (project-has-member? id username)
+                  (receive (state message)
+                      (project-remove id username)
+                    (if state
+                        (respond-204 client-port)
+                        (respond-403 client-port accept-type message)))
+                  (respond-403 client-port accept-type
+                               "You are not a member of this project."))]))
           (respond-405 client-port '(POST)))]
 
 
@@ -402,12 +441,20 @@
           (let* ((data       (entire-request-data request))
                  (state       (assoc-ref data 'state))
                  (query-id    (assoc-ref data 'query-id)))
-            (if (set-query-marked! query-id state)
-                (respond-200 client-port accept-type
-                             `((state    . ,state)
-                               (query-id . ,query-id)))
-                (respond-500 client-port accept-type
-                             `((message . "An unknown error occurred.")))))
+            (cond
+             [(not query-id)
+              (respond-400 client-port accept-type
+                           "Missing 'query-id' parameter.")]
+             [(not state)
+              (respond-400 client-port accept-type
+                           "Missing 'state' parameter.")]
+             [else
+              (if (set-query-marked! query-id state)
+                  (respond-200 client-port accept-type
+                   `((state    . ,state)
+                     (query-id . ,query-id)))
+                  (respond-500 client-port accept-type
+                   `((message . "An unknown error occurred."))))]))
           (respond-405 client-port '(POST)))]
 
      ;; QUERIES-REMOVE-UNMARKED
@@ -418,12 +465,17 @@
                  (uri        (assoc-ref data 'project-uri))
                  (project     (project-by-id uri))
                  (id          (project-id project)))
-            (receive (status message)
-                (query-remove-unmarked-for-project username id)
-              (if status
-                  (respond-204 client-port)
-                  (respond-500 client-port accept-type
-                   `(message . ,message)))))
+            (cond
+             [(not uri)
+              (respond-400 client-port accept-type
+                           "Missing 'project-uri' parameter.")]
+             [else
+              (receive (status message)
+                  (query-remove-unmarked-for-project username id)
+                (if status
+                    (respond-204 client-port)
+                    (respond-500 client-port accept-type
+                                 `(message . ,message))))]))
           (respond-405 client-port '(POST)))]
 
      ;; CONNECTIONS
@@ -440,10 +492,15 @@
           (let* [(data       (entire-request-data request))
                  (conn-name  (assoc-ref data 'name))
                  (connection (connection-by-name conn-name username))]
-            (if connection
-                (respond-200 client-port accept-type
-                             (connection->alist-safe connection))
-                (respond-400 client-port accept-type "No such connection.")))
+            (cond
+             [(not conn-name)
+              (respond-400 client-port accept-type
+                           "Missing 'name' parameter.")]
+             [(not connection)
+              (respond-400 client-port accept-type "No such connection.")]
+             [else
+              (respond-200 client-port accept-type
+                           (connection->alist-safe connection))]))
           (respond-405 client-port '(POST)))]
 
      ;; DEFAULT-CONNECTION
@@ -459,8 +516,13 @@
           (let* [(data        (entire-request-data request))
                  (name      (assoc-ref data 'name))
                  (record    (connection-by-name name username))]
-            (connection-set-as-default! record username)
-            (respond-204 client-port))
+            (cond
+             [(not name)
+              (respond-400 client-port accept-type
+                           "Missing 'name' parameter.")]
+             [else
+              (connection-set-as-default! record username)
+              (respond-204 client-port)]))
           (respond-405 client-port '(POST)))]
 
      ;; ADD-CONNECTION
@@ -495,11 +557,16 @@
       (if (eq? (request-method request) 'POST)
           (let* [(data        (entire-request-data request))
                  (name        (assoc-ref data 'name))]
-            (receive (state message)
-                (remove-user-connection name username)
-              (if state
-                  (respond-204 client-port)
-                  (respond-403 client-port accept-type message))))
+            (cond
+             [(not name)
+              (respond-400 client-port accept-type
+                           "Missing 'name' parameter.")]
+             [else
+              (receive (state message)
+                  (remove-user-connection name username)
+                (if state
+                    (respond-204 client-port)
+                    (respond-403 client-port accept-type message)))]))
           (respond-405 client-port '(POST)))]
 
      ;; PROMPTS

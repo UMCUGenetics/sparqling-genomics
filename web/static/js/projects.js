@@ -20,8 +20,8 @@ function ui_create_project_form () {
     });
 }
 
-function ui_remove_project (uri) {
-    post_data = { "project-uri": uri };
+function ui_remove_project (hash) {
+    post_data = { "project-hash": hash };
     jQuery.ajax("/api/remove-project", {
         headers: {
             "Accept": "application/json",
