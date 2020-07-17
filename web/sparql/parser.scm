@@ -529,7 +529,7 @@
            [else
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
-              #:current (if (eq? (car modes) 'black-mode)
+              #:current (if (any (lambda (mode) (eq? mode 'black-mode)) modes)
                             current
                             (cons buffer current))
               #:quads   quads
