@@ -128,6 +128,9 @@
           current-token
           (map (lambda (item)
                  (let [(item-length (string-length item))]
+                   ;; This piece is different from “string-trim-both” because
+                   ;; it requires both the first and the last character to be
+                   ;; double quotes.
                    (cond
                     [(and (> item-length 1)
                           (eq? (string-ref item 0) #\")
