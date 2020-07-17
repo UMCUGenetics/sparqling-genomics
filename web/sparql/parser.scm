@@ -98,7 +98,7 @@
           (length (query-global-graphs query))
           (length (query-quads query))))
 
-(define (parse-query query)
+(define* (parse-query query #:key (debug-port #f))
   "Returns an instace of <query>."
 
   (define (string-is-longer-than str length)
@@ -334,6 +334,10 @@
           (cons token tokens)])))
 
     (define (finalize-parser cursor)
+
+      (when debug-port
+        (format debug-port "finalize-parser: ~a ~a~%" cursor tokens))
+
       (if (> (length tokens) 2)
           (values (cons (list
                          (if (> (length tokens) 3)
@@ -346,6 +350,10 @@
           (values quads cursor)))
 
     (define (process-quad tokens quads)
+
+      (when debug-port
+        (format debug-port "process-quad ~s ~s~%" tokens quads))
+
       (let [(rev (map (lambda (token)
                         (let [(uri (parse-uri-token out token))]
                           (if uri uri token)))
@@ -375,6 +383,10 @@
                         quads))]
          [else
           (values tokens quads)])))
+
+    (when debug-port
+      (format debug-port "t-t-p: ~a ~a ~a ~a~%"
+              (string-ref text cursor) cursor tokens modes))
 
     (if (or (not cursor)
             (not (string-is-longer-than text cursor)))
@@ -406,6 +418,11 @@
                  (eq? (car modes) 'in-context))
             (call-with-values (lambda _ (process-quad tokens quads))
               (lambda (tokens-without-quad updated-quads)
+
+                (when debug-port
+                  (format debug-port "tokens-without-quad: ~s (~s)~%"
+                          tokens-without-quad modes))
+
                 (tokenize-triplet-pattern out text (+ cursor 1)
                   #:modes   (cdr modes)
                   #:current '()
@@ -714,6 +731,10 @@
         (let* [(q              (remove-comments query))
                (after-prologue (read-prologue out q 0))
                (cursor         (determine-query-type out q after-prologue))]
+
+          (when debug-port
+            (format debug-port "Query type: ~a~%" (query-type out)))
+
           (match (query-type out)
             ('ASK           (parse-ask-query out q (+ cursor 3)))
             ('CLEAR         (parse-clear-query out q cursor))
