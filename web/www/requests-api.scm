@@ -681,7 +681,8 @@
                              "Couldn't delete session.")))
           (respond-405 client-port '(POST)))]
 
-     [(string= "/api/reload-configuration" request-path)
+     [(and (developer-mode?)
+           (string= "/api/reload-configuration" request-path))
       (if (eq? (request-method request) 'POST)
           (begin
             (if (read-configuration-from-file (configuration-file))
