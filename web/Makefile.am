@@ -69,6 +69,7 @@ SOURCES =                                               \
   www/pages/query.scm                                   \
   www/pages/report.scm                                  \
   www/pages/structure.scm                               \
+  www/query-builder.scm                                 \
   www/requests-api.scm                                  \
   www/requests-beacon.scm                               \
   www/requests.scm                                      \
