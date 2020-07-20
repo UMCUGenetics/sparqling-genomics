@@ -425,13 +425,20 @@
                     (cond
                      [(= (response-code header) 200)
                       (let* ((end-time   (current-time)))
-                        (query-add query conn-name username start-time end-time id)
+                        (query-add query
+                                   conn-name
+                                   username
+                                   start-time
+                                   end-time
+                                   id)
                         (csv-stream port client-port accept-type))]
                      [(= (response-code header) 401)
-                      (respond-401 client-port accept-type "Authentication failed.")]
+                      (respond-401 client-port accept-type
+                                   "Authentication failed.")]
                      [else
                       (respond-to-client (response-code header)
-                                         client-port accept-type (get-string-all port))]))]))]))
+                                         client-port accept-type
+                                         (get-string-all port))]))]))]))
           (respond-405 client-port '(POST)))]
 
      ;; QUERY-MARK
