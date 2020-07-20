@@ -144,7 +144,7 @@
       #f)))
 
 (define (respond-to-client response-code client-port content-type body)
-  (set-port-encoding! client-port "utf8")
+  (set-port-encoding! client-port "ISO-8859-1")
   (let [(content (string->utf8 body))]
     (write-response
      (build-response
