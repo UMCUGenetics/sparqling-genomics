@@ -1,0 +1,448 @@
+\section{Programming interface}
+\label{sec:web-api}
+
+  Other than a user interface, the web interface provides a programming interface
+  using the HyperText Transport Protocol (HTTP).  The interface supports XML,
+  JSON, and S-expressions.  Table \ref{table:api-return-formats} summarizes the
+  supported formats.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X}
+      \headrow
+      \b{Content-Type} & \b{Example response}\\
+      \evenrow
+      \t{application/json}
+      & \t{[\{ "message": "This is a JSON response." \}]}\\
+      \oddrow
+      \t{application/xml}
+      & \t{<message>This is a XML response.</message>}\\
+      \evenrow
+      \t{application/s-expression}
+      & \t{(message . "This is a S-expression response.")}\\
+    \end{tabularx}
+    \caption{\small Implemented content types for the API.  The
+      \t{Content-Type} can be used in the \t{Accept} HTTP header.}
+    \label{table:api-return-formats}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+\subsection{Formatting \t{POST} requests}
+
+  The \t{Accept} parameter influences the response format of the API,
+  and the \t{Content-Type} parameter can be used to indicate the format
+  of the request.
+
+  In addition to the documented \t{Content-Type} values, the type
+  \t{application/x-www-form-urlencoded} is also allowed, which expects
+  the following format:
+\begin{siderules}
+\begin{verbatim}
+parameter1=value1&parameter2=value2&...
+\end{verbatim}
+\end{siderules}
+
+  The \t{Content-Type} header line does not have to be equal to the
+  \t{Accept} header line, so for example, parameters can be sent in
+  XML and the response can be formatted in JSON or the other way around.
+
+\subsection{Conventions when using XML}
+
+\begin{sloppypar}
+  When using XML, there are a few conventions to follow.  To communicate a list
+  or array of records, the API relies on using pre-defined elements. The API
+  expects parameters to be wrapped in \t{<parameters>...</parameters>}
+  elements.  So, to log in using an XML request, the following message will be
+  accepted:
+\end{sloppypar}
+
+\begin{siderules}
+\begin{verbatim}
+POST /api/login HTTP/1.1
+Host: ...
+Content-Type: application/xml
+Content-Length: 80
+Connection: close
+
+<parameters>
+  <username>...</username>
+  <password>...</password>
+</parameters>
+\end{verbatim}
+\end{siderules}
+
+  Subsequently, when \t{Accept}ing XML the results are wrapped in
+  \t{<results>...</results>}, and data structures built from multiple
+  key-value pairs are wrapped in \t{<result>...<result>}.  The
+  following example illustrates receiving a project record:
+
+\begin{siderules}
+\begin{verbatim}
+GET /api/projects HTTP/1.1
+Host: ...
+Accept: application/xml
+Cookie: ...
+Connection: close
+
+<results>
+  <result>
+    <projectId>http://sparqling-genomics.org/0.99.10/Project/...</projectId>
+    <creator>http://sparqling-genomics.org/0.99.10/Agent/...</creator>
+    ...
+  </result>
+</results>
+\end{verbatim}
+\end{siderules}
+
+\b{Note}: The actual response strips the whitespace.  It was added to
+this example for improved readability.
+
+\subsection{Authenticating API requests with \t{/api/login}}
+\label{sec:api-login}
+
+  Before being able to interact with the API, a session token must be obtained.
+  This can be done by sending a \t{POST}-request to \t{/api/login},
+  with the following parameters:
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter} & \b{Example} & \b{Required?}\\
+      \evenrow
+      \t{username}  & \t{jdoe}    & Yes\\
+      \oddrow
+      \t{password}  & \t{secret}  & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would log the user \t{jdoe} in:
+
+\begin{siderules}
+\begin{verbatim}
+curl --cookie-jar - http://localhost/api/login \
+     --data "username=jdoe&password=secret"
+\end{verbatim}
+\end{siderules}
+
+  The response contains a cookie with the session token.  Use this cookie in
+  subsequent requests.  When authentication fails, the service will respond
+  with HTTP status-code \t{401}.
+
+\subsection{Token-based authentication}
+\label{sec:tokens}
+
+  When automating data importing and running queries there comes the point
+  at which you have a choice: Do I put in my login credentials in a script,
+  a separate file, or anywhere else on the filesystem?  This bad security
+  practice can be overcome by using \i{tokens}.
+
+  A token is a randomly generated string that can be used to authenticate
+  with, instead of your username and password.  Tokens are easy to create,
+  and more importantly, easy to revoke.
+
+  Generating a token can be done on the \i{Dashboard}, or using the API call
+  \t{/api/new-session-token}.  Removing a token can be done on the
+  \i{Dashboard}, or using the API call \t{/api/delete-token}.
+
+  After generating a token, it can be used as a cookie in API calls.  The name
+  of the cookie is always \t{SGSession}, regardless of the name of the
+  token.
+
+\subsection{Managing connections}
+
+  The API can be used to store connections and refer to them by name.  The
+  remainder of this section describes the API calls related to connections.
+
+\subsubsection{Retrieve connections with \t{/api/connections}}
+
+  With a call to \t{/api/connections}, the pre-configured connections
+  can be viewed.  This resource expects a \t{GET} request and needs no
+  parameters.  It returns all connection records associated with the currently
+  logged-in user.
+
+  The following cURL command would retrieve all connection records in JSON
+  format:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/connections \
+     --cookie "$COOKIE"               \
+     -H "Accept: application/json"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Create a new connection with \t{/api/add-connection}}
+\label{sec:api-create-connection}
+
+  A call to \t{/api/add-connection} will create a new connection.
+  The table below summarizes the parameters that can be used in this call.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter} & \b{Example}            & \b{Required?}\\
+      \evenrow
+      \t{name}      & \t{Example}            & Yes\\
+      \oddrow
+      \t{uri}       & \t{http://my/endpoint} & Yes\\
+      \evenrow
+      \t{username}  & \t{jdoe}               & No\\
+      \oddrow
+      \t{password}  & \t{secret}             & No\\
+      \evenrow
+      \t{backend}   & \t{4store}             & No\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would create a connection, using JSON as
+  the format to express the parameters:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/add-connection          \
+     --cookie "$COOKIE"                           \
+     -H "Accept: application/xml"                 \
+     -H "Content-Type: application/json"          \
+     --data '{ "name":     "Example",             \
+                "uri":      "http://my/endpoint", \
+                "username": "jdoe",               \
+                "password": "secret",             \
+                "backend":  "4store" }'
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Remove a connection with \t{/api/remove-connection}}
+
+  A call to \t{/api/remove-connection} will remove an existing
+  connection.  The table below summarizes the parameters that can be
+  used in this call.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter} & \b{Example} & \b{Required?}\\
+      \evenrow
+      \t{name}      & \t{Example} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would remove the connection that was created in
+  section \refer{sec:api-create-connection}:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/remove-connection       \
+     --cookie "$COOKIE"                           \
+     -H "Accept: application/xml"                 \
+     --data "name=Example"
+\end{verbatim}
+\end{siderules}
+
+\subsection{Managing projects}
+
+  The API has various resources to manage projects, as described in
+  section \refer{sec:web-projects}.
+
+\subsubsection{Retrieve a list of projects with \t{/api/projects}}
+
+  Retrieving a list of projects can be done by sending a \t{GET} request
+  to \t{/api/projects}.
+
+  The following cURL command would retrieve a list of projects:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/projects      \
+     --cookie "$COOKIE"                 \
+     -H "Accept: application/xml"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Create a new project with \t{/api/add-project}}
+\label{sec:api-add-project}
+
+  To create a new project, send a \t{POST} request to
+  \t{/api/add-project}.  The table below summarizes the parameters
+  that can be used with this call.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter} & \b{Example}         & \b{Required?}\\
+      \evenrow
+      \t{name}      & \t{Example project} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would add a project:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/add-project      \
+     --cookie "$COOKIE"                    \
+     -H "Accept: application/xml"          \
+     --data "name=Example project"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Remove a project with \t{/api/remove-project}}
+
+  To remove a project, send a \t{POST} request to
+  \t{/api/remove-project}.  The table below summarizes the parameters
+  that can be used with this call.
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter}   & \b{Example} & \b{Required?}\\
+      \evenrow
+      \t{project-uri}
+      & \t{http://sparqling-genomics.org/Project/640c0...5a6d2} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  Alternatively, instead of the full URI, the project's hash can be used.
+  In that case, the parameters are:
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter}    & \b{Example}       & \b{Required?}\\
+      \evenrow
+      \t{project-hash} & \t{640c0...5a6d2} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would remove the project created in
+  \refer{sec:api-add-project}:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/remove-project      \
+     --cookie "$COOKIE"                       \
+     -H "Accept: application/xml"             \
+     --data "project-uri=http://sparqling-genomics.org/Project/640c0...5a6d2"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Assign a graph to a project \t{/api/assign-graph}}
+
+  Assigning a graph to a project can be done by sending a \t{POST} request
+  to \t{/api/assign-graph}.  The required parameters are:
+
+  \begin{itemize}
+    \item{\t{project-uri}: This can be obtained from a call to
+      \t{/api/projects}.}
+    \item{\t{connection}: The name of a connection obtained from
+      a call to \t{/api/connections}.}
+    \item{\t{graph-uri}: The graph URI to assign.}
+  \end{itemize}
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri",    \
+               "connection": "wikidata",                   \
+               "graph-uri": "http://the-new-graph-name" }' \
+     http://localhost/api/assign-graph
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Unassign a graph from a project with \t{/api/unassign-graph}}
+
+  Like assigning a graph to a project, it can be unassigned as well using
+  \t{/api/unassign-graph} using the same parameters as
+  \t{/api/assign-graph}.
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri",    \
+               "graph-uri": "http://the-new-graph-name" }' \
+     http://localhost/api/unassign-graph
+\end{verbatim}
+\end{siderules}
+
+\pagebreak{}
+\subsection{Running and viewing queries}
+
+\subsubsection{Retrieve previously run queries with \t{/api/queries}}
+
+  When running queries through SPARQLing-genomics's interface, each succesful
+  query is stored in a ``query history''.  This query history can be retrieved
+  using a call to \t{/api/queries}.  This resource expects a \t{GET}
+  request.
+
+  The following cURL command would retrieve the entire query history, formatted
+  as XML:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/queries \
+     --cookie "$COOKIE"           \
+     -H "Accept: application/xml"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Toggle query marks}
+
+\begin{sloppypar}
+  Previously executed queries can be marked as \i{important}, which means
+  they will survive a call to \t{/api/queries-remove-unmarked}.
+\end{sloppypar}
+
+  The following example based on cURL shows how to mark a query as
+  \i{important}:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "query-id": "...", "state": true }'
+     http://localhost/api/query-mark
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Remove unmarked queries}
+
+  Removing unmarked queries for a project can be done by sending a
+  \t{POST} request to \t{/api/queries-remove-unmarked}.
+  The required parameters are:
+
+  \begin{itemize}
+    \item{\t{project-uri}: This can be obtained from a call to
+      \t{/api/projects}.}
+  \end{itemize}
+
+  The following example based on cURL shows how to perform the request:
+\begin{siderules}
+\begin{verbatim}
+curl -X POST                                               \
+     -H "Accept: application/json"                         \
+     -H "Content-Type: application/json"                   \
+     --cookie "SGSession=..."                              \
+     --data '{ "project-uri": "http://the-project-uri" }'
+     http://localhost/api/queries-remove-unmarked
+\end{verbatim}
+\end{siderules}
