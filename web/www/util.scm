@@ -224,7 +224,7 @@
   (respond-with-error-message 500 client-port accept-type message))
 
 (define (respond-503 client-port accept-type message)
-  (respond-with-error-message 500 client-port accept-type message))
+  (respond-with-error-message 503 client-port accept-type message))
 
 (define* (icon symbol #:optional (is-button? #f))
   `(img (@ (src    ,(format #f "/static/images/icons/~a.png" symbol))
