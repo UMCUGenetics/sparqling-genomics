@@ -122,7 +122,7 @@
        address)
    (www-listen-port)))
 
-(define (announce-availibility)
+(define*  (announce-availibility #:key (retries 10))
   ;; Wait for the sg-auth-manager web server to start.
   (let* ((address (make-socket-address (www-listen-address-family)
                                        (www-listen-address)
@@ -143,15 +143,30 @@
                  #:body       (format #f "~s"
                                `((name . ,(www-name))
                                  (uri  . ,(self-uri)))))
-    (if (= (response-code header) 201)
-        (log-debug "sg-auth-manager"
-                   "Announcing node availability to ~a succeeded."
-                   (sg-web-uri))
-        (begin
-          (log-error "sg-auth-manager"
-                     "Announcing node availability to ~a failed with status code ~a."
-                     (sg-web-uri) (response-code header))
-          (log-error "sg-auth-manager" "Please restart sg-auth-manager.")))))
+    (cond
+     [(= (response-code header) 201)
+      (log-debug "sg-auth-manager"
+                 "Announcing node availability to ~a succeeded."
+                 (sg-web-uri))]
+
+     ;; The ‘sg-web’ service will return a 503 status until it's fully
+     ;; operational.  Therefore, when receiving a 503 status, we will
+     ;; retry after some time.
+     [(= (response-code header) 503)
+      (if (> retries 0)
+          (begin
+            (log-error "sg-auth-manager" "Retrying announcement in 10 seconds.")
+            (sleep 10)
+            (announce-availibility #:retries (1- retries)))
+          (begin
+            (log-error "sg-auth-manager"
+                       "It looks like sg-web has a problem; giving up.")
+            (exit 1)))]
+     [else
+      (log-error "sg-auth-manager"
+                 "Announcing node availability to ~a failed with status code ~a."
+                 (sg-web-uri) (response-code header))
+      (log-error "sg-auth-manager" "Please restart sg-auth-manager.")])))
 
 (if (fork-on-startup?)
     (let ((pid (primitive-fork)))
