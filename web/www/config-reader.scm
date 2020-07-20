@@ -43,7 +43,6 @@
         (let [(fork?             (assoc-ref config 'fork))
               (developer?        (assoc-ref config 'developer-mode))
               (backtrace?        (assoc-ref config 'backtrace-on-error))
-              (upload-root       (assoc-ref config 'upload-root))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (beacon            (assoc-ref config 'beacon))
@@ -55,10 +54,6 @@
             (set-developer-mode! #t))
           (when (and backtrace? (string= (car backtrace?) "1"))
             (set-backtrace-on-error! #t))
-          (when upload-root
-            (if (file-exists? (car upload-root))
-                (set-www-upload-root! (car upload-root))
-                (throw 'file-does-not-exist (car upload-root))))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

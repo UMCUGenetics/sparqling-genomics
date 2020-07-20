@@ -29,7 +29,6 @@
   <port>8080</port>
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
-  <upload-root>/data</upload-root>
   <system-connection>
     <uri>http://localhost:8890/sparql-auth</uri>
     <backend>virtuoso</backend>
@@ -75,15 +74,6 @@
   that throwed an error.  Backstraces can get long and verbose.  Therefore we
   don't display them by default.  To enable reporting backtraces in the error
   log, set the `\t{backtrace-on-error}' option to \t{1}.
-
-\subsection{Upload directory}
-
-  Users can upload RDF files to import it into an RDF store.  The files must
-  be stored on the filesystem.  With \t{upload-root}, the location of
-  the upload directory can be changed.  It can also be set using the
-  environment variable \t{SG\_WEB\_UPLOAD\_ROOT}.  If none of these are
-  specified, the value of the environment variable \t{TMPDIR} will be
-  used, or when that is not set, \file{/tmp} will be used.
 
 \subsection{System connection}
 

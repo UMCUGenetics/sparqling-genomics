@@ -66,7 +66,6 @@
             www-root
             www-cache-root
             www-static-root
-            www-upload-root
             ldap-enabled?
             ldap-uri
             ldap-common-name
@@ -76,7 +75,6 @@
             ldap-ssl-certificate-file
             local-users
             add-local-user!
-            set-www-upload-root!
             set-beacon-enabled!
             set-configuration-file!
             set-ldap-enabled!
@@ -126,16 +124,6 @@
                                   (getenv "SG_WEB_ROOT")
                                   "@WEB_ROOT@/sparqling-genomics/web"))
                             #:getter get-www-root)
-
-  (www-upload-root          #:init-value
-                            (lambda _
-                              (if (getenv "SG_WEB_UPLOAD_ROOT")
-                                  (getenv "SG_WEB_UPLOAD_ROOT")
-                                  (if (getenv "TMPDIR")
-                                      (getenv "TMPDIR")
-                                      "/tmp")))
-                            #:setter set-www-upload-root-private!
-                            #:getter get-www-upload-root)
 
   (www-cache-root           #:init-value
                             (lambda _
@@ -346,8 +334,7 @@
             ldap-uri
             persist-connection-lock
             system-connection
-            www-listen-port
-            www-upload-root))
+            www-listen-port))
 
 (define (www-root)
   ((get-www-root %runtime-configuration)))
