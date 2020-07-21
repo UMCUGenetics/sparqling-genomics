@@ -78,6 +78,7 @@ SOURCES =                                               \
 WWW_STATIC_RESOURCES =                                  \
   static/css/datatables.min.css                         \
   static/css/main.css                                   \
+  static/css/jquery-ui.min.css                          \
   static/fonts/FiraMono-Bold.ttf                        \
   static/fonts/FiraMono-Regular.ttf                     \
   static/fonts/Roboto-Bold.ttf                          \
@@ -108,6 +109,12 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/icons/x-white.svg                       \
   static/images/icons/x.png                             \
   static/images/icons/x.svg                             \
+  static/images/ui-icons_444444_256x240.png             \
+  static/images/ui-icons_555555_256x240.png             \
+  static/images/ui-icons_777620_256x240.png             \
+  static/images/ui-icons_777777_256x240.png             \
+  static/images/ui-icons_cc0000_256x240.png             \
+  static/images/ui-icons_ffffff_256x240.png             \
   static/images/logo.png                                \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \
@@ -123,6 +130,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/d3.min.js                                   \
   static/js/exploratory.js                              \
   static/js/import.js                                   \
+  static/js/jquery-ui.min.js                            \
   static/js/jquery-3.2.1.min.js                         \
   static/js/jquery.dataTables.min.js                    \
   static/js/plottable-query.js                          \

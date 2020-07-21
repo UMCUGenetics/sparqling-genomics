@@ -125,14 +125,11 @@
           (dependent-scripts-and-styles remainder
             (cons '(script (@ (src "/static/js/jquery-3.2.1.min.js")) "") out)))
          ((eq? 'jquery-ui dependency)
-          (let ((jquery-ui (lambda (suffix)
-                             (string-append "/static/js/jquery-ui-1.12.1/"
-                                            suffix))))
-            (dependent-scripts-and-styles remainder
-              (cons* `(link (@ (rel "stylesheet") (type "text/css")
-                               (href ,(jquery-ui "jquery-ui.min.css"))))
-                     `(script (@ (src ,(jquery-ui "jquery-ui.min.js"))) "")
-                     out))))
+          (dependent-scripts-and-styles remainder
+           (cons* `(link (@ (rel "stylesheet") (type "text/css")
+                            (href "/static/css/jquery-ui.min.css")))
+                  `(script (@ (src "/static/js/jquery-ui.min.js")) "")
+                  out)))
          ((eq? 'prompt dependency)
           (dependent-scripts-and-styles remainder
             (cons '(script (@ (src "/static/js/prompt.js")) "") out)))
