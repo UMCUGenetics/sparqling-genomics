@@ -10,7 +10,6 @@
 
 (use-modules (ice-9 format)
              (ice-9 getopt-long)
-             (ice-9 popen)
              (ice-9 rdelim)
              (ice-9 threads))
 
@@ -58,16 +57,17 @@
 ;; CONFIGURATION GENERATOR
 ;; ---------------------------------------------------------------------------
 
-(let* [(awk  "awk")
-       (head "head")
-       (threads (total-processor-count))
-       (memory  (let* ((port (open-input-pipe (string-append
-                                               head " -n 1 /proc/meminfo | "
-                                               awk " '{ print $2 }'")))
-                       (str  (read-line port)))
-                  (close-pipe port)
-                  (inexact->exact (floor (/ (string->number str)
-                                            1024.0 1024.0)))))
+(define (total-available-memory)
+  "Returns the number of kilobytes of memory available to the system."
+  (call-with-input-file "/proc/meminfo"
+    (lambda (port)
+      (let ((line (read-line port)))
+        (string->number
+         (list-ref (delete "" (string-split line #\space)) 1))))))
+
+(let* [(threads (total-processor-count))
+       (memory  (inexact->exact (floor (/ (total-available-memory)
+                                          1024.0 1024.0))))
        (expected-database-size (inexact->exact
                                 (floor (/ (* (string->number %expected-size)
                                              1024000000 0.25) 8000))))
