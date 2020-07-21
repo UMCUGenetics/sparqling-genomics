@@ -676,6 +676,16 @@
           (www-listen-port))
 
     (listen s 128)
+
+    (unless (null? (default-debug-port))
+      (let ((address (inet-ntop (www-listen-address-family)
+                                (www-listen-address))))
+        (log-debug "sg-web" "SPARQLing-genomics is running at http://~a:~a"
+                   (if (eq? (www-listen-address-family) AF_INET6)
+                       (string-append "[" address "]")
+                       address)
+                   (www-listen-port))))
+
     (while #t
       (let* [(client-connection (accept s))
              (client-port       (car client-connection))]

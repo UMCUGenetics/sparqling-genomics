@@ -23,12 +23,14 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h stdio.h])
+AC_CHECK_LIB(guile, scm_with_guile)
 
 GUILE_PKG([3.0 2.2 2.0])
 GUILE_PROGS
+GUILE_SITE_DIR
 
 dnl Installation directories for .scm and .go files.
-moddir="${prefix}/share/guile/site/$GUILE_EFFECTIVE_VERSION"
+moddir="${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION"
 godir="${libdir}/guile/$GUILE_EFFECTIVE_VERSION/site-ccache"
 AC_SUBST([moddir])
 AC_SUBST([godir])
@@ -70,10 +72,15 @@ dnl Use the above macro to define a resolved path for the web root.
 dnl ---------------------------------------------------------------------------
 AC_DEFINE_DIR([WEB_ROOT], [datarootdir], [Data directory for web resources.])
 
+dnl Also resolve the absolute paths to the Guile moddir and godir.
+dnl ---------------------------------------------------------------------------
+AC_DEFINE_DIR([MODDIR], [moddir], [Path to installed Guile modules.])
+AC_DEFINE_DIR([GODIR], [godir], [Path to installed Guile objects.])
+
 AC_CONFIG_FILES([env], [chmod +x env])
-AC_CONFIG_FILES([web/sg-web], [chmod +x web/sg-web])
 AC_CONFIG_FILES([web/sg-auth-manager], [chmod +x web/sg-auth-manager])
 AC_CONFIG_FILES([web/sg-web-test], [chmod +x web/sg-web-test])
+
 AC_CONFIG_FILES([tools/folder2rdf/folder2rdf],
                 [chmod +x tools/folder2rdf/folder2rdf])
 AC_CONFIG_FILES([tools/virtuoso-config/virtuoso-config],
@@ -95,6 +102,7 @@ AC_CONFIG_FILES([
   tools/xml2rdf/Makefile
   web/Makefile
   web/ldap/authenticate.scm
+  web/sg-web.c
   web/sg-web.service
   web/sg-auth-manager.service
   web/www/config.scm
@@ -106,6 +114,7 @@ PKG_CHECK_MODULES([raptor2], [raptor2])
 PKG_CHECK_MODULES([libxml2], [libxml-2.0])
 PKG_CHECK_MODULES([gnutls], [gnutls])
 PKG_CHECK_MODULES([zlib], [zlib])
+PKG_CHECK_MODULES([guile], [guile-$GUILE_EFFECTIVE_VERSION])
 
 
 dnl Let users provide a path to the libldap library because there is

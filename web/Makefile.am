@@ -140,7 +140,12 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/query-history.js                            \
   static/js/sessions.js
 
-bin_SCRIPTS     = sg-web sg-auth-manager sg-web-test
+bin_PROGRAMS    = sg-web
+sg_web_SOURCES  = sg-web.c
+sg_web_LDADD    = $(gnutls_LIBS) $(guile_LIBS)
+sg_web_CFLAGS   = $(gnutls_CFLAGS) $(guile_CFLAGS)
+
+bin_SCRIPTS     = sg-auth-manager sg-web-test
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 webconf_DATA    = sg-web.xml sg-auth-manager.xml

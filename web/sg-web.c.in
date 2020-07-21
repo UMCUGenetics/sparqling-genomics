@@ -1,0 +1,278 @@
+/*
+ * Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+#include <getopt.h>
+#include <gnutls/crypto.h>
+#include <libguile.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/random.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+typedef struct
+{
+  char *error_log;
+  char *debug_log;
+  char *configuration_file;
+} RuntimeConfiguration;
+
+void
+show_help (void)
+{
+  puts ("This is sg-web:\n"
+	"  --help,                   -h  Show this message.\n"
+	"  --version,                -v  Show versioning information.\n"
+	"  --error-log,              -e  Path to the error logfile.\n"
+	"  --debug-log,              -d  Path to the debugging logfile.\n"
+        "  --configuration-file=ARG, -f  Path to the configuration file.\n");
+  exit (0);
+}
+
+void
+show_version (void)
+{
+  puts ("sg-web " VERSION);
+  exit (0);
+}
+
+void
+exit_with_error (char *message)
+{
+  fprintf (stderr, message);
+  exit (1);
+}
+
+void*
+initialize_guile (void *config_vp)
+{
+  RuntimeConfiguration *config = config_vp;
+
+  /* --------------------------------------------------------------------------
+   * LOGGING
+   * --------------------------------------------------------------------------
+   *
+   * Set up the logging facilities.
+   */
+
+  SCM log_debug  = scm_c_public_ref ("logger", "log-debug");
+  SCM debug_port = NULL;
+  SCM log_error  = scm_c_public_ref ("logger", "log-error");
+  SCM error_port = NULL;
+
+  if (config->error_log)
+    {
+      SCM set_error_port = scm_c_public_ref ("logger", "set-default-error-port!");
+      error_port = scm_open_file (scm_from_latin1_string (config->error_log),
+                                  scm_from_latin1_string ("a"));
+      scm_call (set_error_port, error_port, SCM_UNDEFINED);
+      scm_call (log_error,
+                scm_from_latin1_string ("main"),
+                scm_from_latin1_string ("Started sg-web."),
+                SCM_UNDEFINED);
+    }
+
+  if (config->debug_log)
+    {
+      SCM set_debug_port = scm_c_public_ref ("logger", "set-default-debug-port!");
+      debug_port = scm_open_file (scm_from_latin1_string (config->debug_log),
+                                  scm_from_latin1_string ("a"));
+      scm_call (set_debug_port, debug_port, SCM_UNDEFINED);
+      scm_call (log_debug,
+                scm_from_latin1_string ("main"),
+                scm_from_latin1_string ("Started sg-web."),
+                SCM_UNDEFINED);
+    }
+
+  debug_port = NULL;
+  error_port = NULL;
+
+  /* --------------------------------------------------------------------------
+   * CREATE MUTEX
+   * --------------------------------------------------------------------------
+   */
+  SCM set_lock;
+  set_lock = scm_c_public_ref ("www config", "set-persist-connection-lock!");
+  scm_call_1 (set_lock, scm_make_mutex());
+  set_lock = NULL;
+
+  /* --------------------------------------------------------------------------
+   * RANDOM NUMBER GENERATOR
+   * --------------------------------------------------------------------------
+   *
+   * This code sets up the RNG with a (hopefully) secure enough seed.
+   */
+
+  {
+    const int rng_buffer_length = 1024;
+    unsigned char rng_buffer[rng_buffer_length];
+    memset (rng_buffer, '\0', rng_buffer_length);
+
+    if (gnutls_rnd (GNUTLS_RND_KEY, rng_buffer, rng_buffer_length) == 0)
+      {
+        SCM rng_seed  = scm_from_latin1_string ((char *)rng_buffer);
+        if (scm_string_p (rng_seed) == 0)
+          exit_with_error ("Could not properly initialize RNG.");
+
+        SCM rng_state = scm_seed_to_random_state (rng_seed);
+        SCM random_state = scm_c_public_lookup ("guile", "*random-state*");
+        scm_variable_set_x (random_state, rng_state);
+
+        rng_seed = NULL;
+        rng_state = NULL;
+      }
+    else
+      exit_with_error ("Could not properly initialize RNG.");
+  }
+
+  /* --------------------------------------------------------------------------
+   * READ CONFIGURATION FILE.
+   * --------------------------------------------------------------------------
+   *
+   * This code overrides the configuration defaults with the user's preferences.
+   */
+
+  if (config->configuration_file)
+    {
+      SCM read_configuration = scm_c_public_ref ("www config-reader",
+                                                 "read-configuration-from-file");
+
+      if (scm_call (read_configuration,
+                    scm_from_latin1_string (config->configuration_file),
+                    SCM_UNDEFINED) == SCM_BOOL_F)
+        {
+          scm_call (log_error,
+                    scm_from_latin1_string ("main"),
+                    scm_from_latin1_string ("Could not read configuration file."),
+                    SCM_UNDEFINED);
+
+          exit (1);
+        }
+    }
+
+  /* --------------------------------------------------------------------------
+   * RESTORE PREVIOUS SESSIONS
+   * --------------------------------------------------------------------------
+   *
+   * When restarting this daemon, we don't invalidate previous sessions.  So to
+   * make reloading the daemon completely transparent to end-users, we load the
+   * established sessions before starting the service.
+   */
+
+  SCM load_sessions   = scm_c_public_ref ("www db sessions", "load-sessions");
+  scm_call_0 (load_sessions);
+  load_sessions = NULL;
+
+  scm_gc();
+
+  /* --------------------------------------------------------------------------
+   * RUNNER
+   * --------------------------------------------------------------------------
+   *
+   * This code runs the web server.
+   */
+
+  SCM start_server    = scm_c_public_ref ("www requests", "start-server");
+  SCM request_handler = scm_c_public_ref ("www requests", "request-handler");
+  SCM fork_on_startup = scm_c_public_ref ("www config", "fork-on-startup?");
+
+  if (scm_call_0 (fork_on_startup) == SCM_BOOL_T)
+    {
+      pid_t pid = fork ();
+      if (pid == 0)
+        {
+          scm_call (start_server, request_handler, SCM_UNDEFINED);
+          scm_close_port (error_port);
+          scm_close_port (debug_port);
+        }
+      else if (pid < 0)
+        exit_with_error ("Could not fork.");
+      else
+        {
+          scm_call (log_debug,
+                    scm_from_latin1_string ("main"),
+                    scm_from_latin1_string ("Forked into the background"),
+                    SCM_UNDEFINED);
+
+          exit (0);
+        }
+    }
+  else
+    scm_call (start_server, request_handler, SCM_UNDEFINED);
+
+  return NULL;
+}
+
+int
+main (int argc, char **argv)
+{
+  int arg = 0;
+  int index = 0;
+
+  RuntimeConfiguration config;
+  config.error_log = NULL;
+  config.debug_log = NULL;
+  config.configuration_file = NULL;
+
+  /* Program options
+   * ------------------------------------------------------------------- */
+  static struct option options[] =
+    {
+      { "error-log",             required_argument, 0, 'e' },
+      { "debug-log",             required_argument, 0, 'd' },
+      { "configuration-file",    required_argument, 0, 'f' },
+      { "help",                  no_argument,       0, 'h' },
+      { "version",               no_argument,       0, 'v' },
+      { 0,                       0,                 0, 0   }
+    };
+
+  while (arg != -1)
+    {
+      /* Make sure to list all short options in the string below. */
+      arg = getopt_long (argc, argv, "e:d:f:hv", options, &index);
+      switch (arg)
+        {
+        case 'e': config.error_log = optarg;           break;
+        case 'd': config.debug_log = optarg;           break;
+        case 'f': config.configuration_file = optarg;  break;
+        case 'h': show_help ();                        break;
+        case 'v': show_version ();                     break;
+        }
+    }
+
+  /* At this point, we don't accept input from stdin anymore. */
+  fclose (stdin);
+
+  /* Make sure backtraces are wide enough to be useful. */
+  setenv ("COLUMNS", "10000", 1);
+
+  /* Avoid auto-compiling files. */
+  setenv ("GUILE_AUTO_COMPILE", "0", 1);
+
+  /* Enhance load paths. */
+  setenv ("GUILE_LOAD_PATH", "@GUILE_SITE@:@MODDIR@", 1);
+  setenv ("GUILE_LOAD_COMPILED_PATH", "@GUILE_SITE_CCACHE@:@GODIR@", 1);
+
+  /* Allocate a small initial head size. */
+  setenv ("GC_INITIAL_HEAP_SIZE", "20M", 1);
+
+  /* Initialize Guile and off we go! */
+  scm_with_guile (initialize_guile, &config);
+  return 0;
+}
