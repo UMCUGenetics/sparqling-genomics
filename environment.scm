@@ -81,9 +81,6 @@
                    (certs (assoc-ref inputs "nss-certs"))
                    (certs-dir (string-append certs "/etc/ssl/certs")))
               (wrap-program (string-append out "/bin/sg-web")
-                `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
-                `("GUILE_LOAD_COMPILED_PATH" ":" prefix
-                  (,guile-load-compiled-path))
                 `("SG_WEB_ROOT" ":" = (,web-root))
                 `("SSL_CERT_DIR" ":" = (,certs-dir)))
               (wrap-program (string-append out "/bin/sg-auth-manager")
