@@ -28,8 +28,10 @@
   `(span (input (@ (type "radio") (id ,id) (name ,name))
                (label (@ (for ,id)) ,label))))
 
-(define (checkbox id text)
+(define* (checkbox id text #:key (checked? #f) (required? #f))
   `(span (input (@ (type  "checkbox")
+                   ,@(if checked? `((checked "")) '())
+                   ,@(if required? `((required "")) '())
                    (id    ,id)
                    (name  ,id)
                    (class "form-checkbox")))
