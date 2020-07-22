@@ -15,8 +15,13 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www forms)
-  #:export (radio-button
-            checkbox))
+  #:export (checkbox
+            radio-button
+            ul-without-bullets))
+
+(define (ul-without-bullets . body)
+  `(ul (@ (class "ul-no-bullets"))
+       ,body))
 
 (define (radio-button id name label)
   `(span (input (@ (type "radio") (id ,id) (name ,name))

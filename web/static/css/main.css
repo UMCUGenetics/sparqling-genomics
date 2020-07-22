@@ -940,3 +940,12 @@ input.form-submit-input:hover {
 }
 .form-submit-button:hover { background: #00aa00; }
 .form-submit-button:active { background: #006600; }
+
+ul.ul-no-bullets li {
+    display: block;
+    list-style-type: none;
+    text-decoration: none;
+    color: #000000;
+    background: none;
+    padding: none;
+}
