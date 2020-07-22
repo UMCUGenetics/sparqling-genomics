@@ -51,6 +51,7 @@ SOURCES =                                               \
   www/db/queries.scm                                    \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
+  www/forms.scm                                         \
   www/pages.scm                                         \
   www/pages/automate.scm                                \
   www/pages/collect.scm                                 \
