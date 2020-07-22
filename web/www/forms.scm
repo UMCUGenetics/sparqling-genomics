@@ -28,7 +28,8 @@
   `(span (input (@ (type "radio")
                    ,@(if checked? `((checked "")) '())
                    (id ,id)
-                   (name ,name))
+                   (name ,name)
+                   (value ,id))
                 (label (@ (for ,id)) ,label))))
 
 (define* (checkbox id text #:key (checked? #f) (required? #f))
