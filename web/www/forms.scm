@@ -17,7 +17,8 @@
 (define-module (www forms)
   #:export (checkbox
             radio-button
-            ul-without-bullets))
+            ul-without-bullets
+            input-with-value))
 
 (define (ul-without-bullets . body)
   `(ul (@ (class "ul-no-bullets"))
@@ -33,3 +34,10 @@
                    (name  ,id)
                    (class "form-checkbox")))
          (label (@ (for ,id)) ,text)))
+
+(define* (input-with-value name type value #:key (required? #f))
+  `(input (@ (id    ,name)
+             (name  ,name)
+             ,@(if required? `((required "")) '())
+             (type  ,type)
+             (value ,(if value value "")))))
