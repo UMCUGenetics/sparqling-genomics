@@ -24,9 +24,12 @@
   `(ul (@ (class "ul-no-bullets"))
        ,body))
 
-(define (radio-button id name label)
-  `(span (input (@ (type "radio") (id ,id) (name ,name))
-               (label (@ (for ,id)) ,label))))
+(define* (radio-button id name label #:key (checked? #f))
+  `(span (input (@ (type "radio")
+                   ,@(if checked? `((checked "")) '())
+                   (id ,id)
+                   (name ,name))
+                (label (@ (for ,id)) ,label))))
 
 (define* (checkbox id text #:key (checked? #f) (required? #f))
   `(span (input (@ (type  "checkbox")
