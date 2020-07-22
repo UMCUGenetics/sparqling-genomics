@@ -275,7 +275,9 @@
    [(string-prefix? "/form/" request-path)
     (let ((module        (resolve-form-module (substring request-path 6))))
       (if (not module)
-          (sxml->xml (page-form-error-404 request-path) client-port)
+          (respond-to-client 404 client-port '(text/html)
+           (with-output-to-string
+             (lambda _ (sxml->xml (page-form-error-404 request-path)))))
           (let ((page        (assoc-ref module 'page))
                 (submit      (assoc-ref module 'submit))
                 (api-handler (assoc-ref module 'api)))
