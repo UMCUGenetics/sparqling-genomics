@@ -928,11 +928,12 @@ span.form-radio-button label { cursor: pointer; }
     margin-top: 5pt;
 }
 .form-error-message {
-    padding: 5pt;
+    padding: .25em .75em .25em .75em;
     font-weight: bold;
     background: #aa3333;
     color: #ffffff;
     border-radius: 4pt;
+    margin-bottom: 1em;
 }
 .form-submit-button {
     margin-top: 1em;
