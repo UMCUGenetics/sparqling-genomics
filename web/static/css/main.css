@@ -833,6 +833,9 @@ input.form-submit-input:hover {
     background: #00aa00;
 }
 
+span.form-checkbox label { cursor: pointer; }
+span.form-radio-button label { cursor: pointer; }
+
 .form-component {
     position: relative;
     border: dashed 2pt #eeeeee;
