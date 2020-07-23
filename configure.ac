@@ -116,6 +116,25 @@ PKG_CHECK_MODULES([gnutls], [gnutls])
 PKG_CHECK_MODULES([zlib], [zlib])
 PKG_CHECK_MODULES([guile], [guile-$GUILE_EFFECTIVE_VERSION])
 
+dnl Find GnuTLS Guile paths.
+dnl ---------------------------------------------------------------------------
+AC_SUBST([GNUTLS_PREFIX],[$(pkg-config gnutls --variable=prefix)])
+if test "x$GNUTLS_PREFIX" = "x"; then
+  AC_MSG_WARN([Unable to determine the GnuTLS Guile load path.])
+else
+  AC_SUBST([GNUTLS_GUILE_LOAD_PATH],
+           [$GNUTLS_PREFIX/share/guile/site/$GUILE_EFFECTIVE_VERSION])
+
+fi
+
+AC_SUBST([GNUTLS_LIBDIR],[$(pkg-config gnutls --variable=libdir)])
+if test "x$GNUTLS_LIBDIR" = "x"; then
+  AC_MSG_WARN([Unable to determine the GnuTLS Guile libdir.])
+else
+  AC_SUBST([GNUTLS_GUILE_CCACHE],
+           [$GNUTLS_LIBDIR/guile/$GUILE_EFFECTIVE_VERSION/site-ccache])
+fi
+
 
 dnl Let users provide a path to the libldap library because there is
 dnl no portable way to find the path to libldap.
@@ -140,6 +159,7 @@ AC_SUBST([LIBLDAP_PREFIX])
 AC_SUBST([LIBLDAP_LIBDIR])
 
 dnl Check for presence of 'pdflatex', 'bibtex', and 'htlatex'.
+dnl ---------------------------------------------------------------------------
 AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
 AC_CHECK_PROG(BIBTEX, bibtex, bibtex)
 AC_CHECK_PROG(HTLATEX, htlatex, htlatex)

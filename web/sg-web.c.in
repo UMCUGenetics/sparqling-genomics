@@ -266,8 +266,11 @@ main (int argc, char **argv)
   setenv ("GUILE_AUTO_COMPILE", "0", 1);
 
   /* Enhance load paths. */
-  setenv ("GUILE_LOAD_PATH", "@GUILE_SITE@:@MODDIR@", 1);
-  setenv ("GUILE_LOAD_COMPILED_PATH", "@GUILE_SITE_CCACHE@:@GODIR@", 1);
+  setenv ("GUILE_LOAD_PATH",
+          "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH", 1);
+
+  setenv ("GUILE_LOAD_COMPILED_PATH",
+          "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@", 1);
 
   /* Allocate a small initial head size. */
   setenv ("GC_INITIAL_HEAP_SIZE", "20M", 1);
