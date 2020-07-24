@@ -18,10 +18,17 @@
   #:export (checkbox
             radio-button
             ul-without-bullets
-            input-with-value))
+            input-with-value
+            required-marking))
 
-(define (ul-without-bullets . body)
-  `(ul (@ (class "ul-no-bullets"))
+(define required-marking
+  '(style "border: solid 2pt #990000; background: #ffcccc"))
+
+(define* (ul-without-bullets mark-required? . body)
+  "MARK-REQUIRED? must be either #t or #f, and body must be one or
+more SXML expressions."
+  `(ul (@ (class "ul-no-bullets")
+          ,@(if mark-required? `(,required-marking) '()))
        ,body))
 
 (define* (radio-button id name label #:key (checked? #f))
@@ -48,7 +55,7 @@
                      (name  ,id)))
            (label (@ (for ,id)
                      ,@(if (and (not checked?) show-missing?)
-                           `((style "border: solid 2pt #990000; background: #ffcccc"))
+                           `(,required-marking)
                            '()))
                   ,text)))
 
@@ -61,7 +68,7 @@
                (name  ,name)
                ,@(if required? `((required "")) '())
                ,@(if (and show-missing? misses-value)
-                     `((style "border: solid 2pt #990000; background: #ffcccc"))
+                     `(,required-marking)
                      '())
                ,@(if placeholder `((placeholder ,placeholder)) '())
                (type  ,type)
