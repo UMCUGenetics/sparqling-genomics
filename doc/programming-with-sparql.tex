@@ -54,34 +54,33 @@ data <- fromJSON(jsonData)
 \section{Using SPARQL with GNU Guile}
 \label{sec:sparql-with-guile}
 
-  For Schemers using GNU Guile, the \href{https://github.com/roelj/guile-sparql}%
-  {guile-sparql}\footnote{\url{https://github.com/roelj/guile-sparql}} package
-  provides a SPARQL interface.
-
-  The package provides a \t{driver} module that communicates with the
-  SPARQL endpoint, a \t{lang} module to construct SPARQL queries using
-  S-expressions, and a \t{util} module containing convenience functions.
-
-  After installation, the modules can be loaded using:
+  For Schemers using GNU Guile the \t{(http-post)} procedure can be used
+  to perform a query.  The following code snippet serves as an example.
 
 \begin{siderules}
 \begin{verbatim}
-(use-modules (sparql driver)
-             (sparql lang)
-             (sparql util))
+(use-modules (web client)
+             (web response)
+             (ice-9 receive))
+
+(let ((endpoint "http://localhost:8001/sparql")
+      (hash     "<project-hash>")
+      (query    "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5")
+      (cookie   "SGSession=<session-token>"))
+  (receive (header port)
+           (http-post (string-append endpoint "?project-hash=" hash)
+                      #:headers
+                      `((accept       . ((application/s-expression)))
+                        (Cookie       . ,cookie)
+                        (content-type . (application/sparql-update)))
+                      #:streaming? #t
+                      #:body query)
+           (if (= (response-code header) 200)
+               (format #t "Query output:~%~:a~%" (read port))
+               (format #t "The HTTP response code was ~a." (response-code header)))
+           (close-port port)))
 \end{verbatim}
 \end{siderules}
 
-  Using the \t{sparql-query} function, we can execute a query:
-
-\begin{siderules}
-\begin{verbatim}
-(let ((endpoint       "http://localhost:8890/sparql-auth")
-      (authentication "dba:secret-password")
-      (query          "SELECT DISTINCT ?p WHERE { ?s ?p ?o }"))
-  (display-query-results-of
-    (sparql-query query
-                  #:uri    endpoint
-                  #:digest authentication)))
-\end{verbatim}
-\end{siderules}
+  The SPARQLing-genomics API can respond using an S-expression that can be directly
+  \t{read} in Scheme.
