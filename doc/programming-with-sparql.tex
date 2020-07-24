@@ -2,86 +2,52 @@
 \label{chap:programming}
 
 \section{Using SPARQL with R}
-\label{sec:sparql-with-r}
 
-  Before we can start, we need to install the \t{SPARQL} package from
-  \href{https://cran.r-project.org/web/packages/SPARQL/index.html}{CRAN}.
+  Before we can run a query, we need to install the \t{jsonlite} package,
+  and the \t{curl} package.
 
 \begin{siderules}
 \begin{verbatim}
-install.packages("SPARQL")
+install.packages(c("jsonlite", "RCurl"))
 \end{verbatim}
 \end{siderules}
 
-  Once the package is installed, we can load it:
+\subsection{Perform a SPARQL query using RCurl}
+
+  Once the packages are installed, we can perform a HTTP request using RCurl
+  against an endpoint managed by SPARQLing-genomics.
 
 \begin{siderules}
 \begin{verbatim}
-library("SPARQL")
+library(RCurl)
+
+accumulator = basicTextGatherer()
+endpoint    <- "http://localhost:8001/sparql"
+projectHash <- "<project-hash>"
+query       <- "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"
+cookie      <- "SGSession=<session-token>"
+
+h$reset()
+curlPerform(url           = paste0(endpoint, "?project-hash=", projectHash),
+            httpheader    = c("Accept"       = "application/json",
+                              "Cookie"       = cookie,
+                              "Content-Type" = "application/sparql-update"),
+            customrequest = "POST",
+            postfields    = query,
+            writefunction = accumulator$update)
+
+jsonData    <- accumulator$value()
 \end{verbatim}
 \end{siderules}
 
-  Let's define where to send the query to:
-\begin{siderules}
-\begin{verbatim}
-endpoint <- "http://localhost:8890/sparql"
-\end{verbatim}
-\end{siderules}
-
-  $\ldots{}$ and the query itself:
-\begin{siderules}
-\begin{verbatim}
-query <- "PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
-PREFIX vc:    <http://sparqling-genomics/vcf2rdf/VariantCall/>
-PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX faldo: <http://biohackathon.org/resource/faldo#>
-
-SELECT DISTINCT ?variant ?sample ?chromosome ?position ?filter
-FROM <graph-name>
-WHERE
-{
-  ?variant  rdf:type                vcf2rdf:VariantCall ;
-            vcf2rdf:sample          ?sample ;
-            faldo:reference         ?chromosome ;
-            faldo:position          ?position ;
-            vc:FILTER               ?filter .
-}
-LIMIT 10";
-\end{verbatim}
-\end{siderules}
-
-  To actually execute the query, we can use the \t{SPARQL} function:
-\begin{siderules}
-\begin{verbatim}
-query_data <- SPARQL (endpoint, query)
-\end{verbatim}
-\end{siderules}
-
-  If the query execution went fine, we can gather the resulting
-  \t{dataframe} from the \t{results} index.
+\subsection{Parsing the query output}
+  Now that we have gathered the query output in JSON, we are going to turn
+  the JSON response into a data frame using the \t{jsonlite} package:
 
 \begin{siderules}
 \begin{verbatim}
-query_results <- query_data$results
-\end{verbatim}
-\end{siderules}
-
-\subsection{Querying with authentication}
-
-  When the SPARQL endpoint we try to reach requires authentication before
-  it accepts a query, we can use the \t{curl\_args} parameter of the
-  \t{SPARQL} function.
-
-  In the following example, we use \t{dba} as username, and
-  \t{secret-password} as password.
-
-\begin{siderules}
-\begin{verbatim}
-endpoint     <- "http://localhost:8890/sparql-auth"
-auth_options <- curlOptions(userpwd="dba:secret-password")
-query        <- "SELECT DISTINCT ?p WHERE { ?s ?p ?o }"
-query_data   <- SPARQL (endpoint, query, curl_args=auth_options)
-results      <- query_data$results
+library(jsonlite)
+data <- fromJSON(jsonData)
 \end{verbatim}
 \end{siderules}
 
