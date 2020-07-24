@@ -57,18 +57,11 @@
           (if (null? header)
               (begin
                 (format output-port "(")
-                (set! header tokens))
-              (let* [(pairs (zip header tokens))
-                     (first (car pairs))]
-                (format output-port "((~a . ~:a)"
-                        (list-ref first 0)
-                        (list-ref first 1))
-                (for-each (lambda (pair)
-                            (format output-port " (~a . ~:a)"
-                                    (list-ref pair 0)
-                                    (list-ref pair 1)))
-                          (cdr pairs))
-                (format output-port ") ")))
+                (set! header (map string->symbol tokens)))
+              (let [(pairs (zip header tokens))]
+                (write (map (lambda (pair)
+                              `(,(car pair) . ,(cadr pair))) pairs)
+                       output-port)))
           (csv->scm-stream input-port output-port header)))))
 
 (define* (csv->json-stream input-port output-port #:optional (header '())
