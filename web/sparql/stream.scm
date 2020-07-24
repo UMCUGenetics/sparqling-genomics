@@ -60,11 +60,11 @@
                 (set! header tokens))
               (let* [(pairs (zip header tokens))
                      (first (car pairs))]
-                (format output-port "((~a . ~a)"
+                (format output-port "((~a . ~:a)"
                         (list-ref first 0)
                         (list-ref first 1))
                 (for-each (lambda (pair)
-                            (format output-port " (~a: ~a)"
+                            (format output-port " (~a . ~:a)"
                                     (list-ref pair 0)
                                     (list-ref pair 1)))
                           (cdr pairs))
@@ -89,14 +89,14 @@
                 (if first-row?
                     (set! first-row? #f)
                     (format output-port ","))
-                (format output-port "{ ~s: ~a "
+                (format output-port "{ ~s: ~:a "
                         (list-ref first 0)
                         (if (string->number (list-ref first 1))
                             (list-ref first 1)
                             (format #f "~s" (list-ref first 1))))
 
                 (for-each (lambda (pair)
-                            (format output-port ", ~s: ~a "
+                            (format output-port ", ~s: ~:a "
                                     (list-ref pair 0)
                                     (if (string->number (list-ref pair 1))
                                         (list-ref pair 1)
