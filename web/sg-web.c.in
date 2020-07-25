@@ -26,6 +26,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define GUILE_LOAD_COMPILED_PATH "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@"
+#define GUILE_LOAD_PATH "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH@"
+
 typedef struct
 {
   char *error_log;
@@ -265,12 +268,37 @@ main (int argc, char **argv)
   /* Avoid auto-compiling files. */
   setenv ("GUILE_AUTO_COMPILE", "0", 1);
 
-  /* Enhance load paths. */
-  setenv ("GUILE_LOAD_PATH",
-          "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH", 1);
+  char *guile_load_path = getenv ("GUILE_LOAD_PATH");
+  char *guile_load_compiled_path = getenv ("GUILE_LOAD_COMPILED_PATH");
 
-  setenv ("GUILE_LOAD_COMPILED_PATH",
-          "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@", 1);
+  /* Enhance load paths. */
+  if (guile_load_path)
+    {
+      size_t total_len = strlen(guile_load_path) + strlen(GUILE_LOAD_PATH) + 2;
+      char guile_load_path_full[total_len];
+
+      snprintf (guile_load_path_full, total_len, "%s:%s",
+                GUILE_LOAD_PATH, guile_load_path);
+
+      setenv ("GUILE_LOAD_PATH", guile_load_path_full, 1);
+    }
+  else
+    setenv ("GUILE_LOAD_PATH", GUILE_LOAD_PATH, 1);
+
+  if (guile_load_compiled_path)
+    {
+      size_t total_len = strlen(guile_load_compiled_path) +
+                         strlen(GUILE_LOAD_COMPILED_PATH) + 2;
+
+      char guile_load_compiled_path_full[total_len];
+
+      snprintf (guile_load_compiled_path_full, total_len, "%s:%s",
+                GUILE_LOAD_COMPILED_PATH, guile_load_compiled_path);
+
+      setenv ("GUILE_LOAD_COMPILED_PATH", guile_load_compiled_path_full, 1);
+    }
+  else
+    setenv ("GUILE_LOAD_COMPILED_PATH", GUILE_LOAD_COMPILED_PATH, 1);
 
   /* Allocate a small initial head size. */
   setenv ("GC_INITIAL_HEAP_SIZE", "20M", 1);
