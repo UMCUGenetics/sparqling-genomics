@@ -62,7 +62,7 @@
             www-max-file-size
             www-name
             www-version
-            www-root
+            www-roots
             www-cache-root
             ldap-enabled?
             ldap-uri
@@ -113,12 +113,13 @@
   (www-version              #:init-value "@VERSION@"
                             #:getter get-www-version)
 
-  (www-root                 #:init-value
-                            (lambda _
-                              (if (getenv "SG_WEB_ROOT")
-                                  (getenv "SG_WEB_ROOT")
-                                  "@WEB_ROOT@/sparqling-genomics/web"))
-                            #:getter get-www-root)
+  (www-roots                #:init-value
+                            (let ((internal "@WEB_ROOT@/sparqling-genomics/web")
+                                  (external (getenv "SG_WEB_ROOT")))
+                              (if external
+                                  (cons internal (string-split external #\:))
+                                  (list internal)))
+                            #:getter get-www-roots)
 
   (www-cache-root           #:init-value
                             (lambda _
@@ -294,7 +295,7 @@
             www-listen-address-family
             www-max-file-size
             www-name
-            www-root
+            www-roots
             www-version))
 
 (for-each make-setter
@@ -323,9 +324,6 @@
             persist-connection-lock
             system-connection
             www-listen-port))
-
-(define (www-root)
-  ((get-www-root %runtime-configuration)))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))

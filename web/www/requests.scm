@@ -98,8 +98,19 @@
             [(string= extension "ttf")  '(application/font-sfnt)]
             [(#t '(text/plain))])))
 
-  (let ((full-path (string-append (www-root) "/" path)))
-    (if (not (file-exists? full-path))
+  (define* (resolved-file-path path #:key (found #f)
+                                          (roots (www-roots)))
+    (cond
+     [found          found]
+     [(null? roots)  #f]
+     [else
+      (let ((full-path (string-append (car roots) "/" path)))
+        (if (file-exists? full-path)
+            (resolved-file-path path #:found full-path #:roots '())
+            (resolved-file-path path #:found #f #:roots (cdr roots))))]))
+
+  (let ((full-path (resolved-file-path path)))
+    (if (not full-path)
         (respond-to-client 404 client-port '(text/html)
           (with-output-to-string
             (lambda _ (sxml->xml (page-error-404 path)))))
