@@ -121,6 +121,7 @@ dnl ---------------------------------------------------------------------------
 AC_SUBST([GNUTLS_PREFIX],[$(pkg-config gnutls --variable=prefix)])
 if test "x$GNUTLS_PREFIX" = "x"; then
   AC_MSG_WARN([Unable to determine the GnuTLS Guile load path.])
+  AC_SUBST([GNUTLS_GUILE_LOAD_PATH], [])
 else
   AC_SUBST([GNUTLS_GUILE_LOAD_PATH],
            [$GNUTLS_PREFIX/share/guile/site/$GUILE_EFFECTIVE_VERSION])
@@ -130,6 +131,7 @@ fi
 AC_SUBST([GNUTLS_LIBDIR],[$(pkg-config gnutls --variable=libdir)])
 if test "x$GNUTLS_LIBDIR" = "x"; then
   AC_MSG_WARN([Unable to determine the GnuTLS Guile libdir.])
+  AC_SUBST([GNUTLS_GUILE_CCACHE], [])
 else
   AC_SUBST([GNUTLS_GUILE_CCACHE],
            [$GNUTLS_LIBDIR/guile/$GUILE_EFFECTIVE_VERSION/site-ccache])
