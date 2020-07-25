@@ -62,10 +62,8 @@
             www-max-file-size
             www-name
             www-version
-            www-hostname
             www-root
             www-cache-root
-            www-static-root
             ldap-enabled?
             ldap-uri
             ldap-common-name
@@ -115,9 +113,6 @@
   (www-version              #:init-value "@VERSION@"
                             #:getter get-www-version)
 
-  (www-hostname             #:init-value "http://sparqling-genomics/"
-                            #:getter get-www-hostname)
-
   (www-root                 #:init-value
                             (lambda _
                               (if (getenv "SG_WEB_ROOT")
@@ -135,12 +130,6 @@
                                      (getenv "HOME")
                                      "/.cache/sparqling-genomics"))))
                             #:getter get-www-cache-root)
-  (www-static-root          #:init-value
-                            (lambda _
-                              (if (getenv "SG_WEB_ROOT")
-                                  (string-append (getenv "SG_WEB_ROOT") "/static")
-                                   "@WEB_ROOT@/sparqling-genomics/web/static"))
-                            #:getter get-www-static-root)
 
   (www-max-file-size        #:init-value 250000000
                             #:getter get-www-max-file-size)
@@ -301,7 +290,6 @@
             graph-name-max-length
             ldap-enabled?
             local-users
-            www-hostname
             www-listen-address
             www-listen-address-family
             www-max-file-size
@@ -338,9 +326,6 @@
 
 (define (www-root)
   ((get-www-root %runtime-configuration)))
-
-(define (www-static-root)
-  ((get-www-static-root %runtime-configuration)))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))
