@@ -25,7 +25,8 @@
   #:use-module (ice-9 rdelim)
   #:export (page-root-template
             page-empty-template
-            page-menu))
+            page-menu
+            dependent-scripts-and-styles))
 
 (define page-title-prefix (string-append (www-name) " | "))
 
