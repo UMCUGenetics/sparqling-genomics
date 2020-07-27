@@ -213,16 +213,11 @@ a:hover { color: #555555; }
 #content ul { padding: 0pt; margin: auto auto auto 1em; }
 #content li { line-height: 1.5em; }
 #content pre { padding: 0pt; margin: 0pt; max-width: 800pt; overflow: hidden; }
-#content table {
-    border-spacing: 0pt;
-    padding: 0pt;
-}
+#content table { border-spacing: 0pt; padding: 0pt; }
 #content table td { padding: 2pt 4pt 2pt 4pt; font-size: 0.85em; height: 25pt; }
 
 #footer { width: auto; font-size: small; text-align: center; color: #000000 }
 #footer a { color: #000000 }
-
-.h2-title { font-size: large; }
 
 pre.terminal-style {
     background: #333333;
@@ -678,74 +673,6 @@ input[type=submit].login-field:hover {
 .table-header-small-text a { color: #fff }
 .table-header-small-text a:hover { color: #ccc }
 
-#content .dataset {
-    border: solid 2pt #444444;
-    margin-bottom: 15pt;
-    max-width: 600pt;
-}
-
-#content .dataset h2 {
-    font-weight: bold;
-    font-size: large;
-    color: #ffffff;
-    background: #444444;
-    margin: 0pt;
-    padding: 3pt;
-    font-size: 12pt;
-}
-
-#content .dataset li { margin-left: 15pt; }
-#content .dataset h2 a { color: #ffffff; }
-#content .dataset h2 a:hover { color: #cccccc; }
-#content .dataset p {
-    padding: 5pt;
-    font-size: 0.85em;
-    background: #fafafa;
-    border-radius: 0pt 0pt 4pt 4pt;
-}
-
-.side-info { color: #999999; }
-
-#two-column-left-side {
-    position: relative;
-    display: inline-block;
-    vertical-align: top;
-    padding: 0pt 5pt 0pt 0pt;
-    margin: 0pt;
-    width: 200pt;
-}
-#two-column-right-side {
-    position: relative;
-    display: inline-block;
-    vertical-align: top;
-    padding: 0pt 0pt 0pt 5pt;
-    width: auto;
-}
-
-#sidebar { font-size: 0.9em; color: #000000; }
-.sidebar th { background: #444444; padding: 5pt; color: #ffffff; padding: 2pt 4pt 2pt 4pt; }
-.sidebar input[type=checkbox] { vertical-align: middle; }
-.sidebar label { cursor: pointer; }
-.sidebar tr { padding: 0pt; margin: 0pt; }
-.sidebar { border: solid 2px #444444; margin-bottom: 10pt; }
-.show-me-in-h2 { display: inline-block; vertical-align: middle; padding: 0pt 0pt 0pt 5pt; }
-
-#plot-wrapper {
-    position: relative;
-    display: block;
-    margin-top: 1em;
-    width: 600pt;
-    height: 340pt;
-    border: solid 2px #111111;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#plot-wrapper svg {
-    width: 100%;
-    height: 100%;
-    background: #eeeeee;
-}
 .large-submit-btn {
     display: inline-block;
     font-size: 12pt;
