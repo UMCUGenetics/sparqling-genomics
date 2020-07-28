@@ -132,8 +132,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
                  " prov:startedAtTime " (format-timestamp start-time) " ;"
                  " prov:endedAtTime " (format-timestamp end-time) " ;"
                  " sg:isRelevantTo <" project-id "> ."
-                 "}"))
-         (connection (system-connection))]
+                 "}"))]
     (receive (header body)
         (system-sparql-query query)
       (if (= (response-code header) 200)
