@@ -7,7 +7,7 @@ function select_connection (connection)
     jQuery('#types').empty();
     jQuery('#predicates').empty();
 
-    jQuery("#connection-"+ connection)
+    jQuery("#connection-"+ base32.encode(connection))
         .addClass('exploratory-item-active')
         .addClass('connection-item-active');
 
@@ -222,7 +222,7 @@ jQuery(document).ready(function(){
         success: function (connections) {
             connections.map(function (data){
                 jQuery('#connections').append(
-                    '<div id="connection-'+ data.name +'" class="exploratory-item"'+
+                    '<div id="connection-'+ base32.encode(data.name) +'" class="exploratory-item"'+
                     ' onclick="javascript: select_connection(\''+ data.name +'\');'+
                     ' return false;">'+ data.name +'</div>');
             });
