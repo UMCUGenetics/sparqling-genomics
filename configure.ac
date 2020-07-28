@@ -78,7 +78,6 @@ AC_DEFINE_DIR([MODDIR], [moddir], [Path to installed Guile modules.])
 AC_DEFINE_DIR([GODIR], [godir], [Path to installed Guile objects.])
 
 AC_CONFIG_FILES([env], [chmod +x env])
-AC_CONFIG_FILES([web/sg-auth-manager], [chmod +x web/sg-auth-manager])
 AC_CONFIG_FILES([web/sg-web-test], [chmod +x web/sg-web-test])
 
 AC_CONFIG_FILES([tools/folder2rdf/folder2rdf],
@@ -104,6 +103,7 @@ AC_CONFIG_FILES([
   web/ldap/authenticate.scm
   web/sg-web.c
   web/sg-web.service
+  web/sg-auth-manager.c
   web/sg-auth-manager.service
   web/www/config.scm
 ])

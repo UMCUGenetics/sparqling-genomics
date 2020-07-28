@@ -56,36 +56,16 @@
     `(#:configure-flags (list (string-append
                                "--with-libldap-prefix="
                                (assoc-ref %build-inputs "openldap")))
-      #:modules ((guix build gnu-build-system)
-                 ((guix build guile-build-system)
-                  #:select (target-guile-effective-version))
-                 (guix build utils))
-      #:imported-modules ((guix build guile-build-system)
-                          ,@%gnu-build-system-modules)
       #:phases
       (modify-phases %standard-phases
         (add-after 'install 'wrap-executable
           (lambda* (#:key inputs outputs #:allow-other-keys)
             (let* ((out  (assoc-ref outputs "out"))
-                   (guile-version (target-guile-effective-version))
-                   (guile-load-path
-                    (string-append out "/share/guile/site/"
-                                   guile-version ":"
-                                   (getenv "GUILE_LOAD_PATH")))
-                   (guile-load-compiled-path
-                    (string-append out "/lib/guile/"
-                                   guile-version "/site-ccache:"
-                                   (getenv "GUILE_LOAD_COMPILED_PATH")))
-                   (web-root (string-append
-                              out "/share/sparqling-genomics/web"))
                    (certs (assoc-ref inputs "nss-certs"))
                    (certs-dir (string-append certs "/etc/ssl/certs")))
               (wrap-program (string-append out "/bin/sg-web")
                 `("SSL_CERT_DIR" ":" = (,certs-dir)))
               (wrap-program (string-append out "/bin/sg-auth-manager")
-                `("GUILE_LOAD_PATH" ":" prefix (,guile-load-path))
-                `("GUILE_LOAD_COMPILED_PATH" ":" prefix
-                  (,guile-load-compiled-path))
                 `("SSL_CERT_DIR" ":" = (,certs-dir)))))))))
    (native-inputs
     `(("texlive" ,texlive)

@@ -188,13 +188,13 @@
 ;;
 
 (define (make-getter symbol)
-  (primitive-eval `(define-syntax-rule (,symbol)
+  (primitive-eval `(define (,symbol)
                      (,(symbol-append 'get- symbol)
                       %am-runtime-configuration))))
 
 (define (make-setter symbol)
   (primitive-eval
-   `(define-syntax-rule (,(symbol-append 'set- symbol '!) val)
+   `(define (,(symbol-append 'set- symbol '!) val)
       (,(symbol-append 'set- symbol '-private!)
        %am-runtime-configuration val))))
 
