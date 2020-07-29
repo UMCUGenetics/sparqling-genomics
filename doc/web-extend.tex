@@ -7,9 +7,9 @@
   \begin{itemize}
   \item \t{page}: This procedure should return an SXML tree that represents
     the HTML to display the form.
-  \item \t{submit}: This function implements the action to take when a user
+  \item \t{submit}: This procedure implements the action to take when a user
     submits the form.
-  \item \t{api}: This optional function can be used to build autocompletion,
+  \item \t{api}: This optional procedure can be used to build autocompletion,
     or other pre-submit interaction between the form and SPARQLing-genomics.
   \end{itemize}
 
@@ -19,6 +19,7 @@
   parts.  In the remainder of this section we will address each part.
 
 \subsubsection{The Scheme module}
+\label{sec:scheme-module}
 
   The first part involves defining a Scheme modules with three procedures.
   Because \program{sg-web} is written in GNU Guile \citep{guile},
@@ -35,7 +36,7 @@
 
   Because the name of the module is \t{(www forms example)}, the location
   where \program{sg-web} searches for your module is `\t{www/forms/example.scm}'
-  relative to a path on \t{GUILE\_LOAD\_PATH}.  The ``\t{www form}'' module
+  relative to a path on \t{GUILE\_LOAD\_PATH}.  The ``\t{www forms}'' module
   prefix is hard-coded by \program{sg-web}, while \t{example} can be chosen by
   us.
 
@@ -94,7 +95,7 @@
     \begin{center}
       \includegraphics[width=1.0\textwidth]{figures/sg-web-form-example.pdf}
     \end{center}
-    \caption{The rendering of the \t{page} function of our example form.}
+    \caption{The rendering of the \t{page} procedure of our example form.}
     \label{fig:web-form-example}
   \end{figure}
 
@@ -130,7 +131,7 @@
     \begin{center}
       \includegraphics[width=1.0\textwidth]{figures/sg-web-form-example-submit.pdf}
     \end{center}
-    \caption{The rendering of the \t{submit} function of our example form.}
+    \caption{The rendering of the \t{submit} procedure of our example form.}
     \label{fig:web-form-submit}
   \end{figure}
 
@@ -159,3 +160,67 @@
   ...)
 \end{verbatim}
 \end{siderules}
+
+\subsection{Activating the form module}
+
+  When running \program{sg-web} it can be made aware of the Scheme module and
+  additional resources by modifying three environment variables:
+  \t{SG\_WEB\_ROOT}, \t{GUILE\_LOAD\_PATH}, and \t{GUILE\_LOAD\_COMPILED\_PATH}.
+
+\subsubsection{Static resources}
+
+  If the SXML tree in the \t{page} procedure refers to static resources that are
+  not part of SPARQLing-genomics (like an image file or additional JavaScript),
+  they must be added to the \t{SG\_WEB\_ROOT}.  Additionally, the path added to
+  \t{SG\_WEB\_ROOT} must point to a path that contains the subdirectory
+  \t{static}.
+
+  The following example illustrates how this works.  Consider the following
+  implementation of the \t{page} procedure.
+\begin{siderules}
+\begin{verbatim}
+(define (page request-path)
+  (page-empty-template "Example" request-path
+   `((h2 "An image")
+     (img (@ (src "/static/example-image.jpg") (alt "Example"))))))
+\end{verbatim}
+\end{siderules}
+
+  It refers to a file called \t{static/example-image.jpg}.  Let's further
+  assume that this file is located on our filesystem at
+  \t{/home/user/form-module/static/example-image.jpg}.
+
+  For \program{sg-web} to find this resource, we need to set \t{SG\_WEB\_ROOT}
+  as the following:
+\begin{siderules}
+\begin{verbatim}
+export SG_WEB_ROOT=/home/user/form-module
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Scheme code}
+
+  As explained in \refer{sec:scheme-module}, the form module must be prefixed
+  by ``\t{www forms}'', so let's assume our module can be found at
+  \t{/home/user/form-module/src/www/forms/example.scm}.  In that case we must
+  set the \t{GUILE\_LOAD\_PATH} as the following:
+\begin{siderules}
+\begin{verbatim}
+export GUILE_LOAD_PATH=/home/user/form-module/src
+\end{verbatim}
+\end{siderules}
+
+  Additionally, a compiled version of the form module can be added to the
+  \t{GUILE\_LOAD\_COMPILED\_PATH}.  Consider the following:
+\begin{siderules}
+\begin{verbatim}
+guild compile -O2 /home/user/form-module/src/www/forms/example.scm \
+              --output=/home/user/form-module/lib/www/forms/example.go
+export GUILE_LOAD_COMPILED_PATH=/home/user/form-module/lib
+\end{verbatim}
+\end{siderules}
+
+  After the environment variables have been set correctly, \program{sg-web}
+  can be started as usual.  It prefers its own installation paths before
+  considering the environment variables, which means that files shipped with
+  SPARQLing-genomics cannot be overridden.
