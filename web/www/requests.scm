@@ -418,50 +418,6 @@
               '("/query-history/")))
     (submenu-route request-path #:partial-page? #t)]
 
-   [(string-prefix? "/query-response" request-path)
-    (let [(hash               (basename request-path))
-          (response-mime-type (if (string-suffix? ".json" request-path)
-                                  '(application/javascript)
-                                  '(text/html)))]
-      (if (string= hash "query-response")
-          (respond-400 client-port (request-accept request)
-            "The URI needs to be formed as: '/query-response/<project hash>'.")
-          (respond-to-client 200 client-port response-mime-type
-           ;; TODO: Let query-response stream the results, rather than
-           ;; building it up in-memory and send it in a single large response.
-           (call-with-output-string
-             (lambda (port)
-               (let* ((path          "query-response")
-                      (page-function (resolve-module-function path)))
-                 (when page-function
-                   (if (eq? (request-method request) 'POST)
-                       ((page-function request-path username hash token
-                                       #:post-data (utf8->string
-                                                    (read-request-body request))
-                                       #:return-type response-mime-type) port)
-                       (respond-405 client-port '(POST))))))))))]
-
-   ;; When the “file extension” of the request indicates JSON, treat the
-   ;; returned format as ‘application/javascript’.
-   [(string-suffix? ".json" request-path)
-    (respond-to-client 200 client-port '(application/javascript)
-      (call-with-output-string
-        (lambda (port)
-          (set-port-encoding! port "utf8")
-          (let* ((request-path (basename request-path ".json"))
-                 (page-function (resolve-module-function request-path)))
-            (if page-function
-                (if (eq? (request-method request) 'POST)
-                    (put-string port
-                                (page-function
-                                 request-path username
-                                 #:type 'json
-                                 #:post-data (utf8->string
-                                              (read-request-body request))))
-                    (put-string port (page-function request-path username
-                                                    #:type 'json)))
-                (put-string port "[]"))))))]
-
    ;; When the URI begins with “/edit-connection/”, use the edit-connection
    ;; page.
    [(string-prefix? "/edit-connection" request-path)
