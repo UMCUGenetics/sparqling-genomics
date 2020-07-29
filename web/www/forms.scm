@@ -19,6 +19,7 @@
             input-with-value
             radio-button
             required-marking
+            textarea
             ul-without-bullets))
 
 (define required-marking
@@ -60,6 +61,24 @@ more SXML expressions."
                            `(,required-marking)
                            '()))
                   ,text)))
+
+(define* (textarea name #:key (id name)
+                              (placeholder #f)
+                              (required? #f)
+                              (value #f)
+                              (show-missing? #f))
+  (let ((misses-value (or (not (string? value))
+                          (string= value ""))))
+    `(div (@ (class "form-textarea-wrapper"))
+          (textarea (@ (class "form-textarea")
+                       (id ,id)
+                       (name ,name)
+                       ,@(if (and show-missing? misses-value)
+                             `(,required-marking)
+                             '())
+                       ,@(if required? `((required "")) '())
+                       ,@(if placeholder `((placeholder ,placeholder)) '()))
+                    ,(if value value "")))))
 
 (define* (input-with-value name type value #:key (required? #f)
                                                  (show-missing? #f)
