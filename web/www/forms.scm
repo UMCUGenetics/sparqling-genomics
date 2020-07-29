@@ -16,10 +16,10 @@
 
 (define-module (www forms)
   #:export (checkbox
-            radio-button
-            ul-without-bullets
             input-with-value
-            required-marking))
+            radio-button
+            required-marking
+            ul-without-bullets))
 
 (define required-marking
   '(style "border: solid 2pt #990000; background: #ffcccc"))
@@ -31,10 +31,12 @@ more SXML expressions."
           ,@(if mark-required? `(,required-marking) '()))
        ,body))
 
-(define* (radio-button id name label #:key (checked? #f))
+(define* (radio-button id name label #:key (checked? #f)
+                                           (onchange #f))
   `(span (@ (class "form-radio-button"))
          (input (@ (type "radio")
                    ,@(if checked? `((checked "")) '())
+                   ,@(if onchange `((onchange ,onchange)) '())
                    (id ,id)
                    (name ,name)
                    (value ,id)))
