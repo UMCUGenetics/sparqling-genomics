@@ -223,7 +223,7 @@
       (meta (@ (http-equiv "Content-Type") (content "text/html; charset=utf-8")))
       (link (@ (rel "icon")
                (type "image/x-icon")
-               (href "/static/favicon.ico")))
+               (href "/static/images/favicon.ico")))
       ,(dependent-scripts-and-styles (reverse dependencies))
       (link (@ (rel "stylesheet")
                (href "/static/css/main.css")
