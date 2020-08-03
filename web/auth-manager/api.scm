@@ -24,6 +24,7 @@
   #:use-module (ice-9 threads)
   #:use-module (sparql driver)
   #:use-module (sparql stream)
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
   #:use-module (logger)
   #:use-module (rnrs bytevectors)
@@ -38,6 +39,7 @@
   #:use-module (web client)
   #:use-module (web http)
   #:use-module (web response)
+  #:use-module (sxml simple)
 
   #:export (announce-availibility
             start-server
@@ -230,6 +232,24 @@
                        #f))
            (username (token->user cookie))]
       (cond
+       ;; Display an HTML page when we can reasonably guess
+       ;; that a web browser is doing the request.
+       [(and (eq? (request-method request) 'GET)
+             (or (equal? '(text/html) accept-type)
+                 (member '(text/html) accept-type)))
+        (respond-to-client 200 client-port '(text/html)
+         (call-with-output-string
+           (lambda (port)
+             (format port "<!DOCTYPE html>~%")
+             (sxml->xml `(html
+                          (head (title "sg-auth-manager"))
+                          (body
+                           (h1 "SPARQLing-genomics authentication manager")
+                           (p "You have reached the API of a "
+                              (a (@ (href "https://www.sparqling-genomics.org"))
+                                 "SPARQLing-genomics") " SPARQL endpoint.")
+                           (p "Please see the documentation to learn how to "
+                              "use it."))) port))))]
        ;; Deal with unserveable requests.
        [(not (api-serveable-format? accept-type))
         (log-debug "request-handler" "Not a serveable format: ~a" accept-type)
