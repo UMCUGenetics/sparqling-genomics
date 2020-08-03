@@ -85,6 +85,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/fonts/Roboto-Bold.ttf                          \
   static/fonts/Roboto-Light.ttf                         \
   static/fonts/Roboto-LightItalic.ttf                   \
+  static/images/favicon.ico                             \
   static/images/icons/check-white.png                   \
   static/images/icons/check-white.svg                   \
   static/images/icons/check.png                         \
