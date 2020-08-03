@@ -627,6 +627,7 @@
                             (set-connection-down-since! record timestamp)
                             (persist-system-wide-connections system-connections)))))
                 system-connections))
+    (gc)
     (sleep 10)))
 
 (define (start-server request-handler)
