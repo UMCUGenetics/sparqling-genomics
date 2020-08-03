@@ -29,6 +29,7 @@
   #:use-module (web uri)
   #:use-module (www db api)
   #:export (file-extension
+            flatten
             string-replace-occurrence
             string-is-longer-than
             post-data->alist
@@ -58,6 +59,13 @@
             js
             h2-button
             table-button))
+
+(define (flatten lst)
+  (cond [(null? lst)
+         '()]
+        [(pair? lst)
+         (append (flatten (car lst)) (flatten (cdr lst)))]
+        [else (list lst)]))
 
 (define (string-is-longer-than str length)
   (catch 'out-of-range

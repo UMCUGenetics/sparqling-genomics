@@ -45,6 +45,7 @@ SOURCES =                                               \
   www/db/cache.scm                                      \
   www/db/connections.scm                                \
   www/db/exploratory.scm                                \
+  www/db/forms.scm                                      \
   www/db/graphs.scm                                     \
   www/db/projects.scm                                   \
   www/db/prompt.scm                                     \

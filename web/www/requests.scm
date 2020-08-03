@@ -32,6 +32,7 @@
   #:use-module (www config)
   #:use-module (www db api)
   #:use-module (www db connections)
+  #:use-module (www db forms)
   #:use-module (www db projects)
   #:use-module (www db queries)
   #:use-module (www db sessions)
@@ -155,36 +156,6 @@
             (lambda _ (module-ref module page-symbol))
             (lambda (key . args) #f))
           #f)))
-
-  (define (resolve-form-module request-path)
-    "Return FUNCTION from MODULE."
-    (let* ((full-path     (string-split request-path #\/))
-           (relevant-path (list (car full-path)))
-           (module (if (developer-mode?)
-                       (catch 'wrong-type-arg
-                         (lambda _
-                           (reload-module
-                            (resolve-module (module-path '(www forms)
-                              relevant-path) #:ensure #f)))
-                         (lambda (key . args) #f))
-                       (resolve-module (module-path '(www forms) relevant-path)
-                                       #:ensure #f))))
-      ;; Return #f unless the expected symbols exist in 'module',
-      ;; in which case we return that.
-      (if module
-          (catch #t
-            (lambda _ `((page   . ,(module-ref module 'page))
-                        (submit . ,(module-ref module 'submit))
-                        (api    . ,(module-ref module 'api))))
-            (lambda (key . args)
-              (log-error "resolve-form-module"
-                         "Couldn't resolve the module's structure for ~s."
-                         request-path)
-              #f))
-          (begin
-            (log-error "resolve-form-module"
-                       "Couldn't resolve module for ~s." request-path)
-            #f))))
 
   (define* (submenu-route request-path #:key (post-data #f) (partial-page? #f))
     (let [(hash (basename request-path))]
