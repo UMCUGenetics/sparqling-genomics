@@ -74,19 +74,24 @@
 
 (define (alist->html alist out)
   "Writes the association list ALIST as an HTML table to OUT."
-  (if (and (>= (length alist) 2)
-           (eq? (car alist) 'error)
-           (eq? (caadr alist) 'message))
-      (format out "<p>~a</p>" (cadr (cadr alist)))
-      (let [(columns (map car (car alist)))]
-        (format out "<html><body><table><tr>~{<th>~a</th>~}</tr>~%" columns)
-        (for-each (lambda (row)
-                    (format out "<tr>~{<td>~a</td>~}</tr>~%"
-                            (map (lambda (col)
-                                   (assoc-ref row col))
-                                 columns)))
-                  alist)
-        (format out "</table></body></html>"))))
+  (cond
+   [(and (= (length alist) 1)
+         (eq? (caar alist) 'error)
+         (>= (length (car alist)) 2)
+         (eq? (caadr (car alist)) 'message))
+    (format out "<!DOCTYPE html><html><head><title>Error</title></head><body>")
+    (format out "<h1>Error</h1><p>~a</p></body></html>"
+            (cdr (cadr (car alist))))]
+   [else
+    (let [(columns (map car (car alist)))]
+      (format out "<html><body><table><tr>~{<th>~a</th>~}</tr>~%" columns)
+      (for-each (lambda (row)
+                  (format out "<tr>~{<td>~a</td>~}</tr>~%"
+                          (map (lambda (col)
+                                 (assoc-ref row col))
+                               columns)))
+                alist)
+      (format out "</table></body></html>"))]))
 
 (define* (alist->sxml input #:optional (inside-list? #f))
   "This function transforms an ALIST or a list of ALISTs into S-expressions
