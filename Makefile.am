@@ -36,3 +36,9 @@ docker: dist
              --format=docker \
              -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
              glibc-utf8-locales tzdata coreutils net-base bash virtuoso-ose
+
+pack: dist
+	guix pack -C gzip -e '(load "environment.scm")' \
+             --with-source=sparqling-genomics-$(VERSION).tar.gz \
+             -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
+             glibc-utf8-locales tzdata virtuoso-ose
