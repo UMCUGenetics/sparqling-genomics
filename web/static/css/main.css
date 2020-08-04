@@ -803,3 +803,4 @@ ul.ul-no-bullets li {
     padding: 0pt;
     margin: 0pt;
 }
+.query-history-text:hover { cursor: pointer; }
