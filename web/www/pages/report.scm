@@ -16,17 +16,19 @@
 
 (define-module (www pages report)
   #:use-module (www pages)
-  #:use-module (www config)
-  #:use-module (www util)
-  #:use-module (www db projects)
-  #:use-module (sparql driver)
-  #:use-module (web response)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
+  #:use-module (www db reports)
+
   #:export (page-report))
 
 (define* (page-report request-path username hash #:key (post-data ""))
-  (page-root-template username "Report" request-path
-    `((h2 "Report")
-      (p "Reporting features are not available."))))
+  (let ((reports (reports-for-project hash)))
+    (page-root-template username "Report" request-path
+     `((h2 "Report")
+       ,(if (null? reports)
+            '(p "No reporting modules have been configured.")
+            (map (lambda (report)
+                   (let ((report-overview (assoc-ref report 'report-overview))
+                         (title           (assoc-ref report 'title)))
+                     `((h3 ,title)
+                       ,(report-overview))))
+                 reports))))))

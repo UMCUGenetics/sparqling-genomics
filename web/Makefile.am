@@ -50,6 +50,7 @@ SOURCES =                                               \
   www/db/projects.scm                                   \
   www/db/prompt.scm                                     \
   www/db/queries.scm                                    \
+  www/db/reports.scm                                    \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
   www/forms.scm                                         \
