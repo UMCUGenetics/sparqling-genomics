@@ -21,7 +21,8 @@
   #:use-module (www config)
   #:use-module (www util)
 
-  #:export (resolve-report-module
+  #:export (report-friendly-name
+            resolve-report-module
             report-modules
             reports-for-project))
 
@@ -94,3 +95,8 @@
               module
               #f))
         (report-modules))))
+
+(define (report-friendly-name module)
+  (if module
+      (assoc-ref module 'module)
+      #f))

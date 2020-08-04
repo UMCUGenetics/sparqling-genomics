@@ -21,7 +21,8 @@
   #:use-module (www util)
   #:use-module (logger)
 
-  #:export (form-modules
+  #:export (form-friendly-name
+            form-modules
             forms-for-project
             resolve-form-module))
 
@@ -96,3 +97,8 @@
               module
               #f))
         (form-modules))))
+
+(define (form-friendly-name module)
+  (if module
+      (assoc-ref module 'module)
+      #f))
