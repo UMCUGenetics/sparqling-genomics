@@ -485,6 +485,36 @@
                                  `(message . ,message))))]))
           (respond-405 client-port '(POST)))]
 
+     ;; QUERY-SET-NAME
+     ;; ---------------------------------------------------------------------
+     [(string= "/api/query-set-name" request-path)
+      (if (eq? (request-method request) 'POST)
+          (let* ((data        (entire-request-data request))
+                 (name        (assoc-ref data 'name))
+                 (query-id    (assoc-ref data 'query-id)))
+            (cond
+             [(not query-id)
+              (respond-400 client-port accept-type
+                           "Missing 'query-id' parameter.")]
+             [(not name)
+              (respond-400 client-port accept-type
+                           "Missing 'name' parameter.")]
+             [(and (string? name)
+                   (string= name ""))
+              (if (remove-query-name! query-id)
+                  (respond-200 client-port accept-type
+                               `((query-id . ,query-id)))
+                  (respond-500 client-port accept-type
+                   `((message . "Failed to remove the query name."))))]
+             [else
+              (if (set-query-name! query-id name)
+                  (respond-200 client-port accept-type
+                   `((name     . ,name)
+                     (query-id . ,query-id)))
+                  (respond-500 client-port accept-type
+                   `((message . "An unknown error occurred."))))]))
+          (respond-405 client-port '(POST)))]
+
      ;; CONNECTIONS
      ;; ---------------------------------------------------------------------
      [(string= "/api/connections" request-path)
