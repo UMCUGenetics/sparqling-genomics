@@ -36,6 +36,7 @@
 
             persist-query
             query-id
+            query-name
             query-username
             query-content
             query-endpoint
@@ -46,11 +47,14 @@
             query-marked?
             query?
 
-            set-query-endpoint!
-            set-query-start-time!
-            set-query-end-time!
+            remove-query-name!
+
             set-query-content!
-            set-query-marked!))
+            set-query-end-time!
+            set-query-endpoint!
+            set-query-name!
+            set-query-marked!
+            set-query-start-time!))
 
 
 ;; PUBLIC INTERFACE
@@ -62,6 +66,7 @@
 ;;
 
 (define-syntax-rule (query-id query)             (assoc-ref query "queryId"))
+(define-syntax-rule (query-name query)           (assoc-ref query "name"))
 (define-syntax-rule (query-content query)        (assoc-ref query "queryText"))
 (define-syntax-rule (query-endpoint query)       (assoc-ref query "executedAt"))
 (define-syntax-rule (query-username query)       (assoc-ref query "executedBy"))
@@ -87,6 +92,25 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
     (receive (header body)
         (system-sparql-query query)
       (= (response-code header) 200))))
+
+(define (remove-query-property! query-id predicate)
+  (let [(query (string-append
+                internal-prefixes
+                "WITH <" system-state-graph ">
+DELETE { ?query " predicate " ?value . }
+WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
+        (connection (system-connection))]
+    (receive (header body)
+        (system-sparql-query query)
+      (= (response-code header) 200))))
+
+(define-syntax-rule
+  (set-query-name! query value)
+  (set-query-property! query "rdfs:label" value "xsd:string"))
+
+(define-syntax-rule
+  (remove-query-name! query)
+  (remove-query-property! query "rdfs:label"))
 
 (define-syntax-rule
   (set-query-content! query value)
@@ -219,7 +243,7 @@ WHERE { ?query sg:executedBy agent:" username " ;
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
        (STRAFTER(STR(?executedBy), STR(agent:)) AS ?executedBy)
-       ?projectTitle ?isProtected
+       ?projectTitle ?isProtected ?name
        (MAX(?startTime) AS ?startTime) (MAX(?endTime) AS ?endTime)
        (AVG(?executionTime) AS ?executionTime)
 FROM <" system-state-graph ">
@@ -230,6 +254,7 @@ WHERE {
          sg:executedBy    ?executedBy    ;
          sg:isRelevantTo  ?project       .
 
+  OPTIONAL { ?query   rdfs:label         ?name          . }
   OPTIONAL { ?query   prov:startedAtTime ?startTime     . }
   OPTIONAL { ?query   prov:endedAtTime   ?endTime       . }
   OPTIONAL { ?query   sg:isProtected     ?isProtected   . }
@@ -245,7 +270,7 @@ WHERE {
        (format #f "~{  FILTER (~a)~%~}" filters)
        "")
    "}
-GROUP BY ?queryId ?query ?queryText ?executedAt ?executedBy ?projectTitle ?isProtected
+GROUP BY ?queryId ?name ?query ?queryText ?executedAt ?executedBy ?projectTitle ?isProtected
 ORDER BY DESC(?startTime)"))
 
 (define* (all-queries #:key (filter #f))
