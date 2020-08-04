@@ -116,7 +116,7 @@ body,html {
 #header .menu li a { color: rgba(0, 0, 0, 0.5); }
 #header .menu li.active a { color: rgba(0, 0, 0, 1); }
 #header .menu li.active a:hover { color: rgba(0, 0, 0, 0.75); }
-#header .menu li.active { background: #ffffff; padding: 7pt 7pt 2pt 7pt; }
+#header .menu li.active { background: #ffffff; padding: 7pt 7pt 2pt 7pt; box-shadow: 0 0 6pt 2pt #dddddd; clip-path: inset(-8pt -8pt 0pt -8pt); }
 #header .menu li:hover { background: rgba(255, 255, 255, 0.5); }
 #header .menu li:active { background: rgba(255, 255, 255, 0.15); }
 #header .menu li.logout { background: rgba(255, 255, 255, 0.0); border: 0pt; }
