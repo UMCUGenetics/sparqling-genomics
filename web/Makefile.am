@@ -120,6 +120,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/ui-icons_cc0000_256x240.png             \
   static/images/ui-icons_ffffff_256x240.png             \
   static/images/logo.png                                \
+  static/images/orcid-logo.png                          \
   static/images/sort_asc.png                            \
   static/images/sort_asc_disabled.png                   \
   static/images/sort_both.png                           \

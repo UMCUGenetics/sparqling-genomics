@@ -177,6 +177,33 @@
                                  (ldap-ssl-certificate-file)))
                     (set-ldap-domain! (car (assoc-ref ldap 'domain)))
                     (set-ldap-enabled! #t)))]
+
+             ;; ORCID OAuth2 login
+             [(assoc-ref authentication 'orcid)
+              (let* ((orcid (assoc-ref authentication 'orcid))
+                     (client-id     (assoc-ref orcid 'client-id))
+                     (client-secret (assoc-ref orcid 'client-secret))
+                     (endpoint      (assoc-ref orcid 'endpoint))
+                     (redirect-uri  (assoc-ref orcid 'redirect-uri)))
+
+                ;; Make sure all required options are configured.
+                (unless client-id
+                  (throw 'orcid-error "Missing 'client-id'"))
+                (unless client-secret
+                  (throw 'orcid-error "Missing 'client-secret'"))
+                (unless endpoint
+                  (throw 'orcid-error "Missing 'endpoint'"))
+                (unless redirect-uri
+                  (throw 'orcid-error "Missing 'redirect-uri'"))
+
+                ;; Set the options.
+                (set-orcid-client-id!     (car client-id))
+                (set-orcid-client-secret! (car client-secret))
+                (set-orcid-endpoint!      (car endpoint))
+                (set-orcid-redirect-uri!  (car redirect-uri))
+                (set-orcid-enabled!       #t)
+                (log-debug "read-configuration-from-file"
+                           "Using ORCID authentication."))]
              ;; Local-user configuration is an alternative to LDAP auth.
              [(assoc-ref authentication 'user)
               (for-each (lambda (user)
@@ -232,6 +259,13 @@
         (begin
           (display "Error: There was a problem with the ")
           (display "'beacon-connection' property:")
+          (newline)
+          (display (car args))
+          (newline)
+          #f)]
+       [(eqv? key 'orcid-error)
+        (begin
+          (display "Error: The ORCID authentication isn't properly configured:")
           (newline)
           (display (car args))
           (newline)

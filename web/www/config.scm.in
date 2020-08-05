@@ -26,73 +26,84 @@
                           connection-backend
                           default-connection
                           system-wide-connection?))
-  #:export (beacon-connection
+  #:export (add-local-user!
+            beacon-connection
             beacon-enabled?
-            beacon-organization-name
-            beacon-organization-id
-            beacon-organization-description
             beacon-organization-address
-            beacon-organization-welcome-url
             beacon-organization-contact-url
-            beacon-organization-logo-url
+            beacon-organization-description
+            beacon-organization-id
             beacon-organization-info
+            beacon-organization-logo-url
+            beacon-organization-name
+            beacon-organization-welcome-url
             beacon-sparql-query
             configuration-file
             default-prefixes
-            internal-prefixes
             developer-mode?
-            set-developer-mode!
-            system-state-graph
-            system-sparql-query
-            sparql-query-with-connection
-            is-shorthand-uri?
-            shorthand-uri->uri
-            uri->shorthand-uri
             fork-on-startup?
+            graph-name-max-length
+            internal-prefixes
+            is-shorthand-uri?
+            ldap-common-name
+            ldap-domain
+            ldap-enabled?
+            ldap-organizational-unit
+            ldap-ssl-certificate-directory
+            ldap-ssl-certificate-file
+            ldap-uri
+            local-users
+            orcid-auth-enabled?
+            orcid-client-id
+            orcid-client-secret
+            orcid-enabled?
+            orcid-endpoint
+            orcid-redirect-uri
+            persist-connection-lock
+            set-beacon-connection!
+            set-beacon-enabled!
+            set-beacon-organization-address!
+            set-beacon-organization-contact-url!
+            set-beacon-organization-description!
+            set-beacon-organization-id!
+            set-beacon-organization-info!
+            set-beacon-organization-logo-url!
+            set-beacon-organization-name!
+            set-beacon-organization-welcome-url!
+            set-configuration-file!
+            set-developer-mode!
             set-fork-on-startup!
+            set-ldap-common-name!
+            set-ldap-domain!
+            set-ldap-enabled!
+            set-ldap-organizational-unit!
+            set-ldap-ssl-certificate-directory!
+            set-ldap-ssl-certificate-file!
+            set-ldap-uri!
+            set-orcid-client-id!
+            set-orcid-client-secret!
+            set-orcid-enabled!
+            set-orcid-endpoint!
+            set-orcid-redirect-uri!
+            set-persist-connection-lock!
             set-system-connection!
             set-www-listen-address!
             set-www-listen-port!
-            graph-name-max-length
-            uri-string
+            shorthand-uri->uri
+            sparql-query-with-connection
             system-connection
+            system-sparql-query
+            system-state-graph
+            uri->shorthand-uri
+            uri-string
+            www-cache-root
             www-listen-address
             www-listen-address-family
             www-listen-port
             www-max-file-size
             www-name
-            www-version
             www-roots
-            www-cache-root
-            ldap-enabled?
-            ldap-uri
-            ldap-common-name
-            ldap-organizational-unit
-            ldap-domain
-            ldap-ssl-certificate-directory
-            ldap-ssl-certificate-file
-            local-users
-            add-local-user!
-            set-beacon-enabled!
-            set-configuration-file!
-            set-ldap-enabled!
-            set-ldap-uri!
-            set-ldap-common-name!
-            set-ldap-organizational-unit!
-            set-ldap-domain!
-            set-ldap-ssl-certificate-directory!
-            set-ldap-ssl-certificate-file!
-            set-beacon-connection!
-            set-beacon-organization-name!
-            set-beacon-organization-id!
-            set-beacon-organization-description!
-            set-beacon-organization-address!
-            set-beacon-organization-welcome-url!
-            set-beacon-organization-contact-url!
-            set-beacon-organization-logo-url!
-            set-beacon-organization-info!
-            persist-connection-lock
-            set-persist-connection-lock!))
+            www-version))
 
 
 ;; ----------------------------------------------------------------------------
@@ -182,6 +193,26 @@
   (local-users              #:init-value '()
                             #:getter get-local-users
                             #:setter set-local-users-private!)
+
+  (orcid-client-id          #:init-value #f
+                            #:getter get-orcid-client-id
+                            #:setter set-orcid-client-id-private!)
+
+  (orcid-client-secret      #:init-value #f
+                            #:getter get-orcid-client-secret
+                            #:setter set-orcid-client-secret-private!)
+
+  (orcid-endpoint           #:init-value #f
+                            #:getter get-orcid-endpoint
+                            #:setter set-orcid-endpoint-private!)
+
+  (orcid-redirect-uri       #:init-value #f
+                            #:getter get-orcid-redirect-uri
+                            #:setter set-orcid-redirect-uri-private!)
+
+  (orcid-enabled?           #:init-value #f
+                            #:getter get-orcid-enabled?
+                            #:setter set-orcid-enabled-private!)
 
   ;; Other settings
   ;; --------------------------------------------------------------------------
@@ -291,6 +322,7 @@
             graph-name-max-length
             ldap-enabled?
             local-users
+            orcid-enabled?
             www-listen-address
             www-listen-address-family
             www-max-file-size
@@ -303,7 +335,8 @@
             configuration-file
             developer-mode
             fork-on-startup
-            ldap-enabled))
+            ldap-enabled
+            orcid-enabled))
 
 (for-each make-getter/setter
           '(beacon-connection
@@ -321,6 +354,10 @@
             ldap-ssl-certificate-directory
             ldap-ssl-certificate-file
             ldap-uri
+            orcid-client-id
+            orcid-client-secret
+            orcid-endpoint
+            orcid-redirect-uri
             persist-connection-lock
             system-connection
             www-listen-port))

@@ -17,6 +17,7 @@
 (define-module (www requests-api)
   #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 receive)
+  #:use-module (json)
   #:use-module (ldap authenticate)
   #:use-module (logger)
   #:use-module (rnrs bytevectors)
@@ -24,6 +25,7 @@
   #:use-module (sparql stream)
   #:use-module (srfi srfi-1)
   #:use-module (web client)
+  #:use-module (web http)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
@@ -33,33 +35,90 @@
   #:use-module (www db connections)
   #:use-module (www db exploratory)
   #:use-module (www db projects)
+  #:use-module (www db prompt)
   #:use-module (www db queries)
   #:use-module (www db sessions)
-  #:use-module (www db prompt)
   #:use-module (www util)
-  #:use-module (web http)
 
   #:export (request-api-handler
             authenticate-user))
 
 (define (authenticate-user data)
   "This function returns a user session on success or #f on failure."
-  (if (and (assoc-ref data 'username)
-           (assoc-ref data 'password))
-      (if (or (and (ldap-enabled?)
-                   (may-access?
-                    (ldap-uri) (ldap-common-name) (ldap-organizational-unit)
-                    (ldap-domain)
-                    (assoc-ref data 'username)
-                    (assoc-ref data 'password)))
-              (and (not (ldap-enabled?))
-                   (not (null? (local-users)))
-                   (any (lambda (x) x)
-                        (map (lambda (user)
-                               (and (string= (car user) (assoc-ref data 'username))
-                                    (string= (cadr user) (string->sha256sum
-                                                          (assoc-ref data 'password)))))
-                             (local-users)))))
+  (if (or (and (assoc-ref data 'username)
+               (assoc-ref data 'password))
+          (and (orcid-enabled?)
+               (assoc-ref data 'code)))
+      (if (cond
+           ;; LDAP
+           ;; -----------------------------------------------------------------
+           [(ldap-enabled?)
+            (may-access? (ldap-uri)
+                         (ldap-common-name)
+                         (ldap-organizational-unit)
+                         (ldap-domain)
+                         (hash-ref data 'username)
+                         (hash-ref data 'password))]
+
+           ;; ORCID
+           ;; -----------------------------------------------------------------
+           [(orcid-enabled?)
+            (log-debug "authenticate-user"
+                       "Preparing authorization request:~%~s"
+                       (string-append
+                        "client_id=" (orcid-client-id)
+                        "&client_secret=" (orcid-client-secret)
+                        "&grant_type=authorization_code"
+                        "&redirect_uri=" (orcid-redirect-uri)
+                        "&code=" (assoc-ref data 'code)))
+            (receive (header body)
+                (http-post (string-append (orcid-endpoint) "/token")
+                           #:body (string-append
+                                   "client_id=" (orcid-client-id)
+                                   "&client_secret=" (orcid-client-secret)
+                                   "&grant_type=authorization_code"
+                                   "&redirect_uri=" (orcid-redirect-uri)
+                                   "&code=" (assoc-ref data 'code))
+                           #:streaming? #t
+                           #:headers
+                           `((user-agent   . "SPARQLing-genomics")
+                             (accept       . ((application/json)))
+                             (content-type . (application/x-www-form-urlencoded))))
+              (cond
+               [(= (response-code header) 200)
+                (let* ((json         (json->scm body))
+                       (access-token (hash-ref json "access_token"))
+                       (name         (hash-ref json "name"))
+                       (orcid        (hash-ref json "orcid")))
+                  (if (and access-token name orcid)
+                      (begin
+                        (log-access orcid "~s (~s)." name access-token)
+                        (set! data (cons `(username . ,orcid) data))
+                        #t)
+                      (begin
+                        (log-error "authenticate-user"
+                         "The ORCID login seemed succesful, ~a"
+                         "except we didn't receive enough information.")
+                        #f)))]
+               [else
+                (log-error "authenticate-user"
+                           "Log in attempt via ORCID failed with ~a and response: ~s."
+                           (response-code header) header)
+                (log-error "authenticate-user"
+                           "The data of the response is:"
+                           (get-string-all body))
+                #f]))]
+
+           ;; LOCAL USERS
+           ;; -----------------------------------------------------------------
+           [(not (null? (local-users)))
+            (any (lambda (x) x)
+                 (map (lambda (user)
+                        (and (string= (car user) (assoc-ref data 'username))
+                             (string= (cadr user) (string->sha256sum
+                                                   (assoc-ref data 'password)))))
+                      (local-users)))])
+
           (let [(session (session-by-name (assoc-ref data 'username) "Web"))]
             (if session
                 session

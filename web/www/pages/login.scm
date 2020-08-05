@@ -15,6 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www pages login)
+  #:use-module (www config)
   #:use-module (www pages)
   #:export (page-login))
 
@@ -31,11 +32,26 @@
                      (input (@ (class "login-field")
                                (type "submit")
                                (value "Log in")))))]
-    (if (string= post-data "")
-        ;; Handle non-POST requests.
-        (page-empty-template "Log in" request-path
-         `((div (@ (id "login-wrapper")) ,form)))
+    (cond
+     [(orcid-enabled?)
+      (page-empty-template "Log in" request-path
+       `((div (@ (id "login-wrapper"))
+              (p "Log in with:")
+              (div (@ (class "large-orcid-btn"))
+                   (a (@ (href ,(string-append
+                                 (orcid-endpoint) "/authorize"
+                                 "?client_id=" (orcid-client-id)
+                                 "&response_type=code"
+                                 "&scope=/authenticate"
+                                 "&redirect_uri=" (orcid-redirect-uri))))
+                      (img (@ (src "/static/images/orcid-logo.png")
+                              (alt "ORCID"))))))))]
+     [(string= post-data "")
+      ;; Handle non-POST requests.
+      (page-empty-template "Log in" request-path
+       `((div (@ (id "login-wrapper")) ,form)))]
 
+     [else
       ;; Handle POST-requests.
       ;; When we get here, the login as failed, because otherwise the
       ;; page handler would've redirected us already.
@@ -43,4 +59,4 @@
        `((div (@ (id "login-wrapper"))
               (div (@ (class "message-box failure"))
                    (p "Authentication failed."))
-              ,form))))))
+              ,form)))])))

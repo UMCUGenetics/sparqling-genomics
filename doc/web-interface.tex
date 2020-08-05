@@ -178,11 +178,12 @@
 \label{sec:authentication}
 
   The \program{sg-web} assumes every user of the system has a username
-  and a password to authenticate oneself. There are two ways to configure
+  and a password to authenticate oneself. There are three ways to configure
   authentication.  For isolated deployments or environments, preconfigured
   accounts can be specified.  For organizational deployments, the web interface
   can be configured to use an LDAP server that supports version 3 of the LDAP
-  protocol.
+  protocol.  For public access deployments, ``log in with ORCID'' can be
+  configured.
 
   Regardless of the authentication mechanism, there are a few reserved users
   that carry out a specific task within \program{sg-web}.  The table below
@@ -267,6 +268,35 @@
         /etc/ssl/certs/ca-certificates.crt
       </ssl-ca-certificate-file>
     </ldap>
+  </authentication>
+</web-interface>
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{ORCID authentication example}
+
+  To configure ``login with ORCID'', four parameters must be specified:
+  the \t{client-id} (1) and \t{client-secret} (2) which are provided
+  when registering your application at ORCID.  The \t{endpoint} (3) which
+  should always be \t{https://orcid.org/oauth}, and the \t{redirect-uri}
+  (4) that is used to redirect to when a user has logged into ORCID and
+  authorized the login request.  The default path to redirect to should
+  be \t{/login}.  Internally, the ORCID ID is used as identifier for a user.
+
+  The following example shows how to configure ORCID authentication:
+
+\begin{siderules}
+\begin{verbatim}
+<?xml version="1.0" encoding="utf-8"?>
+<web-interface>
+  ...
+  <authentication>
+    <orcid>
+      <client-id>APP-XXXXXXXXXXXXXXXX</client-id>
+      <client-secret>XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</client-secret>
+      <endpoint>https://orcid.org/oauth</endpoint>
+      <redirect-uri>https://<your-public-uri>/login</redirect-uri>
+    </orcid>
   </authentication>
 </web-interface>
 \end{verbatim}

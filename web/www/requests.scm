@@ -173,6 +173,29 @@
                      (utf8->string (read-request-body request))
                      "")) port)))))))
 
+  (define (authenticate data)
+    (let* [(session (authenticate-user data))]
+      (if session
+          ;; Redirect to the “dashboard” page.
+          (begin
+            (log-debug "authenticate" "Redirecting to Dashboard.")
+            (respond-303 client-port "/dashboard" (session->cookie session)))
+          (respond-to-client 200 client-port '(text/html)
+            (call-with-output-string
+              (lambda (port)
+                (set-port-encoding! port "utf8")
+                (let* ((page-function (resolve-module-function "login"))
+                       (sxml-tree (page-function
+                                   request-path
+                                   #:post-data
+                                   "Nope")))
+                  (catch 'wrong-type-arg
+                    (lambda _
+                      (when (eq? (car (car sxml-tree)) 'html)
+                        (format port "<!DOCTYPE html>~%")))
+                    (lambda (key . args) #f))
+                  (sxml->xml sxml-tree port))))))))
+
   ;; Return-type handlers.
   ;; --------------------------------------------------------------------------
   (cond
@@ -208,43 +231,36 @@
    ;; the normal page functions.
    [(and (string-prefix? "/login" request-path)
          (eq? (request-method request) 'POST))
-    (let* [(data (post-data->alist (utf8->string (read-request-body request))))
-           (session (authenticate-user data))]
-      (if session
-          ;; Redirect to the “dashboard” page.
-          (respond-303 client-port "/dashboard" (session->cookie session))
-          (respond-to-client 200 client-port '(text/html)
-            (call-with-output-string
-              (lambda (port)
-                (set-port-encoding! port "utf8")
-                (let* ((page-function (resolve-module-function "login"))
-                       (sxml-tree (page-function
-                                   request-path
-                                   #:post-data
-                                   "Nope")))
-                  (catch 'wrong-type-arg
-                    (lambda _
-                      (when (eq? (car (car sxml-tree)) 'html)
-                        (format port "<!DOCTYPE html>~%")))
-                    (lambda (key . args) #f))
-                  (sxml->xml sxml-tree port)))))))]
+    (authenticate (post-data->alist
+                   (utf8->string (read-request-body request))))]
 
    ;; The regular login page is special because the username
    ;; isn't known at this point.
    [(and (string-prefix? "/login" request-path)
          (eq? (request-method request) 'GET))
-    (respond-to-client 200 client-port '(text/html)
-      (call-with-output-string
-        (lambda (port)
-          (set-port-encoding! port "utf8")
-          (let* ((page-function (resolve-module-function "login"))
-                 (sxml-tree     (page-function request-path)))
-            (catch 'wrong-type-arg
-              (lambda _
-                (when (eq? (car (car sxml-tree)) 'html)
-                  (format port "<!DOCTYPE html>~%")))
-              (lambda (key . args) #f))
-            (sxml->xml sxml-tree port)))))]
+    (let* ((full-request-path (uri->string (request-uri request)))
+           (index             (string-index full-request-path #\?)))
+      (if (and (orcid-enabled?)
+               index)
+          (let* ((data (post-data->alist
+                        (substring full-request-path (1+ index)))))
+            (if (assoc-ref data 'code)
+                (authenticate data)
+                (begin
+                  (log-error "/login" "ORCID authentication failed.")
+                  (respond-303 client-port "/login" #f))))
+          (respond-to-client 200 client-port '(text/html)
+           (call-with-output-string
+             (lambda (port)
+               (set-port-encoding! port "utf8")
+               (let* ((page-function (resolve-module-function "login"))
+                      (sxml-tree     (page-function request-path)))
+                 (catch 'wrong-type-arg
+                   (lambda _
+                     (when (eq? (car (car sxml-tree)) 'html)
+                       (format port "<!DOCTYPE html>~%")))
+                   (lambda (key . args) #f))
+                 (sxml->xml sxml-tree port)))))))]
 
    ;; Form functionality
    ;; -------------------------------------------------------------------------

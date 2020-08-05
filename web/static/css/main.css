@@ -659,6 +659,18 @@ input[type=submit].login-field:hover {
     border: solid 2pt #669966;
     cursor: pointer;
 }
+.large-orcid-btn {
+    display: inline-block;
+    font-size: 12pt;
+    background: #f2f8e1;
+    padding: 5pt;
+    margin: 5pt 10pt 5pt 0pt;
+    border-radius: 4pt;
+    border: solid 2pt #e0eeba;
+    cursor: pointer;
+}
+.large-orcid-btn:hover { background: #e8f2cd; }
+.large-orcid-btn:active { background: #e0eeba; }
 .large-action-btn {
     display: inline-block;
     font-size: 12pt;
