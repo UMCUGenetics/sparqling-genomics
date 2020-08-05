@@ -63,14 +63,6 @@
            ;; ORCID
            ;; -----------------------------------------------------------------
            [(orcid-enabled?)
-            (log-debug "authenticate-user"
-                       "Preparing authorization request:~%~s"
-                       (string-append
-                        "client_id=" (orcid-client-id)
-                        "&client_secret=" (orcid-client-secret)
-                        "&grant_type=authorization_code"
-                        "&redirect_uri=" (orcid-redirect-uri)
-                        "&code=" (assoc-ref data 'code)))
             (receive (header body)
                 (http-post (string-append (orcid-endpoint) "/token")
                            #:body (string-append
@@ -104,9 +96,6 @@
                 (log-error "authenticate-user"
                            "Log in attempt via ORCID failed with ~a and response: ~s."
                            (response-code header) header)
-                (log-error "authenticate-user"
-                           "The data of the response is:"
-                           (get-string-all body))
                 #f]))]
 
            ;; LOCAL USERS

@@ -177,9 +177,7 @@
     (let* [(session (authenticate-user data))]
       (if session
           ;; Redirect to the “dashboard” page.
-          (begin
-            (log-debug "authenticate" "Redirecting to Dashboard.")
-            (respond-303 client-port "/dashboard" (session->cookie session)))
+          (respond-303 client-port "/dashboard" (session->cookie session))
           (respond-to-client 200 client-port '(text/html)
             (call-with-output-string
               (lambda (port)
@@ -246,9 +244,7 @@
                         (substring full-request-path (1+ index)))))
             (if (assoc-ref data 'code)
                 (authenticate data)
-                (begin
-                  (log-error "/login" "ORCID authentication failed.")
-                  (respond-303 client-port "/login" #f))))
+                (respond-303 client-port "/login" #f)))
           (respond-to-client 200 client-port '(text/html)
            (call-with-output-string
              (lambda (port)
