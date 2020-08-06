@@ -12,6 +12,8 @@ if ENABLE_MTRACE_OPTION
 json2rdf_CFLAGS     += -DENABLE_MTRACE
 endif
 
+#json2rdf_CFLAGS     += -DJSON_STATE_DEBUG
+
 bin_PROGRAMS         = json2rdf
 json2rdf_SOURCES     = ../common/src/helper.c ../common/include/helper.h            \
                        ../common/include/master-ontology.h                          \

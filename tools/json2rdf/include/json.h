@@ -66,6 +66,10 @@ bool context_is_available (void *ctx);
 void json_state_initialize (json_state_t *state);
 void json_state_free (json_state_t *state);
 
+#ifdef JSON_STATE_DEBUG
+void print_json_state (json_state_t *state);
+#endif
+
 /* Callback functions for YAJL.
  * ------------------------------------------------------------------------- */
 

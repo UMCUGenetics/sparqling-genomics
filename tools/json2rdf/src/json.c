@@ -337,3 +337,54 @@ context_is_available (void *ctx)
 
   return true;
 }
+
+#ifdef JSON_STATE_DEBUG
+void
+print_json_state (json_state_t *state)
+{
+  printf ("STATE:\n  unnamed_map_id: %d\n", state->unnamed_map_id);
+
+  printf ("  last_event: ");
+  switch (state->last_event)
+    {
+    case EVENT_UNKNOWN:         printf ("unknown"); break;
+    case EVENT_ON_VALUE:        printf ("value"); break;
+    case EVENT_ON_MAP_START:    printf ("map_start"); break;
+    case EVENT_ON_MAP_KEY:      printf ("map_key"); break;
+    case EVENT_ON_MAP_END:      printf ("map_end"); break;
+    case EVENT_ON_ARRAY_START:  printf ("array_start"); break;
+    case EVENT_ON_ARRAY_END:    printf ("array_end"); break;
+    }
+
+  printf ("\n");
+  list_t *subjects = list_nth (state->subjects, 1);
+  if (subjects != NULL)
+    {
+      printf ("  subjects: ");
+      while (subjects->next != NULL)
+        {
+          printf ("%s, ", (char *)subjects->data);
+          subjects = subjects->next;
+        }
+
+      printf ("\n");
+    }
+  else
+    printf ("  subjects: None\n");
+
+  list_t *predicates = list_nth (state->predicates, 1);
+  if (predicates != NULL)
+    {
+      printf ("  predicates: ");
+      while (predicates->next != NULL)
+        {
+          printf ("%s, ", (char *)predicates->data);
+          predicates = predicates->next;
+        }
+
+      printf ("\n");
+    }
+  else
+    printf ("  predicates: None\n");
+}
+#endif
