@@ -21,7 +21,7 @@ install.packages(c("jsonlite", "RCurl"))
 \begin{verbatim}
 library(RCurl)
 
-accumulator = basicTextGatherer()
+accumulator <- basicTextGatherer()
 endpoint    <- "http://localhost:8001/sparql"
 projectHash <- "<project-hash>"
 query       <- "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"
