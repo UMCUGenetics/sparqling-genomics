@@ -158,8 +158,8 @@ sg_auth_manager_LDADD    = $(guile_LIBS)
 sg_auth_manager_CFLAGS   = $(guile_CFLAGS)
 
 sg_web_test_SOURCES  = sg-web-test.c
-sg_web_test_LDADD    = $(guile_LIBS)
-sg_web_test_CFLAGS   = $(guile_CFLAGS)
+sg_web_test_LDADD    = $(gnutls_LIBS) $(guile_LIBS)
+sg_web_test_CFLAGS   = $(gnutls_CFLAGS) $(guile_CFLAGS)
 
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)

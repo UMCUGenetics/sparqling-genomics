@@ -21,6 +21,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (web client)
   #:use-module (web response)
+  #:use-module (www util)
 
   #:export (run-endpoint-test))
 
@@ -44,7 +45,8 @@
                        (string-append endpoint-uri path)))
         (connections '())
         (projects    '())
-        (queries     '()))
+        (queries     '())
+        (new-project '()))
 
     ;; List connections
     ;; ------------------------------------------------------------------------
@@ -102,5 +104,52 @@
                  (if (= (length queries) 1) "query" "queries"))]
        [else
         (error "Call to /api/queries failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Add project
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/add-project")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((name . ,(random-ascii-string 128))) out))))
+      (cond
+       [(= (response-code header) 200)
+        (set! new-project (read port))
+        (success "Project ~s has been created."
+                 (assoc-ref new-project 'project-id))]
+       [else
+        (error "Call to /api/add-project failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Remove project
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/remove-project")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (let ((hash (assoc-ref new-project 'project-id)))
+                         (write `((project-hash . ,hash)) out)))))
+      (cond
+       [(= (response-code header) 204)
+        (success "Project ~s has been removed."
+                 (assoc-ref new-project 'project-id))
+        (set! new-project '())]
+       [else
+        (error "Call to /api/add-project failed with ~a:~%~a"
                (response-code header)
                (get-string-all port))]))))
