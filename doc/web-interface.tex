@@ -369,6 +369,42 @@ sg-web --configuration-file=file.xml
   \ref{sec:tokens}) as part of the URI in the \t{SERVICE} specification.
 
 \pagebreak{}
+\section{Testing a running instance of \t{sg-web}.}
+
+  The test suite used to prevent functional regressions between releases is
+  available in the \t{sg-web-test} program.  This program can be used to test
+  whether all features from the API are working correctly after deployment.
+
+  The program can perform two types of tests: \t{endpoint-test} and
+  \t{sparql-parser-test}.
+
+\subsection{Testing an endpoint}
+
+  The \t{endpoint-test} interacts with an endpoint through its API.  To run
+  this test, invoke \program{sg-web-test} as following:
+
+\begin{siderules}
+\begin{verbatim}
+sg-web-test --endpoint https://www.sparqling-genomics.org --token TOKEN
+\end{verbatim}
+\end{siderules}
+
+  Replace \t{https://www.sparqling-genomics.org} with your endpoint's
+  address, and \t{TOKEN} with an access token for your endpoint.
+
+\subsection{Testing the SPARQL parser}
+
+  To detect defects in the SPARQL parser, we use the \t{sparql-parser-test}
+  to parse queries from \t{*.sparql} files from a directory.  To start this
+  test, invoke \program{sg-web-test} as following:
+
+\begin{siderules}
+\begin{verbatim}
+sg-web-test --sparql-parser /path/to/directory/with/queries
+\end{verbatim}
+\end{siderules}
+
+\pagebreak{}
 \section{Using the web interface}
 \label{sec:using-web-interface}
 
