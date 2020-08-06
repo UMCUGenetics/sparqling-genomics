@@ -388,10 +388,9 @@ curl -X POST                                               \
 
 \subsubsection{Retrieve previously run queries with \t{/api/queries}}
 
-  When running queries through SPARQLing-genomics's interface, each succesful
-  query is stored in a ``query history''.  This query history can be retrieved
-  using a call to \t{/api/queries}.  This resource expects a \t{GET}
-  request.
+  Each query run through a SPARQLing-genomics endpoint is stored in
+  a ``query history''.  This query history can be retrieved using a
+  call to \t{/api/queries}.  This resource expects a \t{GET} request.
 
   The following cURL command would retrieve the entire query history, formatted
   as XML:
