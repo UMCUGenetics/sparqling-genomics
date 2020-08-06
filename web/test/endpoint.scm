@@ -43,7 +43,8 @@
         (endpoint    (lambda (path)
                        (string-append endpoint-uri path)))
         (connections '())
-        (projects    '()))
+        (projects    '())
+        (queries     '()))
 
     ;; List connections
     ;; ------------------------------------------------------------------------
@@ -65,7 +66,7 @@
                (response-code header)
                (get-string-all port))]))
 
-    ;; List connections
+    ;; List projects
     ;; ------------------------------------------------------------------------
     (receive (header port)
         (http-get (endpoint "/api/projects")
@@ -82,5 +83,24 @@
                  (if (> (length projects) 1) "s" ""))]
        [else
         (error "Call to /api/projects failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; List queries
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-get (endpoint "/api/queries")
+                  #:headers
+                  `((Cookie       . ,cookie)
+                    (accept       . ((application/s-expression))))
+                   #:streaming? #t)
+      (cond
+       [(= (response-code header) 200)
+        (set! queries (read port))
+        (success "~a ~a are available."
+                 (length queries)
+                 (if (= (length queries) 1) "query" "queries"))]
+       [else
+        (error "Call to /api/queries failed with ~a:~%~a"
                (response-code header)
                (get-string-all port))]))))
