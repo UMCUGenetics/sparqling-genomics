@@ -34,6 +34,8 @@ SOURCES =                                               \
   sparql/parser.scm                                     \
   sparql/stream.scm                                     \
   sparql/util.scm                                       \
+  test/endpoint.scm                                     \
+  test/sparql-parser.scm                                \
   www/base64.scm                                        \
   www/components/project-graphs.scm                     \
   www/components/query-history.scm                      \
@@ -145,7 +147,7 @@ WWW_STATIC_RESOURCES =                                  \
   static/js/query-history.js                            \
   static/js/sessions.js
 
-bin_PROGRAMS    = sg-web sg-auth-manager
+bin_PROGRAMS    = sg-web sg-web-test sg-auth-manager
 
 sg_web_SOURCES  = sg-web.c
 sg_web_LDADD    = $(gnutls_LIBS) $(guile_LIBS)
@@ -155,7 +157,10 @@ sg_auth_manager_SOURCES  = sg-auth-manager.c
 sg_auth_manager_LDADD    = $(guile_LIBS)
 sg_auth_manager_CFLAGS   = $(guile_CFLAGS)
 
-bin_SCRIPTS     = sg-web-test
+sg_web_test_SOURCES  = sg-web-test.c
+sg_web_test_LDADD    = $(guile_LIBS)
+sg_web_test_CFLAGS   = $(guile_CFLAGS)
+
 webdir          = $(pkgdatadir)/web
 nobase_web_DATA = $(WWW_STATIC_RESOURCES)
 webconf_DATA    = sg-web.xml sg-auth-manager.xml
