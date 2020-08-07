@@ -36,6 +36,7 @@
         ;; --------------------------------------------------------------------
         (let [(fork?        (assoc-ref config 'fork))
               (backtrace?   (assoc-ref config 'backtrace-on-error))
+              (importing    (assoc-ref config 'enable-importing))
               (address      (assoc-ref config 'bind-address))
               (port         (assoc-ref config 'port))
               (upload-root  (assoc-ref config 'upload-root))
@@ -45,6 +46,8 @@
               (sg-web       (assoc-ref config 'sg-web))]
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
+          (when (and importing (string= (car importing) "0"))
+            (set-importing-enabled! #f))
           (when (and backtrace? (string= (car backtrace?) "1"))
             (set-backtrace-on-error! #t))
           (when upload-root

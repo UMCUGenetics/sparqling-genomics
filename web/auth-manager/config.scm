@@ -22,6 +22,8 @@
             fork-on-startup?
             set-fork-on-startup!
 
+            importing-enabled?
+            set-importing-enabled!
 
             set-www-upload-root!
             www-upload-root
@@ -127,6 +129,9 @@
                             #:getter get-fork-on-startup?
                             #:setter set-fork-on-startup-private!)
 
+  (importing-enabled?       #:init-value #t
+                            #:getter get-importing-enabled?
+                            #:setter set-importing-enabled-private!)
 
   ;; sg-web configuration
   ;; --------------------------------------------------------------------------
@@ -199,10 +204,13 @@
 
 (for-each make-getter
           '(fork-on-startup?
+            importing-enabled?
             www-listen-address
             www-listen-address-family))
 
-(make-setter 'fork-on-startup)
+(for-each make-setter
+          '(fork-on-startup
+            importing-enabled))
 
 (for-each make-getter/setter
           '(isql-bin

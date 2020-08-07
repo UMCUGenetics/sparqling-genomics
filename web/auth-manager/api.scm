@@ -83,46 +83,53 @@
      ;; and the actual file contents as content of the POST request.  The
      ;; Content-Type should match the actual file content's mime type.
      [(string-prefix? "/api/import-rdf" request-path)
-      (if (eq? (request-method request) 'POST)
-          (let [(index  (string-index request-path #\?))]
-            (if index
-                (let* [(metadata      (post-data->alist
-                                       (substring request-path (1+ index))))
-                       (graph-uri     (assoc-ref metadata 'graph))
-                       (wait-for-more (assoc-ref metadata 'wait-for-more))
-                       (upload-dir     (string-append
-                                        (www-upload-root) "/" username))
-                       (output-port    (begin
-                                         (mkdir-p upload-dir)
-                                         (mkstemp! (string-append
-                                                    upload-dir "/XXXXXX"))))
-                       (tmp-filename   (port-filename output-port))
-                       (input-port     (request-port request))
-                       (bytes-to-fetch (request-content-length request))
-                       (bytes-fetched  (sendfile output-port input-port
-                                                 bytes-to-fetch))]
-                  (close-port output-port)
-                  (if (= bytes-fetched bytes-to-fetch)
-                      (cond
-                       [(equal? (rdf-store-backend) 'virtuoso)
-                        (if (not (stage-file tmp-filename graph-uri))
-                            (respond-500 client-port accept-type
-                                         "Cannot stage the file.")
-                            (if wait-for-more
-                                (respond-202 client-port)
-                                (if (start-bulk-load)
-                                    (respond-200 client-port accept-type
-                                     `((message . "The file has been imported."))))))]
-                       [else
-                        (respond-500 client-port accept-type
-                         `((message . "The sg-auth-manager has been misconfigured.")))])
+      (cond
+       [(not (importing-enabled?))
+        (respond-403 client-port accept-type
+                     "This node does not accept more data.")]
+       [(eq? (request-method request) 'POST)
+        (let [(index  (string-index request-path #\?))]
+          (if index
+              (let* [(metadata      (post-data->alist
+                                     (substring request-path (1+ index))))
+                     (graph-uri     (assoc-ref metadata 'graph))
+                     (wait-for-more (assoc-ref metadata 'wait-for-more))
+                     (upload-dir     (string-append
+                                      (www-upload-root) "/" username))
+                     (output-port    (begin
+                                       (mkdir-p upload-dir)
+                                       (mkstemp! (string-append
+                                                  upload-dir "/XXXXXX"))))
+                     (tmp-filename   (port-filename output-port))
+                     (input-port     (request-port request))
+                     (bytes-to-fetch (request-content-length request))
+                     (bytes-fetched  (sendfile output-port input-port
+                                               bytes-to-fetch))]
+                (close-port output-port)
+                (if (= bytes-fetched bytes-to-fetch)
+                    (cond
+                     [(equal? (rdf-store-backend) 'virtuoso)
+                      (if (not (stage-file tmp-filename graph-uri))
+                          (respond-500 client-port accept-type
+                                       "Cannot stage the file.")
+                          (if wait-for-more
+                              (respond-202 client-port)
+                              (if (start-bulk-load)
+                                  (respond-200 client-port accept-type
+                                   `((message . "The file has been imported.")))
+                                  (respond-500 client-port accept-type
+                                               "Importing failed."))))]
+                     [else
                       (respond-500 client-port accept-type
-                                   (format #f "Received ~a of ~a bytes."
-                                           bytes-fetched
-                                           bytes-to-fetch))))
-                (respond-400 client-port accept-type
-                             "Missing 'graph' parameter.")))
-          (respond-405 client-port '(POST)))]
+                       "The sg-auth-manager has been misconfigured.")])
+                    (respond-500 client-port accept-type
+                                 (format #f "Received ~a of ~a bytes."
+                                         bytes-fetched
+                                         bytes-to-fetch))))
+              (respond-400 client-port accept-type
+                           "Missing 'graph' parameter.")))]
+       [else
+        (respond-405 client-port '(POST))])]
 
      [(or (string-prefix? "/sparql" request-path)
           (string-prefix? "/api/query" request-path))

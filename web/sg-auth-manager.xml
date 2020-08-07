@@ -8,6 +8,8 @@
   <name>Change me</name>
   <public-uri>http://127.0.0.1:8001</public-uri>
   <fork>1</fork>
+  <!-- Importing data is always enabled, except when set to 0. -->
+  <enable-importing>1</enable-importing>
   <backtrace-on-error>0</backtrace-on-error>
   <bind-address>127.0.0.1</bind-address>
   <port>8081</port>
