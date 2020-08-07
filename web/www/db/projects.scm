@@ -403,22 +403,26 @@ ORDER BY ASC(?user)"))]
 (define (project-assign-graph! project-id graph-uri connection-name username)
   ;; Attempt to authorize the project for the graph.
   ;; This only works if the graph hasn't been claimed yet.
-  (project-auto-assign-authorization-for-graph project-id graph-uri)
-  (let [(query (string-append
-                internal-prefixes
-                "INSERT INTO <" system-state-graph "> {"
-                " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
-                " <" graph-uri "> sg:inConnection \"" connection-name
-                "\"^^xsd:string ."
-                " } WHERE {"
-                " <" project-id "> sg:hasAuthorization ?auth ."
-                " <" graph-uri "> sg:requiresAuthorization ?auth ."
-                " }"))]
-    (receive (header body)
-        (system-sparql-query query)
-      (if (= (response-code header) 200)
-          (values #t "")
-          (values #f "The project doesn't have the required authorization.")))))
+  (cond
+   [(not (project-auto-assign-authorization-for-graph project-id graph-uri))
+    (values #f (format #f "The graph ~s already exists." graph-uri))]
+   [else
+    (let [(query (string-append
+                  internal-prefixes
+                  "INSERT INTO <" system-state-graph "> {"
+                  " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
+                  " <" graph-uri "> sg:inConnection \"" connection-name
+                  "\"^^xsd:string ."
+                  " } WHERE {"
+                  " <" project-id "> sg:hasAuthorization ?auth ."
+                  " <" graph-uri "> sg:requiresAuthorization ?auth ."
+                  " }"))]
+      (receive (header body)
+          (system-sparql-query query)
+        (if (= (response-code header) 200)
+            (values #t "")
+            (values #f (format #f "The project lacks permissions to assign ~s."
+                               graph-uri)))))]))
 
 (define (project-forget-graph! project-id graph-uri)
   (let* [(query (string-append
