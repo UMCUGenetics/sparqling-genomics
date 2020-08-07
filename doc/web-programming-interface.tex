@@ -144,11 +144,62 @@ curl --cookie-jar - http://localhost/api/login \
 
   Generating a token can be done on the \i{Dashboard}, or using the API call
   \t{/api/new-session-token}.  Removing a token can be done on the
-  \i{Dashboard}, or using the API call \t{/api/delete-token}.
+  \i{Dashboard}, or using the API call \t{/api/remove-session}.
 
   After generating a token, it can be used as a cookie in API calls.  The name
   of the cookie is always \t{SGSession}, regardless of the name of the
   token.
+
+\subsubsection{Create a session token with \t{/api/new-session-token}}
+
+  The API call to \t{/api/new-session-token} takes the following parameter:
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter}    & \b{Example}    & \b{Required?}\\
+      \evenrow
+      \t{session-name} & \t{my-program} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would create a session token named
+  \t{my-program}:
+
+\begin{siderules}
+\begin{verbatim}
+curl --cookie "$COOKIE" http://localhost/api/new-session-token \
+     --data "session-name=my-program"
+\end{verbatim}
+\end{siderules}
+
+\subsubsection{Revoking a session token with \t{/api/remove-session}}
+
+  Revoking a session can be done by its token.  Therefore, the call to
+  \t{/api/remove-session} takes the following parameter:
+
+  \hypersetup{urlcolor=black}
+  \begin{table}[H]
+    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}X!{\VRule[-1pt]}X}
+      \headrow
+      \b{Parameter} & \b{Example}          & \b{Required?}\\
+      \evenrow
+      \t{token}     & \t{FebA2zIBFFrsu2Dm} & Yes\\
+    \end{tabularx}
+  \end{table}
+  \hypersetup{urlcolor=LinkGray}
+
+  The following cURL command would revoke a session with token
+  \t{FebA2zIBFFrsu2Dm}:
+
+\begin{siderules}
+\begin{verbatim}
+curl --cookie "$COOKIE" http://localhost/api/remove-session \
+     --data "token=FebA2zIBFFrsu2Dm"
+\end{verbatim}
+\end{siderules}
 
 \subsection{Managing connections}
 
