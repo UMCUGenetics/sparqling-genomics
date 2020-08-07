@@ -8,7 +8,6 @@
   <name>Change me</name>
   <public-uri>http://127.0.0.1:8001</public-uri>
   <fork>1</fork>
-  <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backtrace-on-error>
   <bind-address>127.0.0.1</bind-address>
   <port>8081</port>

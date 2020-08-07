@@ -35,7 +35,6 @@
         ;; Handle options
         ;; --------------------------------------------------------------------
         (let [(fork?        (assoc-ref config 'fork))
-              (developer?   (assoc-ref config 'developer-mode))
               (backtrace?   (assoc-ref config 'backtrace-on-error))
               (address      (assoc-ref config 'bind-address))
               (port         (assoc-ref config 'port))
@@ -46,8 +45,6 @@
               (sg-web       (assoc-ref config 'sg-web))]
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
-          (when (and developer? (string= (car developer?) "1"))
-            (set-developer-mode! #t))
           (when (and backtrace? (string= (car backtrace?) "1"))
             (set-backtrace-on-error! #t))
           (when upload-root

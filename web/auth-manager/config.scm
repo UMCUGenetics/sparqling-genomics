@@ -22,8 +22,6 @@
             fork-on-startup?
             set-fork-on-startup!
 
-            developer-mode?
-            set-developer-mode!
 
             set-www-upload-root!
             www-upload-root
@@ -129,9 +127,6 @@
                             #:getter get-fork-on-startup?
                             #:setter set-fork-on-startup-private!)
 
-  (developer-mode?          #:init-value #f
-                            #:getter get-developer-mode?
-                            #:setter set-developer-mode-private!)
 
   ;; sg-web configuration
   ;; --------------------------------------------------------------------------
@@ -203,8 +198,7 @@
   (make-setter symbol))
 
 (for-each make-getter
-          '(developer-mode?
-            fork-on-startup?
+          '(fork-on-startup?
             www-listen-address
             www-listen-address-family))
 
