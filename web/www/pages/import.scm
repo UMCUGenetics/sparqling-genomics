@@ -22,6 +22,7 @@
   #:use-module (web response)
   #:use-module (www config)
   #:use-module (www db api)
+  #:use-module (www db connections)
   #:use-module (www db projects)
   #:use-module (www db sessions)
   #:use-module (www db exploratory)
@@ -49,14 +50,18 @@
                          (onchange "javascript:update_command(); return false;"))
                 (option (@ (value "")) "Select a graph")
                 ,(map (lambda (graph)
-                        (if (string= (assoc-ref graph "isLocked") "1")
-                            '()
-                            `(option (@ (value ,(string-append
-                                                 (assoc-ref graph "graph") " "
-                                                 (assoc-ref graph "connectionName"))))
-                                     ,(string-append
-                                       (assoc-ref graph "graph")
-                                       " (" (assoc-ref graph "connectionName") ")"))))
+                        (let ((conn (connection-by-name
+                                     (assoc-ref graph "connectionName"))))
+                          (if (or (string= (assoc-ref graph "isLocked") "1")
+                                  (and (system-wide-connection? conn)
+                                       (not (connection-accepts-data? conn))))
+                              '()
+                              `(option (@ (value ,(string-append
+                                                   (assoc-ref graph "graph") " "
+                                                   (connection-name conn))))
+                                       ,(string-append
+                                         (assoc-ref graph "graph")
+                                         " (" (connection-name conn) ")")))))
                       graphs)))))
 
      (h3 "Step 2: Choose an access token")
