@@ -36,7 +36,6 @@
                      " rdfs:label \"" name "\"^^xsd:string ;"
                      " sg:orcidUri <https://orcid.org/" id "> . "
                      "}")))
-    (log-debug "persist-orcid-record" "Query:~%~a" query)
     (receive (header body)
         (system-sparql-query query)
       (if (= (response-code header) 200)
