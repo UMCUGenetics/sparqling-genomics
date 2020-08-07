@@ -34,6 +34,7 @@
   #:use-module (www db api)
   #:use-module (www db connections)
   #:use-module (www db exploratory)
+  #:use-module (www db orcid)
   #:use-module (www db projects)
   #:use-module (www db prompt)
   #:use-module (www db queries)
@@ -84,6 +85,8 @@
                        (orcid        (hash-ref json "orcid")))
                   (if (and access-token name orcid)
                       (begin
+                        (persist-orcid-record `((id   . ,orcid)
+                                                (name . ,name)))
                         (log-access orcid "~s (~s)." name access-token)
                         (set! data (cons `(username . ,orcid) data))
                         #t)

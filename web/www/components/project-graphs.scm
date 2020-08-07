@@ -82,7 +82,12 @@
                                "Actions")
                           '(th "")))
                  ,(map (lambda (item)
-                         `(tr (td ,(assoc-ref item "user"))
+                         `(tr (td ,(if (and (assoc-ref item "profileUri")
+                                            (not (string= (assoc-ref item "profileUri") "#")))
+                                       `(a (@ (href ,(assoc-ref item "profileUri"))
+                                              (target "_blank"))
+                                           ,(assoc-ref item "user"))
+                                       (assoc-ref item "user")))
                               (td ,(assoc-ref item "queries"))
                               ,(if (and is-creator?
                                         (not (string= (assoc-ref item "user") username)))

@@ -291,16 +291,22 @@ WHERE {
 (define (project-members project-id)
   (let* [(query (string-append
                  internal-prefixes
-                 "SELECT DISTINCT (STRAFTER(STR(?agent), STR(agent:)) AS ?user)"
-                 " COUNT(DISTINCT ?query) AS ?queries"
-                 " FROM <" system-state-graph ">"
-                 " WHERE { ?agent sg:isAssignedTo ?project ."
-                 " OPTIONAL {"
-                 " ?query sg:executedBy ?agent ; sg:isRelevantTo ?project ."
-                 " }"
-                 " FILTER (?project = <" project-id ">)"
-                 " }"
-                 " ORDER BY ASC(?user)"))]
+                 "
+SELECT DISTINCT ?user ?profileUri (COUNT(DISTINCT ?query) AS ?queries)
+FROM <" system-state-graph ">
+WHERE { ?agent sg:isAssignedTo ?project .
+OPTIONAL { ?query sg:executedBy ?agent ; sg:isRelevantTo ?project . }
+OPTIONAL { ?agent rdfs:label ?agentName . }
+OPTIONAL { ?agent sg:orcidUri ?orcidUri . }
+
+BIND(IF(BOUND(?agentName),
+       ?agentName,
+       STRAFTER(STR(?agent), STR(agent:))) AS ?user)
+
+BIND(IF(BOUND(?orcidUri), ?orcidUri, \"#\") AS ?profileUri)
+FILTER (?project = <" project-id ">)
+}
+ORDER BY ASC(?user)"))]
     (query-results->alist (system-sparql-query query))))
 
 (define (project-assign-member! project-id username auth-user)

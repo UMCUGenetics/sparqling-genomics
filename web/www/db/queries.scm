@@ -242,8 +242,7 @@ WHERE { ?query sg:executedBy agent:" username " ;
    internal-prefixes
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
-       (STRAFTER(STR(?executedBy), STR(agent:)) AS ?executedBy)
-       ?projectTitle ?isProtected ?name
+       ?executedBy ?projectTitle ?isProtected ?name
        (MAX(?startTime) AS ?startTime) (MAX(?endTime) AS ?endTime)
        (AVG(?executionTime) AS ?executionTime)
 FROM <" system-state-graph ">
@@ -251,7 +250,7 @@ WHERE {
   ?query rdf:type         sg:Query ;
          sg:queryText     ?queryText     ;
          sg:executedAt    ?executedAt    ;
-         sg:executedBy    ?executedBy    ;
+         sg:executedBy    ?agent         ;
          sg:isRelevantTo  ?project       .
 
   OPTIONAL { ?query   rdfs:label         ?name          . }
@@ -260,11 +259,16 @@ WHERE {
   OPTIONAL { ?query   sg:isProtected     ?isProtected   . }
   OPTIONAL { ?query   dcterms:date       ?date          . }
   OPTIONAL { ?project dcterms:title      ?projectTitle  . }
+  OPTIONAL { ?agent   rdfs:label         ?agentName     . }
 
   BIND(IF((BOUND(?startTime) AND BOUND(?endTime)),
             xsd:dateTime(?endTime) - xsd:dateTime(?startTime),
              0)
         AS ?executionTime)
+
+  BIND(IF(BOUND(?agentName),
+         ?agentName,
+         STRAFTER(STR(?agent), STR(agent:))) AS ?executedBy)
 "
    (if filters
        (format #f "~{  FILTER (~a)~%~}" filters)

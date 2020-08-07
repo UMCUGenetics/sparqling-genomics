@@ -49,6 +49,7 @@ SOURCES =                                               \
   www/db/exploratory.scm                                \
   www/db/forms.scm                                      \
   www/db/graphs.scm                                     \
+  www/db/orcid.scm                                      \
   www/db/projects.scm                                   \
   www/db/prompt.scm                                     \
   www/db/queries.scm                                    \
