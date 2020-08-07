@@ -46,7 +46,8 @@
         (connections '())
         (projects    '())
         (queries     '())
-        (new-project '()))
+        (new-project '())
+        (session     '()))
 
     ;; List connections
     ;; ------------------------------------------------------------------------
@@ -151,5 +152,52 @@
         (set! new-project '())]
        [else
         (error "Call to /api/add-project failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Create a session token
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/new-session-token")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((session-name . ,(random-ascii-string 32)))
+                              out))))
+      (cond
+       [(= (response-code header) 200)
+        (set! session (read port))
+        (success "Created session with token ~s."
+                 (assoc-ref session 'token))]
+       [else
+        (error "Call to /api/new-session-token failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Create a session token
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/remove-session")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((token . ,(assoc-ref session 'token))) out))))
+      (cond
+       [(= (response-code header) 200)
+        (success "Removed session with token ~s."
+                 (assoc-ref session 'token))
+        (set! session '())]
+       [else
+        (error "Call to /api/remove-session failed with ~a:~%~a"
                (response-code header)
                (get-string-all port))]))))
