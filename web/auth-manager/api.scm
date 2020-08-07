@@ -290,8 +290,9 @@
                                 (accept       . ((application/s-expression))))
                  #:streaming? #t
                  #:body       (format #f "~s"
-                               `((name . ,(www-name))
-                                 (uri  . ,(self-uri)))))
+                               `((name          . ,(www-name))
+                                 (uri           . ,(self-uri))
+                                 (accepts-data? . ,(importing-enabled?)))))
     (cond
      [(= (response-code header) 201)
       (log-debug "sg-auth-manager"

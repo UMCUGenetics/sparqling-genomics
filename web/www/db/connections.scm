@@ -52,6 +52,8 @@
             user-connection?
             system-wide-connection?
 
+            connection-accepts-data?
+            set-connection-accepts-data!
             connection-is-online?
             connection-down-since
             set-connection-down-since!
@@ -98,10 +100,14 @@
     #:uri uri))
 
 (define-class <system-wide-connection> (<connection>)
-  (down-since  #:init-value #f
-               #:init-keyword #:down-since
-               #:getter connection-down-since
-               #:setter set-connection-down-since!))
+  (down-since    #:init-value #f
+                 #:init-keyword #:down-since
+                 #:getter connection-down-since
+                 #:setter set-connection-down-since!)
+  (accepts-data? #:init-value #t
+                 #:init-keyword #:down-since
+                 #:getter connection-accepts-data?
+                 #:setter set-connection-accepts-data!))
 
 (define-method (write (self <system-wide-connection>) port)
   (format port "#<<system-wide-connection> name: ~s>" (connection-name self)))
@@ -194,9 +200,10 @@
 (define (alist->system-wide-connection input)
   "Turns the association list INPUT into a <system-wide-connection> instance."
   (make <system-wide-connection>
-    #:name        (assoc-ref input 'name)
-    #:uri         (assoc-ref input 'uri)
-    #:down-since  (assoc-ref input 'down-since)))
+    #:name          (assoc-ref input 'name)
+    #:uri           (assoc-ref input 'uri)
+    #:accepts-data? (assoc-ref input 'accepts-data?)
+    #:down-since    (assoc-ref input 'down-since)))
 
 (define (alist->connection input)
   "Turns the association list INPUT into a <connection>-derived instance."
@@ -215,9 +222,10 @@
       (username    . ,(connection-username record))
       (password    . ,(connection-password record)))]
    [(system-wide-connection? record)
-    `((name        . ,(connection-name       record))
-      (uri         . ,(connection-uri        record))
-      (down-since  . ,(connection-down-since record)))]
+    `((name          . ,(connection-name          record))
+      (uri           . ,(connection-uri           record))
+      (accepts-data? . ,(connection-accepts-data? record))
+      (down-since    . ,(connection-down-since    record)))]
    [else
     (log-error "connection->alist"
                "Connection records must be instances of either ~a"
@@ -232,9 +240,10 @@
       (backend     . ,(connection-backend  record))
       (username    . ,(connection-username record)))]
    [(system-wide-connection? record)
-    `((name        . ,(connection-name       record))
-      (uri         . ,(connection-uri        record))
-      (down-since  . ,(connection-down-since record)))]
+    `((name          . ,(connection-name          record))
+      (uri           . ,(connection-uri           record))
+      (accepts-data? . ,(connection-accepts-data? record))
+      (down-since    . ,(connection-down-since    record)))]
    [else
     (log-error "connection->alist-safe"
                "Connection records must be instances of either ~a"
