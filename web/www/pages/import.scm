@@ -52,7 +52,8 @@
                 ,(map (lambda (graph)
                         (let ((conn (connection-by-name
                                      (assoc-ref graph "connectionName"))))
-                          (if (or (string= (assoc-ref graph "isLocked") "1")
+                          (if (or (not conn)
+                                  (string= (assoc-ref graph "isLocked") "1")
                                   (and (system-wide-connection? conn)
                                        (not (connection-accepts-data? conn))))
                               '()
