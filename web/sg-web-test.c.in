@@ -1,0 +1,180 @@
+/*
+ * Copyright © 2019, 2020  Roel Janssen <roel@gnu.org>
+ *
+ * This program is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+#include <stdio.h>
+#include <getopt.h>
+#include <string.h>
+#include <libguile.h>
+#include <gnutls/crypto.h>
+
+#define GUILE_LOAD_COMPILED_PATH "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@"
+#define GUILE_LOAD_PATH "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH@"
+
+typedef struct
+{
+  char *endpoint;
+  char *token;
+  char *parser_directory;
+} RuntimeConfiguration;
+
+void
+show_help (void)
+{
+  puts ("This is sg-web-test:\n"
+	"  --help,              -h  Show this message.\n"
+	"  --version,           -v  Show versioning information.\n"
+	"  --endpoint=URL,      -e  Test endpoint at URL.\n"
+        "  --token=ARG          -t  Authenticate with ARG in the endpoint test.\n"
+        "  --sparql-parser=DIR  -s  Parse queries in DIR.\n");
+  exit (0);
+}
+
+void
+show_version (void)
+{
+  puts ("sg-web-test " VERSION);
+  exit (0);
+}
+
+void
+exit_with_error (char *message)
+{
+  fprintf (stderr, message);
+  exit (1);
+}
+
+void*
+initialize_guile (void *config_vp)
+{
+  RuntimeConfiguration *config = config_vp;
+
+
+  /* --------------------------------------------------------------------------
+   * RANDOM NUMBER GENERATOR
+   * --------------------------------------------------------------------------
+   *
+   * This code sets up the RNG with a (hopefully) secure enough seed.
+   */
+
+  {
+    const int rng_buffer_length = 1024;
+    unsigned char rng_buffer[rng_buffer_length];
+    memset (rng_buffer, '\0', rng_buffer_length);
+
+    if (gnutls_rnd (GNUTLS_RND_KEY, rng_buffer, rng_buffer_length) == 0)
+      {
+        SCM rng_seed  = scm_from_latin1_string ((char *)rng_buffer);
+        if (scm_string_p (rng_seed) == 0)
+          exit_with_error ("Could not properly initialize RNG.");
+
+        SCM rng_state = scm_seed_to_random_state (rng_seed);
+        SCM random_state = scm_c_public_lookup ("guile", "*random-state*");
+        scm_variable_set_x (random_state, rng_state);
+
+        rng_seed = NULL;
+        rng_state = NULL;
+      }
+    else
+      exit_with_error ("Could not properly initialize RNG.");
+  }
+
+  SCM run = NULL;
+  if (config->parser_directory)
+    {
+      run = scm_c_public_ref ("test sparql-parser", "run-sparql-parser-test");
+      scm_call_1 (run, scm_from_latin1_string (config->parser_directory));
+    }
+
+  if (config->endpoint)
+    {
+      if (! config->token)
+        {
+          fprintf (stderr, "Please provide a token with the --token option.\n");
+          exit (1);
+        }
+      else
+        {
+          run = scm_c_public_ref ("test endpoint", "run-endpoint-test");
+          scm_call (run,
+                    scm_from_latin1_string (config->endpoint),
+                    scm_from_latin1_string (config->token),
+                    SCM_UNDEFINED);
+        }
+    }
+
+  return NULL;
+}
+
+int
+main (int argc, char **argv)
+{
+
+  if (argc < 2)
+    show_help();
+
+  RuntimeConfiguration config;
+  config.endpoint = NULL;
+  config.token = NULL;
+  config.parser_directory = NULL;
+
+  int arg = 0;
+  int index = 0;
+
+  /* Program options
+   * ------------------------------------------------------------------- */
+  static struct option options[] =
+    {
+      { "endpoint",              required_argument, 0, 'e' },
+      { "token",                 required_argument, 0, 't' },
+      { "sparql-parser",         required_argument, 0, 's' },
+      { "help",                  no_argument,       0, 'h' },
+      { "version",               no_argument,       0, 'v' },
+      { 0,                       0,                 0, 0   }
+    };
+
+  while (arg != -1)
+    {
+      /* Make sure to list all short options in the string below. */
+      arg = getopt_long (argc, argv, "e:t:s:hv", options, &index);
+      switch (arg)
+        {
+        case 'e': config.endpoint = optarg;            break;
+        case 't': config.token = optarg;               break;
+        case 's': config.parser_directory = optarg;    break;
+        case 'h': show_help ();                        break;
+        case 'v': show_version ();                     break;
+        }
+    }
+
+  /* At this point, we don't accept input from stdin anymore. */
+  fclose (stdin);
+
+  /* Avoid auto-compiling files. */
+  setenv ("GUILE_AUTO_COMPILE", "0", 1);
+
+  /* Set Guile paths. */
+  setenv ("GUILE_LOAD_PATH", GUILE_LOAD_PATH, 1);
+  setenv ("GUILE_LOAD_COMPILED_PATH", GUILE_LOAD_COMPILED_PATH, 1);
+
+  /* Allocate a small initial head size. */
+  setenv ("GC_INITIAL_HEAP_SIZE", "20M", 1);
+
+  /* Initialize Guile and off we go! */
+  scm_with_guile (initialize_guile, &config);
+  return 0;
+}
