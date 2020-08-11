@@ -40,14 +40,15 @@
 ;; The main entry point for this module.
 ;; ----------------------------------------------------------------------------
 (define (run-endpoint-test endpoint-uri token)
-  (let ((cookie      (string-append "SGSession=" token))
-        (endpoint    (lambda (path)
-                       (string-append endpoint-uri path)))
-        (connections '())
-        (projects    '())
-        (queries     '())
-        (new-project '())
-        (session     '()))
+  (let ((cookie          (string-append "SGSession=" token))
+        (endpoint        (lambda (path)
+                           (string-append endpoint-uri path)))
+        (connection-name (random-ascii-string 32))
+        (connections     '())
+        (projects        '())
+        (queries         '())
+        (new-project     '())
+        (session         '()))
 
     ;; List connections
     ;; ------------------------------------------------------------------------
@@ -105,6 +106,52 @@
                  (if (= (length queries) 1) "query" "queries"))]
        [else
         (error "Call to /api/queries failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Add connection
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/add-connection")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((name . ,connection-name)
+                                (uri  . "https://non-existent.tld:9999/sparql")
+                                (backend . "4store")) out))))
+
+      (cond
+       [(= (response-code header) 201)
+        (success "Connection ~s was added." connection-name)]
+       [else
+        (error "Call to /api/add-connection failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Remove connection
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/remove-connection")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((name . ,connection-name)) out))))
+
+      (cond
+       [(= (response-code header) 204)
+        (success "Connection ~s was removed." connection-name)]
+       [else
+        (error "Call to /api/remove-connection failed with ~a:~%~a"
                (response-code header)
                (get-string-all port))]))
 
