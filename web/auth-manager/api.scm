@@ -137,14 +137,11 @@
         (lambda _
           (unless (eq? (request-method request) 'POST)
             (throw 'not-a-post-request))
-
-          (let [(index  (string-index request-path #\?))]
-            (unless index (throw 'missing-project-hash))
-            (let* [(metadata (post-data->alist
-                              (substring request-path (1+ index))))
-                   (hash     (assoc-ref metadata 'project-hash))
-                   (query    (utf8->string (read-request-body request)))]
-              (unless hash (throw 'missing-project-hash))
+          (let* [(parameters (uri-query (request-uri request)))
+                 (metadata   (post-data->alist parameters))
+                 (hash       (assoc-ref metadata 'project-hash))]
+            (unless hash (throw 'missing-project-hash))
+            (let [(query     (utf8->string (read-request-body request)))]
               (call-with-values
                   (lambda _ (may-execute? token hash query))
                 (lambda (allowed? message)
