@@ -133,6 +133,28 @@ brew install autoconf automake gcc make pkg-config guile \
   Due to a missing \LaTeX{} distribution on MacOS, the documentation
   cannot be build.
 
+\subsection{Microsoft Windows}
+
+  For those who embrace Microsoft Windows, one can extend it with the
+  dependencies for SPARQLing-genomics in two ways: Either use the Windows
+  Subsystem for Linux and use the instructions for GNU/Linux, or use
+  \href{https://www.msys2.org/}{MSYS2}\footnote{\url{https://www.msys2.org/}}.
+  After installing MSYS2, issue the following command from its console:
+
+\begin{siderules}
+\begin{verbatim}
+pacman -S autoconf automake gcc make pkg-config libguile-devel guile curl \
+          libxml2 zlib gnutls
+\end{verbatim}
+\end{siderules}
+
+  There are two missing dependencies: \t{raptor2} -- for which a package is
+  \href{https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-raptor2}{upcoming}%
+  \footnote{\url{https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-raptor2}},
+  and \t{htslib} -- for which installation instructions can be found in a
+  \href{https://github.com/samtools/htslib/issues/907}{Github issue of
+    \t{htslib}}\footnote{\url{https://github.com/samtools/htslib/issues/907}}.
+
 \section{Obtaining the source code}
 \label{sec:obtaining-tarball}
 
