@@ -25,4 +25,5 @@ table2rdf_SOURCES    = ../common/src/helper.c ../common/include/helper.h      \
 table2rdf_LDFLAGS    = # -pthread
 table2rdf_LDADD      = $(gnutls_LIBS) $(raptor2_LIBS) $(zlib_LIBS)
 
-EXTRA_DIST           = tests/headerless.tsv tests/sample.csv tests/sample.tsv
+EXTRA_DIST           = tests/headerless.tsv tests/sample.csv tests/sample.tsv \
+                       tests/comments.tsv

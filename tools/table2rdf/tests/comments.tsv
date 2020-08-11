@@ -1,0 +1,7 @@
+## This file contains a few comment lines
+## which is ideal to test the --skip-lines
+## parameter.
+item	score
+A	16
+B	5
+C	21
