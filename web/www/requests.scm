@@ -272,7 +272,8 @@
           (respond-to-client 404 client-port '(text/html)
            (with-output-to-string
              (lambda _ (sxml->xml (page-form-error-404 request-path)))))
-          (let ((page        (assoc-ref module 'page))
+          (let ((parameters  (uri-query (request-uri request)))
+                (page        (assoc-ref module 'page))
                 (submit      (assoc-ref module 'submit))
                 (api-handler (assoc-ref module 'api)))
             (cond
@@ -286,6 +287,9 @@
                 (if (not (api-serveable-format? accept-type))
                     (respond-406 client-port)
                     (api-handler request-path
+                                 (if parameters
+                                     (post-data->alist parameters)
+                                     #f)
                                  (request-port request)
                                  client-port
                                  accept-type
@@ -301,7 +305,11 @@
                   (lambda (port)
                     (set-port-encoding! port "utf8")
                     (format port "<!DOCTYPE html>~%")
-                    (sxml->xml (page request-path) port))))]
+                    (sxml->xml (page request-path
+                                     (if parameters
+                                         (post-data->alist parameters)
+                                         #f))
+                               port))))]
 
              ;; POST requests.
              ;; ---------------------------------------------------------------

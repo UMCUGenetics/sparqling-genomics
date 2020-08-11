@@ -94,13 +94,13 @@ export SG_WEB_ROOT=/home/user/form-module
 \subsubsection{Implementing the \t{page} procedure}
 
   The second part involves implementing the \t{page} procedure. The \t{page}
-  procedure takes the request path as argument (ignoring optional arguments),
-  returning an SXML tree.  The request path can be used to tell where to
-  submit the form to.
+  procedure takes the request path and request parameters as arguments
+  (ignoring optional arguments), returning an SXML tree.  The request path
+  can be used to tell where to submit the form to.
 
 \begin{siderules}
 \begin{verbatim}
-(define* (page request-path #:optional (error-message #f))
+(define* (page request-path arguments #:optional (error-message #f))
   (page-empty-template "Example" request-path
    `((h2 "Example form")
      ,(if error-message
@@ -167,7 +167,7 @@ export SG_WEB_ROOT=/home/user/form-module
     (if (car state)
         (page-empty-template "Thank you" request-path
          `((h2 "Thank you, " ,name "!")))
-        (page request-path (cadr state)))))
+        (page request-path #f (cadr state)))))
 \end{verbatim}
 \end{siderules}
 
@@ -186,9 +186,10 @@ export SG_WEB_ROOT=/home/user/form-module
 \subsubsection{Implementing the \t{api} procedure}
 
   The final step involves implementing the optional \t{api} procedure
-  that takes six arguments:
+  that takes seven arguments:
   \begin{itemize}
   \item \t{request-path}:   The relative path of the form;
+  \item \t{arguments}:      An alist of parameters passed by the URI.
   \item \t{input-port}:     The port to read data from;
   \item \t{output-port}:    The port to write data to;
   \item \t{accept-type}:    The value of the requests's \t{Accept} header;
@@ -202,7 +203,7 @@ export SG_WEB_ROOT=/home/user/form-module
 
 \begin{siderules}
 \begin{verbatim}
-(define (api request-path input-port output-port
+(define (api request-path arguments input-port output-port
              accept-type content-type content-length)
   ...)
 \end{verbatim}
