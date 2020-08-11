@@ -219,7 +219,27 @@ make -C tools/vcf2rdf
 \end{verbatim}
 \end{siderules}
 
-\section{Using a pre-built Docker image}
+\section{Using pre-built solutions}
+
+\subsection{Tarball for GNU/Linux}
+
+  A pre-built self-contained distribution of SPARQLing-genomics and
+  its dependencies can be obtained from the release page.  All programs
+  are ready-to-run after unpacking the tarball.
+
+\begin{siderules}
+\begin{lstlisting}
+curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
+download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
+tar axvf sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
+bin/table2rdf --help
+\end{lstlisting}
+\end{siderules}
+
+  The tarball includes both SPARQLing genomics and Virtuoso (open source
+  edition).
+
+\subsection{Docker image}
 
   A pre-built Docker container can be obtained from the release page.  It
   can be imported into docker using the following commands:
