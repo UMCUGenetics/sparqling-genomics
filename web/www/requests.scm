@@ -377,17 +377,6 @@
           (respond-303 client-port (if (uri? referer) (uri->string referer) "/dashboard") #f))
         (respond-405 client-port '(POST)))]
 
-   [(string= "/remove-project" request-path)
-    (if (eq? (request-method request) 'POST)
-        (let* [(post-data   (post-data->alist
-                             (uri-decode
-                              (utf8->string (read-request-body request)))))
-               (project-uri (assoc-ref post-data 'name))
-               (referer     (request-referer request))]
-          (project-remove project-uri username)
-          (respond-303 client-port "/dashboard" #f))
-        (respond-405 client-port '(POST)))]
-
    ;; SUBMENU ROUTING
    ;; -------------------------------------------------------------------------
    [(any (lambda (x) x)
