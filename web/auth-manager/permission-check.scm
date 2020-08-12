@@ -51,8 +51,8 @@
       (log-error "token->user" "~a: ~a" key args)
       #f)))
 
-(define (graphs-by-project auth-token project-hash)
-  "Returns a list of graphs part of PROJECT-HASH that may be accessed using 
+(define (graphs-by-project auth-token project-id)
+  "Returns a list of graphs part of PROJECT-ID that may be accessed using
 AUTH-TOKEN."
   (let ((uri (string-append (sg-web-uri) "/api/graphs-by-project")))
     (receive (header port)
@@ -63,8 +63,8 @@ AUTH-TOKEN."
                                (accept       . ((application/s-expression))))
                    #:body    (call-with-output-string
                                (lambda (port)
-                                 (write `((project-hash . ,project-hash)
-                                          (connection   . ,(www-name))) port)))
+                                 (write `((project-id . ,project-id)
+                                          (connection . ,(www-name))) port)))
                    #:streaming? #t)
       (if (= (response-code header) 200)
           (let ((output (read port)))
@@ -85,7 +85,7 @@ AUTH-TOKEN."
 otherwise it returns #f."
   (any not (map car (query-quads query))))
 
-(define (may-execute? auth-token project-hash query)
+(define (may-execute? auth-token project-id query)
   "Returns #t when the query may be executed, #f otherwise."
   (let [(parsed (parse-query query))]
 
@@ -94,8 +94,7 @@ otherwise it returns #f."
     (if (not parsed)
         (values #f (format #f "Couldn't parse:~%~a" query))
         (let* [(allowed-graphs (map (lambda (item) (assoc-ref item "graph"))
-                                    (graphs-by-project auth-token
-                                                       project-hash)))
+                                    (graphs-by-project auth-token project-id)))
                (global-graphs  (query-global-graphs parsed))
                (disallowed-graphs (lset-difference string= global-graphs
                                                    allowed-graphs))

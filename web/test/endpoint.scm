@@ -191,7 +191,7 @@
                    (call-with-output-string
                      (lambda (out)
                        (let ((hash (assoc-ref new-project 'project-id)))
-                         (write `((project-hash . ,hash)) out)))))
+                         (write `((project-id . ,hash)) out)))))
       (cond
        [(= (response-code header) 204)
         (success "Project ~s has been removed."

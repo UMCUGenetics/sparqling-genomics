@@ -27,7 +27,7 @@ function execute_query (editor) {
         data: JSON.stringify({
             "query":        editor.getValue(),
             "connection":   jQuery("#connection").val(),
-            "project-hash": project_hash
+            "project-id": project_hash
         }),
         success: function (data) {
             jQuery(".query-data-loader").remove();

@@ -89,11 +89,11 @@
             (form-modules))
           %all-forms-cache))))
 
-(define (forms-for-project project-hash)
+(define (forms-for-project project-id)
   (delete #f
    (map (lambda (module)
           (if (and (assoc-ref module 'project)
-                   (string= (assoc-ref module 'project) project-hash))
+                   (string= (assoc-ref module 'project) project-id))
               module
               #f))
         (form-modules))))

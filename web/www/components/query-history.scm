@@ -34,8 +34,7 @@
                     (string-split query #\newline))))))
 
 (define* (query-history-component username hash)
-  (let* [(queries     (queries-by-project (project-id
-                                           (project-by-hash hash))))]
+  (let [(queries (queries-by-project hash))]
     `((table (@ (id "query-history-table")
                 (class "item-table"))
              (tr (th (@ (style "width: auto;")) "Query")

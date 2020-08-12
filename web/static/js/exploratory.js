@@ -13,7 +13,7 @@ function select_connection (connection)
 
     url = window.location.href;
     project_hash = url.substr(url.lastIndexOf('/') + 1);
-    post_data = { "project-hash": project_hash,
+    post_data = { "project-id": project_hash,
                   "connection": connection };
 
     jQuery.ajax("/api/graphs-by-project", {
@@ -42,7 +42,7 @@ function with_children_types (connection, graph, type, callback)
 {
     url = window.location.href;
     project_hash = url.substr(url.lastIndexOf('/') + 1);
-    post_data = { "project-hash": project_hash,
+    post_data = { "project-id": project_hash,
                   "connection": connection,
                   "graph":      graph,
                   "type":       type };
@@ -74,7 +74,7 @@ function select_graph (graph)
     url = window.location.href;
     post_data = { "connection": jQuery(".connection-item-active").text(),
                   "graph": base32.decode(graph),
-                  "project-hash": url.substr(url.lastIndexOf('/') + 1)
+                  "project-id": url.substr(url.lastIndexOf('/') + 1)
                 };
 
     jQuery.ajax("/api/root-types-by-graph", {
@@ -185,7 +185,7 @@ function select_type (type)
     url = window.location.href;
     post_data = { "connection": jQuery(".connection-item-active").text(),
                   "graph": jQuery(".graph-item-active").text(),
-                  "project-hash": url.substr(url.lastIndexOf('/') + 1),
+                  "project-id": url.substr(url.lastIndexOf('/') + 1),
                   "type": base32.decode(type) };
 
     jQuery.ajax("/api/predicates-by-type", {

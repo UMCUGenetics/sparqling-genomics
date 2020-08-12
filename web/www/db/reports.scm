@@ -87,11 +87,11 @@
             (report-modules))
           %all-reports-cache))))
 
-(define (reports-for-project project-hash)
+(define (reports-for-project project-id)
   (delete #f
    (map (lambda (module)
           (if (and (assoc-ref module 'project)
-                   (string= (assoc-ref module 'project) project-hash))
+                   (string= (assoc-ref module 'project) project-id))
               module
               #f))
         (report-modules))))

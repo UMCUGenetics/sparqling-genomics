@@ -27,9 +27,7 @@
 ;; ----------------------------------------------------------------------------
 
 (define (assigned-graphs-table username hash)
-  (let* [(project     (project-by-hash hash))
-         (project-uri (project-id project))
-         (graphs      (project-assigned-graphs project-uri))]
+  (let [(graphs (project-assigned-graphs hash))]
     `((table (@ (id "assigned-graphs")
                 (class "item-table"))
              (tr (th "Graph")
@@ -67,10 +65,8 @@
 ;; ----------------------------------------------------------------------------
 
 (define (project-members-table username hash)
-  (let* [(project     (project-by-hash hash))
-         (project-uri (project-id project))
-         (is-creator? (project-is-created-by? project-uri username))
-         (members     (project-members project-uri))]
+  (let [(is-creator? (project-is-created-by? hash username))
+        (members     (project-members hash))]
     (if (null? members)
         '(p "Could not derive project members from queries.")
         `((table (@ (id "project-members")

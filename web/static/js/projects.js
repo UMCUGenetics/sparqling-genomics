@@ -21,7 +21,7 @@ function ui_create_project_form () {
 }
 
 function ui_remove_project (hash) {
-    post_data = { "project-hash": hash };
+    post_data = { "project-id": hash };
     jQuery.ajax("/api/remove-project", {
         headers: {
             "Accept": "application/json",

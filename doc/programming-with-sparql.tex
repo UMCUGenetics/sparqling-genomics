@@ -23,12 +23,12 @@ library(RCurl)
 
 accumulator <- basicTextGatherer()
 endpoint    <- "http://localhost:8001/sparql"
-projectHash <- "<project-hash>"
+projectId <- "<project-id>"
 query       <- "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"
 cookie      <- "SGSession=<session-token>"
 
 h$reset()
-curlPerform(url           = paste0(endpoint, "?project-hash=", projectHash),
+curlPerform(url           = paste0(endpoint, "?project-id=", projectId),
             httpheader    = c("Accept"       = "application/json",
                               "Cookie"       = cookie,
                               "Content-Type" = "application/sparql-update"),
@@ -64,11 +64,11 @@ data <- fromJSON(jsonData)
              (ice-9 receive))
 
 (let ((endpoint "http://localhost:8001/sparql")
-      (hash     "<project-hash>")
+      (id     "<project-id>")
       (query    "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5")
       (cookie   "SGSession=<session-token>"))
   (receive (header port)
-           (http-post (string-append endpoint "?project-hash=" hash)
+           (http-post (string-append endpoint "?project-id=" id)
                       #:headers
                       `((accept       . ((application/s-expression)))
                         (Cookie       . ,cookie)

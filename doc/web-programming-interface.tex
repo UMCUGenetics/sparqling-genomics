@@ -354,24 +354,9 @@ curl http://localhost/api/add-project      \
   \begin{table}[H]
     \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
       \headrow
-      \b{Parameter}   & \b{Example} & \b{Required?}\\
-      \evenrow
-      \t{project-uri}
-      & \t{http://sparqling-genomics.org/Project/640c0...5a6d2} & Yes\\
-    \end{tabularx}
-  \end{table}
-  \hypersetup{urlcolor=LinkGray}
-
-  Alternatively, instead of the full URI, the project's hash can be used.
-  In that case, the parameters are:
-
-  \hypersetup{urlcolor=black}
-  \begin{table}[H]
-    \begin{tabularx}{\textwidth}{l!{\VRule[-1pt]}l!{\VRule[-1pt]}X}
-      \headrow
       \b{Parameter}    & \b{Example}       & \b{Required?}\\
       \evenrow
-      \t{project-hash} & \t{640c0...5a6d2} & Yes\\
+      \t{project-id} & \t{640c0...5a6d2}   & Yes\\
     \end{tabularx}
   \end{table}
   \hypersetup{urlcolor=LinkGray}
@@ -381,10 +366,10 @@ curl http://localhost/api/add-project      \
 
 \begin{siderules}
 \begin{verbatim}
-curl http://localhost/api/remove-project      \
-     --cookie "$COOKIE"                       \
-     -H "Accept: application/xml"             \
-     --data "project-uri=http://sparqling-genomics.org/Project/640c0...5a6d2"
+curl http://localhost/api/remove-project \
+     --cookie "$COOKIE"                  \
+     -H "Accept: application/xml"        \
+     --data "project-id=640c0...5a6d2"
 \end{verbatim}
 \end{siderules}
 
@@ -394,7 +379,7 @@ curl http://localhost/api/remove-project      \
   to \t{/api/assign-graph}.  The required parameters are:
 
   \begin{itemize}
-    \item{\t{project-uri}: This can be obtained from a call to
+    \item{\t{project-id}: This can be obtained from a call to
       \t{/api/projects}.}
     \item{\t{connection}: The name of a connection obtained from
       a call to \t{/api/connections}.}
@@ -408,7 +393,7 @@ curl -X POST                                               \
      -H "Accept: application/json"                         \
      -H "Content-Type: application/json"                   \
      --cookie "SGSession=..."                              \
-     --data '{ "project-uri": "http://the-project-uri",    \
+     --data '{ "project-id": "640c0...5a6d2",              \
                "connection": "wikidata",                   \
                "graph-uri": "http://the-new-graph-name" }' \
      http://localhost/api/assign-graph
@@ -428,7 +413,7 @@ curl -X POST                                               \
      -H "Accept: application/json"                         \
      -H "Content-Type: application/json"                   \
      --cookie "SGSession=..."                              \
-     --data '{ "project-uri": "http://the-project-uri",    \
+     --data '{ "project-id": "640c0...5a6d2",              \
                "graph-uri": "http://the-new-graph-name" }' \
      http://localhost/api/unassign-graph
 \end{verbatim}
@@ -465,11 +450,11 @@ curl http://localhost/api/queries \
   \i{important}:
 \begin{siderules}
 \begin{verbatim}
-curl -X POST                                               \
-     -H "Accept: application/json"                         \
-     -H "Content-Type: application/json"                   \
-     --cookie "SGSession=..."                              \
-     --data '{ "query-id": "...", "state": true }'
+curl -X POST                                       \
+     -H "Accept: application/json"                 \
+     -H "Content-Type: application/json"           \
+     --cookie "SGSession=..."                      \
+     --data '{ "query-id": "...", "state": true }' \
      http://localhost/api/query-mark
 \end{verbatim}
 \end{siderules}
@@ -481,18 +466,18 @@ curl -X POST                                               \
   The required parameters are:
 
   \begin{itemize}
-    \item{\t{project-uri}: This can be obtained from a call to
+    \item{\t{project-id}: This can be obtained from a call to
       \t{/api/projects}.}
   \end{itemize}
 
   The following example based on cURL shows how to perform the request:
 \begin{siderules}
 \begin{verbatim}
-curl -X POST                                               \
-     -H "Accept: application/json"                         \
-     -H "Content-Type: application/json"                   \
-     --cookie "SGSession=..."                              \
-     --data '{ "project-uri": "http://the-project-uri" }'
+curl -X POST                                       \
+     -H "Accept: application/json"                 \
+     -H "Content-Type: application/json"           \
+     --cookie "SGSession=..."                      \
+     --data '{ "project-id": "640c0...5a6d2" }'    \
      http://localhost/api/queries-remove-unmarked
 \end{verbatim}
 \end{siderules}

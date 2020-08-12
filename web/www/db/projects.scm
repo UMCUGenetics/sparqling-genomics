@@ -35,8 +35,9 @@
             project-by-hash
 
             make-project
+            project-created-at
+            project-creator
             project-id
-            project-hash
             project-name
             project-samples
             project-members
@@ -71,7 +72,9 @@
   (string-append
    internal-prefixes
    "
-SELECT ?project AS ?projectId ?creator ?name ?date
+SELECT (STRAFTER(STR(?project), STR(project:)) AS ?id)
+       (STRAFTER(STR(?creator), STR(agent:)) AS ?creator)
+       ?name ?date
 FROM <" system-state-graph ">
 WHERE {
   ?project rdf:type sg:Project .
@@ -90,13 +93,11 @@ WHERE {
 ;; SIMPLE GETTERS
 ;; ----------------------------------------------------------------------------
 
-(define (project-id project)         (assoc-ref project "projectId"))
 (define (project-name project)       (assoc-ref project "name"))
 (define (project-creator project)    (assoc-ref project "creator"))
-(define (project-created-at project) (assoc-ref project "createdAt"))
+(define (project-created-at project) (assoc-ref project "date"))
 
-(define (project-hash project)
-  (basename (project-id project)))
+(define (project-id project) (assoc-ref project "id"))
 
 ;; PROJECTS PERSISTENCE
 ;; ----------------------------------------------------------------------------
@@ -161,13 +162,13 @@ WHERE {
   (let [(query1 (string-append
                  internal-prefixes
                  "WITH <" system-state-graph ">
-DELETE { <" project-id "> ?predicate ?object . }
-WHERE  { <" project-id "> ?predicate ?object . }"))
+DELETE { project:" project-id " ?predicate ?object . }
+WHERE  { project:" project-id " ?predicate ?object . }"))
         (query2 (string-append
                  internal-prefixes
                  "WITH <" system-state-graph ">
-DELETE { ?agent sg:isAssignedTo <" project-id "> . }
-WHERE  { ?agent sg:isAssignedTo <" project-id "> . }"))]
+DELETE { ?agent sg:isAssignedTo project:" project-id " . }
+WHERE  { ?agent sg:isAssignedTo project:" project-id " . }"))]
     (let [(response1 (call-with-values
                        (lambda _ (system-sparql-query query1))
                        (lambda (header body) (= (response-code header) 200))))
@@ -189,7 +190,7 @@ INSERT { ?project " predicate " " (if type
                                         (if object "1" "0")
                                         (format #f "~s^^~a" object type))
                                     (format #f "<~a>" object)) " . }
-WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))]
+WHERE  { ?project ?predicate ?value . FILTER (?project = project:" project-id ") }"))]
     (receive (header body)
         (system-sparql-query query)
       (= (response-code header) 200))))
@@ -264,7 +265,7 @@ WHERE  { ?project ?predicate ?value . FILTER (?project = <" project-id ">) }"))]
     (lambda (key . args)
       #f)))
 
-(define (writable-graphs-for-user-in-project username project-hash)
+(define (writable-graphs-for-user-in-project username project-id)
   (let [(query (string-append
                 internal-prefixes
                 "SELECT ?graph FROM <http://sparqling-genomics.org/sg-web/state>
@@ -277,7 +278,7 @@ WHERE {
   }
 
   FILTER (! BOUND(?locked) OR (?locked = 0))
-  FILTER (?project = project:" project-hash ")
+  FILTER (?project = project:" project-id ")
 }"))]
     (query-results->alist (system-sparql-query query))))
 
@@ -304,7 +305,7 @@ BIND(IF(BOUND(?agentName),
        STRAFTER(STR(?agent), STR(agent:))) AS ?user)
 
 BIND(IF(BOUND(?orcidUri), ?orcidUri, \"#\") AS ?profileUri)
-FILTER (?project = <" project-id ">)
+FILTER (?project = project:" project-id ")
 }
 ORDER BY ASC(?user)"))]
     (query-results->alist (system-sparql-query query))))
@@ -318,7 +319,7 @@ ORDER BY ASC(?user)"))]
                     " agent:" username " sg:isAssignedTo ?project ."
                     " } WHERE {"
                     " agent:" auth-user " sg:isAssignedTo ?project ."
-                    " FILTER (?project = <" project-id ">) }"))]
+                    " FILTER (?project = project:" project-id ") }"))]
         (receive (header body) (system-sparql-query query)
           (if (= (response-code header) 200)
               (values #t "")
@@ -330,7 +331,7 @@ ORDER BY ASC(?user)"))]
                  internal-prefixes
                  "SELECT DISTINCT ?agent"
                  " FROM <" system-state-graph ">"
-                 " WHERE { ?agent sg:isAssignedTo <" project-id "> . "
+                 " WHERE { ?agent sg:isAssignedTo project:" project-id " . "
                  " FILTER (?agent = agent:" username ")"
                  " }"))
          (results (query-results->alist (system-sparql-query query)))]
@@ -348,7 +349,7 @@ ORDER BY ASC(?user)"))]
                (query (string-append
                        internal-prefixes
                        "INSERT INTO <" system-state-graph "> {"
-                       " <" project-id "> sg:hasAuthorization ?auth ."
+                       " project:" project-id " sg:hasAuthorization ?auth ."
                        " <" graph-uri "> sg:requiresAuthorization ?auth ."
                        " } WHERE { BIND(auth:" auth-id " AS ?auth) }"))]
           (receive (header body) (system-sparql-query query)
@@ -362,7 +363,7 @@ ORDER BY ASC(?user)"))]
                      internal-prefixes
                      "WITH <" system-state-graph "> "
                      "DELETE {"
-                     " agent:" username " sg:isAssignedTo <" project-id "> ."
+                     " agent:" username " sg:isAssignedTo project:" project-id " ."
                      " }"))]
         (receive (header body)
             (system-sparql-query query)
@@ -374,7 +375,7 @@ ORDER BY ASC(?user)"))]
   (let* [(query (string-append
                  internal-prefixes
                  "SELECT ?creator FROM <" system-state-graph "> WHERE {"
-                 " <" project-id "> dcterms:creator ?creator ."
+                 " project:" project-id " dcterms:creator ?creator ."
                  " FILTER (?creator = agent:" username ")}"))
          (results (query-results->alist (system-sparql-query query)))]
     (not (null? results))))
@@ -391,7 +392,7 @@ ORDER BY ASC(?user)"))]
                  internal-prefixes
                  "SELECT DISTINCT ?graph ?isLocked ?connectionName"
                  " FROM <" system-state-graph ">"
-                 " WHERE { <" project-id "> sg:hasAssignedGraph ?graph ."
+                 " WHERE { project:" project-id " sg:hasAssignedGraph ?graph ."
                  " ?graph sg:inConnection ?connectionName ."
                  " OPTIONAL { ?graph sg:isLocked ?lockState . }"
                  " BIND(IF(BOUND(?lockState), ?lockState, \"false\"^^xsd:boolean)"
@@ -410,11 +411,11 @@ ORDER BY ASC(?user)"))]
     (let [(query (string-append
                   internal-prefixes
                   "INSERT INTO <" system-state-graph "> {"
-                  " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
+                  " project:" project-id " sg:hasAssignedGraph <" graph-uri "> ."
                   " <" graph-uri "> sg:inConnection \"" connection-name
                   "\"^^xsd:string ."
                   " } WHERE {"
-                  " <" project-id "> sg:hasAuthorization ?auth ."
+                  " project:" project-id " sg:hasAuthorization ?auth ."
                   " <" graph-uri "> sg:requiresAuthorization ?auth ."
                   " }"))]
       (receive (header body)
@@ -429,12 +430,12 @@ ORDER BY ASC(?user)"))]
                  internal-prefixes
                  "WITH <" system-state-graph "> "
                  "DELETE {"
-                 " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
-                 " <" project-id "> sg:hasAuthorization ?auth ."
+                 " project:" project-id " sg:hasAssignedGraph <" graph-uri "> ."
+                 " project:" project-id " sg:hasAuthorization ?auth ."
                  " <" graph-uri ">  sg:requiresAuthorization ?auth . "
                  " <" graph-uri ">  sg:inConnection ?connectionName . "
                  "} WHERE {"
-                 " <" project-id "> sg:hasAssignedGraph <" graph-uri "> ."
+                 " project:" project-id " sg:hasAssignedGraph <" graph-uri "> ."
                  " <" graph-uri "> sg:requiresAuthorization ?auth ."
                  " <" graph-uri "> sg:inConnection ?connectionName ."
                  "}"))]

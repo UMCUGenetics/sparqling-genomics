@@ -44,34 +44,33 @@
                     #\_ x))
    graph))
 
-(define (all-graphs-in-project username connection-name project-hash)
-  (let [(id (project-id (project-by-hash project-hash)))]
-    (if id
-        (let [(query (string-append
-                      internal-prefixes
-                      "SELECT DISTINCT ?graph ?isLocked ?connectionName "
-                      "FROM <" system-state-graph "> "
-                      "WHERE {"
-                      " <" id "> sg:hasAssignedGraph ?graph . "
-                      " agent:" username " sg:isAssignedTo <" id "> ."
-                      " ?graph sg:inConnection "
-                      (if connection-name
-                          (string-append
-                           "\"" connection-name "\"^^xsd:string . ")
-                          "?connectionName .")
-                      " OPTIONAL { ?graph sg:isLocked ?lockState . }"
-                      " BIND(IF(BOUND(?lockState), ?lockState,"
-                      " \"false\"^^xsd:boolean) AS ?isLocked) "
-                      (if connection-name
-                          (string-append
-                           "BIND (\"" connection-name "\" AS ?connectionName)")
-                          "")
-                      " } ORDER BY ASC(?graph)"))]
-          (query-results->alist
-           (system-sparql-query query)))
-        '())))
+(define (all-graphs-in-project username connection-name project-id)
+  (if project-id
+      (let [(query (string-append
+                    internal-prefixes
+                    "SELECT DISTINCT ?graph ?isLocked ?connectionName "
+                    "FROM <" system-state-graph "> "
+                    "WHERE {"
+                    " project:" project-id " sg:hasAssignedGraph ?graph ."
+                    " agent:" username " sg:isAssignedTo project:" project-id " ."
+                    " ?graph sg:inConnection "
+                    (if connection-name
+                        (string-append
+                         "\"" connection-name "\"^^xsd:string . ")
+                        "?connectionName .")
+                    " OPTIONAL { ?graph sg:isLocked ?lockState . }"
+                    " BIND(IF(BOUND(?lockState), ?lockState,"
+                    " \"false\"^^xsd:boolean) AS ?isLocked) "
+                    (if connection-name
+                        (string-append
+                         "BIND (\"" connection-name "\" AS ?connectionName)")
+                        "")
+                    " } ORDER BY ASC(?graph)"))]
+        (query-results->alist
+         (system-sparql-query query)))
+      '()))
 
-(define* (all-predicates username connection project-hash token
+(define* (all-predicates username connection project-id token
                          #:key (graph #f) (type #f))
   (catch #t
     (lambda _
@@ -100,7 +99,7 @@
                                                             (cdr (car item))))))
                                  (query-results->alist
                                   (sparql-query-with-connection
-                                   connection query token project-hash))))]
+                                   connection query token project-id))))]
               (call-with-new-thread
                (lambda _
                  (cache-response-for-query query response)))
@@ -110,7 +109,7 @@
                  "Unknown exception thrown: ~a: ~s" key args)
       '())))
 
-(define* (all-types username connection token project-hash)
+(define* (all-types username connection token project-id)
   (let* [(query (string-append
                  internal-prefixes
                  "SELECT DISTINCT ?type WHERE { ?s rdf:type ?type . }"))
@@ -124,7 +123,7 @@
                          (apply append
                                 (query-results->list
                                  (sparql-query-with-connection
-                                  connection query token project-hash)
+                                  connection query token project-id)
                                  #t)) string<))]
             (cache-response-for-query query result)
             result))
@@ -138,7 +137,7 @@
 ;; ----------------------------------------------------------------------------
 ;;
 
-(define (hierarchical-tree-roots connection graph-uri token project-hash)
+(define (hierarchical-tree-roots connection graph-uri token project-id)
   "Returns data types that have no parents for GRAPH-URI in CONNECTION."
   (let* [(query
           (string-append internal-prefixes "\n"
@@ -154,10 +153,10 @@
                (apply append
                       (query-results->list
                        (sparql-query-with-connection
-                        connection query token project-hash) #t))))]
+                        connection query token project-id) #t))))]
     tree-roots))
 
-(define (hierarchical-tree-children connection token project-hash graph-uri
+(define (hierarchical-tree-children connection token project-id graph-uri
                                     tree-root)
   "Returns the direct children of TREE-ROOT for GRAPH-URI in CONNECTION."
   (catch #t
@@ -176,7 +175,7 @@
                    (apply append
                           (query-results->list
                            (sparql-query-with-connection connection query token
-                                                         project-hash) #t))))]
+                                                         project-id) #t))))]
         children))
     (lambda (key . args)
       (log-error "hierarchical-tree-children" "Thrown: ~a: ~s" key args)

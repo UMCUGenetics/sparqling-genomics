@@ -194,7 +194,7 @@
 ;; PROMPT-COMMIT
 ;; ----------------------------------------------------------------------------
 
-(define (prompt-commit prompt-id graph username token project-hash)
+(define (prompt-commit prompt-id graph username token project-id)
   (let [(connection (default-connection username))]
     (catch #t
       (lambda _

@@ -155,7 +155,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
                  " dcterms:date " (format-timestamp (current-time)) " ;"
                  " prov:startedAtTime " (format-timestamp start-time) " ;"
                  " prov:endedAtTime " (format-timestamp end-time) " ;"
-                 " sg:isRelevantTo <" project-id "> ."
+                 " sg:isRelevantTo project:" project-id " ."
                  "}"))]
     (receive (header body)
         (system-sparql-query query)
@@ -167,24 +167,24 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 
 ;; QUERY-ADD
 ;; ----------------------------------------------------------------------------
-(define (query-add content endpoint username start-time end-time project)
+(define (query-add content endpoint username start-time end-time project-id)
   "Adds a reference to the internal graph for the query RECORD."
   (cond
    [(string= content "")
     (values #f (format #f "The query cannot be empty."))]
    [(string= endpoint "")
     (values #f (format #f "The query must have an endpoint."))]
-   [(not (string? project))
+   [(not (string? project-id))
     (values #f (call-with-output-string
                  (lambda (port)
                    (sxml->xml '("Please make one of your "
                                 (a (@ (href "/projects")) "projects")
                                 " active.") port))))]
-   [(string= project "")
+   [(string= project-id "")
     (values #f (format #f "The query must have a project."))]
    [#t
     (begin
-      (persist-query content endpoint username start-time end-time project #f)
+      (persist-query content endpoint username start-time end-time project-id #f)
       (values #t ""))]))
 
 ;; QUERY-REMOVE
@@ -204,14 +204,14 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 ;; QUERY-REMOVE-UNMARKED-FOR-PROJECT
 ;; ----------------------------------------------------------------------------
 
-(define (query-remove-unmarked-for-project username project-uri)
-  "Removes queries for which marked? is #f inside PROJECT-URI."
+(define (query-remove-unmarked-for-project username project-id)
+  "Removes queries for which marked? is #f inside PROJECT-ID."
   (let [(query (string-append
                 internal-prefixes
                 "WITH <" system-state-graph ">
 DELETE { ?query ?p ?o }
 WHERE { ?query sg:executedBy agent:" username " ;
-               sg:isRelevantTo <" project-uri "> ; ?p ?o .
+               sg:isRelevantTo project:" project-id " ; ?p ?o .
   OPTIONAL {
     ?query sg:isProtected ?isProtected .
   }
@@ -304,11 +304,11 @@ ORDER BY DESC(?startTime)"))
         (map filter results)
         results)))
 
-(define (queries-by-project project)
+(define (queries-by-project project-id)
   (let [(results (query-results->alist
                   (system-sparql-query
                     (generate-query-with-filters
-                     `(,(format #f "?project = <~a>" project))))))]
+                     `(,(format #f "?project = project:~a" project-id))))))]
     (if (null? results)
         '()
         results)))

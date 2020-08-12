@@ -63,7 +63,7 @@
                        (namespace "kb")
                        (token #f)
                        (digest-auth #f)
-                       (project-hash #f))
+                       (project-id #f))
   "Send QUERY to STORE-BACKEND."
   (cond
    ((eq? store-backend '4store)
@@ -79,7 +79,7 @@
    ((eq? store-backend 'sparqling-genomics)
     (sparql-query-sparqling-genomics
      query #:uri uri #:host host #:port port #:type type #:token token
-           #:project-hash project-hash))
+           #:project-id project-id))
    (else #f)))
 
 ;;;
@@ -251,11 +251,11 @@
                                           (port 9999)
                                           (type "text/csv")
                                           (token #f)
-                                          (project-hash #f))
+                                          (project-id #f))
   (let ((post-url (if uri
-                      (format #f "~a/sparql?project-hash=~a" uri project-hash)
-                      (format #f "http://~a:~a/sparql?project-hash=~a"
-                              host port project-hash))))
+                      (format #f "~a/sparql?project-id=~a" uri project-id)
+                      (format #f "http://~a:~a/sparql?project-id=~a"
+                              host port project-id))))
     (call-with-values
         (lambda _
           (http-post post-url

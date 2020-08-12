@@ -139,8 +139,8 @@
             (throw 'not-a-post-request))
           (let* [(parameters (uri-query (request-uri request)))
                  (metadata   (post-data->alist parameters))
-                 (hash       (assoc-ref metadata 'project-hash))]
-            (unless hash (throw 'missing-project-hash))
+                 (hash       (assoc-ref metadata 'project-id))]
+            (unless hash (throw 'missing-project-id))
             (let [(query     (utf8->string (read-request-body request)))]
               (call-with-values
                   (lambda _ (may-execute? token hash query))
@@ -190,9 +190,9 @@
           (match key
             ('not-a-post-request
              (respond-405 client-port '(POST)))
-            ('missing-project-hash
+            ('missing-project-id
              (respond-400 client-port accept-type
-                          "Missing 'project-hash' parameter"))
+                          "Missing 'project-id' parameter"))
             (_
              (log-error "/api/query" "Thrown ~a: ~s" key args)
              (respond-500 client-port accept-type

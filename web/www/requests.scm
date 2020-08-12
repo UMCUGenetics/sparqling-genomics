@@ -418,9 +418,8 @@
    [(string-prefix? "/project-details/" request-path)
     (catch #t
       (lambda _
-        (let* [(hash    (last (string-split request-path #\/)))
-               (project (project-by-hash hash))]
-          (if (project-has-member? (project-id project) username)
+        (let [(hash    (last (string-split request-path #\/)))]
+          (if (project-has-member? hash username)
               (respond-to-client 200 client-port '(text/html)
                 (call-with-output-string
                  (lambda (port)
@@ -454,8 +453,7 @@
              "The URI needs to be formed as: "
              "'/query-history-clear/<project hash>'."))
           (begin
-            (query-remove-unmarked-for-project username
-              (project-id (project-by-hash hash)))
+            (query-remove-unmarked-for-project username hash)
             (respond-303 client-port (string-append "/query/" hash) #f))))]
 
    ;; All other requests can be handled as HTML responses.

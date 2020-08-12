@@ -491,13 +491,13 @@
   (uri-string key)
   (assoc-ref default-uri-strings key))
 
-(define (sparql-query-with-connection connection query token project-hash)
+(define (sparql-query-with-connection connection query token project-id)
   (if (system-wide-connection? connection)
       (sparql-query query
                     #:uri           (connection-uri connection)
                     #:store-backend 'sparqling-genomics
                     #:token         token
-                    #:project-hash  project-hash)
+                    #:project-id    project-id)
       (sparql-query query
                     #:uri (connection-uri connection)
                     #:store-backend (connection-backend connection)

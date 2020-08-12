@@ -66,24 +66,24 @@
                   (let ((alist (post-data->alist (uri-decode post-data))))
                     (match alist
                       [(('assign-graph . a) ('connection . b))
-                       (project-assign-graph! (project-id project) a b username)]
+                       (project-assign-graph! hash a b username)]
                       [(('assign-member . a))
-                       (project-assign-member! (project-id project) a username)]
+                       (project-assign-member! hash a username)]
                       [(('remove-assigned-graph . a))
-                       (project-forget-graph! (project-id project) a)]
+                       (project-forget-graph! hash a)]
                       [(('lock-assigned-graph . a))
-                       (project-lock-assigned-graph! (project-id project) a)]
+                       (project-lock-assigned-graph! hash a)]
                       [(('unlock-assigned-graph . a))
-                       (project-unlock-assigned-graph! (project-id project) a)]
+                       (project-unlock-assigned-graph! hash a)]
                       [(('remove-assigned-member . a))
-                       (project-forget-member! (project-id project) a)]
+                       (project-forget-member! hash a)]
                       [=> (values #t "")]))
                 (if success?
                     #f ; No need to display a message.
                     `(div (@ (class "message-box failure")) (p ,message))))
               #f))]
     (page-root-template username title request-path
-     `((h2 ,title ,(remove-project-button (project-hash project)))
+     `((h2 ,title ,(remove-project-button hash))
 
        ;; When an action occurred (like “the project was modified”), we
        ;; display the success or error message accordingly.

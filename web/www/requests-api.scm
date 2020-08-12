@@ -178,14 +178,14 @@
      [(string= "/api/graphs-by-project" request-path)
       (if (eq? (request-method request) 'POST)
           (let* [(data      (entire-request-data request))
-                 (hash      (assoc-ref data 'project-hash))
+                 (id        (assoc-ref data 'project-id))
                  ;; The connection-name is optional.
                  (name      (assoc-ref data 'connection))]
-            (if hash
+            (if id
                 (respond-200 client-port accept-type
-                  (all-graphs-in-project username name hash))
+                  (all-graphs-in-project username name id))
                 (respond-400 client-port accept-type
-                             "Missing 'project-hash' parameter.")))
+                             "Missing 'project-id' parameter.")))
           (respond-405 client-port '(POST)))]
 
      ;; ROOT-TYPES-BY-GRAPH
@@ -195,7 +195,7 @@
           (let* [(data         (entire-request-data request))
                  (conn-name    (assoc-ref data 'connection))
                  (connection   (connection-by-name conn-name username))
-                 (project-hash (assoc-ref data 'project-hash))
+                 (project-id (assoc-ref data 'project-id))
                  (graph        (assoc-ref data 'graph))]
             (cond
              [(not conn-name)
@@ -204,13 +204,13 @@
              [(not graph)
               (respond-400 client-port accept-type
                            "Missing 'graph' parameter.")]
-             [(not project-hash)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [else
               (respond-200 client-port accept-type
                            (hierarchical-tree-roots connection graph token
-                                                    project-hash))]))
+                                                    project-id))]))
           (respond-405 client-port '(POST)))]
 
      ;; CHILDREN-BY-TYPE
@@ -220,7 +220,7 @@
           (let* [(data         (entire-request-data request))
                  (conn-name    (assoc-ref data 'connection))
                  (connection   (connection-by-name conn-name username))
-                 (project-hash (assoc-ref data 'project-hash))
+                 (project-id (assoc-ref data 'project-id))
                  (graph        (assoc-ref data 'graph))
                  (rdf-type     (assoc-ref data 'type))]
             (cond
@@ -230,16 +230,16 @@
              [(not graph)
               (respond-400 client-port accept-type
                            "Missing 'graph' parameter.")]
-             [(not project-hash)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [(not rdf-type)
               (respond-400 client-port accept-type
                            "Missing 'type' parameter.")]
              [else
               (respond-200 client-port accept-type
                            (hierarchical-tree-children
-                            connection token project-hash graph rdf-type))]))
+                            connection token project-id graph rdf-type))]))
           (respond-405 client-port '(POST)))]
 
      ;; PREDICATES-BY-TYPE
@@ -249,7 +249,7 @@
           (let* [(data         (entire-request-data request))
                  (conn-name    (assoc-ref data 'connection))
                  (connection   (connection-by-name conn-name username))
-                 (project-hash (assoc-ref data 'project-hash))
+                 (project-id (assoc-ref data 'project-id))
                  (graph        (assoc-ref data 'graph))
                  (rdf-type     (assoc-ref data 'type))]
             (cond
@@ -259,15 +259,15 @@
              [(not graph)
               (respond-400 client-port accept-type
                            "Missing 'graph' parameter.")]
-             [(not project-hash)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [(not rdf-type)
               (respond-400 client-port accept-type
                            "Missing 'type' parameter.")]
              [else
               (respond-200 client-port accept-type
-               (all-predicates username connection project-hash token
+               (all-predicates username connection project-id token
                                #:graph graph #:type rdf-type))]))
           (respond-405 client-port '(POST)))]
 
@@ -278,7 +278,7 @@
           (let* [(data         (entire-request-data request))
                  (conn-name    (assoc-ref data 'connection))
                  (connection   (connection-by-name conn-name username))
-                 (project-hash (assoc-ref data 'project-hash))
+                 (project-id (assoc-ref data 'project-id))
                  (graph        (assoc-ref data 'graph))]
             (cond
              [(not conn-name)
@@ -287,13 +287,13 @@
              [(not graph)
               (respond-400 client-port accept-type
                            "Missing 'graph' parameter.")]
-             [(not project-hash)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [else
               (respond-200 client-port accept-type
                            (all-types username connection
-                                      token project-hash))]))
+                                      token project-id))]))
           (respond-405 client-port '(POST)))]
 
      ;; ASSIGN-GRAPH
@@ -301,13 +301,13 @@
      [(string= "/api/assign-graph" request-path)
       (if (eq? (request-method request) 'POST)
           (let* [(data            (entire-request-data request))
-                 (project-uri     (assoc-ref data 'project-uri))
+                 (project-id    (assoc-ref data 'project-id))
                  (connection-name (assoc-ref data 'connection))
                  (graph-uri       (assoc-ref data 'graph-uri))]
             (cond
-             [(not project-uri)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-uri' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [(not graph-uri)
               (respond-400 client-port accept-type
                            "Missing 'graph-uri' parameter.")]
@@ -315,8 +315,8 @@
               (respond-400 client-port accept-type
                            "Missing 'connection' parameter.")]
              [else
-              (if (project-has-member? project-uri username)
-                  (if (project-assign-graph! project-uri graph-uri
+              (if (project-has-member? project-id username)
+                  (if (project-assign-graph! project-id graph-uri
                                              connection-name username)
                       (respond-201 client-port)
                       (respond-500 client-port accept-type "Not OK"))
@@ -329,18 +329,18 @@
      [(string= "/api/unassign-graph" request-path)
       (if (eq? (request-method request) 'POST)
           (let* [(data        (entire-request-data request))
-                 (project-uri (assoc-ref data 'project-uri))
+                 (project-id (assoc-ref data 'project-id))
                  (graph-uri   (assoc-ref data 'graph-uri))]
             (cond
-             [(not project-uri)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-uri' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [(not graph-uri)
               (respond-400 client-port accept-type
                            "Missing 'graph-uri' parameter.")]
              [else
-              (if (project-has-member? project-uri username)
-                  (if (project-forget-graph! project-uri graph-uri)
+              (if (project-has-member? project-id username)
+                  (if (project-forget-graph! project-id graph-uri)
                       (respond-204 client-port)
                       (respond-500 client-port accept-type "Not OK"))
                   (respond-401 client-port accept-type "Not allowed."))]))
@@ -381,12 +381,11 @@
      [(string= "/api/remove-project" request-path)
       (if (eq? (request-method request) 'POST)
           (let* [(data  (entire-request-data request))
-                 (hash  (assoc-ref data 'project-hash))
-                 (id    (project-id (project-by-hash hash)))]
+                 (id    (assoc-ref data 'project-id))]
             (cond
-             [(not project-hash)
+             [(not project-id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [else
               (if (project-has-member? id username)
                   (receive (state message)
@@ -415,11 +414,11 @@
           (let* ((data       (entire-request-data request))
                  (query      (assoc-ref data 'query))
                  (conn-name  (assoc-ref data 'connection))
-                 (hash       (assoc-ref data 'project-hash)))
+                 (id         (assoc-ref data 'project-id)))
             (cond
-             [(not hash)
+             [(not id)
               (respond-400 client-port accept-type
-                           "Missing 'project-hash' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [(not conn-name)
               (respond-400 client-port accept-type
                            "Missing 'connection' parameter.")]
@@ -427,10 +426,8 @@
               (respond-400 client-port accept-type
                            "Missing 'query' parameter.")]
              [else
-              (let* ((connection (connection-by-name conn-name username))
-                     (project    (project-by-hash hash))
-                     (id         (project-id project))
-                     (start-time (current-time)))
+              (let ((connection (connection-by-name conn-name username))
+                    (start-time (current-time)))
                 (cond
                  ;; SYSTEM-WIDE CONNECTIONS
                  ;; -----------------------------------------------------------
@@ -440,7 +437,7 @@
 
                   (receive (header port)
                     (http-post (string-append (connection-uri connection)
-                                              "/api/query?project-hash=" hash)
+                                              "/api/query?project-id=" id)
                      #:headers
                      `((accept           . ,accept-type)
                        (Cookie           . ,(string-append "SGSession=" token))
@@ -472,7 +469,7 @@
                  ;; ---------------------------------------------------------
                  [(user-connection? connection)
                   (receive (header port)
-                      (sparql-query-with-connection connection query token hash)
+                      (sparql-query-with-connection connection query token id)
                     (cond
                      [(= (response-code header) 200)
                       (let* ((end-time   (current-time)))
@@ -520,13 +517,11 @@
      [(string= "/api/queries-remove-unmarked" request-path)
       (if (eq? (request-method request) 'POST)
           (let* ((data       (entire-request-data request))
-                 (uri        (assoc-ref data 'project-uri))
-                 (project     (project-by-id uri))
-                 (id          (project-id project)))
+                 (id         (assoc-ref data 'project-id)))
             (cond
-             [(not uri)
+             [(not id)
               (respond-400 client-port accept-type
-                           "Missing 'project-uri' parameter.")]
+                           "Missing 'project-id' parameter.")]
              [else
               (receive (status message)
                   (query-remove-unmarked-for-project username id)
@@ -694,9 +689,9 @@
           (let* [(data         (entire-request-data request))
                  (prompt-id    (assoc-ref data 'prompt-id))
                  (graph        (assoc-ref data 'graph))
-                 (project-hash (assoc-ref data 'project-hash))
-                 (state       (prompt-commit prompt-id graph username
-                                             token project-hash))]
+                 (project-id   (assoc-ref data 'project-id))
+                 (state        (prompt-commit prompt-id graph username
+                                              token project-id))]
             (if state
                 (respond-204 client-port)
                 (respond-500 client-port accept-type "Couldn't commit prompt.")))

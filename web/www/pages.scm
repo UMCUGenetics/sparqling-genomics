@@ -50,16 +50,16 @@
                      (string-prefix? "/edit-form" request-path))
                  `(a (@ (href "/dashboard")) "← Go back")
                  `(a (@ (href "/dashboard")) "Dashboard"))))
-   ,(map (lambda (item)
+   ,(map (lambda (project)
            (cond
-            [(string-suffix? (project-hash item) request-path)
+            [(string-suffix? (project-id project) request-path)
              `(li (@ (role "menuitem")
-                     (class "active")) ,(project-name item))]
+                     (class "active")) ,(project-name project))]
             [else
              `(li (@ (role "menuitem"))
                (a (@ (href ,(string-append "/project-details/"
-                                           (project-hash item))))
-                  ,(project-name item)))]))
+                                           (project-id project))))
+                  ,(project-name project)))]))
          (projects-by-user username))
    (li (@ (role "menuitem")
           (class ,(if (string= "/create-project" request-path)
@@ -70,7 +70,7 @@
           (class "logout")) (a (@ (href "/logout")) "Log out"))))
 
 (define (page-submenu username request-path)
-  (let* [(project-hash (basename request-path))
+  (let* [(project-id (basename request-path))
          (show-menu-item
           (lambda (item show-spacer?)
             (cond
@@ -82,7 +82,7 @@
              [else
               `(,(if show-spacer? `(li (@ (class "spacer")) "→") '())
                 (li (@ (role "menuitem"))
-                 (a (@ (href ,(string-append (car item) "/" project-hash)))
+                 (a (@ (href ,(string-append (car item) "/" project-id)))
                     ,(cadr item))))])))]
     (cond
      ;; Sub-pages for the “structure” page.
@@ -90,7 +90,7 @@
           (string-prefix? "/prompt" request-path))
       `(ul (@ (role "menubar"))
         (li (@ (role "menuitem"))
-         (a (@ (href ,(string-append "/structure/" project-hash)))
+         (a (@ (href ,(string-append "/structure/" project-id)))
             "← Go back")))]
 
      ;; Sub-pages for the “collect” page.
@@ -99,7 +99,7 @@
           (string-prefix? "/import" request-path))
       `(ul (@ (role "menubar"))
         (li (@ (role "menuitem"))
-            (a (@ (href ,(string-append "/collect/" project-hash)))
+            (a (@ (href ,(string-append "/collect/" project-id)))
                "← Go back")))]
 
      ;; The regular submenu.
