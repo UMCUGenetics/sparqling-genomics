@@ -89,6 +89,11 @@
        ;; display the success or error message accordingly.
        ,(if message message '())
 
+       (table (tr (td (strong "Project ID"))
+                  (td (code ,hash)))
+              (tr (td (strong "Created at"))
+                  (td ,(project-created-at project))))
+
        (h3 "Members" ,(add-member-button))
        ,(project-members-table username hash)
 
