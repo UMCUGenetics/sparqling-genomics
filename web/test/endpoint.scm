@@ -44,6 +44,7 @@
         (endpoint        (lambda (path)
                            (string-append endpoint-uri path)))
         (connection-name (random-ascii-string 32))
+        (graph-name      (string-append "https://" (random-ascii-string 48)))
         (connections     '())
         (projects        '())
         (queries         '())
@@ -133,28 +134,6 @@
                (response-code header)
                (get-string-all port))]))
 
-    ;; Remove connection
-    ;; ------------------------------------------------------------------------
-    (receive (header port)
-        (http-post (endpoint "/api/remove-connection")
-                   #:headers
-                   `((Cookie       . ,cookie)
-                     (accept       . ((application/s-expression)))
-                     (content-type . (application/s-expression)))
-                   #:streaming? #t
-                   #:body
-                   (call-with-output-string
-                     (lambda (out)
-                       (write `((name . ,connection-name)) out))))
-
-      (cond
-       [(= (response-code header) 204)
-        (success "Connection ~s was removed." connection-name)]
-       [else
-        (error "Call to /api/remove-connection failed with ~a:~%~a"
-               (response-code header)
-               (get-string-all port))]))
-
     ;; Add project
     ;; ------------------------------------------------------------------------
     (receive (header port)
@@ -178,6 +157,54 @@
                (response-code header)
                (get-string-all port))]))
 
+    ;; Assign graph to project
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/assign-graph")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((project-id . ,(assoc-ref new-project 'project-id))
+                                (connection  . ,connection-name)
+                                (graph-uri   . ,graph-name))
+                              out))))
+      (cond
+       [(= (response-code header) 201)
+        (success "Graph ~s has been assigned." graph-name)]
+       [else
+        (error "Call to /api/assign-graph failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Remove graph to project
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/unassign-graph")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((project-id . ,(assoc-ref new-project 'project-id))
+                                (connection  . ,connection-name)
+                                (graph-uri   . ,graph-name))
+                              out))))
+      (cond
+       [(= (response-code header) 204)
+        (success "Graph ~s has been removed." graph-name)]
+       [else
+        (error "Call to /api/unassign-graph failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
     ;; Remove project
     ;; ------------------------------------------------------------------------
     (receive (header port)
@@ -198,7 +225,29 @@
                  (assoc-ref new-project 'project-id))
         (set! new-project '())]
        [else
-        (error "Call to /api/add-project failed with ~a:~%~a"
+        (error "Call to /api/remove-project failed with ~a:~%~a"
+               (response-code header)
+               (get-string-all port))]))
+
+    ;; Remove connection
+    ;; ------------------------------------------------------------------------
+    (receive (header port)
+        (http-post (endpoint "/api/remove-connection")
+                   #:headers
+                   `((Cookie       . ,cookie)
+                     (accept       . ((application/s-expression)))
+                     (content-type . (application/s-expression)))
+                   #:streaming? #t
+                   #:body
+                   (call-with-output-string
+                     (lambda (out)
+                       (write `((name . ,connection-name)) out))))
+
+      (cond
+       [(= (response-code header) 204)
+        (success "Connection ~s was removed." connection-name)]
+       [else
+        (error "Call to /api/remove-connection failed with ~a:~%~a"
                (response-code header)
                (get-string-all port))]))
 
