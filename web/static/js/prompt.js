@@ -87,7 +87,7 @@ function commit_session ()
         data: JSON.stringify({
             "prompt-id": jQuery("#prompt-id").val(),
             "graph": jQuery("#select-graph").val(),
-            "project_hash": url.substr(url.lastIndexOf('/') + 1)
+            "project-id": url.substr(url.lastIndexOf('/') + 1)
         }),
         success: function (data) { location.reload(); }
     });
