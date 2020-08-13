@@ -206,7 +206,9 @@
   "The gateway function to the actual API handler."
   (let* [(request            (read-request client-port))
          (request-path       (uri->string (request-uri request)))
-         (parameters         (string-contains request-path "?token="))
+         (parameters         (uri-query (request-uri request)))
+         (metadata           (post-data->alist parameters))
+         (token-parameter    (assoc-ref metadata 'token))
          (path-wo-parameters (if parameters
                                  (substring request-path 0 parameters)
                                  request-path))
@@ -217,12 +219,11 @@
     ;; There can be multiple cookies on the top-level domain, so we have
     ;; to pick the right one.
     (let* [(cookies-str (cond
-                         [biscuit    biscuit]
-                         [parameters (string-append
-                                      (session-cookie-prefix) "="
-                                      (substring request-path
-                                                 (+ 7 parameters)))]
-                         [else       #f]))
+                         [biscuit         biscuit]
+                         [token-parameter (string-append
+                                           (session-cookie-prefix) "="
+                                           token-parameter)]
+                         [else            #f]))
            (cookies (if (string? cookies-str)
                         (delete #f (map (lambda (cookie)
                                           (if (string-prefix?
