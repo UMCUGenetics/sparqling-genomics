@@ -15,10 +15,14 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www db graphs)
-  #:use-module (www config)
   #:use-module (sparql util)
+  #:use-module (www config)
+  #:use-module (www db connections)
+  #:use-module (www db sessions)
+  #:use-module (www util)
 
-  #:export (graphs-assigned-to-user
+  #:export (full-service-uri
+            graphs-assigned-to-user
             graphs-assigned-to-user-per-connection))
 
 (define (graphs-assigned-to-user username)
@@ -55,3 +59,19 @@
 
   (restructure-connections-and-graphs
    (graphs-assigned-to-user username)))
+
+(define (full-service-uri connection-name username)
+  (let ((connection (connection-by-name connection-name username)))
+    (cond
+     [(system-wide-connection? connection)
+      (let ((session-name (string-append "FSU-" (random-ascii-string 44)))
+            (added?       (session-add
+                           (alist->session
+                            `((name     . ,session-name)
+                              (username . ,username)
+                              (token    . "")))))
+            (session      (session-by-name username session-name)))
+        (string-append (connection-uri connection)
+                       "?token=" (session-token session)))]
+     [else
+      #f])))
