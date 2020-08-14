@@ -205,17 +205,14 @@
 (define (request-handler client-port)
   "The gateway function to the actual API handler."
   (let* [(request            (read-request client-port))
-         (request-path       (uri->string (request-uri request)))
-         (parameters         (uri-query (request-uri request)))
+         (uri                (request-uri request))
+         (request-path       (uri-path uri))
+         (parameters         (uri-query uri))
          (metadata           (post-data->alist parameters))
          (token-parameter    (assoc-ref metadata 'token))
-         (path-wo-parameters (if parameters
-                                 (substring request-path 0 parameters)
-                                 request-path))
          (accept-type        (request-accept request))
          (headers            (request-headers request))
          (biscuit            (assoc-ref headers 'cookie))]
-
     ;; There can be multiple cookies on the top-level domain, so we have
     ;; to pick the right one.
     (let* [(cookies-str (cond
@@ -261,8 +258,8 @@
         (respond-406 client-port)]
        ;; Only proceed when the sg-web instance approves.
        [username
-        (log-access username path-wo-parameters)
-        (api-handler request path-wo-parameters client-port
+        (log-access username request-path)
+        (api-handler request request-path client-port
                      #:username username
                      #:token cookie)]
        [else
