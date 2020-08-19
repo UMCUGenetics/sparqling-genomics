@@ -19,6 +19,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([color-tests -Wall -Wno-portability foreign])
 AM_SILENT_RULES([yes])
 
+LT_INIT([dlopen win32-dll])
+AC_SUBST([LIBTOOL_DEPS])
+
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_HEADER_STDC
@@ -32,8 +35,10 @@ GUILE_SITE_DIR
 dnl Installation directories for .scm and .go files.
 moddir="${datarootdir}/guile/site/$GUILE_EFFECTIVE_VERSION"
 godir="${libdir}/guile/$GUILE_EFFECTIVE_VERSION/site-ccache"
+extdir="${libdir}/guile/$GUILE_EFFECTIVE_VERSION/extensions"
 AC_SUBST([moddir])
 AC_SUBST([godir])
+AC_SUBST([extdir])
 
 if $GUILE_TOOLS | grep -q compile; then
    true
@@ -76,6 +81,7 @@ dnl Also resolve the absolute paths to the Guile moddir and godir.
 dnl ---------------------------------------------------------------------------
 AC_DEFINE_DIR([MODDIR], [moddir], [Path to installed Guile modules.])
 AC_DEFINE_DIR([GODIR], [godir], [Path to installed Guile objects.])
+AC_DEFINE_DIR([EXTDIR], [extdir], [Path to installed Guile extensions.])
 
 AC_CONFIG_FILES([env], [chmod +x env])
 
@@ -99,7 +105,11 @@ AC_CONFIG_FILES([
   tools/vcf2rdf/Makefile
   tools/xml2rdf/Makefile
   web/Makefile
+  web/extensions/Makefile
+  web/extensions/pdf_report/Makefile
+  web/extensions/pdf_report/include/pdf_report.h
   web/ldap/authenticate.scm
+  web/www/reports.scm
   web/sg-web.c
   web/sg-web-test.c
   web/sg-web.service
@@ -114,6 +124,7 @@ PKG_CHECK_MODULES([raptor2], [raptor2])
 PKG_CHECK_MODULES([libxml2], [libxml-2.0])
 PKG_CHECK_MODULES([gnutls], [gnutls])
 PKG_CHECK_MODULES([zlib], [zlib])
+PKG_CHECK_MODULES([png], [libpng])
 PKG_CHECK_MODULES([guile], [guile-$GUILE_EFFECTIVE_VERSION])
 
 dnl Find GnuTLS Guile paths.
@@ -136,6 +147,10 @@ else
   AC_SUBST([GNUTLS_GUILE_CCACHE],
            [$GNUTLS_LIBDIR/guile/$GUILE_EFFECTIVE_VERSION/site-ccache])
 fi
+
+dnl Propagate the location of the toplevel source directory.
+dnl ---------------------------------------------------------------------------
+AC_SUBST([abs_top_srcdir])
 
 
 dnl Let users provide a path to the libldap library because there is

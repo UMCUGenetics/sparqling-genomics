@@ -14,6 +14,9 @@
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+AUTOMAKE_OPTIONS        = subdir-objects
+SUBDIRS                 = extensions
+
 include guile.am
 
 SOURCES =                                               \
@@ -57,6 +60,7 @@ SOURCES =                                               \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
   www/forms.scm                                         \
+  www/reports.scm                                       \
   www/pages.scm                                         \
   www/pages/automate.scm                                \
   www/pages/collect.scm                                 \

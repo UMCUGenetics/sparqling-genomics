@@ -19,8 +19,9 @@
   them.  The build system needs
   \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
   \href{https://www.gnu.org/software/automake}{GNU Automake},
-  \href{https://www.gnu.org/software/make}{GNU Make} and
-  \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config}.
+  \href{https://www.gnu.org/software/make}{GNU Make},
+  \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config} and
+  \href{https://www.gnu.org/software/libtool/}{libtool}.
   Additionally, for building the documentation, a working \LaTeX{} distribution is
   required including the \t{pdflatex} program.  Because \LaTeX{} distributions
   are rather large, this is dependency is optional, at the cost of not being able
@@ -43,27 +44,28 @@
       & \rotatebox[origin=l]{90}{\href{https://zlib.net/}{zlib}}
       & \rotatebox[origin=l]{90}{\href{https://www.gnu.org/software/guile}{GNU Guile}}
       & \rotatebox[origin=l]{90}{\href{https://www.gnutls.org/}{GnuTLS}}
+      & \rotatebox[origin=l]{90}{\href{http://www.libpng.org/pub/png/libpng.html}{libpng}}
       & \rotatebox[origin=l]{90}{\href{https://tug.org/texlive/}{\LaTeX{}}}\\
       \evenrow
-      \t{vcf2rdf}         & \B & \B &    & \B &    &    & \B &\\
+      \t{vcf2rdf}         & \B & \B &    & \B &    &    & \B &    &\\
       \oddrow
-      \t{bam2rdf}         & \B & \B &    & \B &    &    & \B &\\
+      \t{bam2rdf}         & \B & \B &    & \B &    &    & \B &    &\\
       \evenrow
-      \t{table2rdf}       & \B & \B &    &    & \B &    & \B &\\
+      \t{table2rdf}       & \B & \B &    &    & \B &    & \B &    &\\
       \oddrow
-      \t{json2rdf}        & \B & \B &    &    & \B &    & \B &\\
+      \t{json2rdf}        & \B & \B &    &    & \B &    & \B &    &\\
       \evenrow
-      \t{xml2rdf}         & \B & \B & \B &    & \B &    & \B &\\
+      \t{xml2rdf}         & \B & \B & \B &    & \B &    & \B &    &\\
       \oddrow
-      \t{folder2rdf}      &    &    &    &    &    & \B &    &\\
+      \t{folder2rdf}      &    &    &    &    &    & \B &    &    &\\
       \evenrow
-      \t{sg-web}          & \B &    &    &    &    & \B & \B &\\
+      \t{sg-web}          & \B &    &    &    &    & \B & \B & \B &\\
       \oddrow
-      \t{sg-web-test}     &    &    &    &    &    & \B & \B &\\
+      \t{sg-web-test}     & \B &    &    &    &    & \B & \B &    &\\
       \evenrow
-      \t{sg-auth-manager} &    &    &    &    &    & \B & \B &\\
+      \t{sg-auth-manager} & \B &    &    &    &    & \B & \B &    &\\
       \oddrow
-      Documentation       &    &    &    &    &    &    &    & \B \\
+      Documentation       &    &    &    &    &    &    &    &    & \B \\
     \end{tabularx}
     \caption{\small External tools required to build and run the programs of
       this project.}
@@ -73,6 +75,9 @@
 
   The manual provides example commands to import RDF using
   \href{https://curl.haxx.se/}{cURL}.
+
+  The \program{sg-web} program contains an embedded version of
+  \href{https://github.com/libharu/libharu}{libharu} to generate PDFs.
 
 \section{Installing the prerequisites}
 
