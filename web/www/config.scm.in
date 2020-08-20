@@ -60,6 +60,7 @@
             orcid-endpoint
             orcid-redirect-uri
             persist-connection-lock
+            resolved-static-file-path
             set-beacon-connection!
             set-beacon-enabled!
             set-beacon-organization-address!
@@ -367,6 +368,17 @@
     (unless (file-exists? (cache-root))
       (mkdir-p (cache-root)))
     (cache-root)))
+
+(define* (resolved-static-file-path path #:key (found #f)
+                                               (roots (www-roots)))
+  (cond
+   [found         found]
+   [(null? roots) #f]
+   [else
+    (let ((full-path (string-append (car roots) "/" path)))
+      (if (file-exists? full-path)
+          (resolved-static-file-path path #:found full-path #:roots '())
+          (resolved-static-file-path path #:found #f #:roots (cdr roots))))]))
 
 (define (set-www-listen-address! arg)
   (if (string? arg)
