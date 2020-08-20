@@ -314,17 +314,17 @@ HPDF_LinkAnnot_SetJavaScript(HPDF_Annotation annot, HPDF_JavaScript javascript)
    if (!action)
         return HPDF_CheckError ( annot->error);
 
-    ret = HPDF_Dict_Add (annot, "A", action);
-    if (ret != HPDF_OK)
-        return HPDF_CheckError (annot->error);
+   ret = HPDF_Dict_Add (annot, "A", action);
+   if (ret != HPDF_OK)
+       return HPDF_CheckError (annot->error);
 
-	ret += HPDF_Dict_Add (action, "JS", javascript);
-    ret += HPDF_Dict_AddName (action, "S", "JavaScript");
+   ret += HPDF_Dict_Add (action, "JS", javascript);
+   ret += HPDF_Dict_AddName (action, "S", "JavaScript");
 
-    if (ret != HPDF_OK)
-        return HPDF_CheckError (annot->error);
+   if (ret != HPDF_OK)
+      return HPDF_CheckError (annot->error);
 
-    return HPDF_OK;
+   return HPDF_OK;
 }
 
 HPDF_EXPORT(HPDF_STATUS)
