@@ -24,14 +24,16 @@
   #:export (report-friendly-name
             resolve-report-module
             report-modules
-            reports-for-project))
+            reports-for-project
+            report-for-project-by-name))
 
 (define (resolve-report-module request-path)
   (let* ((relative-path (if (eq? (string-ref request-path 0) #\/)
                              (substring request-path 1)
                              request-path))
          (full-path     (string-split relative-path #\/))
-         (module-path   `(www reports ,(string->symbol (car full-path))))
+         (module-name   (string->symbol (car full-path)))
+         (module-path   `(www reports ,module-name))
          (module        (if (developer-mode?)
                             (catch 'wrong-type-arg
                               (lambda _
@@ -45,9 +47,11 @@
     (if module
         (catch #t
           (lambda _ `((module          . ,module-path)
+                      (name            . ,module-name)
                       (title           . ,(module-ref module 'title))
                       (project         . ,(module-ref module 'project))
-                      (report-overview . ,(module-ref module 'report-overview))))
+                      (report-overview . ,(module-ref module 'report-overview))
+                      (report-pdf      . ,(module-ref module 'report-pdf))))
           (lambda (key . args)
             (log-error "resolve-report-module"
                        "Couldn't resolve the module's structure for ~s."
@@ -95,6 +99,19 @@
               module
               #f))
         (report-modules))))
+
+(define (report-for-project-by-name project-id name)
+  (catch #t
+    (lambda _
+      (car (delete #f
+            (map (lambda (module)
+                   (if (and (assoc-ref module 'name)
+                            (eq? (assoc-ref module 'name)
+                                 (string->symbol name)))
+                       module
+                       #f))
+                 (reports-for-project project-id)))))
+    (lambda (key . args) #f)))
 
 (define (report-friendly-name module)
   (if module

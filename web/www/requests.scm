@@ -33,6 +33,7 @@
   #:use-module (www db api)
   #:use-module (www db connections)
   #:use-module (www db forms)
+  #:use-module (www db reports)
   #:use-module (www db projects)
   #:use-module (www db queries)
   #:use-module (www db sessions)
@@ -257,6 +258,33 @@
                        (format port "<!DOCTYPE html>~%")))
                    (lambda (key . args) #f))
                  (sxml->xml sxml-tree port)))))))]
+
+   ;; Reports PDF serving
+   ;; -------------------------------------------------------------------------
+   [(and (string-prefix? "/report/" request-path)
+         (string-suffix? ".pdf" request-path))
+    (let ((parameters  (string-split (substring request-path 1) #\/))
+          (accept-type (first-acceptable-format (request-accept request))))
+      (cond
+       [(not accept-type)
+        (respond-406 client-port)]
+       [(= (length parameters) 4)
+        (let* ((project-id  (list-ref parameters 1))
+               (report-name (list-ref parameters 2))
+               (report-id   (basename request-path ".pdf")))
+          (cond
+           [(project-has-member? project-id username)
+            (let* ((report (report-for-project-by-name project-id report-name))
+                   (report-pdf (assoc-ref report 'report-pdf)))
+              (if report-pdf
+                  (respond-to-client 200 client-port '(application/pdf)
+                                     (report-pdf report-id))
+                  (respond-500 client-port accept-type
+                               "No PDF report available.")))]
+           [else
+            (respond-403 client-port accept-type "Not allowed.")]))]
+       [else
+        (respond-500 client-port accept-type "Report could not be found.")]))]
 
    ;; Form functionality
    ;; -------------------------------------------------------------------------
