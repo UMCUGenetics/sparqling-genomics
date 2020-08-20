@@ -16,14 +16,15 @@
 
 (define-module (www reports)
   #:export (pdf-report
-            pdf-report-set-logo!
-            pdf-report-set-title!
-            pdf-report-set-subtitle!
-            pdf-report-write!
-            pdf-report-render-text-field!
-            pdf-report-render-spacer!
             pdf-report-render-section!
-            pdf-report-render-subsection!))
+            pdf-report-render-spacer!
+            pdf-report-render-subsection!
+            pdf-report-render-text-field!
+            pdf-report-set-logo!
+            pdf-report-set-subtitle!
+            pdf-report-set-title!
+            pdf-report-write!
+            pdf-report-write-to-port!))
 
 ;; Disapointed to not see the source code for the functions in this module?
 ;; Check out ‘web/extensions/pdf_report/src/pdf_report.c’.
