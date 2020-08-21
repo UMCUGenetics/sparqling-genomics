@@ -266,8 +266,8 @@
             (let* ((report (report-for-project-by-name project-id report-name))
                    (report-pdf (assoc-ref report 'report-pdf)))
               (if report-pdf
-                  (respond-to-client 200 client-port '(application/pdf)
-                                     (report-pdf report-id))
+                  (respond-to-client-chunked client-port "application/pdf"
+                    (lambda (port) (report-pdf port report-id)))
                   (respond-500 client-port accept-type
                                "No PDF report available.")))]
            [else
@@ -320,7 +320,6 @@
               (respond-to-client 200 client-port '(text/html)
                 (call-with-output-string
                   (lambda (port)
-                    (set-port-encoding! port "utf8")
                     (format port "<!DOCTYPE html>~%")
                     (sxml->xml (page request-path
                                      (if parameters

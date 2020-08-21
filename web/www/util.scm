@@ -25,6 +25,7 @@
   #:use-module (ice-9 receive)
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
+  #:use-module (web http)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (www db api)
@@ -40,6 +41,7 @@
             is-uri?
             random-ascii-string
             respond-to-client
+            respond-to-client-chunked
             respond-200
             respond-200-with-cookie
             respond-201
@@ -161,6 +163,32 @@
                   (content-length . ,(bytevector-length content))))
      client-port)
     (put-bytevector client-port content)))
+
+(define (respond-to-client-chunked port content-type writer)
+  "Respond to PORT with a HTTP/1.1 chunked encoding response.  The
+CONTENT-TYPE must be a string, and WRITER must be a procedure that takes
+a chunked port as its only argument."
+
+  (set-port-encoding! port "UTF-8")
+
+  ;; Build the HTTP header.
+  (put-bytevector port
+                  (string->utf8
+                   (string-append
+                    "HTTP/1.1 200 OK\r\n"
+                    "Server: SPARQLing-genomics\r\n"
+                    "Connection: close\r\n"
+                    "Content-Type: " content-type "\r\n"
+                    "Transfer-Encoding: chunked\r\n\r\n")))
+
+  (let ((wrapped-port (make-chunked-output-port port #:keep-alive? #t)))
+    (writer wrapped-port)
+    (force-output wrapped-port)
+    (close-port wrapped-port)
+    ;; The chunked-output-port doesn't terminate the session with an
+    ;; additional “\r\n”, so we force that here.
+    (put-bytevector port (string->utf8 "\r\n"))
+    (close-port port)))
 
 (define (respond-with-error-message code client-port accept-type message)
   (let [(response-type (first-acceptable-format accept-type))]
