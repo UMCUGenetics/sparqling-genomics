@@ -69,6 +69,16 @@ report_destroy (void *ptr)
 }
 
 SCM
+report_free (SCM data)
+{
+  report_t *report = scm_to_pointer (data);
+  if (! report) return SCM_BOOL_F;
+
+  report_destroy (report);
+  return SCM_BOOL_T;
+}
+
+SCM
 report_write (SCM data)
 {
   report_t *report = scm_to_pointer (data);
@@ -77,7 +87,6 @@ report_write (SCM data)
   if (! report->filename) return SCM_BOOL_F;
 
   HPDF_SaveToFile (report->pdf, report->filename);
-  report_destroy (report);
 
   return SCM_BOOL_T;
 }
@@ -117,8 +126,6 @@ report_write_to_port (SCM port, SCM data)
        */
       read_bytes = buffer_length;
     }
-
-  report_destroy (report);
 
   /* So, since we can only check after sending the data out whether
    * an error occurred, we can't do any better than return #f here. */
@@ -378,4 +385,5 @@ init_pdf_report ()
   scm_c_define_gsubr ("pdf-report-render-spacer!",     2, 0, 0, report_render_spacer);
   scm_c_define_gsubr ("pdf-report-render-section!",    2, 0, 0, report_render_section);
   scm_c_define_gsubr ("pdf-report-render-subsection!", 2, 0, 0, report_render_subsection);
+  scm_c_define_gsubr ("pdf-report-close",              1, 0, 0, report_free);
 }
