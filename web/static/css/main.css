@@ -742,7 +742,7 @@ span.form-checkbox label { cursor: pointer; }
 span.form-radio-button label { cursor: pointer; }
 
 .arrow-spacer { display: inline-block; width: 10pt; }
-.svg-icon { display: inline-block; width: 80%; }
+.svg-icon { display: inline-block; width: 80%; vertical-align: middle; max-height: 1.5em; }
 .svg-icon-btn { display: inline-block; width: 12pt; vertical-align: middle; }
 
 #execute-query-button {
