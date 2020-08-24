@@ -177,6 +177,7 @@ report_render_heading (SCM data, SCM title_scm, HPDF_REAL fontsize)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (scm_string_p (title_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   HPDF_REAL height = HPDF_Page_GetHeight (report->page);
   HPDF_REAL width = HPDF_Page_GetWidth (report->page);
@@ -211,6 +212,7 @@ report_set_title (SCM data, SCM title_scm)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (scm_string_p (title_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   report->title = scm_to_locale_string (title_scm);
   HPDF_SetInfoAttr (report->pdf, HPDF_INFO_TITLE, report->title);
@@ -221,6 +223,7 @@ report_set_title (SCM data, SCM title_scm)
 SCM
 report_set_subtitle (SCM data, SCM title_scm)
 {
+  if (scm_string_p (title_scm) == SCM_BOOL_F) return SCM_BOOL_F;
   return report_render_heading (data, title_scm, 18);
 }
 
@@ -229,6 +232,7 @@ report_set_logo (SCM data, SCM filename_scm, SCM position)
 {
   report_t *report = scm_to_pointer (data);
   if (! report) return SCM_BOOL_F;
+  if (scm_string_p (filename_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   HPDF_REAL page_height  = HPDF_Page_GetHeight (report->page);
   HPDF_REAL page_width   = HPDF_Page_GetWidth (report->page);
@@ -272,6 +276,8 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (scm_string_p (text_scm) == SCM_BOOL_F) return SCM_BOOL_F;
+  if (scm_string_p (label_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   char *label = scm_to_locale_string (label_scm);
   char *text  = scm_to_locale_string (text_scm);
@@ -330,6 +336,7 @@ report_render_section (SCM data, SCM text_scm)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (scm_string_p (text_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   HPDF_Page_SetRGBFill (report->page, 0.113, 0.345, 0.670);
   HPDF_Page_SetLineWidth (report->page, 1);
@@ -347,6 +354,7 @@ report_render_subsection (SCM data, SCM text_scm)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (scm_string_p (text_scm) == SCM_BOOL_F) return SCM_BOOL_F;
 
   HPDF_REAL height = HPDF_Page_GetHeight (report->page);
   HPDF_REAL width = HPDF_Page_GetWidth (report->page);
