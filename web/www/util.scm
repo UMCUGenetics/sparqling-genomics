@@ -17,6 +17,7 @@
 
 (define-module (www util)
   #:use-module (rnrs bytevectors)
+  #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
@@ -173,14 +174,12 @@ a chunked port as its only argument."
   (set-port-encoding! port "UTF-8")
 
   ;; Build the HTTP header.
-  (put-bytevector port
-                  (string->utf8
-                   (string-append
+  (put-string port (string-append
                     "HTTP/1.1 200 OK\r\n"
                     "Server: SPARQLing-genomics\r\n"
                     "Connection: close\r\n"
                     "Content-Type: " content-type "\r\n"
-                    "Transfer-Encoding: chunked\r\n\r\n")))
+                    "Transfer-Encoding: chunked\r\n\r\n"))
 
   (let ((wrapped-port (make-chunked-output-port port #:keep-alive? #t)))
     (writer wrapped-port)
@@ -188,7 +187,7 @@ a chunked port as its only argument."
     (close-port wrapped-port)
     ;; The chunked-output-port doesn't terminate the session with an
     ;; additional “\r\n”, so we force that here.
-    (put-bytevector port (string->utf8 "\r\n"))
+    (put-string port "\r\n")
     (close-port port)))
 
 (define (respond-to-client-chunked-binary port content-type writer)
