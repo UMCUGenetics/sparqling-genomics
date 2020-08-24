@@ -281,7 +281,10 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
 
   char *label = scm_to_locale_string (label_scm);
   char *text  = scm_to_locale_string (text_scm);
-  int lines   = scm_to_int (lines_scm);
+
+  int lines = 1;
+  if (lines_scm != SCM_UNDEFINED)
+    lines = scm_to_int (lines_scm);
 
   HPDF_REAL height       = HPDF_Page_GetHeight (report->page);
   HPDF_REAL width        = HPDF_Page_GetWidth (report->page);
@@ -410,7 +413,7 @@ init_pdf_report ()
   scm_c_define_gsubr ("pdf-report-set-logo!",          3, 0, 0, report_set_logo);
   scm_c_define_gsubr ("pdf-report-write!",             1, 0, 0, report_write);
   scm_c_define_gsubr ("pdf-report-write-to-port!",     2, 1, 0, report_write_to_port);
-  scm_c_define_gsubr ("pdf-report-render-text-field!", 4, 0, 0, report_render_text_field);
+  scm_c_define_gsubr ("pdf-report-render-text-field!", 3, 1, 0, report_render_text_field);
   scm_c_define_gsubr ("pdf-report-render-spacer!",     2, 0, 0, report_render_spacer);
   scm_c_define_gsubr ("pdf-report-render-section!",    2, 0, 0, report_render_section);
   scm_c_define_gsubr ("pdf-report-render-subsection!", 2, 0, 0, report_render_subsection);
