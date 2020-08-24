@@ -92,7 +92,7 @@ report_write (SCM data)
 }
 
 SCM
-report_write_to_port (SCM port, SCM data)
+report_write_to_port (SCM port, SCM data, SCM chunked_writing_p)
 {
   report_t *report = scm_to_pointer (data);
   if (! report) return SCM_BOOL_F;
@@ -100,6 +100,10 @@ report_write_to_port (SCM port, SCM data)
 
   if (scm_output_port_p (port) == SCM_BOOL_F)
     return SCM_BOOL_F;
+
+  /* Set the default value for chunked_writing_p. */
+  if (chunked_writing_p == SCM_UNDEFINED)
+    chunked_writing_p = SCM_BOOL_F;
 
   /* Write the whole PDF to memory. */
   HPDF_SaveToStream (report->pdf);
@@ -110,12 +114,27 @@ report_write_to_port (SCM port, SCM data)
   HPDF_STATUS status = HPDF_OK;
   HPDF_BYTE buffer[buffer_length];
 
+  const size_t size_buffer_length = 16;
+  char size_buffer[size_buffer_length];
+  int written = 0;
+
   /* The status will be HPDF_STREAM_EOF when all contents have
    * been sent. */
   while (status == HPDF_OK)
     {
       status = HPDF_ReadFromStream  (report->pdf, buffer, &read_bytes);
-      if (read_bytes > 0) scm_c_write (port, buffer, read_bytes);
+
+      if (read_bytes == 0) continue;
+      if (scm_is_true (chunked_writing_p))
+        {
+          written = snprintf (size_buffer, size_buffer_length, "%x\r\n",
+                              read_bytes);
+
+          scm_c_write (port, size_buffer, written);
+        }
+
+      scm_c_write (port, buffer, read_bytes);
+      scm_c_write (port, "\r\n", 2);
 
       /* The thing is that “read_bytes” is used both to indicate
        * the number of bytes to read upon calling HPDF_ReadFromStream,
@@ -131,6 +150,8 @@ report_write_to_port (SCM port, SCM data)
    * an error occurred, we can't do any better than return #f here. */
   if (status != HPDF_STREAM_EOF)
     return SCM_BOOL_F;
+  else if (scm_is_true (chunked_writing_p))
+    scm_c_write (port, "0\r\n\r\n", 5);
 
   return SCM_BOOL_T;
 }
@@ -283,7 +304,7 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
                        ((-1 * (text_height / 2) * (lines - 1))) + 2);
   HPDF_Page_Fill (report->page);
   HPDF_Page_SetRGBFill (report->page, 0, 0, 0);
-  
+
   HPDF_Page_BeginText (report->page);
   HPDF_Page_SetRGBFill (report->page, 0.33, 0.33, 0.33);
   HPDF_Page_TextRect (report->page,
@@ -332,7 +353,7 @@ report_render_subsection (SCM data, SCM text_scm)
   int fontsize = 16;
 
   char *title = scm_to_locale_string (text_scm);
-  
+
   HPDF_Page_BeginText (report->page);
   HPDF_Page_SetFontAndSize (report->page, report->font, fontsize);
   HPDF_Page_TextOut (report->page,
@@ -380,7 +401,7 @@ init_pdf_report ()
   scm_c_define_gsubr ("pdf-report-set-subtitle!",      2, 0, 0, report_set_subtitle);
   scm_c_define_gsubr ("pdf-report-set-logo!",          3, 0, 0, report_set_logo);
   scm_c_define_gsubr ("pdf-report-write!",             1, 0, 0, report_write);
-  scm_c_define_gsubr ("pdf-report-write-to-port!",     2, 0, 0, report_write_to_port);
+  scm_c_define_gsubr ("pdf-report-write-to-port!",     2, 1, 0, report_write_to_port);
   scm_c_define_gsubr ("pdf-report-render-text-field!", 4, 0, 0, report_render_text_field);
   scm_c_define_gsubr ("pdf-report-render-spacer!",     2, 0, 0, report_render_spacer);
   scm_c_define_gsubr ("pdf-report-render-section!",    2, 0, 0, report_render_section);

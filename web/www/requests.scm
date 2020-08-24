@@ -253,9 +253,10 @@
    [(and (string-prefix? "/report/" request-path)
          (string-suffix? ".pdf" request-path))
     (let ((parameters  (string-split (substring request-path 1) #\/))
-          (accept-type (first-acceptable-format (request-accept request))))
+          (accept-type (request-accept request)))
       (cond
-       [(not accept-type)
+       [(or (not (api-serveable-format? accept-type))
+            (is-format '(application/pdf) accept-type))
         (respond-406 client-port)]
        [(= (length parameters) 4)
         (let* ((project-id  (list-ref parameters 1))
@@ -266,7 +267,7 @@
             (let* ((report (report-for-project-by-name project-id report-name))
                    (report-pdf (assoc-ref report 'report-pdf)))
               (if report-pdf
-                  (respond-to-client-chunked client-port "application/pdf"
+                  (respond-to-client-chunked-binary client-port "application/pdf"
                     (lambda (port) (report-pdf port report-id)))
                   (respond-500 client-port accept-type
                                "No PDF report available.")))]

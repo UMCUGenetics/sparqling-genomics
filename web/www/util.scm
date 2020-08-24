@@ -42,6 +42,7 @@
             random-ascii-string
             respond-to-client
             respond-to-client-chunked
+            respond-to-client-chunked-binary
             respond-200
             respond-200-with-cookie
             respond-201
@@ -189,6 +190,24 @@ a chunked port as its only argument."
     ;; additional “\r\n”, so we force that here.
     (put-bytevector port (string->utf8 "\r\n"))
     (close-port port)))
+
+(define (respond-to-client-chunked-binary port content-type writer)
+  "Similar to RESPOND-TO-CLIENT-CHUNKED, but the port passed to WRITER
+is not a CHUNKED-OUTPUT-PORT."
+
+  (set-port-encoding! port "UTF-8")
+
+  ;; Build the HTTP header.
+  (put-bytevector port
+                  (string->utf8
+                   (string-append
+                    "HTTP/1.1 200 OK\r\n"
+                    "Server: SPARQLing-genomics\r\n"
+                    "Connection: close\r\n"
+                    "Content-Type: " content-type "\r\n"
+                    "Transfer-Encoding: chunked\r\n\r\n")))
+  (writer port)
+  (close-port port))
 
 (define (respond-with-error-message code client-port accept-type message)
   (let [(response-type (first-acceptable-format accept-type))]

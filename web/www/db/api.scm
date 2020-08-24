@@ -27,9 +27,10 @@
             api-request-data->alist
             api-serveable-format?
             first-acceptable-format
+            is-format
             rdf-formats))
 
-(define-syntax-rule (is-format a b)
+(define (is-format a b)
   (or (equal? a b)
       (member a b)))
 
