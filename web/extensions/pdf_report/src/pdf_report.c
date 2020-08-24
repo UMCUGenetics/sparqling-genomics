@@ -404,10 +404,30 @@ report_render_spacer (SCM data, SCM height_scm)
   return SCM_BOOL_T;
 }
 
+SCM
+report_pdf_new_page (SCM data)
+{
+  report_t *report = scm_to_pointer (data);
+  if (! report) return SCM_BOOL_F;
+  if (! report->pdf) return SCM_BOOL_F;
+
+  HPDF_Page page = HPDF_AddPage (report->pdf);
+  if (! page) return SCM_BOOL_F;
+
+  report->page = page;
+  report->occupied_y = report->padding;
+
+  HPDF_Page_SetSize (report->page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
+  HPDF_Page_SetFontAndSize (report->page, report->font, 12);
+
+  return SCM_BOOL_T;
+}
+
 void
 init_pdf_report ()
 {
   scm_c_define_gsubr ("pdf-report",                    0, 1, 0, report_pdf);
+  scm_c_define_gsubr ("pdf-report-new-page!",          1, 0, 0, report_pdf_new_page);
   scm_c_define_gsubr ("pdf-report-set-title!",         2, 0, 0, report_set_title);
   scm_c_define_gsubr ("pdf-report-set-subtitle!",      2, 0, 0, report_set_subtitle);
   scm_c_define_gsubr ("pdf-report-set-logo!",          3, 0, 0, report_set_logo);
