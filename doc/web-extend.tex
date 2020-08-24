@@ -220,6 +220,8 @@ export SG_WEB_ROOT=/home/user/form-module
   \item \t{project}: The hash of the project to display the report module.
   \item \t{report-overview}: A procedure that returns an SXML tree that
     provides the content under the subheading of the report module.
+  \item \t{report-pdf}: A procedure that writes a PDF stream to a given port
+    that provides an archiveable record for users to download.
   \end{itemize}
 
 \subsection{Example of a report module}
@@ -272,3 +274,21 @@ export SG_WEB_ROOT=/home/user/form-module
 \end{verbatim}
 \end{siderules}
 
+\subsubsection{Implementing the \t{report-pdf} procedure}
+
+  The \t{report-pdf} procedure takes a binary output port and a string as
+  arguments, and is expected to write HTTP/1.1 chunked encoded output to
+  the output port.  The following implementation of the \t{report-pdf}
+  procedure produces a PDF report using the module \t{(www reports)}
+  and writes it with the proper encoding to the output port:
+
+\begin{siderules}
+\begin{verbatim}
+(define (report-pdf port identifier)
+  (let ((pdf (pdf-report)))
+    (pdf-report-set-title!          pdf "Example")
+    (pdf-report-render-text-field!  pdf "Identifier" identifier 1)
+    (pdf-report-write-to-port! port pdf #t)
+    (pdf-report-close               pdf)))
+\end{verbatim}
+\end{siderules}
