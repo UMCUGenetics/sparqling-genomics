@@ -21,6 +21,8 @@
 #include <string.h>
 #include "pdf_report.h"
 
+#define FONT_SIZE 11
+
 HPDF_REAL ScaleDPI (HPDF_REAL size) { return size * (72.0F / 288.0F); }
 
 int
@@ -48,7 +50,7 @@ report_init (report_t *report, char *filename)
   if (! report->page) return 1;
 
   HPDF_Page_SetSize (report->page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
-  HPDF_Page_SetFontAndSize (report->page, report->font, 12);
+  HPDF_Page_SetFontAndSize (report->page, report->font, FONT_SIZE);
   return 0;
 }
 
@@ -199,7 +201,7 @@ report_render_heading (SCM data, SCM title_scm, HPDF_REAL fontsize)
   if (fontsize > 20)
     HPDF_Page_SetTextRenderingMode (report->page, HPDF_FILL);
 
-  HPDF_Page_SetFontAndSize (report->page, report->font, 12);
+  HPDF_Page_SetFontAndSize (report->page, report->font, FONT_SIZE);
   HPDF_Page_EndText (report->page);
 
   free (title);
@@ -288,7 +290,7 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
 
   HPDF_REAL height       = HPDF_Page_GetHeight (report->page);
   HPDF_REAL width        = HPDF_Page_GetWidth (report->page);
-  HPDF_REAL text_height  = 12;
+  HPDF_REAL text_height  = FONT_SIZE;
 
   /* Display the field's label. */
   HPDF_Page_BeginText (report->page);
@@ -371,7 +373,7 @@ report_render_subsection (SCM data, SCM text_scm)
                      report->padding,
                      height - report->occupied_y - fontsize,
                      title);
-  HPDF_Page_SetFontAndSize (report->page, report->font, 12);
+  HPDF_Page_SetFontAndSize (report->page, report->font, FONT_SIZE);
   HPDF_Page_EndText (report->page);
 
   /* Draw a line */
@@ -418,7 +420,7 @@ report_pdf_new_page (SCM data)
   report->occupied_y = report->padding;
 
   HPDF_Page_SetSize (report->page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
-  HPDF_Page_SetFontAndSize (report->page, report->font, 12);
+  HPDF_Page_SetFontAndSize (report->page, report->font, FONT_SIZE);
 
   return SCM_BOOL_T;
 }
