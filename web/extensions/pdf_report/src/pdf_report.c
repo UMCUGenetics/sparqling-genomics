@@ -300,31 +300,42 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
                      label);
   HPDF_Page_EndText (report->page);
 
+  HPDF_REAL rect_x = report->padding;
+  HPDF_REAL rect_y = height - report->occupied_y - report->padding -
+                     ((text_height * 1.5) * (lines - 1)) - 3;
+  HPDF_REAL rect_w = width - report->padding * 2;
+  HPDF_REAL rect_h = -1 * ((text_height + 1) * (lines * -1.5) + 3);
+
+  if (lines < 2)
+    {
+      /* The label is on the same line, so leave some space. */
+      rect_w -= 100;
+      rect_x += 98;
+    }
+  else
+    {
+      /* For large text boxes, we draw the label above the text box. */
+      rect_y -= text_height * 2;
+      rect_x += 1;
+      report->occupied_y += text_height * 1.5;
+    }
+
   /* Display a border around the field's text. */
-  //HPDF_Page_SetLineWidth (report->page, 1);
-  HPDF_Page_SetRGBFill (report->page, 0.97, 0.97, 0.97);
-  HPDF_Page_Rectangle (report->page,
-                       report->padding + 100 - 2,
-                       /* The top-most base position. */
-                       height - report->occupied_y -
-                       report->padding - ((text_height + (text_height / 2)) * (lines - 1)) - 3,
-                       width - 100 - report->padding * 2,
-                       /* Text lines */
-                       (text_height + 2) * lines -
-                       /* Text spacing */
-                       ((-1 * (text_height / 2) * (lines - 1))) + 2);
+  HPDF_Page_SetRGBFill (report->page, 0.95, 0.95, 0.95);
+  HPDF_Page_Rectangle (report->page, rect_x, rect_y, rect_w, rect_h);
   HPDF_Page_Fill (report->page);
   HPDF_Page_SetRGBFill (report->page, 0, 0, 0);
 
   HPDF_Page_BeginText (report->page);
-  HPDF_Page_SetRGBFill (report->page, 0.33, 0.33, 0.33);
+  HPDF_Page_SetRGBFill (report->page, 0.3, 0.3, 0.3);
   HPDF_Page_TextRect (report->page,
-                      report->padding + 100,
-                      height - report->occupied_y - 7,
-                      width - report->padding,
-                      height - report->occupied_y - report->padding * lines,
+                      rect_x + 2,
+                      height - report->occupied_y - 8,
+                      rect_w,
+                      rect_h,
                       text,
                       HPDF_TALIGN_LEFT, NULL);
+
   HPDF_Page_SetRGBFill (report->page, 0, 0, 0);
   HPDF_Page_EndText (report->page);
 
