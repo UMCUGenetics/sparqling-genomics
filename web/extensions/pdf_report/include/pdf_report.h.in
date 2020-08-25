@@ -19,8 +19,7 @@
 #include <libguile.h>
 #include "hpdf.h"
 
-#define FONT_FILE   "@abs_top_srcdir@/web/static/fonts/Roboto-Light.ttf"
-#define SG_LOGO     "@abs_top_srcdir@/web/static/images/logo.png"
+#define FONT_FILE   "@WEB_ROOT@/sparqling-genomics/web/static/fonts/Roboto-Light.ttf"
 
 typedef struct
 {
