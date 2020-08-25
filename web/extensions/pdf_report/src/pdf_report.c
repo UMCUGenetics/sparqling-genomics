@@ -284,6 +284,9 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
   char *label = scm_to_locale_string (label_scm);
   char *text  = scm_to_locale_string (text_scm);
 
+  if (lines_scm != SCM_UNDEFINED && (! scm_is_number (lines_scm)))
+    return SCM_BOOL_F;
+
   int lines = 1;
   if (lines_scm != SCM_UNDEFINED)
     lines = scm_to_int (lines_scm);
@@ -410,6 +413,7 @@ report_render_spacer (SCM data, SCM height_scm)
 {
   report_t *report = scm_to_pointer (data);
   if (report == NULL) return SCM_BOOL_F;
+  if (! scm_is_number (height_scm)) return SCM_BOOL_F;
 
   int height = scm_to_int (height_scm);
   report->occupied_y += height;
