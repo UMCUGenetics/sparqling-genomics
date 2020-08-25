@@ -4,14 +4,17 @@
 *.dvi
 *.go
 *.idv
+*.la
 *.lg
 *.log
+*.lo
 *.o
 *.out
 *.tmp
 *.toc
 *.xml
 *.xref
+.libs
 .deps
 .dirstamp
 Makefile
