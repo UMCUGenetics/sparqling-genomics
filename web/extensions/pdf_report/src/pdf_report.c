@@ -30,8 +30,17 @@ report_init (report_t *report, char *filename)
 {
   if (report == NULL) return 1;
 
+  report->log_debug = scm_c_public_ref ("logger", "log-debug");
+  report->log_error = scm_c_public_ref ("logger", "log-error");
+
   report->pdf        = HPDF_New (NULL, NULL);
-  if (! report->pdf) return 1;
+  if (! report->pdf)
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_init"),
+                  scm_from_latin1_string ("Failed to initialize PDF."));
+      return 1;
+    }
 
   /* Compress the PDF. */
   HPDF_SetCompressionMode (report->pdf, HPDF_COMP_ALL);
@@ -39,7 +48,13 @@ report_init (report_t *report, char *filename)
 
   const char* name   = HPDF_LoadTTFontFromFile (report->pdf, FONT_FILE, HPDF_TRUE);
   report->font       = HPDF_GetFont (report->pdf, name, NULL);
-  if (! report->font) return 1;
+  if (! report->font)
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_init"),
+                  scm_from_latin1_string ("Failed to set font for PDF."));
+      return 1;
+    }
 
   report->filename   = filename;
   report->padding    = 20;
@@ -47,10 +62,17 @@ report_init (report_t *report, char *filename)
 
   /* Set A4 page size. */
   report->page = HPDF_AddPage (report->pdf);
-  if (! report->page) return 1;
+  if (! report->page)
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_init"),
+                  scm_from_latin1_string ("Failed to create page for PDF."));
+      return 1;
+    }
 
   HPDF_Page_SetSize (report->page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
   HPDF_Page_SetFontAndSize (report->page, report->font, FONT_SIZE);
+
   return 0;
 }
 
@@ -63,6 +85,10 @@ report_destroy (void *ptr)
   if (! report->pdf) return NULL;
 
   HPDF_Free (report->pdf);
+
+  report->log_debug = NULL;
+  report->log_error = NULL;
+
   free (report->title);
   free (report->logo_filename);
   free (report);
@@ -97,11 +123,29 @@ SCM
 report_write_to_port (SCM port, SCM data, SCM chunked_writing_p)
 {
   report_t *report = scm_to_pointer (data);
-  if (! report) return SCM_BOOL_F;
-  if (! report->pdf) return SCM_BOOL_F;
+  if (! report)
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_write_to_port"),
+                  scm_from_latin1_string ("Second parameter is not a PDF."));
+      return SCM_BOOL_F;
+    }
+  if (! report->pdf)
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_write_to_port"),
+                  scm_from_latin1_string ("The PDF isn't initialized (yet)."));
+      return SCM_BOOL_F;
+    }
 
   if (scm_output_port_p (port) == SCM_BOOL_F)
-    return SCM_BOOL_F;
+    {
+      scm_call_3 (report->log_error,
+                  scm_from_latin1_string ("report_write_to_port"),
+                  scm_from_latin1_string ("~a is not an output port."),
+                  port);
+      return SCM_BOOL_F;
+    }
 
   /* Set the default value for chunked_writing_p. */
   if (chunked_writing_p == SCM_UNDEFINED)
@@ -151,7 +195,12 @@ report_write_to_port (SCM port, SCM data, SCM chunked_writing_p)
   /* So, since we can only check after sending the data out whether
    * an error occurred, we can't do any better than return #f here. */
   if (status != HPDF_STREAM_EOF)
-    return SCM_BOOL_F;
+    {
+      scm_call_2 (report->log_error,
+                  scm_from_latin1_string ("report_write_to_port"),
+                  scm_from_latin1_string ("The PDF contains an error."));
+      return SCM_BOOL_F;
+    }
   else if (scm_is_true (chunked_writing_p))
     scm_c_write (port, "0\r\n\r\n", 5);
 

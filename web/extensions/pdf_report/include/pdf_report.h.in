@@ -35,6 +35,8 @@ typedef struct
   char *logo_filename;
   char *title;
 
+  SCM log_debug;
+  SCM log_error;
 } report_t;
 
 int report_init (report_t *report, char *filename);
