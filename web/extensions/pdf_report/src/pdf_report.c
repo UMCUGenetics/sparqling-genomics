@@ -309,8 +309,8 @@ report_render_text_field (SCM data, SCM label_scm, SCM text_scm, SCM lines_scm)
   if (lines < 2)
     {
       /* The label is on the same line, so leave some space. */
-      rect_w -= 100;
-      rect_x += 98;
+      rect_w -= 110;
+      rect_x += 108;
     }
   else
     {
