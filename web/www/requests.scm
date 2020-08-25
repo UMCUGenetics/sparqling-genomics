@@ -255,8 +255,8 @@
     (let ((parameters  (string-split (substring request-path 1) #\/))
           (accept-type (request-accept request)))
       (cond
-       [(or (not (api-serveable-format? accept-type))
-            (is-format '(application/pdf) accept-type))
+       [(and (not (api-serveable-format? accept-type))
+             (not (is-format '(application/pdf) accept-type)))
         (respond-406 client-port)]
        [(= (length parameters) 4)
         (let* ((project-id  (list-ref parameters 1))
