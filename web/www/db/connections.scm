@@ -94,11 +94,6 @@
                #:getter connection-uri
                #:setter set-connection-uri!))
 
-(define (make-connection name uri)
-  (make <connection>
-    #:name name
-    #:uri uri))
-
 (define-class <system-wide-connection> (<connection>)
   (down-since    #:init-value #f
                  #:init-keyword #:down-since
@@ -118,12 +113,6 @@
                             "‘connection-backend’ for a "
                             "<system-wide-connection> was invoked."))
   'sparqling-genomics)
-
-(define (make-system-wide-connection name uri down-since)
-  (make <system-wide-connection>
-    #:name name
-    #:uri uri
-    #:down-since down-since))
 
 (define (system-wide-connection? instance)
   (catch #t
@@ -152,14 +141,6 @@
 
 (define-method (write (self <user-connection>) port)
   (format port "#<<user-connection> name: ~s>" (connection-name self)))
-
-(define (make-user-connection name uri backend username password)
-  (make <user-connection>
-    #:name        name
-    #:uri         uri
-    #:backend     backend
-    #:username    username
-    #:password    password))
 
 (define (user-connection? instance)
   (catch #t
