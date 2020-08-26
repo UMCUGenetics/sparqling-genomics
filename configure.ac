@@ -148,9 +148,6 @@ else
            [$GNUTLS_LIBDIR/guile/$GUILE_EFFECTIVE_VERSION/site-ccache])
 fi
 
-dnl Propagate the location of the toplevel source directory.
-dnl ---------------------------------------------------------------------------
-AC_SUBST([abs_top_srcdir])
 
 
 dnl Let users provide a path to the libldap library because there is
