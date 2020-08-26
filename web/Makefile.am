@@ -17,7 +17,7 @@
 AUTOMAKE_OPTIONS        = subdir-objects
 SUBDIRS                 = extensions
 
-include guile.am
+include $(top_srcdir)/build-aux/guile.am
 
 SOURCES =                                               \
   auth-manager/api.scm                                  \
