@@ -100,7 +100,7 @@
                  #:getter connection-down-since
                  #:setter set-connection-down-since!)
   (accepts-data? #:init-value #t
-                 #:init-keyword #:down-since
+                 #:init-keyword #:accepts-data?
                  #:getter connection-accepts-data?
                  #:setter set-connection-accepts-data!))
 
