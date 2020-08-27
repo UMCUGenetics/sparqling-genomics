@@ -1,9 +1,10 @@
 (define-module (sgfs filesystem)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
+  #:use-module (logger)
+  #:use-module (sgfs cache)
   #:use-module (web client)
   #:use-module (web response)
-  #:use-module (logger)
 
   #:export (directory-overview-for-path
             is-directory))
@@ -22,6 +23,29 @@
                  "The endpoint returned a ~s error." code)])
     '()))
 
+(define (project-queries endpoint token project-name)
+  (let* ((project    (assoc-ref (projects) project-name))
+         (project-id (assoc-ref project "id")))
+    (if (not project)
+        '()
+        (receive (header port)
+            (http-post (string-append endpoint "/api/queries-by-project")
+              #:headers
+              `((Cookie       . ,(string-append "SGSession=" token))
+                (content-type . (application/s-expression))
+                (accept       . ((application/s-expression))))
+              #:body (call-with-output-string
+                       (lambda (out)
+                         (write `((project-id . ,project-id)) out)))
+              #:streaming? #t)
+          (if (= (response-code header) 200)
+              (filter (lambda (item)
+                        (not (and (string? item)
+                                  (string= item ""))))
+                      (map (lambda (query) (assoc-ref query "name"))
+                           (read port)))
+              (http-error-handler header port))))))
+
 (define (projects-overview endpoint token)
   (receive (header port)
         (http-get (string-append endpoint "/api/projects")
@@ -30,7 +54,9 @@
                     (accept . ((application/s-expression))))
                   #:streaming? #t)
     (if (= (response-code header) 200)
-        (map (lambda (item) (assoc-ref item "name"))
+        (map (lambda (project)
+               (add-project-to-cache `(,(assoc-ref project "name") . ,project))
+               (assoc-ref project "name"))
              (read port))
         (http-error-handler header port))))
 
@@ -78,7 +104,7 @@
       (("Projects" project-name)
        '("Queries" "Results"))
       (("Projects" project-name "Queries")
-       '())
+       (project-queries endpoint token project-name))
       (("Projects" project-name "Results")
        '())
 
