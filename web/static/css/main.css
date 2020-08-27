@@ -107,7 +107,7 @@ body,html {
     font-size: 10pt;
     line-height: 14pt;
     margin: 0pt 0pt 0pt 5pt;
-    color: rgba(32, 32, 192, 1.00);;
+    color: rgb(32, 32, 192);
     background: none;
     user-select: none;
 }
@@ -376,7 +376,6 @@ table {
 }
 #edit-button {
     height: 22pt;
-    padding: 0pt;
     font-weight: bold;
     margin: 0pt;
     text-align: center;
