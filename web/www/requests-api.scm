@@ -409,6 +409,20 @@
           (respond-200 client-port accept-type (queries-by-username username))
           (respond-405 client-port '(GET)))]
 
+     [(string= "/api/queries-by-project" request-path)
+      (if (eq? (request-method request) 'POST)
+          (let* ((data   (entire-request-data request))
+                 (id     (assoc-ref data 'project-id)))
+            (cond
+             [(not id)
+              (respond-400 client-port accept-type
+                           "Missing 'project-id' parameter.")]
+             [(project-has-member? id username)
+              (respond-200 client-port accept-type (queries-by-project id))]
+             [else
+              (respond-401 client-port accept-type "Not allowed.")]))
+          (respond-405 client-port '(POST)))]
+
      [(string= "/api/query" request-path)
       (if (eq? (request-method request) 'POST)
           (let* ((data       (entire-request-data request))

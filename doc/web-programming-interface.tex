@@ -439,6 +439,23 @@ curl http://localhost/api/queries \
 \end{verbatim}
 \end{siderules}
 
+\subsubsection{Retrieve previously run queries with \t{/api/queries-by-project}}
+
+  To retrieve the query history for a specific project, use \t{/api/queries-by-project}.
+  This resource expects a \t{POST} request and the \t{project-id} as parameter.
+
+  The following cURL command would retrieve the query history for a specific
+  project, formatted as XML:
+
+\begin{siderules}
+\begin{verbatim}
+curl http://localhost/api/queries \
+     --cookie "$COOKIE"           \
+     -H "Accept: application/xml" \
+     --data "project-id="640c0...5a6d2"
+\end{verbatim}
+\end{siderules}
+
 \subsubsection{Toggle query marks}
 
 \begin{sloppypar}
