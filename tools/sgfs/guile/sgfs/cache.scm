@@ -32,14 +32,14 @@
 (define %queries  '())
 
 (define (add-project-to-cache project)
-  (lock-mutex %cache-projects-mutex)
+  (lock-mutex %projects-lock)
   (set! %projects (cons project %projects))
-  (unlock-mutex %cache-projects-mutex))
+  (unlock-mutex %projects-lock))
 
 (define (add-query-to-cache query)
-  (lock-mutex %cache-queries-mutex)
+  (lock-mutex %queries-lock)
   (set! %queries (cons query %queries))
-  (unlock-mutex %cache-queries-mutex))
+  (unlock-mutex %queries-lock))
 
 (define (projects) %projects)
 (define (queries)  %queries)
