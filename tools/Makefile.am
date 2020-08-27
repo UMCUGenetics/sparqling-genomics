@@ -22,3 +22,7 @@ SUBDIRS                 = bam2rdf         \
                           vcf2rdf         \
                           virtuoso-config \
                           xml2rdf
+
+if BUILD_SGFS
+SUBDIRS                += sgfs
+endif
