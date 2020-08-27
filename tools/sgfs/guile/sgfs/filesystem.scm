@@ -48,11 +48,11 @@
 
 (define (projects-overview endpoint token)
   (receive (header port)
-        (http-get (string-append endpoint "/api/projects")
-                  #:headers
-                  `((Cookie . ,(string-append "SGSession=" token))
-                    (accept . ((application/s-expression))))
-                  #:streaming? #t)
+      (http-get (string-append endpoint "/api/projects")
+                #:headers
+                `((Cookie . ,(string-append "SGSession=" token))
+                  (accept . ((application/s-expression))))
+                #:streaming? #t)
     (if (= (response-code header) 200)
         (map (lambda (project)
                (add-project-to-cache `(,(assoc-ref project "name") . ,project))
