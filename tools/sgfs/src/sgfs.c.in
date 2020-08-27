@@ -281,6 +281,21 @@ main (int argc, char *argv[])
   debug_port = NULL;
   error_port = NULL;
 
+
+  /* --------------------------------------------------------------------------
+   * CREATE MUTEX
+   * --------------------------------------------------------------------------
+   */
+
+  SCM set_projects_lock = scm_c_public_ref ("sgfs cache", "set-projects-lock!");
+  SCM set_queries_lock  = scm_c_public_ref ("sgfs cache", "set-queries-lock!");
+
+  scm_call_1 (set_projects_lock, scm_make_mutex());
+  scm_call_1 (set_queries_lock,  scm_make_mutex());
+
+  set_projects_lock = NULL;
+  set_queries_lock  = NULL;
+
   scm_gc ();
 
   is_directory         = scm_c_public_ref ("sgfs filesystem", "is-directory");

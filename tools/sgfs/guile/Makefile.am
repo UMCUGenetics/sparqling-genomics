@@ -18,4 +18,4 @@ SUBDIRS            = .
 
 include $(top_srcdir)/build-aux/guile.am
 
-SOURCES            = sgfs/filesystem.scm
+SOURCES            = sgfs/filesystem.scm sgfs/cache.scm
