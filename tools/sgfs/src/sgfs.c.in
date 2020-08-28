@@ -195,13 +195,11 @@ main (int argc, char *argv[])
 
   if (token[0] == '\0')
     {
-      printf ("Token: ");
       char *token_dyn = NULL;
       size_t token_len = 0;
       ssize_t token_read;
 
       token_read = getline (&token_dyn, &token_len, stdin);
-      printf ("token_read: %ld\n", token_read);
       if (token_read < 83 || token_read > 84)
         {
           fprintf (stderr, "This is an invalid token.\n");
