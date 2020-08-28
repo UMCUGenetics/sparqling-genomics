@@ -24,6 +24,7 @@
              (gnu packages guile)
              (gnu packages guile-xyz)
              (gnu packages image)
+             (gnu packages linux)
              (gnu packages openldap)
              (gnu packages pkg-config)
              (gnu packages rdf)
@@ -76,6 +77,7 @@
       ("pkg-config" ,pkg-config)))
    (inputs
     `(("guile" ,guile-3.0)
+      ("fuse" ,fuse)
       ("htslib" ,htslib)
       ("gnutls" ,gnutls)
       ("libpng" ,libpng)
