@@ -78,32 +78,34 @@ initialize_guile (void *config_vp)
   SCM log_error  = scm_c_public_ref ("logger", "log-error");
   SCM error_port = NULL;
 
+  SCM debuglog_text = scm_from_latin1_string (config->debug_log);
+  SCM errorlog_text = scm_from_latin1_string (config->error_log);
+  SCM a_text        = scm_from_latin1_string ("a");
+  SCM main_text     = scm_from_latin1_string ("main");
+  SCM sgweb_text    = scm_from_latin1_string ("Started sg-web.");
+
   if (config->error_log)
     {
       SCM set_error_port = scm_c_public_ref ("logger", "set-default-error-port!");
-      error_port = scm_open_file (scm_from_latin1_string (config->error_log),
-                                  scm_from_latin1_string ("a"));
-      scm_call (set_error_port, error_port, SCM_UNDEFINED);
-      scm_call (log_error,
-                scm_from_latin1_string ("main"),
-                scm_from_latin1_string ("Started sg-web."),
-                SCM_UNDEFINED);
+      error_port = scm_open_file (errorlog_text, a_text);
+      scm_call_1 (set_error_port, error_port);
+      scm_call_2 (log_error, main_text, sgweb_text);
     }
 
   if (config->debug_log)
     {
       SCM set_debug_port = scm_c_public_ref ("logger", "set-default-debug-port!");
-      debug_port = scm_open_file (scm_from_latin1_string (config->debug_log),
-                                  scm_from_latin1_string ("a"));
-      scm_call (set_debug_port, debug_port, SCM_UNDEFINED);
-      scm_call (log_debug,
-                scm_from_latin1_string ("main"),
-                scm_from_latin1_string ("Started sg-web."),
-                SCM_UNDEFINED);
+      debug_port = scm_open_file (debuglog_text, a_text);
+      scm_call_1 (set_debug_port, debug_port);
+      scm_call_2 (log_debug, main_text, sgweb_text);
     }
 
-  debug_port = NULL;
-  error_port = NULL;
+  a_text        = NULL;
+  debuglog_text = NULL;
+  errorlog_text = NULL;
+  sgweb_text    = NULL;
+  debug_port    = NULL;
+  error_port    = NULL;
 
   /* --------------------------------------------------------------------------
    * CREATE MUTEX
@@ -136,8 +138,9 @@ initialize_guile (void *config_vp)
         SCM random_state = scm_c_public_lookup ("guile", "*random-state*");
         scm_variable_set_x (random_state, rng_state);
 
-        rng_seed = NULL;
-        rng_state = NULL;
+        random_state = NULL;
+        rng_seed     = NULL;
+        rng_state    = NULL;
       }
     else
       exit_with_error ("Could not properly initialize RNG.");
@@ -159,11 +162,11 @@ initialize_guile (void *config_vp)
                     scm_from_latin1_string (config->configuration_file),
                     SCM_UNDEFINED) == SCM_BOOL_F)
         {
-          scm_call (log_error,
-                    scm_from_latin1_string ("main"),
-                    scm_from_latin1_string ("Could not read configuration file."),
-                    SCM_UNDEFINED);
+          SCM e = scm_from_latin1_string ("Could not read configuration file.");
+          scm_call_2 (log_error, main_text, e);
+          e = NULL;
 
+          scm_gc();
           exit (1);
         }
     }
@@ -198,35 +201,33 @@ initialize_guile (void *config_vp)
 
   while (scm_is_null (forms) == 0)
     {
-      singular = scm_car (forms);
-      forms    = scm_cdr (forms);
+      singular = SCM_CAR (forms);
+      forms    = SCM_CDR (forms);
 
-      scm_call (log_debug,
-                scm_from_latin1_string ("main"),
-                scm_from_latin1_string ("Loaded form: ~a."),
-                scm_call_1 (form_name, singular),
-                SCM_UNDEFINED);
+      SCM text = scm_from_latin1_string ("Loaded form: ~a.");
+      scm_call_3 (log_debug, main_text, text, scm_call_1 (form_name, singular));
+      text = NULL;
     }
 
   while (scm_is_null (reports) == 0)
     {
-      singular = scm_car (reports);
-      reports  = scm_cdr (reports);
+      singular = SCM_CAR (reports);
+      reports  = SCM_CDR (reports);
 
-      scm_call (log_debug,
-                scm_from_latin1_string ("main"),
-                scm_from_latin1_string ("Loaded report: ~a."),
-                scm_call_1 (report_name, singular),
-                SCM_UNDEFINED);
+      SCM text = scm_from_latin1_string ("Loaded report: ~a.");
+      scm_call_3 (log_debug, main_text, text,
+                  scm_call_1 (report_name, singular));
+      text = NULL;
     }
 
-  form_modules = NULL;
-  form_name = NULL;
-  forms = NULL;
+  main_text      = NULL;
+  form_modules   = NULL;
+  form_name      = NULL;
+  forms          = NULL;
   report_modules = NULL;
-  report_name = NULL;
-  reports = NULL;
-  singular = NULL;
+  report_name    = NULL;
+  reports        = NULL;
+  singular       = NULL;
 
   scm_gc();
 
@@ -254,11 +255,13 @@ initialize_guile (void *config_vp)
         exit_with_error ("Could not fork.");
       else
         {
-          scm_call (log_debug,
-                    scm_from_latin1_string ("main"),
-                    scm_from_latin1_string ("Forked into the background"),
-                    SCM_UNDEFINED);
+          SCM main = scm_from_latin1_string ("main");
+          SCM msg  = scm_from_latin1_string ("Forked into the background");
+          scm_call_2 (log_debug, main, msg);
+          main = NULL;
+          msg  = NULL;
 
+          scm_gc();
           exit (0);
         }
     }
