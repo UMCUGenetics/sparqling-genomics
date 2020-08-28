@@ -41,7 +41,7 @@ SCM log_debug            = NULL;
 SCM directories_for_path = NULL;
 SCM is_directory         = NULL;
 char *mountpoint         = NULL;
-char *token              = NULL;
+char token[84];
 char *endpoint           = NULL;
 
 void
@@ -126,7 +126,6 @@ sgfs_readdir (const char *path, void *buffer, fuse_fill_dir_t filldir,
     }
 
   elements = NULL;
-
   endpoint_scm = NULL;
   token_scm = NULL;
   path_scm = NULL;
@@ -149,6 +148,8 @@ main (int argc, char *argv[])
   int index        = 0;
   char *error_log  = NULL;
   char *debug_log  = NULL;
+
+  memset (token, '\0', 84);
 
   /* Program options
    * ------------------------------------------------------------------- */
@@ -175,13 +176,10 @@ main (int argc, char *argv[])
         case 'e': error_log  = optarg;                  break;
         case 'h': show_help ();                         break;
         case 'm': mountpoint = optarg;                  break;
-        case 't': token      = optarg;                  break;
+        case 't': strncpy (token, optarg, 84);          break;
         case 'v': show_version ();                      break;
         }
     }
-
-  /* At this point, we don't accept input from stdin anymore. */
-  fclose (stdin);
 
   if (! mountpoint)
     {
@@ -195,11 +193,35 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  if (! token)
+  if (token[0] == '\0')
     {
-      fprintf (stderr, "Please provide a --token.\n");
+      printf ("Token: ");
+      char *token_dyn = NULL;
+      size_t token_len = 0;
+      ssize_t token_read;
+
+      token_read = getline (&token_dyn, &token_len, stdin);
+      printf ("token_read: %ld\n", token_read);
+      if (token_read < 83 || token_read > 84)
+        {
+          fprintf (stderr, "This is an invalid token.\n");
+          exit (1);
+        }
+
+      /* Copy the exact token length, so that we strip off the newline. */
+      strncpy (token, token_dyn, 83);
+
+      free (token_dyn);
+      token_dyn = NULL;
+    }
+  else if (token[82] == '\0')
+    {
+      fprintf (stderr, "This is an invalid token.\n");
       exit (1);
     }
+
+  /* At this point, we don't accept input from stdin anymore. */
+  fclose (stdin);
 
   /* Make sure backtraces are wide enough to be useful. */
   setenv ("COLUMNS", "10000", 1);
@@ -281,7 +303,6 @@ main (int argc, char *argv[])
 
   debug_port = NULL;
   error_port = NULL;
-
 
   /* --------------------------------------------------------------------------
    * CREATE MUTEX
