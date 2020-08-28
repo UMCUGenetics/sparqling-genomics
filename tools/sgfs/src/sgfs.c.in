@@ -49,6 +49,7 @@ show_help (void)
 {
   puts ("This is sgfs:\n"
 	"  --debug-log,              -d  File to write debug messages to.\n"
+        "  --endpoint,               -E  The endpoint to communicate with.\n"
 	"  --error-log,              -e  File to write error messages to.\n"
 	"  --help,                   -h  Show this message.\n"
 	"  --mountpoint,             -m  Directory to mount SGSF.\n"
