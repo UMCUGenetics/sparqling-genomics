@@ -255,10 +255,10 @@ initialize_guile (void *config_vp)
         exit_with_error ("Could not fork.");
       else
         {
-          SCM main = scm_from_latin1_string ("main");
+          SCM main_text = scm_from_latin1_string ("main");
           SCM msg  = scm_from_latin1_string ("Forked into the background");
-          scm_call_2 (log_debug, main, msg);
-          main = NULL;
+          scm_call_2 (log_debug, main_text, msg);
+          main_text = NULL;
           msg  = NULL;
 
           scm_gc();
