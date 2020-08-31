@@ -18,6 +18,7 @@
   #:use-module (auth-manager config)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 format)
+  #:use-module (oop goops)
   #:use-module (sparql parser)
   #:use-module (srfi srfi-1)
   #:use-module (web client)
@@ -87,7 +88,9 @@ otherwise it returns #f."
 
 (define (may-execute? auth-token project-id query)
   "Returns #t when the query may be executed, #f otherwise."
-  (let [(parsed (parse-query query))]
+  (let [(parsed (if (is-a? query <query>)
+                    query
+                    (parse-query query)))]
 
     ;; The parser must be able to parse the query.
     ;; -----------------------------------------------------------------------
