@@ -23,6 +23,7 @@
   #:use-module (ice-9 receive)
   #:use-module (ice-9 threads)
   #:use-module (sparql driver)
+  #:use-module (sparql parser)
   #:use-module (sparql stream)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-19)
@@ -141,9 +142,13 @@
                  (metadata   (post-data->alist parameters))
                  (hash       (assoc-ref metadata 'project-id))]
             (unless hash (throw 'missing-project-id))
-            (let [(query     (utf8->string (read-request-body request)))]
+            (let* [(query     (utf8->string (read-request-body request)))
+                   (parsed    (parse-query query))]
               (call-with-values
-                  (lambda _ (may-execute? token hash query))
+                  (lambda _
+                    (if parsed
+                        (may-execute? token hash parsed)
+                        (values #f "Could not parse the query.")))
                 (lambda (allowed? message)
                   (cond
                    [(not allowed?)
@@ -151,7 +156,8 @@
                     (respond-401 client-port accept-type message)]
                    ;; Custom path for Virtuoso because its HTTP implementation
                    ;; falls short, but its ODBC implementation rocks.
-                   [(eq? (rdf-store-backend) 'virtuoso)
+                   [(and (eq? (rdf-store-backend) 'virtuoso)
+                         (eq? (query-type parsed) 'SELECT))
                     (call-with-values
                         (lambda _ (virtuoso-isql-query query))
                       (lambda (error-port port)
