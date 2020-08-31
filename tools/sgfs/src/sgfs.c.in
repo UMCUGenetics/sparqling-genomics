@@ -199,6 +199,7 @@ main (int argc, char *argv[])
       size_t token_len = 0;
       ssize_t token_read;
 
+      printf ("Token: ");
       token_read = getline (&token_dyn, &token_len, stdin);
       if (token_read < 83 || token_read > 84)
         {
