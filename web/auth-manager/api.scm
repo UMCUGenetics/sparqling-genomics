@@ -89,10 +89,9 @@
         (respond-403 client-port accept-type
                      "This node does not accept more data.")]
        [(eq? (request-method request) 'POST)
-        (let [(index  (string-index request-path #\?))]
-          (if index
-              (let* [(metadata      (post-data->alist
-                                     (substring request-path (1+ index))))
+        (let [(parameters (uri-query (request-uri request)))]
+          (if parameters
+              (let* [(metadata      (post-data->alist parameters))
                      (graph-uri     (assoc-ref metadata 'graph))
                      (wait-for-more (assoc-ref metadata 'wait-for-more))
                      (upload-dir     (string-append
