@@ -46,10 +46,11 @@
 ;; Stream functions
 ;; ----------------------------------------------------------------------
 
-(define* (csv->scm-stream input-port output-port #:optional (header '()))
+(define* (csv->scm-stream input-port output-port #:optional (delimiter #\,)
+                                                            (header '()))
   "Read the query response from PORT and turn it into an S-expression."
 
-  (let [(tokens (csv-read-entry input-port #\,))]
+  (let [(tokens (csv-read-entry input-port delimiter))]
     (if (null? tokens)
         (format output-port "~a" (if (null? header) "()" ")"))
         ;; The first line in the output is the table header.
@@ -62,12 +63,13 @@
                 (write (map (lambda (pair)
                               `(,(car pair) . ,(cadr pair))) pairs)
                        output-port)))
-          (csv->scm-stream input-port output-port header)))))
+          (csv->scm-stream input-port output-port delimiter header)))))
 
-(define* (csv->json-stream input-port output-port #:optional (header '())
+(define* (csv->json-stream input-port output-port #:optional (delimiter #\,)
+                                                             (header '())
                                                              (first-row? #f))
   "Read the query response from PORT and turn it into JSON."
-  (let [(tokens (csv-read-entry input-port #\,))]
+  (let [(tokens (csv-read-entry input-port delimiter))]
     (if (null? tokens)
         (format output-port "~a" (if (null? header) "[]" "]"))
         ;; The first line in the output is the table header.
@@ -96,11 +98,13 @@
                                         (format #f "~s" (list-ref pair 1)))))
                           (cdr pairs))
                 (format output-port "}")))
-          (csv->json-stream input-port output-port header first-row?)))))
+          (csv->json-stream
+           input-port output-port delimiter header first-row?)))))
 
-(define* (csv->xml-stream input-port output-port #:optional (header '()))
+(define* (csv->xml-stream input-port output-port #:optional (delimiter #\,)
+                                                            (header '()))
   "Read the query response from PORT and turn it into XML."
-  (let [(tokens (csv-read-entry input-port #\,))]
+  (let [(tokens (csv-read-entry input-port delimiter))]
     (if (null? tokens)
         (format output-port "~a" (if (null? header)
                                      "<results></results>"
@@ -124,7 +128,7 @@
                                     (list-ref pair 0)))
                           (cdr pairs))
                 (format output-port "</result>")))
-          (csv->xml-stream input-port output-port header)))))
+          (csv->xml-stream input-port output-port delimiter header)))))
 
 (define (direct-stream input-port output-port)
   (let* [(buffer-size (expt 2 12))
@@ -136,7 +140,7 @@
             (set! eof-yet? #t)
             (put-bytevector output-port buffer 0 nbytes))))))
 
-(define (csv-stream input-port output-port fmt)
+(define* (csv-stream input-port output-port fmt #:optional (delimiter #\,))
   "Stream CSV data from INPUT-PORT to OUTPUT-PORT using output format FMT."
 
   (define (send-last-header-line line)
@@ -174,7 +178,7 @@
           [else #f]))]
     (if stream-function
         (let ((wrapped-port (make-chunked-output-port output-port #:keep-alive? #t)))
-          (stream-function input-port wrapped-port)
+          (stream-function input-port wrapped-port delimiter)
           (force-output wrapped-port)
           (close-port wrapped-port)
           ;; The chunked-output-port doesn't terminate the session with an
