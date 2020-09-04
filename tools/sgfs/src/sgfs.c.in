@@ -41,7 +41,7 @@ SCM log_debug            = NULL;
 SCM directories_for_path = NULL;
 SCM is_directory         = NULL;
 char *mountpoint         = NULL;
-char token[84];
+char token[85];
 char *endpoint           = NULL;
 
 void
@@ -149,7 +149,7 @@ main (int argc, char *argv[])
   char *error_log  = NULL;
   char *debug_log  = NULL;
 
-  memset (token, '\0', 84);
+  memset (token, '\0', 85);
 
   /* Program options
    * ------------------------------------------------------------------- */
