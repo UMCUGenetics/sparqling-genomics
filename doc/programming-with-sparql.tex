@@ -27,7 +27,7 @@ projectId <- "<project-id>"
 query       <- "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"
 cookie      <- "SGSession=<session-token>"
 
-h$reset()
+accumulator$reset()
 curlPerform(url           = paste0(endpoint, "?project-id=", projectId),
             httpheader    = c("Accept"       = "application/json",
                               "Cookie"       = cookie,
