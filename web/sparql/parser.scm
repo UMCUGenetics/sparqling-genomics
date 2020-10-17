@@ -509,7 +509,9 @@
               #:current '()
               #:quads   quads
               #:graph   #f
-              #:tokens  (cons-token out current tokens))]
+              #:tokens  (if (eq? (car modes) 'black-mode)
+                            '()
+                            (cons-token out current tokens)))]
            [(and (eq? buffer #\<)
                  (not (eq? (car modes) 'black-mode)))
             (tokenize-triplet-pattern out text (+ cursor 1)
