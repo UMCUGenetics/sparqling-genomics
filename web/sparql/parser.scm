@@ -330,6 +330,8 @@
           tokens]
          [(string-ci= token "optional")
           tokens]
+         [(string-ci= token "minus")
+          tokens]
          [else
           (cons token tokens)])))
 
