@@ -78,31 +78,31 @@ initialize_guile (void *config_vp)
   SCM log_error  = scm_c_public_ref ("logger", "log-error");
   SCM error_port = NULL;
 
-  SCM debuglog_text = scm_from_latin1_string (config->debug_log);
-  SCM errorlog_text = scm_from_latin1_string (config->error_log);
   SCM a_text        = scm_from_latin1_string ("a");
   SCM main_text     = scm_from_latin1_string ("main");
   SCM sgweb_text    = scm_from_latin1_string ("Started sg-web.");
 
   if (config->error_log)
     {
+      SCM errorlog_text = scm_from_latin1_string (config->error_log);
       SCM set_error_port = scm_c_public_ref ("logger", "set-default-error-port!");
       error_port = scm_open_file (errorlog_text, a_text);
       scm_call_1 (set_error_port, error_port);
       scm_call_2 (log_error, main_text, sgweb_text);
+      errorlog_text = NULL;
     }
 
   if (config->debug_log)
     {
+      SCM debuglog_text = scm_from_latin1_string (config->debug_log);
       SCM set_debug_port = scm_c_public_ref ("logger", "set-default-debug-port!");
       debug_port = scm_open_file (debuglog_text, a_text);
       scm_call_1 (set_debug_port, debug_port);
       scm_call_2 (log_debug, main_text, sgweb_text);
+      debuglog_text = NULL;
     }
 
   a_text        = NULL;
-  debuglog_text = NULL;
-  errorlog_text = NULL;
   sgweb_text    = NULL;
   debug_port    = NULL;
   error_port    = NULL;
