@@ -332,6 +332,8 @@
           tokens]
          [(string-ci= token "minus")
           tokens]
+         [(string-ci= token "union")
+          tokens]
          [else
           (cons token tokens)])))
 
