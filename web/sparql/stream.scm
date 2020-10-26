@@ -130,7 +130,7 @@
                 (format output-port "</result>")))
           (csv->xml-stream input-port output-port delimiter header)))))
 
-(define (direct-stream input-port output-port)
+(define (direct-stream input-port output-port delimiter)
   (let* [(buffer-size (expt 2 12))
          (buffer      (make-bytevector buffer-size))
          (eof-yet?    #f)]
