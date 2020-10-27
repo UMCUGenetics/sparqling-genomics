@@ -411,17 +411,18 @@
             (finalize-parser (+ cursor 1))]
            [(and (eq? buffer #\{)
                  (not-in-quotes (car modes)))
-            (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   (cons (if (graph-test)
-                                  'in-graph-context
-                                  'in-context)
-                              modes)
-              #:current current
-              #:quads   quads
-              #:graph   (if (graph-test)
-                            (parse-uri-token out (car tokens))
-                            graph)
-              #:tokens  (cons-token out current tokens))]
+            (let ((graph-p (graph-test)))
+              (tokenize-triplet-pattern out text (+ cursor 1)
+                #:modes   (cons (if graph-p
+                                    'in-graph-context
+                                    'in-context)
+                                modes)
+                #:current current
+                #:quads   quads
+                #:graph   (if graph-p
+                              (parse-uri-token out (car tokens))
+                              graph)
+                #:tokens  (cons-token out current tokens)))]
            [(and (eq? buffer #\})
                  (or (eq? (car modes) 'in-context)
                      (eq? (car modes) 'in-graph-context)))
