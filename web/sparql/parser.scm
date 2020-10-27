@@ -317,7 +317,8 @@
     (define (graph-test)
       (and (> (length tokens) 1)
            (string? (car tokens))
-           (string-ci= (cadr tokens) "graph")))
+           (string-ci= (cadr tokens) "graph")
+           (not (eq? (car modes) 'in-graph-context))))
 
     (define (not-in-quotes mode)
       (and (not (eq? modes 'double-quoted))
@@ -411,7 +412,10 @@
            [(and (eq? buffer #\{)
                  (not-in-quotes (car modes)))
             (tokenize-triplet-pattern out text (+ cursor 1)
-              #:modes   (cons 'in-context modes)
+              #:modes   (cons (if (graph-test)
+                                  'in-graph-context
+                                  'in-context)
+                              modes)
               #:current current
               #:quads   quads
               #:graph   (if (graph-test)
@@ -419,7 +423,8 @@
                             graph)
               #:tokens  (cons-token out current tokens))]
            [(and (eq? buffer #\})
-                 (eq? (car modes) 'in-context))
+                 (or (eq? (car modes) 'in-context)
+                     (eq? (car modes) 'in-graph-context)))
             (call-with-values (lambda _ (process-quad tokens quads))
               (lambda (tokens-without-quad updated-quads)
 
@@ -432,7 +437,8 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  (if (>= (length tokens-without-quad) 2)
+                  #:tokens  (if (and (eq? (car modes) 'in-graph-context)
+                                     (>= (length tokens-without-quad) 2))
                                 (drop tokens-without-quad 2)
                                 tokens-without-quad))))]
 
