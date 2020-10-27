@@ -432,8 +432,7 @@
                   #:current '()
                   #:quads   updated-quads
                   #:graph   #f
-                  #:tokens  (if (and (not (eq? (cadr modes) 'in-context))
-                                     (>= (length tokens-without-quad) 2))
+                  #:tokens  (if (>= (length tokens-without-quad) 2)
                                 (drop tokens-without-quad 2)
                                 tokens-without-quad))))]
 
