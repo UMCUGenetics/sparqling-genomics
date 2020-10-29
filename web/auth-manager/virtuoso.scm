@@ -18,6 +18,7 @@
   #:use-module (auth-manager config)
   #:use-module (ice-9 format)
   #:use-module (ice-9 popen)
+  #:use-module (web uri)
 
   #:export (stage-file start-bulk-load virtuoso-isql-query))
 
@@ -43,7 +44,7 @@
                       (format #f "~a ~a -U ~a -P ~a verbose=off csv_rfc4180=on csv_rfc4180_field_separator=, exec='~:a' 2> ~a"
                               (isql-bin) (isql-port) (rdf-store-username)
                               (rdf-store-password)
-                              (string-append "SPARQL " query)
+                              (string-append "SPARQL " (uri-encode query))
                               (port-filename error-port)))))
     (setvbuf port 'block 4096)
     (values error-port port)))
