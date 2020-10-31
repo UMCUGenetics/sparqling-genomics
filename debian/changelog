@@ -1,0 +1,14 @@
+sparqling-genomics (0.99.11-1) unstable; urgency=medium
+
+  This release brings a large amount of changes (or dare we say "improvements").
+  The most important changes:
+
+  * The introduction of the sg-auth-manager, a SPARQL parser, and a mechanism
+    to build RDF store clusters by using the sg-web authentication mechanism.
+  * Revised triplet output. We use MD5 hashing instead of SHA256, and we
+    removed the "sparqling-genomics" (domain) name from various RDF elements.
+  * Small but many web interface improvements.
+  * Reduced dependency footprint. GNU Guile uses gnutls, so we removed
+    libgcrypt in favor of gnutls in the command-line tools.
+
+ -- Roel Janssen <roel@gnu.org>  Fri, 19 Jun 2020 14:00:00 +0000

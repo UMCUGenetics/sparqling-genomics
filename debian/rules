@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+## Guile's compiled Scheme modules are ELF binaries, but
+## cause trouble in combination with dh_strip.
+.PHONY: override_dh_strip
+override_dh_strip:
+	echo "Not stripping libraries."
+
+%:
+	dh $@

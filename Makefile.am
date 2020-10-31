@@ -29,6 +29,10 @@ EXTRA_DIST              = $(nobase_ontology_DATA)   \
                           $(nobase_deployment_DATA) \
                           environment.scm
 
+# Build debian package
+deb:
+	dpkg-buildpackage
+
 # Build docker image with Guix
 docker: dist
 	guix pack -C gzip -e '(load "environment.scm")' \
