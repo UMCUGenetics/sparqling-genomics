@@ -58,7 +58,7 @@ show_version (void)
 void
 exit_with_error (char *message)
 {
-  fprintf (stderr, message);
+  fprintf (stderr, "%s", message);
   exit (1);
 }
 
