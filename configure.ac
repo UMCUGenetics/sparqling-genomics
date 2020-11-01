@@ -1,4 +1,4 @@
-dnl Copyright © 2017, 2018 Roel Janssen <roel@gnu.org>
+dnl Copyright © 2017, 2018, 2019, 2020 Roel Janssen <roel@gnu.org>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -100,6 +100,9 @@ AC_CONFIG_FILES([
   tools/ega2rdf/Makefile
   tools/folder2rdf/Makefile
   tools/json2rdf/Makefile
+  tools/sgfs/Makefile
+  tools/sgfs/guile/Makefile
+  tools/sgfs/src/sgfs.c
   tools/table2rdf/Makefile
   tools/virtuoso-config/Makefile
   tools/vcf2rdf/Makefile
@@ -157,10 +160,6 @@ AC_MSG_RESULT($with_sgfs)
 AC_SUBST(BUILD_SGFS)
 AS_IF([test "x$with_sgfs" = "xyes"],
       [PKG_CHECK_MODULES([fuse], [fuse])
-       AC_CONFIG_FILES([tools/sgfs/Makefile
-                        tools/sgfs/guile/Makefile
-                        tools/sgfs/src/sgfs.c])
-
        AM_CONDITIONAL([BUILD_SGFS], [true])],
       [AM_CONDITIONAL([BUILD_SGFS], [false])])
 
