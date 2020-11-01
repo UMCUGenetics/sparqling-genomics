@@ -469,14 +469,14 @@
                                (res-port     (response-port response))
                                (wrapped-port (make-chunked-output-port
                                               res-port #:keep-alive? #t)))
-                          (direct-stream port wrapped-port)
+                          (direct-stream port wrapped-port #\,)
                           (close-port port)
                           (force-output wrapped-port)
                           (close-port wrapped-port)
                           (put-bytevector res-port (string->utf8 "\r\n"))
                           (close-port res-port))
                         (let* ((response (write-response header client-port)))
-                          (direct-stream port (response-port response))
+                          (direct-stream port (response-port response) #\,)
                           (close-port port))))]
 
                  ;; USER CONNECTIONS
