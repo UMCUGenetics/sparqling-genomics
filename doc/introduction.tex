@@ -227,6 +227,28 @@ make -C tools/vcf2rdf
 
 \section{Using pre-built solutions}
 
+\subsection{Repository for Debian}
+
+Create a file called \file{/etc/apt/sources.list.d/sparqling-genomics.list}
+with the following contents:
+
+%% TODO: Set up package signing, and remove the [trusted=yes] bits.
+\begin{siderules}
+\begin{verbatim}
+deb [trusted=yes] https://debian.sparqling-genomics.org buster main
+\end{verbatim}
+\end{siderules}
+
+This will add a repository that contains the \code{sparqling-genomics} package.
+To install it, use the following commands:
+
+\begin{siderules}
+\begin{verbatim}
+apt-get update
+apt-get install sparqling-genomics
+\end{verbatim}
+\end{siderules}
+
 \subsection{Tarball for GNU/Linux}
 
   A pre-built self-contained distribution of SPARQLing-genomics and
