@@ -265,7 +265,7 @@
                 (map alist->system-wide-connection (read port))))
             '())))
     (lambda (key . args)
-      #f)))
+      '())))
 
 (define (persist-connections connections filename)
   "This function writes CONNECTIONS to FILENAME."
