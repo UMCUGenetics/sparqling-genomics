@@ -79,6 +79,26 @@
   The \program{sg-web} program contains an embedded version of
   \href{https://github.com/libharu/libharu}{libharu} to generate PDFs.
 
+\subsection{Optional dependencies and features}
+
+  A fully operational version of SPARQLing-genomics can be built with the
+  dependencies from \refer{sec:prerequisites}.  To integrate into specific
+  set-ups, and enable extending SPARQLing-genomics with other programming
+  languages, some additional dependencies may be required.  This section
+  describes the optional dependencies required for specific set-ups.
+
+\subsubsection{Integrating \program{sg-web} in an LDAP environment}
+
+  User management in \program{sg-web} can be offloaded to LDAP (version 3).
+  For this feature, the \program{openldap} package and C libraries needs to
+  specified using the \t{-{}-with-libldap-prefix} switch passed to the
+  \t{configure} script.
+
+\subsubsection{Enabling the virtual filesystem}
+
+  To build \program{sgfs} the \t{-{}-with-sgfs} switch needs to be passed to
+  the \t{configure} script.  This checks for the availability of \t{fuse}.
+
 \section{Installing the prerequisites}
 
 \subsection{Debian}
