@@ -6,13 +6,13 @@
 <auth-manager>
   <!-- Leave name out to use the system's hostname. -->
   <name>Change me</name>
-  <public-uri>http://127.0.0.1:8001</public-uri>
-  <fork>1</fork>
+  <public-uri>http://127.0.0.1:8000</public-uri>
+  <fork>0</fork>
   <!-- Importing data is always enabled, except when set to 0. -->
   <enable-importing>1</enable-importing>
   <backtrace-on-error>0</backtrace-on-error>
   <bind-address>127.0.0.1</bind-address>
-  <port>8081</port>
+  <port>8000</port>
   <upload-root>/data</upload-root>
   <sg-web>
     <api-uri>http://localhost:8080/api</api-uri>
