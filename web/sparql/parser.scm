@@ -19,7 +19,24 @@
   #:use-module (oop goops)
   #:use-module (logger)
 
-  #:export (<query>
+  #:export (<quint>
+
+            quint-service
+            set-quint-service!
+
+            quint-graph
+            set-quint-graph!
+
+            quint-subject
+            set-quint-subject!
+
+            quint-predicate
+            set-quint-predicate!
+
+            quint-object
+            set-quint-object!
+
+            <query>
 
             query-type
             set-query-type!
@@ -30,8 +47,8 @@
             query-prefixes
             set-query-prefixes!
 
-            query-quads
-            set-query-quads!
+            query-quints
+            set-query-quints!
 
             query-construct-patterns
             set-query-construct-patterns!
@@ -42,8 +59,8 @@
             query-insert-patterns
             set-query-insert-patterns!
 
-            query-quads
-            set-query-quads!
+            query-quints
+            set-query-quints!
 
             query-global-graphs
             set-query-global-graphs!
@@ -52,6 +69,41 @@
             set-query-out-variables!
 
             parse-query))
+
+(define-class <quint> ()
+
+  (service         #:init-value #nil
+                   #:init-keyword #:service
+                   #:getter quint-service
+                   #:setter set-quint-service!)
+
+  (graph           #:init-value #nil
+                   #:init-keyword #:graph
+                   #:getter quint-graph
+                   #:setter set-quint-graph!)
+
+  (subject         #:init-value #nil
+                   #:init-keyword #:subject
+                   #:getter quint-subject
+                   #:setter set-quint-subject!)
+
+  (predicate       #:init-value #nil
+                   #:init-keyword #:predicate
+                   #:getter quint-predicate
+                   #:setter set-quint-predicate!)
+
+  (object          #:init-value #nil
+                   #:init-keyword #:object
+                   #:getter quint-object
+                   #:setter set-quint-object!))
+
+(define-method (write (quint <quint>) out)
+  (format out "#<<quint> service: ~s, graph: ~s, s: ~s, p: ~s, o: ~s>"
+          (quint-service   quint)
+          (quint-graph     quint)
+          (quint-subject   quint)
+          (quint-predicate quint)
+          (quint-object    quint)))
 
 (define-class <query> ()
 
@@ -75,9 +127,9 @@
                    #:getter query-out-variables
                    #:setter set-query-out-variables!)
 
-  (quads           #:init-value '()
-                   #:getter query-quads
-                   #:setter set-query-quads!)
+  (quints          #:init-value '()
+                   #:getter query-quints
+                   #:setter set-query-quints!)
 
   (construct-patterns #:init-value '()
                       #:getter query-construct-patterns
@@ -92,11 +144,11 @@
                    #:setter set-query-delete-patterns!))
 
 (define-method (write (query <query>) out)
-  (format out "#<<query> ~a, prefixes: ~a, global graphs: ~a, quads: ~a>"
+  (format out "#<<query> ~a, prefixes: ~a, global graphs: ~a, quints: ~a>"
           (query-type query)
           (length (query-prefixes query))
           (length (query-global-graphs query))
-          (length (query-quads query))))
+          (length (query-quints query))))
 
 (define* (parse-query query #:key (debug-port #f))
   "Returns an instace of <query>."
@@ -120,6 +172,11 @@
     (if (and (string? str)
              (string-contains str "://"))
         #t
+        #f))
+
+  (define (list-ref-or-f lst n)
+    (if (> (length lst) n)
+        (list-ref lst n)
         #f))
 
   (define (string-contains-ci-surrounded-by-whitespace s1 s2 start)
@@ -311,7 +368,7 @@
                                               #:key      (modes   '(none))
                                                          (current '())
                                                          (graph   #f)
-                                                         (quads   '())
+                                                         (quints  '())
                                                          (tokens  '()))
 
     (define (graph-test)
@@ -344,20 +401,20 @@
         (format debug-port "finalize-parser: ~a ~a~%" cursor tokens))
 
       (if (> (length tokens) 2)
-          (values (cons (list
-                         (if (> (length tokens) 3)
-                             (list-ref tokens 3)
-                             #f)
-                         (list-ref tokens 2)
-                         (list-ref tokens 1)
-                         (list-ref tokens 0)) quads)
+          (values (cons (make <quint>
+                          #:service   (list-ref-or-f tokens 4)
+                          #:graph     (list-ref-or-f tokens 3)
+                          #:subject   (list-ref tokens 2)
+                          #:predicate (list-ref tokens 1)
+                          #:object    (list-ref tokens 0))
+                        quints)
                   cursor)
-          (values quads cursor)))
+          (values quints cursor)))
 
-    (define (process-quad tokens quads)
+    (define (process-quint tokens quints)
 
       (when debug-port
-        (format debug-port "process-quad ~s ~s~%" tokens quads))
+        (format debug-port "process-quint ~s ~s~%" tokens quints))
 
       (let [(rev (map (lambda (token)
                         (let [(uri (parse-uri-token out token))]
@@ -365,29 +422,58 @@
                       (reverse tokens)))]
         (cond
          [(null? rev)
-          (values tokens quads)]
+          (values tokens quints)]
+
+         ;; A triplet pattern wrapped inside a SERVICE wrapped inside a GRAPH.
+         [(and (> (length rev) 6)
+               (string-ci= "service" (list-ref rev 0))
+               (string-ci= "graph"   (list-ref rev 2)))
+          (values (drop tokens 3)
+                  (cons (make <quint>
+                          #:service   (list-ref rev 1)
+                          #:graph     (list-ref rev 3)
+                          #:subject   (list-ref rev 4)
+                          #:predicate (list-ref rev 5)
+                          #:object    (list-ref rev 6))
+                        quints))]
 
          ;; A triplet patterns wrapped inside a GRAPH.
          [(and (> (length rev) 4)
                (string-ci= "graph" (list-ref rev 0)))
           (values (drop tokens 3)
-                  (cons (list (list-ref rev 1)
-                              (list-ref rev 2)
-                              (list-ref rev 3)
-                              (list-ref rev 4))
-                        quads))]
+                  (cons (make <quint>
+                          #:service   #f
+                          #:graph     (list-ref rev 1)
+                          #:subject   (list-ref rev 2)
+                          #:predicate (list-ref rev 3)
+                          #:object    (list-ref rev 4))
+                        quints))]
 
-         ;; When no GRAPH clause is given, we emit a quad without a graph.
+         ;; A triplet patterns wrapped inside a SERVICE.
+         [(and (> (length rev) 4)
+               (string-ci= "service" (list-ref rev 0)))
+          (values (drop tokens 3)
+                  (cons (make <quint>
+                          #:service   (list-ref rev 1)
+                          #:graph     #f
+                          #:subject   (list-ref rev 2)
+                          #:predicate (list-ref rev 3)
+                          #:object    (list-ref rev 4))
+                        quints))]
+
+         ;; When no GRAPH clause is given, we emit a quint without a graph.
          ;; It may be further confined by the list of global graphs.
          [(= (length rev) 3)
           (values (drop tokens 2)
-                  (cons (list #f
-                              (list-ref rev 0)
-                              (list-ref rev 1)
-                              (list-ref rev 2))
-                        quads))]
+                  (cons (make <quint>
+                          #:service   #f
+                          #:graph     #f
+                          #:subject   (list-ref rev 0)
+                          #:predicate (list-ref rev 1)
+                          #:object    (list-ref rev 2))
+                        quints))]
          [else
-          (values tokens quads)])))
+          (values tokens quints)])))
 
     (when debug-port
       (format debug-port "t-t-p: ~a ~a ~a ~a~%"
@@ -403,7 +489,7 @@
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'initial-scope modes)
               #:current current
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
            [(and (eq? buffer #\})
@@ -418,7 +504,7 @@
                                     'in-context)
                                 modes)
                 #:current current
-                #:quads   quads
+                #:quints   quints
                 #:graph   (if graph-p
                               (parse-uri-token out (car tokens))
                               graph)
@@ -426,22 +512,22 @@
            [(and (eq? buffer #\})
                  (or (eq? (car modes) 'in-context)
                      (eq? (car modes) 'in-graph-context)))
-            (call-with-values (lambda _ (process-quad tokens quads))
-              (lambda (tokens-without-quad updated-quads)
+            (call-with-values (lambda _ (process-quint tokens quints))
+              (lambda (tokens-without-quint updated-quints)
 
                 (when debug-port
-                  (format debug-port "tokens-without-quad: ~s (~s)~%"
-                          tokens-without-quad modes))
+                  (format debug-port "tokens-without-quint: ~s (~s)~%"
+                          tokens-without-quint modes))
 
                 (tokenize-triplet-pattern out text (+ cursor 1)
                   #:modes   (cdr modes)
                   #:current '()
-                  #:quads   updated-quads
+                  #:quints   updated-quints
                   #:graph   #f
                   #:tokens  (if (and (eq? (car modes) 'in-graph-context)
-                                     (>= (length tokens-without-quad) 2))
-                                (drop tokens-without-quad 2)
-                                tokens-without-quad))))]
+                                     (>= (length tokens-without-quint) 2))
+                                (drop tokens-without-quint 2)
+                                tokens-without-quint))))]
 
            ;; TODO: Make sure whatever occurs between #\( and #\) is
            ;; treated as a single token.
@@ -452,14 +538,14 @@
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'black-mode modes)
               #:current '()
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  (cdr tokens))]
            [(eq? buffer #\()
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'black-mode modes)
               #:current '()
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
 
@@ -468,7 +554,7 @@
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cdr modes)
               #:current '()
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
 
@@ -478,7 +564,7 @@
                             (cdr modes)
                             (cons 'double-quoted modes))
               #:current (cons buffer current)
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
            [(eq? buffer #\')
@@ -487,7 +573,7 @@
                             (cdr modes)
                             (cons 'single-quoted modes))
               #:current (cons buffer current)
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
 
@@ -495,29 +581,29 @@
                  (not-in-quotes (car modes))
                  (not (eq? (car modes) 'in-uri))
                  (> (length tokens) 2))
-            (call-with-values (lambda _ (process-quad tokens quads))
-              (lambda (tokens-without-quad updated-quads)
+            (call-with-values (lambda _ (process-quint tokens quints))
+              (lambda (tokens-without-quint updated-quints)
                 (tokenize-triplet-pattern out text (+ cursor 1)
                   #:modes   modes
                   #:current '()
-                  #:quads   updated-quads
+                  #:quints   updated-quints
                   #:graph   graph
                   #:tokens  (drop tokens 3))))]
            [(and (eq? buffer #\;)
                  (not-in-quotes (car modes)))
-            (call-with-values (lambda _ (process-quad tokens quads))
-              (lambda (tokens-without-quad updated-quads)
+            (call-with-values (lambda _ (process-quint tokens quints))
+              (lambda (tokens-without-quint updated-quints)
                 (tokenize-triplet-pattern out text (+ cursor 1)
                   #:modes   modes
                   #:current '()
-                  #:quads   updated-quads
+                  #:quints   updated-quints
                   #:graph   #f
                   #:tokens  (drop tokens 2))))]
            [(char-whitespace? buffer)
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
               #:current '()
-              #:quads   quads
+              #:quints   quints
               #:graph   #f
               #:tokens  (if (eq? (car modes) 'black-mode)
                             '()
@@ -527,7 +613,7 @@
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cons 'in-uri modes)
               #:current (cons buffer current)
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
            [(and (eq? buffer #\>)
@@ -535,7 +621,7 @@
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   (cdr modes)
               #:current (cons buffer current)
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]
            [else
@@ -544,7 +630,7 @@
               #:current (if (any (lambda (mode) (eq? mode 'black-mode)) modes)
                             current
                             (cons buffer current))
-              #:quads   quads
+              #:quints   quints
               #:graph   graph
               #:tokens  tokens)]))))
 
@@ -668,12 +754,12 @@
         (read-global-graphs out tokens)
         (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
           (lambda (tokens cursor)
-            (set-query-quads! out (reverse tokens)))))))
+            (set-query-quints! out (reverse tokens)))))))
 
   (define (parse-ask-query out query cursor)
     (call-with-values (lambda _ (tokenize-triplet-pattern out query cursor))
       (lambda (tokens cursor)
-        (set-query-quads! out (reverse tokens)))))
+        (set-query-quints! out (reverse tokens)))))
 
   (define (parse-clear-query out query cursor)
     (let* [(tokens (string-tokenize (substring query cursor)))

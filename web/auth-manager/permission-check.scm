@@ -79,12 +79,12 @@ AUTH-TOKEN."
 (define (inferred-graphs query)
   "Returns a list of graph names that are used in the query."
   (append (query-global-graphs query)
-          (delete #f (map car (query-quads query)))))
+          (delete #f (map quint-graph (query-quints query)))))
 
 (define (has-unscoped-variables? query)
   "Returns #t when there is a triplet pattern without an explicit graph,
 otherwise it returns #f."
-  (any not (map car (query-quads query))))
+  (any not (map quint-graph (query-quints query))))
 
 (define (may-execute? auth-token project-id query)
   "Returns #t when the query may be executed, #f otherwise."
@@ -116,13 +116,13 @@ otherwise it returns #f."
                  (string-append
                   "Specify the graph to search for the following triplets:"
                   (format #f "~{~%-> ~a~}"
-                    (delete #f (map (lambda (quad)
-                                      (if (car quad) #f
+                    (delete #f (map (lambda (quint)
+                                      (if (quint-graph quint) #f
                                           (format #f "~a ~a ~a"
-                                                  (list-ref quad 1)
-                                                  (list-ref quad 2)
-                                                  (list-ref quad 3))))
-                                    (query-quads parsed)))))))]
+                                                  (quint-subject quint)
+                                                  (quint-predicate quint)
+                                                  (quint-object quint))))
+                                    (query-quints parsed)))))))]
 
            ;; Check whether only allowed-graphs are used.
            ;; -----------------------------------------------------------------
