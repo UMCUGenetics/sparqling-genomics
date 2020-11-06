@@ -131,11 +131,11 @@ get_hash_from_file (const char *filename, gnutls_digest_algorithm_t algorithm)
 }
 
 SCM
-sha256sum_from_file (SCM filename_scm)
+checksum_from_file (SCM filename_scm, gnutls_digest_algorithm_t algorithm)
 {
   char *filename = scm_to_locale_string (filename_scm);
   unsigned char *file_hash = NULL;
-  file_hash = get_hash_from_file (filename, GNUTLS_DIG_SHA256);
+  file_hash = get_hash_from_file (filename, algorithm);
 
   free (filename);
   filename = NULL;
@@ -152,24 +152,15 @@ sha256sum_from_file (SCM filename_scm)
 }
 
 SCM
+sha256sum_from_file (SCM filename_scm)
+{
+  return checksum_from_file (filename_scm, GNUTLS_DIG_SHA256);
+}
+
+SCM
 md5sum_from_file (SCM filename_scm)
 {
-  char *filename = scm_to_locale_string (filename_scm);
-  unsigned char *file_hash = NULL;
-  file_hash = get_hash_from_file (filename, GNUTLS_DIG_MD5);
-
-  free (filename);
-  filename = NULL;
-
-  if (!file_hash)
-    return SCM_BOOL_F;
-
-  SCM scm_hash = scm_from_latin1_string (file_hash);
-
-  free (file_hash);
-  file_hash = NULL;
-
-  return scm_hash;
+  return checksum_from_file (filename_scm, GNUTLS_DIG_MD5);
 }
 
 void
