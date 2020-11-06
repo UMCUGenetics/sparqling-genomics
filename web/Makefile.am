@@ -60,6 +60,7 @@ SOURCES =                                               \
   www/db/sessions.scm                                   \
   www/html.scm                                          \
   www/forms.scm                                         \
+  www/hashing.scm                                       \
   www/reports.scm                                       \
   www/pages.scm                                         \
   www/pages/automate.scm                                \
