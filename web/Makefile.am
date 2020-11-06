@@ -103,6 +103,8 @@ WWW_STATIC_RESOURCES =                                  \
   static/images/icons/checkmark.svg                     \
   static/images/icons/locked.png                        \
   static/images/icons/locked.svg                        \
+  static/images/icons/pdf.png                           \
+  static/images/icons/pdf.svg                           \
   static/images/icons/plus.png                          \
   static/images/icons/plus.svg                          \
   static/images/icons/return-white.png                  \
