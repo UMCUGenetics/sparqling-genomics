@@ -109,9 +109,11 @@ AC_CONFIG_FILES([
   tools/xml2rdf/Makefile
   web/Makefile
   web/extensions/Makefile
+  web/extensions/hashing/Makefile
   web/extensions/pdf_report/Makefile
   web/extensions/pdf_report/include/pdf_report.h
   web/ldap/authenticate.scm
+  web/www/hashing.scm
   web/www/reports.scm
   web/sg-web.c
   web/sg-web-test.c

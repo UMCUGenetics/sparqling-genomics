@@ -1,0 +1,32 @@
+;;; Copyright © 2020  Roel Janssen <roel@gnu.org>
+;;;
+;;; This program is free software: you can redistribute it and/or
+;;; modify it under the terms of the GNU Affero General Public License
+;;; as published by the Free Software Foundation, either version 3 of
+;;; the License, or (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Affero General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Affero General Public
+;;; License along with this program.  If not, see
+;;; <http://www.gnu.org/licenses/>.
+
+(define-module (www hashing)
+  #:use-module (logger)
+  #:export (sha256sum-from-file
+            md5sum-from-file))
+
+;; Disapointed to not see the source code for the functions in this module?
+;; Check out ‘web/extensions/hashing/src/hashing.c’.
+
+(catch #t
+  (lambda _
+    (load-extension "@EXTDIR@/libhashing" "init_hashing"))
+  (lambda (key . args)
+    (primitive-eval '(define (md5sum-from-file filename) #f))
+    (primitive-eval '(define (sha256sum-from-file filename) #f))
+    (log-error "hashing" "The hashing module could not be loaded.")
+    #f))

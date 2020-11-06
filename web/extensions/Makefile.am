@@ -14,4 +14,4 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 AUTOMAKE_OPTIONS        = subdir-objects
-SUBDIRS                 = pdf_report
+SUBDIRS                 = pdf_report hashing
