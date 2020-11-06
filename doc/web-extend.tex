@@ -292,3 +292,24 @@ export SG_WEB_ROOT=/home/user/form-module
     (pdf-report-close               pdf)))
 \end{verbatim}
 \end{siderules}
+
+\pagebreak{}
+\section{Create reports using R and Sweave}
+\label{sec:sweave-reports}
+
+  When \program{sg-web} is compiled with R support it will look for
+  Sweave documents in the directory specified in the \t{SG\_RNW\_ROOT}
+  environment variable.
+
+  Reports are project-specific, so \t{sg-web} looks for Sweave reports
+  in the following directory structure:
+
+\begin{siderules}
+\begin{verbatim}
+SG_WEB_ROOT/PROJECT_ID/*.Rnw
+\end{verbatim}
+\end{siderules}
+
+  So if \t{SG\_RNW\_ROOT} is set to \t{/opt/Rnw}, the project ID is
+  \t{bewogpc}, and our report is called \t{Example.Rnw}, then \t{sg-web}
+  looks for the report in \t{/opt/Rnw/bewogpc/Example.Rnw}.

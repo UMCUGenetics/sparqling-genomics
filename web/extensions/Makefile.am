@@ -15,3 +15,7 @@
 
 AUTOMAKE_OPTIONS        = subdir-objects
 SUBDIRS                 = pdf_report hashing
+
+if ENABLE_R
+SUBDIRS                += r_report
+endif

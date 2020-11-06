@@ -194,17 +194,20 @@ initialize_guile (void *config_vp)
 
   SCM report_modules = scm_c_public_ref ("www db reports", "report-modules");
   SCM report_name    = scm_c_public_ref ("www db reports", "report-friendly-name");
+  SCM sweave_roots   = scm_c_public_ref ("www config", "r-reports-roots");
 
   SCM forms          = scm_call_0 (form_modules);
   SCM reports        = scm_call_0 (report_modules);
+  SCM sweave_dir     = scm_call_0 (sweave_roots);
   SCM singular       = NULL;
+  SCM text           = NULL;
 
   while (scm_is_null (forms) == 0)
     {
       singular = SCM_CAR (forms);
       forms    = SCM_CDR (forms);
 
-      SCM text = scm_from_latin1_string ("Loaded form: ~a.");
+      text = scm_from_latin1_string ("Loaded form: ~a.");
       scm_call_3 (log_debug, main_text, text, scm_call_1 (form_name, singular));
       text = NULL;
     }
@@ -214,12 +217,18 @@ initialize_guile (void *config_vp)
       singular = SCM_CAR (reports);
       reports  = SCM_CDR (reports);
 
-      SCM text = scm_from_latin1_string ("Loaded report: ~a.");
+      text = scm_from_latin1_string ("Loaded report: ~a.");
       scm_call_3 (log_debug, main_text, text,
                   scm_call_1 (report_name, singular));
       text = NULL;
     }
 
+  text = scm_from_latin1_string ("Sweave reports directory is set to ~s.");
+  scm_call_3 (log_debug, main_text, text, sweave_dir);
+
+  text           = NULL;
+  sweave_roots   = NULL;
+  sweave_dir     = NULL;
   main_text      = NULL;
   form_modules   = NULL;
   form_name      = NULL;

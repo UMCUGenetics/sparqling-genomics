@@ -276,6 +276,43 @@
        [else
         (respond-500 client-port accept-type "Report could not be found.")]))]
 
+   ;; Sweave reports PDF serving
+   ;; -------------------------------------------------------------------------
+   [(and (string-prefix? "/sweave-report/" request-path)
+         (string-suffix? ".pdf" request-path))
+    (let ((parameters  (string-split (substring request-path 1) #\/))
+          (accept-type (request-accept request)))
+      (cond
+       [(and (not (api-serveable-format? accept-type))
+             (not (is-format '(application/pdf) accept-type)))
+        (respond-406 client-port)]
+       [(= (length parameters) 3)
+        (let* ((project-id  (list-ref parameters 1))
+               (report-hash (basename request-path ".pdf")))
+          (cond
+           [(project-has-member? project-id username)
+            (let* [(report     (r-sweave-report-by-hash project-id report-hash))
+                   (filename   (assoc-ref report 'filename))
+                   (report-pdf (r-sweave-report-pdf project-id filename))]
+              (if report-pdf
+                  (let* [(file-stat (stat report-pdf))
+                         (bytes     (stat:size file-stat))]
+                    (write-response
+                     (build-response
+                      #:code 200
+                      #:headers `((content-type   . (application/pdf))
+                                  (content-length . ,bytes)))
+                     client-port)
+                    (call-with-input-file report-pdf
+                      (lambda (input-port)
+                        (sendfile client-port input-port bytes))))
+                  (respond-500 client-port accept-type
+                               "No PDF report available.")))]
+           [else
+            (respond-403 client-port accept-type "Not allowed.")]))]
+       [else
+        (respond-500 client-port accept-type "Report could not be found.")]))]
+
    ;; Form functionality
    ;; -------------------------------------------------------------------------
    ;;

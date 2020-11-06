@@ -112,6 +112,8 @@ AC_CONFIG_FILES([
   web/extensions/hashing/Makefile
   web/extensions/pdf_report/Makefile
   web/extensions/pdf_report/include/pdf_report.h
+  web/extensions/r_report/Makefile
+  web/extensions/r_report/include/r_report.h
   web/ldap/authenticate.scm
   web/www/hashing.scm
   web/www/reports.scm
@@ -164,6 +166,16 @@ AS_IF([test "x$with_sgfs" = "xyes"],
       [PKG_CHECK_MODULES([fuse], [fuse])
        AM_CONDITIONAL([BUILD_SGFS], [true])],
       [AM_CONDITIONAL([BUILD_SGFS], [false])])
+
+dnl When R is available, build the R support for reporting.
+dnl ---------------------------------------------------------------------------
+
+AC_SUBST([ENABLE_R])
+PKG_CHECK_MODULES([libr], [libR],
+   [PKG_CHECK_VAR([R_HOME], [libR], [rhome])
+    AM_CONDITIONAL([ENABLE_R], [true])],
+   [AM_CONDITIONAL([ENABLE_R], [false])
+    AC_MSG_WARN([Unable to find an R installation. Disabling it.])])
 
 dnl Let users provide a path to the libldap library because there is
 dnl no portable way to find the path to libldap.

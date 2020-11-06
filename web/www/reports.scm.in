@@ -15,7 +15,9 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www reports)
-  #:export (pdf-report
+  #:use-module (logger)
+  #:export (;; libpdf_report.
+            pdf-report
             pdf-report-close
             pdf-report-new-page!
             pdf-report-render-section!
@@ -26,9 +28,26 @@
             pdf-report-set-subtitle!
             pdf-report-set-title!
             pdf-report-write!
-            pdf-report-write-to-port!))
+            pdf-report-write-to-port!
+
+            ;; libr_report.
+            r-sweave-report))
 
 ;; Disapointed to not see the source code for the functions in this module?
-;; Check out ‘web/extensions/pdf_report/src/pdf_report.c’.
+;; Check out ‘web/extensions/pdf_report/src/pdf_report.c’ and
+;; ‘web/extensions/r_report/src/r_report.c’.
 
-(load-extension "@EXTDIR@/libpdf_report" "init_pdf_report")
+(catch #t
+  (lambda _
+    (load-extension "@EXTDIR@/libpdf_report" "init_pdf_report"))
+  (lambda (key . args)
+    (log-error "pdf-report" "PDF support was disabled at compile-time.")
+    #f))
+
+(catch #t
+  (lambda _
+    (load-extension "@EXTDIR@/libr_report" "init_r_report"))
+  (lambda (key . args)
+    (log-error "r-sweave-report" "R support was disabled at compile-time.")
+    (primitive-eval '(define (r-sweave-report filename) #f))
+    #f))

@@ -60,6 +60,7 @@
             orcid-endpoint
             orcid-redirect-uri
             persist-connection-lock
+            r-reports-roots
             resolved-static-file-path
             set-beacon-connection!
             set-beacon-enabled!
@@ -270,6 +271,14 @@
                             #:getter get-beacon-connection
                             #:setter set-beacon-connection-private!)
 
+  ;; R reports
+  ;; --------------------------------------------------------------------------
+  (r-reports-root           #:init-value
+                            (let ((internal "@WEB_ROOT@/sparqling-genomics/Rnw")
+                                  (external (getenv "SG_RNW_ROOT")))
+                              (if external external internal))
+                            #:getter get-r-reports-roots)
+
   ;; System connection settings
   ;; --------------------------------------------------------------------------
   (system-connection        #:init-value '()
@@ -324,6 +333,7 @@
             ldap-enabled?
             local-users
             orcid-enabled?
+            r-reports-roots
             www-listen-address
             www-listen-address-family
             www-max-file-size
