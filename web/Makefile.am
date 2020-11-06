@@ -33,7 +33,6 @@ SOURCES =                                               \
   logger.scm                                            \
   sparql/driver.scm                                     \
   sparql/lang.scm                                       \
-  sparql/md5.scm                                        \
   sparql/parser.scm                                     \
   sparql/stream.scm                                     \
   sparql/util.scm                                       \

@@ -15,12 +15,12 @@
 
 (define-module (sparql driver)
   #:use-module (ice-9 receive)
-  #:use-module (sparql md5)
   #:use-module (srfi srfi-1)
   #:use-module (web client)
   #:use-module (web response)
   #:use-module (web uri)
   #:use-module (web http)
+  #:use-module (www hashing)
 
   #:export (sparql-query
             sparql-query-4store
@@ -130,17 +130,17 @@
                                       (algorithm (assoc-ref digest 'algorithm)))
                                  (if (and (string= algorithm "MD5")
                                           (string= qop       "auth"))
-                                     (let* ((ha1      (md5-from-string
+                                     (let* ((ha1      (string->md5sum
                                                        (string-append
                                                         username ":" realm
                                                         ":" password)))
-                                            (ha2      (md5-from-string
+                                            (ha2      (string->md5sum
                                                        (string-append
                                                         "POST:" post-uri)))
-                                            (cnonce   (md5-from-string
+                                            (cnonce   (string->md5sum
                                                        (random-ascii 32)))
                                             (nc       "00000001")
-                                            (response (md5-from-string
+                                            (response (string->md5sum
                                                        (string-append
                                                         ha1 ":" nonce  ":"
                                                         nc  ":" cnonce ":"
