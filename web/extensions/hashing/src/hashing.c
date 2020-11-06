@@ -183,19 +183,18 @@ checksum_from_string (SCM input_scm, gnutls_digest_algorithm_t algorithm)
 
   /* Process the input string.
    * ------------------------------------------------------------------------ */
-  char *input = scm_to_locale_string (input_scm);
+  size_t input_len = 0;
+  char *input = scm_to_locale_stringn (input_scm, &input_len);
   if (input == NULL)
     {
       gnutls_hash_deinit (handler, NULL);
       return SCM_BOOL_F;
     }
 
-  size_t bytes_read = strlen (input);
-  error = gnutls_hash (handler, input, bytes_read);
+  error = gnutls_hash (handler, input, input_len);
   if (error < 0)
     return SCM_BOOL_F;
 
-  bytes_read = 0;
   free (input);
   input = NULL;
 
