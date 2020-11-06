@@ -112,7 +112,7 @@ get_hash_from_file (const char *filename, gnutls_digest_algorithm_t algorithm)
   free (buffer);
   buffer = NULL;
 
-  unsigned char pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
+  unsigned char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
   if (!pretty_digest)
     {
       gnutls_hash_deinit (handler, NULL);
