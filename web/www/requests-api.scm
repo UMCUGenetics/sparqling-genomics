@@ -39,6 +39,7 @@
   #:use-module (www db prompt)
   #:use-module (www db queries)
   #:use-module (www db sessions)
+  #:use-module (www hashing)
   #:use-module (www util)
 
   #:export (request-api-handler

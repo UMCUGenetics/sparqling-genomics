@@ -20,6 +20,7 @@
   #:use-module (www config)
   #:use-module (www db connections)
   #:use-module (www util)
+  #:use-module (www hashing)
 
   #:export (cached-query-response
             cache-query-response

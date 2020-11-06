@@ -29,6 +29,7 @@
   #:use-module (web http)
   #:use-module (web response)
   #:use-module (web uri)
+  #:use-module (www hashing)
   #:use-module (www db api)
   #:export (file-extension
             flatten
@@ -37,7 +38,6 @@
             post-data->alist
             mkdir-p
             multi-line-trim
-            string->sha256sum
             generate-id
             is-uri?
             random-ascii-string
@@ -134,13 +134,6 @@
                  (char-whitespace? prev-char))
             (multi-line-trim input (+ position 1) output)
             (multi-line-trim input (+ position 1) (cons char output))))))
-
-(define (string->sha256sum input)
-  (let* [(command (format #f "printf ~s | sha256sum" input))
-         (port    (open-pipe command OPEN_READ))
-         (result  (read-delimited " " port))]
-    (close-pipe port)
-    result))
 
 (define (generate-id . arguments)
   (string->sha256sum (format #f "~{~a~}" arguments)))

@@ -112,18 +112,12 @@ get_hash_from_file (const char *filename, gnutls_digest_algorithm_t algorithm)
   free (buffer);
   buffer = NULL;
 
-  unsigned char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
-  if (!pretty_digest)
-    {
-      gnutls_hash_deinit (handler, NULL);
-      return NULL;
-    }
-
+  unsigned char pretty_digest[(HASH_LENGTH * 2) + 1];
   gnutls_hash_output (handler, binary_digest);
   if (! get_printable_hash (binary_digest, HASH_LENGTH, pretty_digest))
     {
-      free (pretty_digest);
-      pretty_digest = NULL;
+      gnutls_hash_deinit (handler, NULL);
+      return NULL;
     }
 
   gnutls_hash_deinit (handler, NULL);
@@ -163,9 +157,73 @@ md5sum_from_file (SCM filename_scm)
   return checksum_from_file (filename_scm, GNUTLS_DIG_MD5);
 }
 
+SCM
+checksum_from_string (SCM input_scm, gnutls_digest_algorithm_t algorithm)
+{
+  const int hash_length = gnutls_hash_get_len (algorithm);
+
+  /* Initialize GnuTLS.
+   * ------------------------------------------------------------------------ */
+  int error;
+  gnutls_hash_hd_t handler;
+  unsigned char binary_digest[hash_length];
+
+  error = gnutls_hash_init (&handler, algorithm);
+  if (error < 0)
+    {
+      fprintf (stderr, "ERROR: Cannot initialize GnuTLS hash function.\n");
+      return SCM_BOOL_F;
+    }
+
+  /* Process the input string.
+   * ------------------------------------------------------------------------ */
+  char *input = scm_to_locale_string (input_scm);
+  if (input == NULL)
+    {
+      gnutls_hash_deinit (handler, NULL);
+      return SCM_BOOL_F;
+    }
+
+  size_t bytes_read = strlen (input);
+  error = gnutls_hash (handler, input, bytes_read);
+  if (error < 0)
+    return SCM_BOOL_F;
+
+  bytes_read = 0;
+  free (input);
+  input = NULL;
+
+  unsigned char pretty_digest[(hash_length * 2) + 1];
+  gnutls_hash_output (handler, binary_digest);
+  if (! get_printable_hash (binary_digest, hash_length, pretty_digest))
+    {
+      gnutls_hash_deinit (handler, NULL);
+      return SCM_BOOL_F;
+    }
+
+  gnutls_hash_deinit (handler, NULL);
+
+  SCM output_scm = scm_from_latin1_string (pretty_digest);
+  return output_scm;
+}
+
+SCM
+sha256sum_from_string (SCM input_scm)
+{
+  return checksum_from_string (input_scm, GNUTLS_DIG_SHA256);
+}
+
+SCM
+md5sum_from_string (SCM input_scm)
+{
+  return checksum_from_string (input_scm, GNUTLS_DIG_MD5);
+}
+
 void
 init_hashing ()
 {
   scm_c_define_gsubr ("sha256sum-from-file", 1, 0, 0, sha256sum_from_file);
   scm_c_define_gsubr ("md5sum-from-file",    1, 0, 0, md5sum_from_file);
+  scm_c_define_gsubr ("string->sha256sum", 1, 0, 0, sha256sum_from_string);
+  scm_c_define_gsubr ("string->md5sum",    1, 0, 0, md5sum_from_string);
 }
