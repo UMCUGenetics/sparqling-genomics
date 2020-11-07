@@ -48,6 +48,8 @@
   (lambda _
     (load-extension "@EXTDIR@/libr_report" "init_r_report"))
   (lambda (key . args)
-    (log-error "r-sweave-report" "R support was disabled at compile-time.")
-    (primitive-eval '(define (r-sweave-report filename) #f))
+    (primitive-eval
+     '(define (r-sweave-report filename tex)
+        (log-error "r-sweave-report" "R support was disabled at compile-time.")
+        #f))
     #f))

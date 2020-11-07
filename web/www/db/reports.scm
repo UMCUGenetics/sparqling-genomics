@@ -133,13 +133,16 @@
 ;; ----------------------------------------------------------------------------
 
 (define (r-sweave-reports-for-project project-id)
-  (let ((rnw-dir (string-append (r-reports-roots) "/" project-id)))
-    (map (lambda (file)
-           (let ((full-path (string-append rnw-dir "/" file)))
-             `((md5      . ,(md5sum-from-file full-path))
-               (filename . ,full-path))))
-         (delete #f (scandir rnw-dir
-                             (lambda (file) (string-suffix? ".Rnw" file)))))))
+  (let* ((rnw-dir (string-append (r-reports-roots) "/" project-id))
+         (entries (scandir rnw-dir (lambda (file)
+                                     (string-suffix? ".Rnw" file)))))
+    (if entries
+        (map (lambda (file)
+               (let ((full-path (string-append rnw-dir "/" file)))
+                 `((md5      . ,(md5sum-from-file full-path))
+                   (filename . ,full-path))))
+             (delete #f entries))
+        '())))
 
 (define (r-sweave-report-by-hash project-id hash)
   (let* ((reports (r-sweave-reports-for-project project-id))
