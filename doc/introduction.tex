@@ -116,7 +116,7 @@
 \begin{verbatim}
 apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
                 guile-2.2 guile-2.2-dev libraptor2-dev libhts-dev \
-                texlive curl libxml2-dev gnutls-dev
+                texlive curl libxml2-dev libgnutls28-dev libpng-dev
 \end{verbatim}
 \end{siderules}
 
@@ -134,7 +134,8 @@ apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
 \begin{siderules}
 \begin{verbatim}
 yum install autoconf automake gcc make pkgconfig guile guile-devel \
-            raptor2-devel texlive curl libxml2-devel gnutls-devel
+            raptor2-devel texlive curl libxml2-devel gnutls-devel  \
+            libpng-devel
 \end{verbatim}
 \end{siderules}
 
@@ -158,7 +159,7 @@ guix environment -l environment.scm
 \begin{siderules}
 \begin{verbatim}
 brew install autoconf automake gcc make pkg-config guile \
-             htslib curl raptor libxml2 zlib gnutls
+             htslib curl raptor libxml2 zlib gnutls libpng
 \end{verbatim}
 \end{siderules}
 
