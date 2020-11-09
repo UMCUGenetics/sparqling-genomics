@@ -57,7 +57,6 @@ SOURCES =                                               \
   www/db/queries.scm                                    \
   www/db/reports.scm                                    \
   www/db/sessions.scm                                   \
-  www/html.scm                                          \
   www/forms.scm                                         \
   www/hashing.scm                                       \
   www/reports.scm                                       \
