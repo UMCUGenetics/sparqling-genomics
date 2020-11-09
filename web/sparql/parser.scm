@@ -238,50 +238,6 @@
                   (string-append empty-prefix (substring token 1))
                   #f))]))))
 
-  (define* (remove-comments text #:optional (position 0)
-                                            (modes    '(none))
-                                            (output   '()))
-    (if (or (not position)
-            (not (string-is-longer-than text position)))
-        (list->string (reverse output))
-        (let [(buffer (string-ref text position))]
-          (cond
-           [(eq? buffer #\#)
-            (if (or (eq? (car modes) 'single-quoted)
-                    (eq? (car modes) 'double-quoted)
-                    (and (> position 0)
-                         (string-is-longer-than text (+ position 1))
-                         (not (char-whitespace?
-                               (string-ref text (- position 1))))
-                         (eq? #\> (string-ref text (+ position 1)))))
-                (remove-comments text
-                                 (+ position 1)
-                                 modes
-                                 (cons buffer output))
-                (remove-comments text
-                                 (string-index text #\newline position)
-                                 modes
-                                 output))]
-           [(eq? buffer #\")
-            (remove-comments text
-                             (+ position 1)
-                             (if (eq? (car modes) 'double-quoted)
-                                 (cdr modes)
-                                 (cons 'double-quoted modes))
-                             (cons buffer output))]
-           [(eq? buffer #\')
-            (remove-comments text
-                             (+ position 1)
-                             (if (eq? (car modes) 'single-quoted)
-                                 (cdr modes)
-                                 (cons 'single-quoted modes))
-                             (cons buffer output))]
-           [else
-            (remove-comments text
-                             (+ position 1)
-                             modes
-                             (cons buffer output))]))))
-
   (define* (read-base out text #:optional (start 0))
     ;; We expect the URI to come after BASE to be an absolute URI because
     ;; this is what the SPARQL spec has to say about it:
@@ -378,8 +334,8 @@
            (not (eq? (car modes) 'in-graph-context))))
 
     (define (not-in-quotes mode)
-      (and (not (eq? modes 'double-quoted))
-           (not (eq? modes 'single-quoted))))
+      (and (not (eq? mode 'double-quoted))
+           (not (eq? mode 'single-quoted))))
 
     (define (cons-token out lst tokens)
       (let [(token      (list->string (reverse lst)))]
@@ -599,6 +555,15 @@
                   #:quints   updated-quints
                   #:graph   #f
                   #:tokens  (drop tokens 2))))]
+           [(and (eq? buffer #\#)
+                 (not (eq? (car modes) 'in-uri))
+                 (not-in-quotes (car modes)))
+            (tokenize-triplet-pattern out text (string-index text #\newline cursor)
+              #:modes   modes
+              #:current current
+              #:quints  quints
+              #:graph   graph
+              #:tokens  tokens)]
            [(char-whitespace? buffer)
             (tokenize-triplet-pattern out text (+ cursor 1)
               #:modes   modes
@@ -826,23 +791,22 @@
       (let* [(out (make <query>))]
         ;; The following functions write their findings to ‘out’ as
         ;; side-effects.
-        (let* [(q              (remove-comments query))
-               (after-prologue (read-prologue out q 0))
-               (cursor         (determine-query-type out q after-prologue))]
+        (let* [(after-prologue (read-prologue out query 0))
+               (cursor         (determine-query-type out query after-prologue))]
 
           (when debug-port
             (format debug-port "Query type: ~a~%" (query-type out)))
 
           (match (query-type out)
-            ('ASK           (parse-ask-query out q (+ cursor 3)))
-            ('CLEAR         (parse-clear-query out q cursor))
-            ('CONSTRUCT     (parse-construct-query out q (+ cursor 9)))
-            ('DELETE        (parse-delete-query out q (+ cursor 6)))
-            ('DELETEINSERT  (parse-delete-insert-query out q after-prologue))
-            ('DESCRIBE      (parse-describe-query out q (+ cursor 8)))
-            ('INSERT        (parse-insert-query out q (+ cursor 6)))
-            ('SELECT        (parse-select-query out q (+ cursor 6)))
-            (else           (throw 'unknown-query-type #f))))
+            ('ASK          (parse-ask-query out query (+ cursor 3)))
+            ('CLEAR        (parse-clear-query out query cursor))
+            ('CONSTRUCT    (parse-construct-query out query (+ cursor 9)))
+            ('DELETE       (parse-delete-query out query (+ cursor 6)))
+            ('DELETEINSERT (parse-delete-insert-query out query after-prologue))
+            ('DESCRIBE     (parse-describe-query out query (+ cursor 8)))
+            ('INSERT       (parse-insert-query out query (+ cursor 6)))
+            ('SELECT       (parse-select-query out query (+ cursor 6)))
+            (else          (throw 'unknown-query-type #f))))
         out))
     (lambda (key . args)
       (log-error "parse-query" "Thrown: ~a: ~s" key args)
