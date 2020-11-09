@@ -15,21 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www pages query-history)
-  #:use-module (www util)
   #:use-module (www components query-history)
-  #:use-module (www config)
-  #:use-module (www db connections)
-  #:use-module (www db projects)
-  #:use-module (www db queries)
-  #:use-module (sparql driver)
-  #:use-module (web response)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 format)
-  #:use-module (srfi srfi-1)
-  #:use-module (json)
-  #:use-module (sxml simple)
-
   #:export (page-query-history))
 
 (define* (page-query-history request-path username hash #:key (post-data ""))

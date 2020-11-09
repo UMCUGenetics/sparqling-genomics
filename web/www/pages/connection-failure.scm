@@ -16,16 +16,6 @@
 
 (define-module (www pages connection-failure)
   #:use-module (www pages)
-  #:use-module (www config)
-  #:use-module (www util)
-  #:use-module (www db connections)
-  #:use-module (www db sessions)
-  #:use-module (sparql driver)
-  #:use-module (web response)
-  #:use-module (ldap authenticate)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
   #:export (page-connection-failure))
 
 (define* (page-connection-failure request-path #:key (post-data ""))

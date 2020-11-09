@@ -21,7 +21,6 @@
   #:use-module (www db projects)
   #:use-module (sparql driver)
   #:use-module (web response)
-  #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:export (page-root-template
             page-empty-template

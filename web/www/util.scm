@@ -23,7 +23,6 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 receive)
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
   #:use-module (web http)

@@ -21,7 +21,6 @@
   #:use-module (www db connections)
   #:use-module (sparql driver)
   #:use-module (web response)
-  #:use-module (ice-9 receive)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-1)
   #:export (page-exploratory))

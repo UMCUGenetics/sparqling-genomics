@@ -17,7 +17,6 @@
 (define-module (www components forms-table)
   #:use-module (ice-9 match)
   #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 receive)
   #:use-module (json)
   #:use-module (sparql driver)
   #:use-module (srfi srfi-1)

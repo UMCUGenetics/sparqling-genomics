@@ -17,14 +17,6 @@
 (define-module (www pages create-project)
   #:use-module (www pages)
   #:use-module (www util)
-  #:use-module (www config)
-  #:use-module (www db projects)
-  #:use-module (web response)
-  #:use-module (web uri)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 match)
-  #:use-module (srfi srfi-1)
   #:export (page-create-project))
 
 ;; ----------------------------------------------------------------------------

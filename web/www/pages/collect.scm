@@ -16,28 +16,18 @@
 
 (define-module (www pages collect)
   #:use-module (www pages)
-  #:use-module (www components rdf-stores)
-  #:use-module (www config)
-  #:use-module (www util)
-  #:use-module (www db projects)
-  #:use-module (sparql driver)
-  #:use-module (web response)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
   #:export (page-collect))
 
 (define* (page-collect request-path username hash #:key (post-data ""))
-  (let [(project (project-by-hash hash))]
-    (page-root-template username "Collect" request-path
-      `((h2 "Collect")
+  (page-root-template username "Collect" request-path
+   `((h2 "Collect")
 
-        (h3 "Import RDF")
-        (p "The " (i "import") " feature allows uploading a file to an RDF"
-           " store using HTTP.")
+     (h3 "Import RDF")
+     (p "The " (i "import") " feature allows uploading a file to an RDF"
+        " store using HTTP.")
 
-        (div (@ (class "large-action-btn"))
+     (div (@ (class "large-action-btn"))
           (a (@ (href ,(string-append "/import/" hash)))
              "Import data")))
-      #:dependencies '(jquery))))
+      #:dependencies '(jquery)))
 

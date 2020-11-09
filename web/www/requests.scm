@@ -23,7 +23,6 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-26)
   #:use-module (sxml simple)
   #:use-module (web client)
   #:use-module (web request)

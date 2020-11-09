@@ -26,7 +26,6 @@
   #:use-module (sparql parser)
   #:use-module (sparql stream)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-19)
   #:use-module (logger)
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)

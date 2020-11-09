@@ -16,14 +16,6 @@
 
 (define-module (www pages structure)
   #:use-module (www pages)
-  #:use-module (www config)
-  #:use-module (www util)
-  #:use-module (www db projects)
-  #:use-module (sparql driver)
-  #:use-module (web response)
-  #:use-module (ice-9 receive)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
   #:export (page-structure))
 
 (define* (page-structure request-path username hash #:key (post-data ""))

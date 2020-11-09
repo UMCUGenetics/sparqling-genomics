@@ -15,11 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www pages import)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 receive)
-  #:use-module (sparql driver)
   #:use-module (srfi srfi-1)
-  #:use-module (web response)
   #:use-module (www config)
   #:use-module (www db api)
   #:use-module (www db connections)
