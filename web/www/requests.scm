@@ -615,50 +615,56 @@
 
 (define (health-maintainer)
   (while #t
-    (let ((system-connections (load-system-wide-connections)))
-      (for-each (lambda (record)
-                  (if (connection-is-online? record)
-                      ;; Connection is online
-                      ;; ------------------------------------------------------
-                      (when (connection-down-since record)
-                        (log-debug "health-maintainer"
-                                   "Connection ~s is back online."
-                                   (connection-name record))
-                        (set-connection-down-since! record #f)
-                        (persist-system-wide-connections system-connections))
+    (catch #t
+      (lambda _
+        (let ((system-connections (load-system-wide-connections)))
+          (for-each
+           (lambda (record)
+             (if (connection-is-online? record)
+                 ;; Connection is online
+                 ;; -----------------------------------------------------
+                 (when (connection-down-since record)
+                   (log-debug "health-maintainer"
+                              "Connection ~s is back online."
+                              (connection-name record))
+                   (set-connection-down-since! record #f)
+                   (persist-system-wide-connections system-connections))
 
-                      ;; Connection is offline
-                      ;; ------------------------------------------------------
-                      (if (number? (connection-down-since record))
+                 ;; Connection is offline
+                 ;; -----------------------------------------------------
+                 (if (number? (connection-down-since record))
 
-                          ;; Connection was already offline.
-                          ;; --------------------------------------------------
-                          (let [(downtime (- (current-time)
-                                             (connection-down-since record)))
-                                (name     (connection-name record))]
-                            (log-debug "health-maintainer"
-                                       "Connection ~s is offline for ~a seconds."
-                                       name downtime)
+                     ;; Connection was already offline.
+                     ;; -------------------------------------------------
+                     (let [(downtime (- (current-time)
+                                        (connection-down-since record)))
+                           (name     (connection-name record))]
+                       (log-debug "health-maintainer"
+                                  "Connection ~s is offline for ~a seconds."
+                                  name downtime)
 
-                            (if (and (> downtime 29)
-                                     (remove-system-wide-connection record))
+                       (if (and (> downtime 29)
+                                (remove-system-wide-connection record))
 
-                                ;; Connection is down for >30 seconds
-                                ;; --------------------------------------------
-                                (log-debug "health-maintainer"
-                                           "Connection ~s has been removed." name)
-                                #f))
+                           ;; Connection is down for >30 seconds
+                           ;; -------------------------------------------
+                           (log-debug "health-maintainer"
+                                      "Connection ~s has been removed."
+                                      name)
+                           #f))
 
-                          ;; Connection is newly offline
-                          ;; --------------------------------------------
-                          (let ((timestamp (current-time)))
-                            (log-debug "health-maintainer"
-                                       "Connection ~s down since: ~a"
-                                       (connection-name record)
-                                       timestamp)
-                            (set-connection-down-since! record timestamp)
-                            (persist-system-wide-connections system-connections)))))
-                system-connections))
+                     ;; Connection is newly offline
+                     ;; -------------------------------------------------
+                     (let ((timestamp (current-time)))
+                       (log-debug "health-maintainer"
+                                  "Connection ~s down since: ~a"
+                                  (connection-name record)
+                                  (strftime "%H:%M:%S" (localtime timestamp)))
+                       (set-connection-down-since! record timestamp)
+                       (persist-system-wide-connections system-connections)))))
+           system-connections)))
+      (lambda (key . args)
+        (log-error "health-maintainer" "~a: ~a" key args)))
     (gc)
     (sleep 10)))
 
