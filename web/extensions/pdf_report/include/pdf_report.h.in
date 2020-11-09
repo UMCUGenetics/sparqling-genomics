@@ -16,6 +16,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef PDF_REPORT_H
+#define PDF_REPORT_H
+
 #include <libguile.h>
 #include "hpdf.h"
 
@@ -45,3 +48,5 @@ SCM report_pdf (SCM filename);
 SCM report_set_title (SCM data, SCM title_scm);
 SCM report_set_logo (SCM data, SCM filename_scm, SCM position);
 void init_pdf_report ();
+
+#endif /* PDF_REPORT_H */

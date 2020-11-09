@@ -1,5 +1,5 @@
 /*
- * << Haru Free PDF Library >> -- hpdf_annotation.h
+ * Haru Free PDF Library -- hpdf_annotation.h
  *
  * URL: http://libharu.org
  *

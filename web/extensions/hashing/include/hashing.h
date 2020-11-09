@@ -16,6 +16,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef HASHING_H
+#define HASHING_H
+
 #include <libguile.h>
 
 bool get_printable_hash (unsigned char *hash, uint32_t length, unsigned char *output);
@@ -25,3 +28,4 @@ SCM sha256sum_from_file (SCM filename_scm);
 SCM md5sum_from_file (SCM filename_scm);
 void init_hashing ();
 
+#endif /* HASHING_H */

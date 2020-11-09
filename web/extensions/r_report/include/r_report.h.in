@@ -16,6 +16,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef R_REPORT_H
+#define R_REPORT_H
+
 #include <libguile.h>
 #include <R.h>
 #include <Rinternals.h>
@@ -25,3 +28,5 @@
 
 SCM r_sweave_report (SCM rnw_filename_scm, SCM tex_filename_scm);
 void init_r_report ();
+
+#endif /* R_REPORT_H */
