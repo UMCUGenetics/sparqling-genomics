@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 bool
-get_printable_hash (unsigned char *hash, uint32_t length, unsigned char *output)
+get_printable_hash (unsigned char *hash, uint32_t length, char *output)
 {
   if (output == NULL) return false;
 
@@ -48,7 +48,7 @@ get_printable_hash (unsigned char *hash, uint32_t length, unsigned char *output)
   return true;
 }
 
-unsigned char *
+char *
 get_hash_from_file (const char *filename, gnutls_digest_algorithm_t algorithm)
 {
   const size_t READ_BUFFER_MAX_LENGTH = 4000000;
@@ -112,7 +112,7 @@ get_hash_from_file (const char *filename, gnutls_digest_algorithm_t algorithm)
   free (buffer);
   buffer = NULL;
 
-  unsigned char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
+  char *pretty_digest = calloc (sizeof (char), (HASH_LENGTH * 2) + 1);
   if (!pretty_digest)
     {
       gnutls_hash_deinit (handler, NULL);
@@ -134,7 +134,7 @@ SCM
 checksum_from_file (SCM filename_scm, gnutls_digest_algorithm_t algorithm)
 {
   char *filename = scm_to_locale_string (filename_scm);
-  unsigned char *file_hash = NULL;
+  char *file_hash = NULL;
   file_hash = get_hash_from_file (filename, algorithm);
 
   free (filename);
@@ -198,7 +198,7 @@ checksum_from_string (SCM input_scm, gnutls_digest_algorithm_t algorithm)
   free (input);
   input = NULL;
 
-  unsigned char pretty_digest[(hash_length * 2) + 1];
+  char pretty_digest[(hash_length * 2) + 1];
   gnutls_hash_output (handler, binary_digest);
   if (! get_printable_hash (binary_digest, hash_length, pretty_digest))
     {
