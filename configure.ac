@@ -159,13 +159,14 @@ dnl When FUSE is available, build the SGFS part of the project.
 dnl ---------------------------------------------------------------------------
 AC_ARG_WITH([sgfs], AS_HELP_STRING([--with-sgfs], [Enable building SGFS.]))
 AC_MSG_CHECKING([whether to build sgfs])
-AC_MSG_RESULT($with_sgfs)
 
 AC_SUBST(BUILD_SGFS)
 AS_IF([test "x$with_sgfs" = "xyes"],
       [PKG_CHECK_MODULES([fuse], [fuse])
-       AM_CONDITIONAL([BUILD_SGFS], [true])],
-      [AM_CONDITIONAL([BUILD_SGFS], [false])])
+       AM_CONDITIONAL([BUILD_SGFS], [true])
+       AC_MSG_RESULT($with_sgfs)],
+      [AM_CONDITIONAL([BUILD_SGFS], [false])
+       AC_MSG_RESULT([no])])
 
 dnl When R is available, build the R support for reporting.
 dnl ---------------------------------------------------------------------------
@@ -194,7 +195,11 @@ AC_ARG_WITH([libldap-prefix],
 
 dnl Library name suitable for `dynamic-link'.
 AC_MSG_CHECKING([for libldap shared library name])
-AC_MSG_RESULT([$LIBLDAP])
+
+AS_IF([test "x$LIBLDAP" = "x"],
+      [AC_MSG_RESULT([not specified])],
+      [AC_MSG_RESULT([$LIBLDAP])])
+
 AC_SUBST([LIBLDAP])
 AC_SUBST([LIBLDAP_PREFIX])
 AC_SUBST([LIBLDAP_LIBDIR])
