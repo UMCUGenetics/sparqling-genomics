@@ -29,7 +29,6 @@ r_sweave_report (SCM rnw_filename_scm, SCM tex_filename_scm)
   /* Write a debug message.
    * ----------------------------------------------------------------------- */
   SCM log_debug  = scm_c_public_ref ("logger", "log-debug");
-  SCM log_error  = scm_c_public_ref ("logger", "log-error");
   SCM main_text  = scm_from_latin1_string ("r_sweave_report");
   SCM text       = scm_from_latin1_string ("Running embedded R.");
 
@@ -38,7 +37,6 @@ r_sweave_report (SCM rnw_filename_scm, SCM tex_filename_scm)
   text      = NULL;
   main_text = NULL;
   log_debug = NULL;
-  log_error = NULL;
 
   /* Deal with the filenames.
    * ----------------------------------------------------------------------- */
