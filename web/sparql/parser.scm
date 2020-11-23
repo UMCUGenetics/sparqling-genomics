@@ -537,14 +537,17 @@
                  (not-in-quotes (car modes))
                  (not (eq? (car modes) 'in-uri))
                  (> (length tokens) 2))
-            (call-with-values (lambda _ (process-quint tokens quints))
-              (lambda (tokens-without-quint updated-quints)
-                (tokenize-triplet-pattern out text (+ cursor 1)
-                  #:modes   modes
-                  #:current '()
-                  #:quints   updated-quints
-                  #:graph   graph
-                  #:tokens  (drop tokens 3))))]
+            (let ((tokens (if (null? current)
+                              tokens
+                              (cons-token out current tokens))))
+              (call-with-values (lambda _ (process-quint tokens quints))
+                (lambda (tokens-without-quint updated-quints)
+                  (tokenize-triplet-pattern out text (+ cursor 1)
+                    #:modes   modes
+                    #:current '()
+                    #:quints   updated-quints
+                    #:graph   graph
+                    #:tokens  (drop tokens 3)))))]
            [(and (eq? buffer #\;)
                  (not-in-quotes (car modes)))
             (call-with-values (lambda _ (process-quint tokens quints))
