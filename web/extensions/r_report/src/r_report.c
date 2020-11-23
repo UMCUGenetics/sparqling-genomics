@@ -17,6 +17,10 @@
  */
 
 #include "r_report.h"
+#include <Rinterface.h>
+
+extern uintptr_t R_CStackLimit;
+extern int R_SignalHandlers;
 
 /* ----------------------------------------------------------------------------
  * INTERFACE TO R SWEAVE.
@@ -73,6 +77,9 @@ r_sweave_report (SCM rnw_filename_scm, SCM tex_filename_scm)
   int r_error;
   char *r_argv[3] = { "R", "--no-save", "--no-echo" };
   setenv ("R_HOME", R_HOME, 0);
+
+  R_CStackLimit = (uintptr_t)-1;
+  R_SignalHandlers = 0;
 
   if (R_NilValue == NULL)
     Rf_initEmbeddedR (3, r_argv);
