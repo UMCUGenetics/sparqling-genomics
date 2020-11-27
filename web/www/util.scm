@@ -17,7 +17,6 @@
 
 (define-module (www util)
   #:use-module (rnrs bytevectors)
-  #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
@@ -41,7 +40,6 @@
             is-uri?
             random-ascii-string
             respond-to-client
-            respond-to-client-chunked
             respond-to-client-chunked-binary
             respond-200
             respond-200-with-cookie
@@ -157,30 +155,6 @@
                   (content-length . ,(bytevector-length content))))
      client-port)
     (put-bytevector client-port content)))
-
-(define (respond-to-client-chunked port content-type writer)
-  "Respond to PORT with a HTTP/1.1 chunked encoding response.  The
-CONTENT-TYPE must be a string, and WRITER must be a procedure that takes
-a chunked port as its only argument."
-
-  (set-port-encoding! port "UTF-8")
-
-  ;; Build the HTTP header.
-  (put-string port (string-append
-                    "HTTP/1.1 200 OK\r\n"
-                    "Server: SPARQLing-genomics\r\n"
-                    "Connection: close\r\n"
-                    "Content-Type: " content-type "\r\n"
-                    "Transfer-Encoding: chunked\r\n\r\n"))
-
-  (let ((wrapped-port (make-chunked-output-port port #:keep-alive? #t)))
-    (writer wrapped-port)
-    (force-output wrapped-port)
-    (close-port wrapped-port)
-    ;; The chunked-output-port doesn't terminate the session with an
-    ;; additional “\r\n”, so we force that here.
-    (put-string port "\r\n")
-    (close-port port)))
 
 (define (respond-to-client-chunked-binary port content-type writer)
   "Similar to RESPOND-TO-CLIENT-CHUNKED, but the port passed to WRITER
