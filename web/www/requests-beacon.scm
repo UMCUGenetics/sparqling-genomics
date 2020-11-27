@@ -22,6 +22,7 @@
   #:use-module (web uri)
   #:use-module (www config)
   #:use-module (www db api)
+  #:use-module (www db connections)
   #:use-module (www util)
 
   #:export (request-beacon-handler))

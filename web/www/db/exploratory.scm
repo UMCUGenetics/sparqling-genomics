@@ -16,16 +16,16 @@
 
 (define-module (www db exploratory)
   #:use-module (sparql util)
-  #:use-module (www db connections)
-  #:use-module (www db projects)
+  #:use-module ((www db connections)
+                #:select (system-sparql-query
+                          sparql-query-with-connection))
   #:use-module (www db cache)
+  #:use-module (www db projects)
   #:use-module ((www config) #:select (internal-prefixes
                                        system-state-graph
-                                       system-sparql-query
-                                       sparql-query-with-connection
                                        uri->shorthand-uri
-                                       shorthand-uri->uri))
-  #:use-module (ice-9 threads)
+                                       shorthand-uri->uri
+                                       system-connection))
   #:use-module (logger)
 
   #:export (all-graphs-in-project

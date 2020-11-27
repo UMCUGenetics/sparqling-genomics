@@ -17,6 +17,7 @@
 (define-module (www db projects)
   #:use-module (www util)
   #:use-module (www config)
+  #:use-module (www db connections)
   #:use-module (sparql util)
   #:use-module (web response)
   #:use-module (ice-9 format)

@@ -22,6 +22,7 @@
   #:use-module (web response)
   #:use-module (www config)
   #:use-module (www util)
+  #:use-module (www db connections)
 
   #:export (orcid-record-by-user
             persist-orcid-record))

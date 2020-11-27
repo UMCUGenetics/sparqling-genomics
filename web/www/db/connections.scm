@@ -21,7 +21,11 @@
   #:use-module (oop goops)
   #:use-module (web client)
   #:use-module (web response)
-  #:use-module (www config)
+  #:use-module (sparql driver)
+  #:use-module ((www config)
+                #:select (www-cache-root
+                          persist-connection-lock
+                          graph-name-max-length))
   #:use-module (www util)
 
   #:export (connection-add
@@ -65,7 +69,11 @@
 
             persist-user-connections
             persist-system-wide-connections
-            default-connection))
+            default-connection
+
+            beacon-sparql-query
+            sparql-query-with-connection
+            system-sparql-query))
 
 
 ;; SYSTEM-WIDE-CONNECTION RECORD TYPE
@@ -512,3 +520,31 @@
         #t))
     (lambda (key . args)
       #f)))
+
+;;
+;; CONVENIENCE SPARQL-QUERY FUNCTIONS
+;; ----------------------------------------------------------------------------
+
+(define (sparql-query-with-connection connection query token project-id)
+  (if (system-wide-connection? connection)
+      (sparql-query query
+                    #:uri           (connection-uri connection)
+                    #:store-backend 'sparqling-genomics
+                    #:token         token
+                    #:project-id    project-id)
+      (sparql-query query
+                    #:uri (connection-uri connection)
+                    #:store-backend (connection-backend connection)
+                    #:digest-auth
+                    (if (and (connection-username connection)
+                             (connection-password connection))
+                        (string-append
+                         (connection-username connection) ":"
+                         (connection-password connection))
+                        #f))))
+
+(define-syntax-rule (system-sparql-query query)
+  (sparql-query-with-connection (system-connection) query #f #f))
+
+(define-syntax-rule (beacon-sparql-query query)
+  (sparql-query-with-connection (beacon-connection) query #f #f))
