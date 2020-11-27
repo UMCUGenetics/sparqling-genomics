@@ -17,7 +17,6 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 textual-ports)
   #:use-module (logger)
   #:use-module (srfi srfi-1)
   #:use-module (web response)
@@ -79,9 +78,8 @@
         (query-results-to-list port skip-first-entry?)
         (begin
           (log-error "query-results->list"
-                     "Response (~a) was:~%---~%~a"
-                     (response-code header)
-                     (get-string-all port))
+                     "Response: ~a"
+                     (response-code header))
           #f))))
 
 (define* (query-results-to-alist port #:optional (header '())
@@ -107,9 +105,8 @@
         (query-results-to-alist port)
         (begin
           (log-error "query-results->alist"
-                     "Response (~a) was:~%---~%~a"
-                     (response-code header)
-                     (get-string-all port))
+                     "Response: ~a"
+                     (response-code header))
           #f))))
 
 (define* (csv-read-entry port
