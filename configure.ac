@@ -46,6 +46,14 @@ else
    AC_MSG_ERROR([Guile 3.0, 2.2, or 2.0 required.])
 fi
 
+AC_MSG_CHECKING([whether to enable optimizations for guild])
+AC_SUBST([ENABLE_GUILE_OPTIMIZATIONS])
+AS_IF([test "x$GUILE_EFFECTIVE_VERSION" = "x2.0"],
+      [AM_CONDITIONAL([ENABLE_GUILE_OPTIMIZATIONS], [false])
+       AC_MSG_RESULT([no])],
+      [AM_CONDITIONAL([ENABLE_GUILE_OPTIMIZATIONS], [true])
+       AC_MSG_RESULT([yes])])
+
 dnl This macro is used to resolve the absolute path to @datarootdir@ so that
 dnl the absolute path can be used in the configuration file for the web
 dnl interface.
