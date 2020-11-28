@@ -1,4 +1,4 @@
-# Copyright © 2017, 2018 Roel Janssen <roel@gnu.org>
+# Copyright © 2017, 2018, 2019, 2020 Roel Janssen <roel@gnu.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,12 @@ EXTRA_DIST              = $(nobase_ontology_DATA)   \
 # Build debian package
 deb:
 	dpkg-buildpackage
+
+rpm: dist
+	cd rpmbuild
+	rpmdev-setuptree
+	rpmbuild -ba sparqling-genomics.spec
+	cd ..
 
 # Build docker image with Guix
 docker: dist
