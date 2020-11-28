@@ -135,7 +135,7 @@
          (buffer      (make-bytevector buffer-size))
          (eof-yet?    #f)]
     (while (not eof-yet?)
-      (let [(nbytes (get-bytevector-some! input-port buffer 0 buffer-size))]
+      (let [(nbytes (get-bytevector-n! input-port buffer 0 buffer-size))]
         (if (eof-object? nbytes)
             (set! eof-yet? #t)
             (put-bytevector output-port buffer 0 nbytes))))))
