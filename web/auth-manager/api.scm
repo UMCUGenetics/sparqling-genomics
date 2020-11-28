@@ -271,51 +271,62 @@
                      "Please log in.")]))))
 
 (define* (announce-availibility #:key (retries 10))
-  ;; Wait for the sg-auth-manager web server to start.
-  (let* ((address (make-socket-address (www-listen-address-family)
-                                       (www-listen-address)
-                                       (www-listen-port)))
-         (s (socket (www-listen-address-family) SOCK_STREAM 0)))
-    (while (catch #t
-             (lambda _ (connect s address))
-             (lambda _ #f))
-      (usleep 10))
-    (close s))
 
-  ;; Announce availability to the configured sg-web service.
-  (receive (header port)
-      (http-post (string-append (sg-web-uri) "/api/register-connection")
-                 #:headers    `((content-type . (application/s-expression))
-                                (accept       . ((application/s-expression))))
-                 #:streaming? #t
-                 #:body       (format #f "~s"
-                               `((name          . ,(www-name))
-                                 (uri           . ,(self-uri))
-                                 (accepts-data? . ,(importing-enabled?)))))
-    (cond
-     [(= (response-code header) 201)
-      (log-debug "sg-auth-manager"
-                 "Announcing node availability to ~a succeeded."
-                 (sg-web-uri))]
+  (define (wait-and-announce)
+    ;; Wait for the sg-auth-manager web server to start.
+    (let* ((address (make-socket-address (www-listen-address-family)
+                                         (www-listen-address)
+                                         (www-listen-port)))
+           (s (socket (www-listen-address-family) SOCK_STREAM 0)))
+      (while (catch #t
+               (lambda _ (connect s address))
+               (lambda _ #f))
+        (usleep 10))
+      (close s))
 
-     ;; The ‘sg-web’ service will return a 503 status until it's fully
-     ;; operational.  Therefore, when receiving a 503 status, we will
-     ;; retry after some time.
-     [(= (response-code header) 503)
-      (if (> retries 0)
-          (begin
-            (log-error "sg-auth-manager" "Retrying announcement in 10 seconds.")
-            (sleep 10)
-            (announce-availibility #:retries (1- retries)))
-          (begin
+    ;; Announce availability to the configured sg-web service.
+    (catch #t
+      (lambda _
+        (receive (header port)
+          (http-post (string-append (sg-web-uri) "/api/register-connection")
+           #:headers    `((content-type . (application/s-expression))
+                          (accept       . ((application/s-expression))))
+           #:streaming? #t
+           #:body       (format #f "~s"
+                                `((name          . ,(www-name))
+                                  (uri           . ,(self-uri))
+                                  (accepts-data? . ,(importing-enabled?)))))
+          (cond
+           [(= (response-code header) 201)
+            (log-debug "sg-auth-manager"
+                       "Announcing node availability to ~a succeeded."
+                       (sg-web-uri))]
+
+           ;; The ‘sg-web’ service will return a 503 status until it's fully
+           ;; operational.  Therefore, when receiving a 503 status, we will
+           ;; retry after some time.
+           [(= (response-code header) 503)
+            (if (> retries 0)
+                (begin
+                  (log-error "sg-auth-manager"
+                             "Retrying announcement in 10 seconds.")
+                  (sleep 10)
+                  (announce-availibility #:retries (1- retries)))
+                (begin
+                  (log-error "sg-auth-manager"
+                             "It looks like sg-web has a problem; giving up.")
+                  (exit 1)))]
+           [else
             (log-error "sg-auth-manager"
-                       "It looks like sg-web has a problem; giving up.")
-            (exit 1)))]
-     [else
-      (log-error "sg-auth-manager"
-                 "Announcing node availability to ~a failed with status code ~a."
-                 (sg-web-uri) (response-code header))
-      (log-error "sg-auth-manager" "Please restart sg-auth-manager.")])))
+                       "Registering node ~a failed with status code ~a."
+                       (sg-web-uri) (response-code header))
+            (log-error "sg-auth-manager" "Please restart sg-auth-manager.")])))
+      (lambda (key . args)
+        (log-error "sg-auth-manager"
+                   "Registering node ~a failed."
+                   (sg-web-uri)))))
+
+  (call-with-new-thread wait-and-announce))
 
 (define (start-server request-handler)
   (let* [(family (www-listen-address-family))

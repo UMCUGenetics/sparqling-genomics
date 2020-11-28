@@ -144,7 +144,6 @@ initialize_guile (void *config_vp)
   SCM request_handler = scm_c_public_ref ("auth-manager api", "request-handler");
   SCM announce_availibility = scm_c_public_ref ("auth-manager api", "announce-availibility");
   SCM fork_on_startup = scm_c_public_ref ("auth-manager config", "fork-on-startup?");
-  SCM call_with_new_thread = scm_c_public_ref ("ice-9 threads", "call-with-new-thread");
 
   if (scm_call_0 (fork_on_startup) == SCM_BOOL_T)
     {
@@ -170,7 +169,7 @@ initialize_guile (void *config_vp)
     }
   else
     {
-      scm_call (call_with_new_thread, announce_availibility, SCM_UNDEFINED);
+      scm_call (announce_availibility, SCM_UNDEFINED);
       scm_call (start_server, request_handler, SCM_UNDEFINED);
     }
 
