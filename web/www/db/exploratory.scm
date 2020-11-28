@@ -26,6 +26,7 @@
                                        uri->shorthand-uri
                                        shorthand-uri->uri
                                        system-connection))
+  #:use-module (ice-9 threads)
   #:use-module (logger)
 
   #:export (all-graphs-in-project
