@@ -125,8 +125,11 @@ apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
 
 \subsection{CentOS}
 
-  CentOS 7 and 8 do not include \t{htslib}.  Follow the instructions on
-  the \href{https://www.htslib.org/}{\t{htslib} website}%
+  CentOS 7 and 8 do not include \t{htslib}.  Either enable the
+  \href{https://fedoraproject.org/wiki/EPEL}{EPEL repository}%
+  \footnote{https://fedoraproject.org/wiki/EPEL}
+  to install \t{htslib} or follow the instructions on the
+  \href{https://www.htslib.org/}{\t{htslib} website}%
   \footnote{https://www.htslib.org/} to build \t{htslib} from source.
 
   All other dependencies can be installed using the following command:
