@@ -27,6 +27,7 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
+  <home>/login</home>
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
   <system-connection>
@@ -53,6 +54,16 @@
   To enable running multiple web services on single machine, \program{sg-web}
   can be configured to bind on an arbitrary address and an arbitrary port.
   Both IPv4 and IPv6 addresses are supported.
+
+\subsection{Default home page}
+
+  When a user visits the \program{sg-web} instance, it defaults to showing
+  the \t{/login} page.  When adding static pages to the \program{sg-web}
+  instance, the \t{home} configuration option can be used to set a different
+  default landing page.
+
+  See \ref{sec:static-pages} to read about how to add static pages to the
+  \program{sg-web} instance.
 
 \subsection{Developer mode}
 

@@ -16,6 +16,7 @@
 
 (define-module (www config)
   #:use-module (ice-9 format)
+  #:use-module ((ice-9 ftw) #:select (scandir))
   #:use-module (oop goops)
   #:use-module (www util)
   #:use-module (sparql driver)
@@ -81,9 +82,11 @@
             set-orcid-redirect-uri!
             set-persist-connection-lock!
             set-system-connection!
+            set-www-home!
             set-www-listen-address!
             set-www-listen-port!
             shorthand-uri->uri
+            static-page-modules
             system-connection
             system-state-graph
             uri->shorthand-uri
@@ -93,6 +96,7 @@
             www-listen-address-family
             www-listen-port
             www-max-file-size
+            www-home
             www-name
             www-roots
             www-version))
@@ -115,6 +119,10 @@
 
   (www-version              #:init-value "@VERSION@"
                             #:getter get-www-version)
+
+  (www-home                 #:init-value "/login"
+                            #:getter get-www-home
+                            #:setter set-www-home-private!)
 
   (www-roots                #:init-value
                             (let ((internal "@WEB_ROOT@/sparqling-genomics/web")
@@ -361,6 +369,7 @@
             orcid-redirect-uri
             persist-connection-lock
             system-connection
+            www-home
             www-listen-port))
 
 (define (www-cache-root)
@@ -368,6 +377,24 @@
     (unless (file-exists? (cache-root))
       (mkdir-p (cache-root)))
     (cache-root)))
+
+(define* (static-page-modules #:key (found '())
+                              (roots %load-path))
+  (if (null? roots)
+      found
+      (let ((full-path (string-append (car roots) "/www/pages/static")))
+        (if (file-exists? full-path)
+            (static-page-modules
+             #:found (append (map (lambda (filename)
+                                    (basename filename ".scm"))
+                                  (scandir full-path
+                                           (lambda (filename)
+                                             (string-suffix? ".scm" filename))))
+                             found)
+             #:roots (cdr roots))
+            (static-page-modules
+             #:found found
+             #:roots (cdr roots))))))
 
 (define* (resolved-static-file-path path #:key (found #f)
                                                (roots (www-roots)))

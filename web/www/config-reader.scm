@@ -45,6 +45,7 @@
               (backtrace?        (assoc-ref config 'backtrace-on-error))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
+              (home              (assoc-ref config 'home))
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
@@ -54,6 +55,9 @@
             (set-developer-mode! #t))
           (when (and backtrace? (string= (car backtrace?) "1"))
             (set-backtrace-on-error! #t))
+          (when home
+            (set-www-home! (car home))
+            (log-debug "read-configuration-from-file" "Set home to ~s." (www-home)))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

@@ -211,7 +211,26 @@
    [(not (string-is-longer-than request-path 2))
     (if username
         (respond-303 client-port "/dashboard" #f)
-        (respond-303 client-port "/login" #f))]
+        (respond-303 client-port (www-home) #f))]
+
+   ;; Pages prefixes by “/spage/” are static pages for which one doesn't
+   ;; need to be logged in.
+   [(string-prefix? "/spage/" request-path)
+    (respond-to-client 200 client-port '(text/html)
+      (call-with-output-string
+        (lambda (port)
+          (set-port-encoding! port "utf8")
+          (let* ((path (string-append "static/" (substring request-path 7)))
+                 (page-function (resolve-module-function path))
+                 (sxml-tree (if page-function
+                                (page-function request-path)
+                                (page-error request-path))))
+            (catch 'wrong-type-arg
+              (lambda _
+                (when (eq? (car (car sxml-tree)) 'html)
+                  (format port "<!DOCTYPE html>~%")))
+              (lambda (key . args) #f))
+            (sxml->xml sxml-tree port)))))]
 
    ;; The POST request of the login page is special, because it must set
    ;; a Set-Cookie HTTP header.  This is something out of the control of
@@ -590,6 +609,7 @@
        [(or (string= "/login" request-path)
             (and (beacon-enabled?) (string-prefix? "/beacon" request-path))
             (string-prefix? "/form/" request-path)
+            (string-prefix? "/spage/" request-path)
             (string= "/api" request-path)
             (string= "/api/login" request-path)
             (string= "/api/register-connection" request-path))
@@ -599,10 +619,10 @@
           (lambda (key . args)
             (log-error "request-handler" "2: ~a: ~s" key args)))]
 
-       ;; When not authenticated, redirect to the login page.
+       ;; When not authenticated, redirect to the default home page.
        ;; ----------------------------------------------------------------------
        [(string= "/" request-path)
-        (respond-303 client-port "/login" #f)]
+        (respond-303 client-port (www-home) #f)]
 
        [(string-prefix? "/api" request-path)
         (if (request-accept request)

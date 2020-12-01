@@ -37,6 +37,31 @@
     ("/report"          "Report")
     ("/automate"        "Automate")))
 
+(define (page-static-menu request-path)
+  `(ul (@ (role "menubar"))
+    ,(map (lambda (page)
+            (let ((page-name (string-titlecase
+                              (string-map
+                               (lambda (char)
+                                 (if (eq? char #\-) #\space char))
+                               page) 0 1)))
+              (cond
+               [(string-suffix? page request-path)
+                `(li (@ (role "menuitem")
+                        (class "active")) ,page-name)]
+               [else
+                `(li (@ (role "menuitem"))
+                     (a (@ (href ,(string-append "/spage/" page)))
+                        ,page-name))])))
+          (static-page-modules))
+   (li (@ (role "menuitem")
+          (class ,(string-append
+                   (if (and (string? request-path)
+                            (string= "/login" request-path))
+                        "active " "")
+                   "login")))
+       (a (@ (href "/login")) "Log in"))))
+
 (define (page-menu username request-path)
   `(ul (@ (role "menubar"))
     (li (@ (role "menuitem")
@@ -234,7 +259,10 @@
                 (div (@ (class "title")
                         (style "text-align: center"))
                      (img (@ (src "/static/images/logo.png")
-                             (alt ,(www-name))))))
+                             (alt ,(www-name)))))
+                (div (@ (role "navigation")
+                        (class "menu"))
+                     ,(page-static-menu request-path)))
            (div (@ (role "main")
                    (id "content")) ,content-tree)
            ,(show-footer))))))
