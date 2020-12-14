@@ -69,21 +69,25 @@
     (unlock-mutex %log-mutex)))
 
 (define (log-debug function fmt . rst)
-  (apply log-any
-         (append (list "DEBUG" (default-debug-port) function fmt) rst)))
+  (unless (null? (default-debug-port))
+    (apply log-any
+           (append (list "DEBUG" (default-debug-port) function fmt) rst))))
 
 (define (log-warning function fmt . rst)
-  (apply log-any
-         (append (list "WARNING" (default-warning-port) function fmt) rst)))
+  (unless (null? (default-warning-port))
+    (apply log-any
+           (append (list "WARNING" (default-warning-port) function fmt) rst))))
 
 (define (log-error function fmt . rst)
-  (apply log-any
-         (append (list "ERROR" (default-error-port) function fmt) rst))
-  (when (backtrace-on-error?)
-    (log-any "ERROR" (default-error-port) "log-error" "--- Begin backtrace ---")
-    (display-backtrace (make-stack #t) (default-error-port) 2)
-    (log-any "ERROR" (default-error-port) "log-error" "---  End backtrace  ---")))
+  (unless (null? (default-error-port))
+    (apply log-any
+           (append (list "ERROR" (default-error-port) function fmt) rst))
+    (when (backtrace-on-error?)
+      (log-any "ERROR" (default-error-port) "log-error" "--- Begin backtrace ---")
+      (display-backtrace (make-stack #t) (default-error-port) 2)
+      (log-any "ERROR" (default-error-port) "log-error" "---  End backtrace  ---"))))
 
 (define (log-access username fmt . rst)
-  (apply log-any
-         (append (list "ACCESS" (default-debug-port) username fmt) rst)))
+  (unless (null? (default-debug-port))
+    (apply log-any
+           (append (list "ACCESS" (default-debug-port) username fmt) rst))))
