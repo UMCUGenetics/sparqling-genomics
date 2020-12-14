@@ -7,10 +7,8 @@
 \usepackage[english]{babel}
 \usepackage{parskip}
 \usepackage{mathtools}
-\usepackage{longtable}
 \usepackage{array}
 \usepackage{mdframed}
-\usepackage{upquote}
 \usepackage[margin=1cm]{caption}
 
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
@@ -38,7 +36,6 @@
 \usepackage{tabularx}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
-\usepackage{multirow}
 \usepackage{float}
 
 \usepackage{color, colortbl}
