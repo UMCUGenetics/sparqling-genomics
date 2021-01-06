@@ -54,6 +54,20 @@ AS_IF([test "x$GUILE_EFFECTIVE_VERSION" = "x2.0"],
       [AM_CONDITIONAL([ENABLE_GUILE_OPTIMIZATIONS], [true])
        AC_MSG_RESULT([yes])])
 
+dnl Infer the distribution's package name on the GUILE_EFFECTIVE_VERSION.
+dnl An improved mechanism to check the distribution's package name for Guile
+dnl is very welcome.
+AC_MSG_CHECKING([what the RPM package name for Guile would be])
+
+if test "x$GUILE_EFFECTIVE_VERSION" = "x2.2"; then
+   GUILE_RPM_PACKAGE_NAME="guile22"
+else
+   GUILE_RPM_PACKAGE_NAME="guile"
+fi
+
+AC_SUBST([GUILE_RPM_PACKAGE_NAME])
+AC_MSG_RESULT($GUILE_RPM_PACKAGE_NAME)
+
 dnl This macro is used to resolve the absolute path to @datarootdir@ so that
 dnl the absolute path can be used in the configuration file for the web
 dnl interface.
@@ -103,6 +117,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   doc/sparqling-genomics.sty
+  rpmbuild/sparqling-genomics.spec
   tools/Makefile
   tools/bam2rdf/Makefile
   tools/ega2rdf/Makefile
