@@ -175,9 +175,9 @@
         #f))
 
   (define (list-ref-or-f lst n)
-    (if (> (length lst) n)
-        (list-ref lst n)
-        #f))
+    (catch 'out-of-range
+      (lambda _ (list-ref lst n))
+      (lambda (key . args) #f)))
 
   (define (string-contains-ci-surrounded-by-whitespace s1 s2 start)
     (let [(pstart (string-contains-ci s1 s2 start))]
