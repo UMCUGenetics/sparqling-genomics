@@ -4,9 +4,6 @@
   knowledge graph to make \i{discovering}, \i{connecting}, and
   \i{collaborating} easy.
 
-\section{Prerequisites}
-\label{sec:prerequisites}
-
   The programs provided by this project are designed to build a knowledge graph.
   However, a knowledge graph store (better known as an RDF store) is not included
   because various great RDF stores already exist, including
@@ -15,17 +12,131 @@
   \href{https://www.blazegraph.com/}{BlazeGraph}.  We recommend using one of
   the mentioned RDF stores with the programs from this project.
 
-  Before we can use the programs provided by this project, we need to build
-  them.  The build system needs
-  \href{https://www.gnu.org/software/autoconf}{GNU Autoconf},
-  \href{https://www.gnu.org/software/automake}{GNU Automake},
-  \href{https://www.gnu.org/software/make}{GNU Make},
-  \href{https://www.freedesktop.org/wiki/Software/pkg-config/}{pkg-config} and
-  \href{https://www.gnu.org/software/libtool/}{libtool}.
-  Additionally, for building the documentation, a working \LaTeX{} distribution is
-  required including the \t{pdflatex} program.  Because \LaTeX{} distributions
-  are rather large, this is dependency is optional, at the cost of not being able
-  to (re)generate the documentation.
+  There are two ways to install SPARQLing genomics; using pre-built binaries
+  on supported GNU/Linux distributions, or by building it from its from source
+  code.
+
+\section{Binary installation}
+\label{sec:binary-installation}
+
+\subsection{Debian}
+
+  Create a file called \file{/etc/apt/sources.list.d/sparqling-genomics.list}
+  with the following contents:
+
+%% TODO: Set up package signing, and remove the [trusted=yes] bits.
+\begin{siderules}
+\begin{verbatim}
+deb [trusted=yes] https://debian.sparqling-genomics.org buster main
+\end{verbatim}
+\end{siderules}
+
+  This will add a repository that contains the \code{sparqling-genomics}
+  package.  To install it, use the following commands:
+
+\begin{siderules}
+\begin{verbatim}
+apt-get update
+apt-get install sparqling-genomics
+\end{verbatim}
+\end{siderules}
+
+\subsection{CentOS}
+
+  CentOS 7 and 8 do not include \t{htslib} by default.  Enable the
+  \href{https://fedoraproject.org/wiki/EPEL}{EPEL repository}%
+  \footnote{https://fedoraproject.org/wiki/EPEL} to make sure the
+  \t{htslib} package is found while resolving dependencies for
+  \t{sparqling-genomics}.
+
+  Once the EPEL repository is set up, create a file called
+  \file{/etc/yum.repos.d/sparqling-genomics.repo} with the following contents:
+
+\begin{siderules}
+\begin{verbatim}
+[sparqling-genomics]
+name=SPARQLing-genomics
+baseurl=https://rpm.sparqling-genomics.org/centos
+enabled=1
+gpgcheck=0
+\end{verbatim}
+\end{siderules}
+
+This will add a repository that contains the \code{sparqling-genomics} package.
+To install it, use the following commands:
+
+\begin{siderules}
+\begin{verbatim}
+yum update
+yum install sparqling-genomics
+\end{verbatim}
+\end{siderules}
+
+\subsection{Fedora}
+
+Create a file called \file{/etc/yum.repos.d/sparqling-genomics.repo}
+with the following contents:
+
+\begin{siderules}
+\begin{verbatim}
+[sparqling-genomics]
+name=SPARQLing-genomics
+baseurl=https://rpm.sparqling-genomics.org/fedora
+enabled=1
+gpgcheck=0
+\end{verbatim}
+\end{siderules}
+
+This will add a repository that contains the \code{sparqling-genomics} package.
+To install it, use the following commands:
+
+\begin{siderules}
+\begin{verbatim}
+dnf update
+dnf install sparqling-genomics
+\end{verbatim}
+\end{siderules}
+
+\subsection{Generic tarball for GNU/Linux}
+
+  A self-contained distribution of SPARQLing-genomics and its dependencies
+  can be obtained from the \href{https://github.com/UMCUGenetics/sparqling-genomics/releases}%
+  {release page}.  All programs are ready-to-run after unpacking the tarball.
+
+\begin{siderules}
+\begin{lstlisting}
+curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
+download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
+tar axvf sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
+bin/table2rdf --help
+\end{lstlisting}
+\end{siderules}
+
+  The tarball includes both SPARQLing genomics and Virtuoso (open source
+  edition).
+
+  The downsides of using the generic tarball in contrast to the repositories is
+  that the software will not receive updates, and the dependencies are not
+  shared between your distribution and SPARQLing genomics.
+
+\subsection{Docker image}
+
+  A pre-built Docker container can be obtained from the release page.  It
+  can be imported into docker using the following commands:
+
+\begin{siderules}
+\begin{lstlisting}
+curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
+download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
+docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
+\end{lstlisting}
+\end{siderules}
+
+  The container includes both SPARQLing genomics and Virtuoso (open source
+  edition).
+
+\section{Install from source}
+\label{sec:source-installation}
 
   Each component in the repository has its own dependencies.  Table
   \ref{table:dependencies} provides an overview for each tool.  A \B{}
@@ -109,8 +220,7 @@
 
 \subsection{Debian}
 
-  Debian includes all tools, so use this command to install the
-  build dependencies:
+  Use the following command to install the build dependencies:
 
 \begin{siderules}
 \begin{verbatim}
@@ -254,61 +364,3 @@ make install
 make -C tools/vcf2rdf
 \end{verbatim}
 \end{siderules}
-
-\section{Using pre-built solutions}
-
-\subsection{Repository for Debian}
-
-Create a file called \file{/etc/apt/sources.list.d/sparqling-genomics.list}
-with the following contents:
-
-%% TODO: Set up package signing, and remove the [trusted=yes] bits.
-\begin{siderules}
-\begin{verbatim}
-deb [trusted=yes] https://debian.sparqling-genomics.org buster main
-\end{verbatim}
-\end{siderules}
-
-This will add a repository that contains the \code{sparqling-genomics} package.
-To install it, use the following commands:
-
-\begin{siderules}
-\begin{verbatim}
-apt-get update
-apt-get install sparqling-genomics
-\end{verbatim}
-\end{siderules}
-
-\subsection{Tarball for GNU/Linux}
-
-  A pre-built self-contained distribution of SPARQLing-genomics and
-  its dependencies can be obtained from the release page.  All programs
-  are ready-to-run after unpacking the tarball.
-
-\begin{siderules}
-\begin{lstlisting}
-curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
-download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
-tar axvf sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
-bin/table2rdf --help
-\end{lstlisting}
-\end{siderules}
-
-  The tarball includes both SPARQLing genomics and Virtuoso (open source
-  edition).
-
-\subsection{Docker image}
-
-  A pre-built Docker container can be obtained from the release page.  It
-  can be imported into docker using the following commands:
-
-\begin{siderules}
-\begin{lstlisting}
-curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
-download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
-docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
-\end{lstlisting}
-\end{siderules}
-
-  The container includes both SPARQLing genomics and Virtuoso (open source
-  edition).
