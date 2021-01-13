@@ -9,7 +9,7 @@ Vcs-Git: https://github.com/UMCUGenetics/sparqling-genomics.git
 
 Package: sparqling-genomics
 Architecture: any
-Depends: zlib1g, guile-2.2, libraptor2-0, libhts2 | libhts3, libxml2, libgnutls30, libpng
+Depends: zlib1g, guile-2.2, libraptor2-0, libhts2 | libhts3, libxml2, libgnutls30, libpng16-16
 Description: SPARQLing-genomics
  SPARQLing genomics is a combination of tools and practices to create a
  knowledge graph to make discovering, connecting, and collaborating easy.
