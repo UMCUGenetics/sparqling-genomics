@@ -15,20 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define FUSE_USE_VERSION 30
-
-#include <fuse.h>
+#include "config.h"
 #include <getopt.h>
-#include <libguile.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 #include <time.h>
-#include <unistd.h>
-
-#define GUILE_LOAD_COMPILED_PATH "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@"
-#define GUILE_LOAD_PATH "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH@"
+#include <libguile.h>
 
 /* GLOBAL STATE
  * --------------------------------------------------------------------------
@@ -84,12 +74,14 @@ sgfs_getattr (const char *path, struct stat *st)
     }
   else
     {
+      //scm_call_1 (query_bytes, path_scm);
       st->st_mode = S_IFREG | 0644;
       st->st_nlink = 1;
       st->st_size = 1024;
     }
 
   path_scm = NULL;
+  scm_gc ();
 
   return 0;
 }
@@ -136,9 +128,38 @@ sgfs_readdir (const char *path, void *buffer, fuse_fill_dir_t filldir,
   return 0;
 }
 
+static int
+sgfs_read (const char *path, char *buffer, size_t size, off_t offset,
+           struct fuse_file_info *fi)
+{
+  scm_init_guile();
+
+  printf( "--> Trying to read %s, %lu, %lu\n", path, offset, size);
+
+  char file54Text[] = "Hello World From File54!";
+  char file349Text[] = "Hello World From File349!";
+  char *selectedText = NULL;
+
+  // ... //
+
+  if ( strcmp( path, "/file54" ) == 0 )
+    selectedText = file54Text;
+  else if ( strcmp( path, "/file349" ) == 0 )
+    selectedText = file349Text;
+  else
+    return -1;
+
+  // ... //
+
+  memcpy( buffer, selectedText + offset, size );
+
+  return strlen( selectedText ) - offset;
+}
+
 static struct fuse_operations operations = {
     .getattr	= sgfs_getattr,
     .readdir	= sgfs_readdir,
+    .read        = sgfs_read,
 };
 
 int

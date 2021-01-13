@@ -36,7 +36,7 @@ tools/bam2rdf/bam2rdf
 tools/ega2rdf/ega2rdf
 tools/folder2rdf/folder2rdf
 tools/json2rdf/json2rdf
-tools/sgfs/src/sgfs.c
+tools/sgfs/include/config.h
 tools/table2rdf/table2rdf
 tools/vcf2rdf/vcf2rdf
 tools/virtuoso-config/virtuoso-config

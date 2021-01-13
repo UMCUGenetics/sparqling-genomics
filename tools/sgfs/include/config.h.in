@@ -1,0 +1,29 @@
+#ifndef SGFS_CONFIG_H
+#define SGFS_CONFIG_H
+
+#define GUILE_LOAD_COMPILED_PATH "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@"
+#define GUILE_LOAD_PATH "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH@"
+#define FUSE_USE_VERSION 30
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fuse.h>
+
+static int sgfs_getattr (const char *path,
+			 struct stat *st);
+
+static int sgfs_readdir (const char *path,
+			 void *buffer,
+			 fuse_fill_dir_t filldir,
+			 off_t offset,
+			 struct fuse_file_info *fi);
+
+static int sgfs_read (const char *path,
+		      char *buffer,
+		      size_t size,
+		      off_t offset,
+		      struct fuse_file_info *fi);
+
+#endif /* SGFS_CONFIG_H */

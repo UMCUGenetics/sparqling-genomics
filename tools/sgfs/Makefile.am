@@ -8,6 +8,6 @@ SUBDIRS          = . guile
 
 bin_PROGRAMS     = sgfs
 
-sgfs_CFLAGS      = $(fuse_CFLAGS) $(guile_CFLAGS)
+sgfs_CFLAGS      = $(fuse_CFLAGS) $(guile_CFLAGS) -Iinclude
 sgfs_LDADD       = $(fuse_LIBS) $(guile_LIBS)
-sgfs_SOURCES     = src/sgfs.c
+sgfs_SOURCES     = src/sgfs.c include/config.h

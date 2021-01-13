@@ -125,7 +125,7 @@ AC_CONFIG_FILES([
   tools/json2rdf/Makefile
   tools/sgfs/Makefile
   tools/sgfs/guile/Makefile
-  tools/sgfs/src/sgfs.c
+  tools/sgfs/include/config.h
   tools/table2rdf/Makefile
   tools/virtuoso-config/Makefile
   tools/vcf2rdf/Makefile
@@ -180,16 +180,11 @@ fi
 
 dnl When FUSE is available, build the SGFS part of the project.
 dnl ---------------------------------------------------------------------------
-AC_ARG_WITH([sgfs], AS_HELP_STRING([--with-sgfs], [Enable building SGFS.]))
-AC_MSG_CHECKING([whether to build sgfs])
-
-AC_SUBST(BUILD_SGFS)
-AS_IF([test "x$with_sgfs" = "xyes"],
-      [PKG_CHECK_MODULES([fuse], [fuse])
-       AM_CONDITIONAL([BUILD_SGFS], [true])
-       AC_MSG_RESULT($with_sgfs)],
-      [AM_CONDITIONAL([BUILD_SGFS], [false])
-       AC_MSG_RESULT([no])])
+AC_SUBST([BUILD_SGFS])
+PKG_CHECK_MODULES([fuse], [fuse],
+   [AM_CONDITIONAL([BUILD_SGFS], [true])],
+   [AM_CONDITIONAL([BUILD_SGFS], [false])
+    AC_MSG_WARN([Unable to find FUSE. Disabled building SGFS.])])
 
 dnl When R is available, build the R support for reporting.
 dnl ---------------------------------------------------------------------------
