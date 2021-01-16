@@ -36,9 +36,9 @@
   (set! %projects (cons project %projects))
   (unlock-mutex %projects-lock))
 
-(define (add-query-to-cache query)
+(define (add-query-to-cache filename size project-name query)
   (lock-mutex %queries-lock)
-  (set! %queries (cons query %queries))
+  (set! %queries (cons (list filename size project-name query) %queries))
   (unlock-mutex %queries-lock))
 
 (define (projects) %projects)

@@ -5,8 +5,11 @@
   #:use-module (sgfs cache)
   #:use-module (web client)
   #:use-module (web response)
+  #:use-module (www hashing)
 
-  #:export (directory-overview-for-path
+  #:export (attributes-for-query
+	    attributes-for-path
+	    directory-overview-for-path
             is-directory))
 
 (define (http-error-handler header port)
@@ -37,6 +40,47 @@
               #:body (call-with-output-string
                        (lambda (out)
                          (write `((project-id . ,project-id)) out)))
+              #:streaming? #t)
+          (if (= (response-code header) 200)
+              (filter (lambda (item)
+                        (not (and (string? item)
+                                  (string= item ""))))
+                      (map (lambda (query)
+			     (let* ((name (assoc-ref query "name"))
+				    (text (assoc-ref query "queryText"))
+				    (size (if (string? text)
+					      (string-length text)
+					      0))
+				    (filename (string-append
+					       (cond
+						((and (string? name)
+						      (not (string= name "")))
+						 name)
+						((and (string? text)
+						      (not (string= text "")))
+						 (string->md5sum text))
+						(#t "Unknown query"))
+					       ".sparql")))
+			       (add-query-to-cache filename size project-name text)
+			       (list filename size text)))
+                           (read port)))
+              (http-error-handler header port))))))
+
+(define (project-origins endpoint token project-name)
+  (let* ((project    (assoc-ref (projects) project-name))
+         (project-id (assoc-ref project "id")))
+    (if (not project)
+        '()
+        (receive (header port)
+            (http-post (string-append endpoint
+                                      "/api/query?project-id="
+                                      project-id)
+              #:headers
+              `((Cookie       . ,(string-append "SGSession=" token))
+                (content-type . (application/sparql-update))
+                (accept       . ((application/s-expression))))
+              #:body (string-append
+                      "")
               #:streaming? #t)
           (if (= (response-code header) 200)
               (filter (lambda (item)
@@ -99,8 +143,27 @@
       (("Projects" project-name "Results")
        '())
 
+      ;; QUERY PATTERN
+      ;; ------------------------------------------------------------------
+      (("Projects" project-name "Queries" filename)
+       (query-text endpoint token project-name filename))
+
       ;; ORIGINS PATTERNS
       ;; ------------------------------------------------------------------
+
+      ;; REST
+      ;; ------------------------------------------------------------------
+      (_
+       '()))))
+
+(define (attributes-for-path path)
+  (let ((components (path->components path)))
+    (match components
+
+      ;; QUERY PATTERN
+      ;; ------------------------------------------------------------------
+      (("Projects" project-name "Queries" filename)
+       (assoc-ref (queries) filename))
 
       ;; REST
       ;; ------------------------------------------------------------------

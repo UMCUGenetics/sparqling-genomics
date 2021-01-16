@@ -29,6 +29,7 @@
 SCM log_error            = NULL;
 SCM log_debug            = NULL;
 SCM directories_for_path = NULL;
+SCM attributes_for_path  = NULL;
 SCM is_directory         = NULL;
 char *mountpoint         = NULL;
 char token[85];
@@ -69,15 +70,26 @@ sgfs_getattr (const char *path, struct stat *st)
 
   if (scm_is_true (scm_call_1 (is_directory, path_scm)))
     {
-      st->st_mode = S_IFDIR | 0755;
+      st->st_mode = S_IFDIR | 0500;
       st->st_nlink = 2;
     }
   else
     {
-      //scm_call_1 (query_bytes, path_scm);
-      st->st_mode = S_IFREG | 0644;
+      st->st_mode = S_IFREG | 0400;
       st->st_nlink = 1;
-      st->st_size = 1024;
+
+      SCM attributes = scm_call_1 (attributes_for_path, path_scm);
+      if (scm_is_true (scm_list_p (attributes)) &&
+	  scm_length (attributes) > (scm_from_int (1)))
+	{
+	  SCM size_scm = scm_list_ref (attributes, scm_from_int (0));
+	  st->st_size = scm_to_int (size_scm);
+	  size_scm = NULL;
+	}
+      else
+	st->st_size = 0;
+
+      attributes = NULL;
     }
 
   path_scm = NULL;
@@ -109,8 +121,33 @@ sgfs_readdir (const char *path, void *buffer, fuse_fill_dir_t filldir,
     {
       SCM item = SCM_CAR (elements);
 
-      char *filename = scm_to_locale_string (item);
-      filldir (buffer, filename, NULL, 0);
+      char *filename = NULL;
+      int size = 0;
+
+      if (scm_is_true (scm_list_p (item)))
+	{
+	  SCM name_scm = scm_list_ref (item, scm_from_int (0));
+	  SCM size_scm = scm_list_ref (item, scm_from_int (1));
+
+	  filename = scm_to_locale_string (name_scm);
+	  size = scm_to_int (size_scm);
+
+	  struct stat st;
+	  st.st_uid   = getuid();
+	  st.st_gid   = getgid();
+	  st.st_atime = time (NULL);
+	  st.st_mtime = time (NULL);
+	  st.st_mode  = S_IFREG | 0400;
+	  st.st_nlink = 1;
+	  st.st_size  = size;
+
+	  filldir (buffer, filename, &st, 0);
+	}
+      else
+	{
+	  filename = scm_to_locale_string (item);
+	  filldir (buffer, filename, NULL, 0);
+	}
 
       free (filename);
       item = NULL;
@@ -134,26 +171,34 @@ sgfs_read (const char *path, char *buffer, size_t size, off_t offset,
 {
   scm_init_guile();
 
-  printf( "--> Trying to read %s, %lu, %lu\n", path, offset, size);
+  SCM path_scm     = scm_from_latin1_string (path);
 
-  char file54Text[] = "Hello World From File54!";
-  char file349Text[] = "Hello World From File349!";
-  char *selectedText = NULL;
+  SCM attributes = scm_call_1 (attributes_for_path, path_scm);
+  if (scm_is_true (scm_list_p (attributes)) &&
+      scm_length (attributes) > (scm_from_int (1)))
+    {
+      SCM size_scm = scm_list_ref (attributes, scm_from_int (0));
+      SCM content_scm = scm_list_ref (attributes, scm_from_int (2));
 
-  // ... //
+      char* content = scm_to_locale_string (content_scm);
 
-  if ( strcmp( path, "/file54" ) == 0 )
-    selectedText = file54Text;
-  else if ( strcmp( path, "/file349" ) == 0 )
-    selectedText = file349Text;
+      memcpy (buffer, content + offset, size);
+
+      size_t content_len = strlen (content);
+
+      free (content);
+      path_scm = NULL;
+      attributes = NULL;
+      size_scm = NULL;
+      content_scm = NULL;
+      content = NULL;
+
+      scm_gc();
+
+      return content_len - offset;
+    }
   else
     return -1;
-
-  // ... //
-
-  memcpy( buffer, selectedText + offset, size );
-
-  return strlen( selectedText ) - offset;
 }
 
 static struct fuse_operations operations = {
@@ -343,6 +388,8 @@ main (int argc, char *argv[])
   is_directory         = scm_c_public_ref ("sgfs filesystem", "is-directory");
   directories_for_path =
     scm_c_public_ref ("sgfs filesystem", "directory-overview-for-path");
+  attributes_for_path =
+    scm_c_public_ref ("sgfs filesystem", "attributes-for-path");
 
   /* We only pass a few arguments to ‘fuse_main’: “-f” to keep sgfs in the
    * foreground, and ‘mountpoint’ to indicate where to mount the virtual
