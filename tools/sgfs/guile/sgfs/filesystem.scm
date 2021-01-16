@@ -143,11 +143,6 @@
       (("Projects" project-name "Results")
        '())
 
-      ;; QUERY PATTERN
-      ;; ------------------------------------------------------------------
-      (("Projects" project-name "Queries" filename)
-       (query-text endpoint token project-name filename))
-
       ;; ORIGINS PATTERNS
       ;; ------------------------------------------------------------------
 
