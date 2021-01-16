@@ -59,7 +59,8 @@
             icon-src
             js
             h2-button
-            table-button))
+            table-button
+	    total-available-memory))
 
 (define (flatten lst)
   (cond [(null? lst)
@@ -284,3 +285,15 @@ is not a CHUNKED-OUTPUT-PORT."
                         [(> number 9)  (+ number 7)]
                         [else          number])))))
             (iota (1- length))))))
+
+(define (total-available-memory)
+  "Returns the number of kilobytes of memory available to the system."
+  (catch #t
+    (lambda _
+      (call-with-input-file "/proc/meminfo"
+	(lambda (port)
+	  (let ((line (read-line port)))
+            (string->number
+             (list-ref (delete "" (string-split line #\space)) 1))))))
+    (lambda (key . args)
+      #f)))

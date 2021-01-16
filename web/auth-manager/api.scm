@@ -76,6 +76,7 @@
       (if (eq? (request-method request) 'GET)
           (respond-200 client-port accept-type
                        `((load-average   . ,(system-load-average))
+			 (memory-capacity . ,(total-available-memory))
                          (available-cpus . ,(current-processor-count))))
           (respond-405 client-port '(GET)))]
 
