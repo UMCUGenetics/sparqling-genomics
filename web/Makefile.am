@@ -28,7 +28,7 @@ SOURCES =                                               \
   json.scm                                              \
   json/builder.scm                                      \
   json/parser.scm                                       \
-  json/syntax.scm                                       \
+  json/record.scm                                       \
   ldap/authenticate.scm                                 \
   logger.scm                                            \
   sparql/driver.scm                                     \
