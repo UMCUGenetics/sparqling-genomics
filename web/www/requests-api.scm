@@ -81,9 +81,9 @@
               (cond
                [(= (response-code header) 200)
                 (let* ((json         (json->scm body))
-                       (access-token (hash-ref json "access_token"))
-                       (name         (hash-ref json "name"))
-                       (orcid        (hash-ref json "orcid")))
+                       (access-token (assoc-ref json "access_token"))
+                       (name         (assoc-ref json "name"))
+                       (orcid        (assoc-ref json "orcid")))
                   (if (and access-token name orcid)
                       (begin
                         (persist-orcid-record `((id   . ,orcid)
