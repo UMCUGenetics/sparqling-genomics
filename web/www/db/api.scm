@@ -132,7 +132,7 @@ that can be transformed by SXML->XML."
     (call-with-output-string
       (lambda (port) (alist->html data port)))]
    [(equal? fmt '(application/json))
-    (scm->json-string data)]
+    (scm->json-string (list->vector data))]
    [(equal? fmt '(application/xml))
     (call-with-output-string
       (lambda (port) (sxml->xml (alist->sxml data) port)))]
@@ -157,9 +157,9 @@ that can be transformed by SXML->XML."
         (member 'application/json fmt))
     (let [(json-data (json-string->scm data))]
       ;; This only works for one level of key-value pairs.
-      (hash-map->list (lambda (key value)
-                        `(,(string->symbol key) . ,value))
-                      json-data))]
+      (map (lambda (pair)
+             `(,(string->symbol (car pair)) . ,(cdr pair)))
+           json-data))]
    [(or (equal? fmt '(application/xml))
         (member 'application/xml fmt))
     ;; It's unclear how this would work without introducing a top-level
