@@ -25,8 +25,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define GUILE_LOAD_COMPILED_PATH "@GUILE_SITE_CCACHE@:@GODIR@:@GNUTLS_GUILE_CCACHE@"
-#define GUILE_LOAD_PATH "@GUILE_SITE@:@MODDIR@:@GNUTLS_GUILE_LOAD_PATH@"
+#define GUILE_LOAD_COMPILED_PATH "@GODIR@:@GUILE_SITE_CCACHE@:@GNUTLS_GUILE_CCACHE@"
+#define GUILE_LOAD_PATH "@MODDIR@:@GUILE_SITE@:@GNUTLS_GUILE_LOAD_PATH@"
 #define DEFAULT_CONFIG_FILE "@webconfdir@/sg-auth-manager.xml"
 
 typedef struct
