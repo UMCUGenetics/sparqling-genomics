@@ -132,7 +132,11 @@ that can be transformed by SXML->XML."
     (call-with-output-string
       (lambda (port) (alist->html data port)))]
    [(equal? fmt '(application/json))
-    (scm->json-string (list->vector data))]
+    (scm->json-string (cond
+		       ((and (list? data)
+			     (list? (car data)))
+			(list->vector data))
+		       (else data)))]
    [(equal? fmt '(application/xml))
     (call-with-output-string
       (lambda (port) (sxml->xml (alist->sxml data) port)))]
