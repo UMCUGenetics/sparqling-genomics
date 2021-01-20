@@ -37,20 +37,20 @@ rpm: dist
 
 # Build docker image with Guix
 docker: dist
-	guix pack -C gzip -e '(load "environment.scm")' \
+	guix pack -C gzip -e '(load "guix.scm")' \
              --with-source=sparqling-genomics-$(VERSION).tar.gz \
              --format=docker \
              -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
              glibc-utf8-locales tzdata coreutils net-base bash virtuoso-ose
 
 pack: dist
-	guix pack -C gzip -e '(load "environment.scm")' \
+	guix pack -C gzip -e '(load "guix.scm")' \
              --with-source=sparqling-genomics-$(VERSION).tar.gz \
              -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
              glibc-utf8-locales tzdata virtuoso-ose
 
 portable-pack: dist
-	guix pack -RR -C gzip -e '(load "environment.scm")' \
+	guix pack -RR -C gzip -e '(load "guix.scm")' \
              --with-source=sparqling-genomics-$(VERSION).tar.gz \
              -S /bin=bin -S /lib=lib -S /share=share -S /etc=etc -S /var=var \
              glibc-utf8-locales tzdata virtuoso-ose
