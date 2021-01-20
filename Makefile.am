@@ -21,13 +21,9 @@ if HAVE_PDFLATEX
 SUBDIRS                += doc
 endif
 
-deploymentdir           = ${pkgdatadir}
 ontologydir             = ${pkgdatadir}
 nobase_ontology_DATA    = ontologies/sparqling-genomics.ttl
-nobase_deployment_DATA  = deployment/virtuoso-machine.scm
-EXTRA_DIST              = $(nobase_ontology_DATA)   \
-                          $(nobase_deployment_DATA) \
-                          environment.scm
+EXTRA_DIST              = $(nobase_ontology_DATA) guix.scm
 
 # Build debian package
 deb:
