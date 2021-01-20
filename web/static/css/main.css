@@ -41,11 +41,11 @@ body,html {
     font-family: 'Roboto', sans-serif;
     line-height: 1.4em;
     color: #000000;
-    background-color: #99cccc;
+    background-color: #99ccdd;
 }
 
 #wrapper { width: 100%; padding: 0pt; margin: 0pt auto auto auto; }
-#header { background: #eeeeee; }
+#header { background: #f1f1f1; }
 #header .logo { vertical-align: bottom; }
 #header .title { padding: 25pt 5pt 5pt 5pt; }
 #header .title h1 { padding: 0pt; margin: 0pt; }
