@@ -8,7 +8,6 @@
 \usepackage{parskip}
 \usepackage{mathtools}
 \usepackage{array}
-\usepackage{mdframed}
 \usepackage[margin=1cm]{caption}
 
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
@@ -45,26 +44,14 @@
 \definecolor{EvenRowColor}{rgb}{0.97, 0.97, 0.97}
 \definecolor{OddRowColor}{rgb}{0.93, 0.93, 0.93}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
+\definecolor{CodeComment}{rgb}{0.4,0.4,0.4}
+\definecolor{CodePurple}{rgb}{0.58,0,0.82}
 \definecolor{CodeBG}{rgb}{0.95, 0.95, 0.95}
 \definecolor{Code}{rgb}{0.0, 0.2, 0.4}
 \definecolor{ShadowGray}{rgb}{0.8, 0.8, 0.8}
 \definecolor{LinkGray}{rgb}{0.47, 0.13, 0.13}
 \definecolor{CiteColor}{rgb}{0.13, 0.47, 0.13}
 \definecolor{DarkGray}{rgb}{0.40, 0.40, 0.40}
-\newmdenv[
-  linewidth=1pt,
-  topline=true,
-  bottomline=true,
-  rightline=true,
-  leftline=true,
-  leftmargin=0pt,
-  backgroundcolor=CodeGray,
-  linecolor=ShadowGray,
-  innertopmargin=10pt,
-  innerbottommargin=10pt,
-  skipabove=5pt,
-  skipbelow=5pt
-]{siderules}
 
 % When highlighting text, make sure the highlighting box doesn't
 % add padding space.
@@ -79,7 +66,7 @@
 \newcommand{\evenrow}{\rowcolor{EvenRowColor}}
 \newcommand{\headrow}{\rowcolor{Gray}}
 \newcommand{\B}{$\bullet{}$}
-\newcommand\code[1]{\colorbox{CodeBG}{\textcolor{Code}{\texttt{#1}}}}
+\newcommand\code[1]{{\setlength{\fboxrule}{2.0pt}\fcolorbox{CodeBG}{CodeBG}{\textcolor{Code}{\texttt{#1}}}}}
 \newcommand\triplet[3]{\code{#1} $\rightarrow$ \code{#2} $\rightarrow$ \code{#3}}
 \newcommand\refer[1]{\ref{#1} {\color{LinkGray}`\nameref{#1}'}}
 \newcommand\file[1]{`\texttt{#1}'}
@@ -120,7 +107,45 @@
 % Alternative to \verbatim that allows escaping.
 \usepackage{listings}
 \lstset{escapeinside={(@*}{*@)}}
-\lstset{basicstyle=\ttfamily, columns=fullflexible, keepspaces=true}
+
+\lstdefinelanguage{XML}
+{
+  basicstyle=\ttfamily,
+  morestring=[s]{"}{"},
+  %morecomment=[s]{?}{?},
+  morecomment=[s]{!--}{--},
+  commentstyle=\color{CodeComment},
+  moredelim=[s][\color{black}]{>}{<},
+  moredelim=[s][\color{magenta}]{\ }{=},
+  stringstyle=\color{CodePurple},
+  identifierstyle=\color{magenta}
+}
+
+\lstdefinestyle{codestyle}{
+    commentstyle=\color{CodeComment},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{CodeGray},
+    stringstyle=\color{CodePurple},
+    basicstyle=\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    rulecolor=\color{ShadowGray},
+    backgroundcolor=\color{CodeGray},
+    frame=single,
+    framesep=10pt,
+    framerule=1pt,
+    columns=fullflexible,
+    keepspaces=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    xleftmargin=10pt,
+    xrightmargin=10pt
+}
+
+\lstset{style=codestyle}
 
 \renewcommand{\t}[1]{\texttt{#1}}
 \renewcommand{\i}[1]{\emph{#1}}

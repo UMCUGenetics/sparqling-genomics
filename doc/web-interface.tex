@@ -20,8 +20,7 @@
   displays all options, except for the authentication part, which is
   discussed separately in section \refer{sec:authentication}.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   <fork>0</fork>
@@ -40,8 +39,7 @@
     <!-- Either LDAP settings, or local-user authentication -->
   </authentication>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{To fork or not to fork}
 
@@ -115,8 +113,7 @@
 
   The following example shows how to configure the \i{system connection}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   ...
@@ -127,8 +124,7 @@
     <password>dba</password>
   </system-connection>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Beacon support}
 \label{sec:beacon}
@@ -147,8 +143,7 @@
   The following example shows how to configure \i{Beacon} including the
   \i{Beacon connection}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   ...
@@ -175,8 +170,7 @@
     </connection>
   </beacon>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The implementation assumes the following conditions are met:
   \begin{itemize}
@@ -227,8 +221,7 @@
   for each account.  The following example shows how to configure
   ``local-user authentication'':
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   ...
@@ -245,8 +238,7 @@
     </user>
   </authentication>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{LDAP authentication example}
 
@@ -263,8 +255,7 @@
 
   The following example shows how to configure LDAP authentication:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   ...
@@ -281,8 +272,7 @@
     </ldap>
   </authentication>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{ORCID authentication example}
 
@@ -296,8 +286,7 @@
 
   The following example shows how to configure ORCID authentication:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="utf-8"?>
 <web-interface>
   ...
@@ -310,18 +299,15 @@
     </orcid>
   </authentication>
 </web-interface>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Running the web interface}
 
   The web interface can be started using the \program{sg-web} command:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 sg-web --configuration-file=file.xml
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   $\ldots{}$ where \t{file.xml} is a configuration file as
   discussed in section \refer{sec:configuring-sg-web}.
@@ -394,11 +380,9 @@ sg-web --configuration-file=file.xml
   The \t{endpoint-test} interacts with an endpoint through its API.  To run
   this test, invoke \program{sg-web-test} as following:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 sg-web-test --endpoint https://www.sparqling-genomics.org --token TOKEN
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Replace \t{https://www.sparqling-genomics.org} with your endpoint's
   address, and \t{TOKEN} with an access token for your endpoint.
@@ -409,11 +393,9 @@ sg-web-test --endpoint https://www.sparqling-genomics.org --token TOKEN
   to parse queries from \t{*.sparql} files from a directory.  To start this
   test, invoke \program{sg-web-test} as following:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 sg-web-test --sparql-parser /path/to/directory/with/queries
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \pagebreak{}
 \section{Using the web interface}

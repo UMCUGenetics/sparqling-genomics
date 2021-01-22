@@ -54,7 +54,6 @@
 
   The following snippet is an example of the extra data in Turtle-format:
 
-\begin{siderules}
 \begin{lstlisting}
 @prefix sg: <https://sparqling-genomics.org/(@*\sgversion{}*@)/> .
 @prefix orig: <origin://> .
@@ -70,7 +69,6 @@ orig:e9e38f2e4279eda346918ba69fd86c5f
     rdfs:label "SAMLPEA"^^xsd:string ;
     sg:foundIn orig:e9e38f2e4279eda346918ba69fd86c5f .
 \end{lstlisting}
-\end{siderules}
 
 \subsection{Handling multi-sample VCF files}
 
@@ -88,18 +86,16 @@ orig:e9e38f2e4279eda346918ba69fd86c5f
 
 The following command invocation will produce RDF in the \t{ntriples}
 format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 vcf2rdf -i /path/to/my/variants.vcf > /path/to/my/variants.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 To get a complete overview of options for this program, use:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 vcf2rdf --help
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Run-time properties}
 
@@ -115,11 +111,9 @@ vcf2rdf --help
   \t{turtle} for small input files.  The following example illustrates how to
   use \t{turtle} mode.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Preparing sequence alignment maps with \program{bam2rdf}}
 
@@ -171,18 +165,16 @@ vcf2rdf -i /path/to/my/variants.vcf -O turtle > /path/to/my/variants.ttl
 
 The following command invocation will produce RDF in the \t{ntriples}
 format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 bam2rdf -i /path/to/my/sequencing_data.bam > /path/to/my/sequencing_data.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 To get a complete overview of options for this program, use:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 bam2rdf --help
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Preparing tabular data with \program{table2rdf}}
 \label{sec:table2rdf}
@@ -209,19 +201,17 @@ bam2rdf --help
   RDF.  An example might explain this best.
 
   Take the following input file:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 $ cat test.tsv
 Chromosome      Position
 chr1    1500000
 chrMT   11000
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Running \program{table2rdf} with its default settings will produce:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 $ table2rdf -i test.tsv -O turtle
 ...
 <origin://...@0>
@@ -236,8 +226,7 @@ $ table2rdf -i test.tsv -O turtle
     col:position 11000 ;
     a :Row .
 ...
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   \begin{sloppypar}
   When we know that the data in a column refers to items in an ontology, like
@@ -250,7 +239,6 @@ $ table2rdf -i test.tsv -O turtle
   To do so, we use the \t{-{}-transform-object} option, or \t{-t}
   for short:
 
-\begin{siderules}
 \begin{lstlisting}
 $ table2rdf -O turtle \
     -i test.tsv       \
@@ -271,7 +259,6 @@ $ table2rdf -O turtle \
     a :Row .
 ...
 \end{lstlisting}
-\end{siderules}
 
   After the transformation, the output produced by \t{table2rdf} uses
   URIs pointing to the ontology instead of literal values for chromosomes.
@@ -286,7 +273,6 @@ $ table2rdf -O turtle \
   the \t{-{}-transform-predicate} option, or \t{-T} for short, a
   different transformation can be made:
 
-\begin{siderules}
 \begin{lstlisting}
 $ table2rdf -O turtle \
     -i test.tsv       \
@@ -309,7 +295,6 @@ $ table2rdf -O turtle \
     a :Row .
 ...
 \end{lstlisting}
-\end{siderules}
 
 \subsection{Delimiters}
 
@@ -328,17 +313,15 @@ $ table2rdf -O turtle \
 
   The following example demonstrates the usage of \t{-{}-delimiter} and
   \t{-{}-secondary-delimiter}.  Take the following input file:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 $ cat multi.tsv
 Chromosome	Position	Filter
 1	10000	A;B;C;D
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Without using the secondary delimiter, we get:
 
-\begin{siderules}
 \begin{lstlisting}
 $ table2rdf -i multi.tsv -O turtle
 ...
@@ -349,11 +332,9 @@ $ table2rdf -i multi.tsv -O turtle
     col:position 10000 ;
     a :Row .
 \end{lstlisting}
-\end{siderules}
 
   Using the secondary delimiter, we get:
 
-\begin{siderules}
 \begin{lstlisting}
 $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 ...
@@ -365,7 +346,6 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
     col:position 10000 ;
     a :Row .
 \end{lstlisting}
-\end{siderules}
 
   Notice how the \t{col:filter} predicate now describes a
   connection to four objects instead of one.
@@ -399,8 +379,7 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 
   The following snippet is an example of the extra data in Turtle-format:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 <origin://1jka8923i4>
     :convertedBy :table2rdf ;
     :filename "grch37.bed"^^xsd:string ;
@@ -409,25 +388,22 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 sample:grch37
     :foundIn <origin://1jka8923i4> ;
     a :Sample .
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Example usage}
 
 The following command invocation will produce RDF in the \t{ntriples}
 format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 table2rdf -i /path/to/my/table.tsv > /path/to/my/table.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 To get a complete overview of options for this program, use:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 table2rdf --help
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Converting MySQL data to RDF with \program{table2rdf}}
 
@@ -436,12 +412,10 @@ table2rdf --help
   example extracts the \t{regions} table from a MySQL server in a database
   called \t{example}.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
       --batch | table2rdf --stdin > regions.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The \program{mysql} command outputs the table in tab-delimited form when using
   the \t{-{}-batch} argument, which is the default input type for
@@ -479,18 +453,16 @@ mysql --host=127.0.0.1 -e "SELECT * FROM example.regions" \
 \subsection{Example usage}
 The following command invocation will produce RDF in the \t{ntriples}
 format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 xml2rdf -i /path/to/my/data.xml > /path/to/my/data.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 To get a complete overview of options for this program, use:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 xml2rdf --help
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Preparing JSON data with \program{json2rdf}}
 \label{sec:json2rdf}
@@ -531,18 +503,16 @@ xml2rdf --help
 
 The following command invocation will produce RDF in the \t{ntriples}
 format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 json2rdf -i /path/to/my/data.json > /path/to/my/data.n3
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 To get a complete overview of options for this program, use:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 json2rdf --help
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Extracting knowledge from folders with \t{folder2rdf}}
 \label{sec:folder2rdf}
@@ -555,16 +525,14 @@ json2rdf --help
 
 \subsection{Example usage}
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 folder2rdf --input-directory=/vcf-data   \
            --output-directory=/rdf-data  \
            --project-name Example        \
            --recursive                   \
            --compress                    \
            --threads=4
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   $\ldots{}$ where \t{/vcf-data} is a directory containing VCF files,
   and \t{/rdf-data} is the directory to store the converted files.
@@ -606,16 +574,15 @@ folder2rdf --input-directory=/vcf-data   \
 \subsection{Example usage}
 
 % Other types: application/n-triples
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                                 \
      -H "Content-Type: text/turtle"                          \
      -T /path/to/variants.ttl                                \
      -G <endpoint URL>                                       \
      --digest -u <username>:<password>                       \
      --data-urlencode graph=http://example/graph
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Virtuoso example}
 
@@ -626,30 +593,26 @@ a graph called \t{http://example/graph} in a Virtuoso endpoint at
 password \t{qwerty}.
 \end{sloppypar}
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl -X POST                                                 \
      -H "Content-Type: text/turtle"                          \
      -T vcf2rdf-variants.ttl                                 \
      -G http://127.0.0.1:8890/sparql-graph-crud-auth         \
      --digest -u dba:qwerty                                  \
      --data-urlencode graph=http://example/graph
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{4store example}
 
 Similar to the Virtuoso example, for \program{4store} the command looks like
 this:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl -X POST                                                 \
      -H "Content-Type: text/turtle"                          \
      -T vcf2rdf-variants.ttl                                 \
      -G http://127.0.0.1:8080/data/http://example/graph
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 Notice that \program{4store} does not provide an authentication mechanism.
 
@@ -657,12 +620,11 @@ Notice that \program{4store} does not provide an authentication mechanism.
 
   When the RDF file is compressed with \program{gzip}, extra HTTP headers must
   be added to the \program{curl} command:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                                 \
      -H "Content-Type: text/turtle"                          \
      -H "Transfer-Encoding: chunked"                         \
      -H "Content-Encoding: gzip"                             \
      ...
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}

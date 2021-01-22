@@ -33,11 +33,9 @@
   an independent set of triples.  The following query displays the available
   non-empty graphs in a SPARQL endpoint:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT DISTINCT ?graph WHERE { GRAPH ?graph { ?s ?p ?o } }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 Which may yield the following table:
 
@@ -74,13 +72,11 @@ Which may yield the following table:
   be specific about which graph to query.  This can be achieved using the
   \t{FROM} clause in the query.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT ?s ?p ?o
 FROM <graph-name>
 WHERE { ?s ?p ?o }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The \t{graph-name} must be one of the graphs returned by the query from
   section \refer{sec:non-empty-graphs}.
@@ -89,14 +85,12 @@ WHERE { ?s ?p ?o }
   We can repeat the \t{FROM} clause to query over multiple graphs in the
   same RDF store.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT ?s ?p ?o
 FROM <graph-name>
 FROM <another-graph-name>
 WHERE { ?s ?p ?o }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   In section \refer{sec:federated-querying} we will look at querying over
   multiple RDF stores.
@@ -108,15 +102,13 @@ WHERE { ?s ?p ?o }
   pattern.  When the information in a graph is structured, there are only few
   predicates in comparison to the number of subjects and the number of objects.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT COUNT(DISTINCT ?s) AS ?subjects
        COUNT(DISTINCT ?p) AS ?predicates
        COUNT(DISTINCT ?o) AS ?objects
 FROM <http://example>
 WHERE { ?s ?p ?o }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 On a typical graph with data originating from \t{vcf2rdf}, this may yield
 the following table:
@@ -136,15 +128,13 @@ the following table:
   Therefore, one useful method of finding out which patterns exist in a
   graph is to look for predicates:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT DISTINCT ?predicate
 FROM <http://example>
 WHERE {
   ?subject ?predicate ?object .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Which may yield the following table:
 
@@ -179,8 +169,7 @@ Using the knowledge we gained from exploring the predicates in a graph,
 we can construct more insightful queries, like finding the names of the
 samples and their originating filenames from the output of \t{vcf2rdf}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 
 SELECT DISTINCT STRAFTER(STR(?sample), "Sample/") AS ?sample ?filename
@@ -190,8 +179,7 @@ WHERE {
   ?sample   vcf2rdf:foundIn   ?origin .
   ?origin   vcf2rdf:filename  ?filename .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 Which may yield the following table:
 
@@ -228,8 +216,7 @@ Building on the previous query, and by exploring the predicates of a
 \t{vcf2rdf:VariantCall}, we can construct the following query to
 include the number of variants for each sample, in each file.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -246,8 +233,7 @@ WHERE
 
   ?origin   vcf2rdf:filename        ?filename .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Which may yield the following table:
 
@@ -281,8 +267,7 @@ WHERE
   chromosome, position, and the corresponding VCF \t{FILTER} field(s)
   from the database.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
 PREFIX vc:      <http://sparqling-genomics/vcf2rdf/VariantCall/>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -299,8 +284,7 @@ WHERE
             vc:FILTER               ?filter .
 }
 LIMIT 100
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   By limiting the result set to the first 100 rows, the query will return
   with an answer rather quickly.  Had we not set a limit to the number of
@@ -314,8 +298,7 @@ LIMIT 100
   range $202950000$ to $202960000$ on chromosome \t{2}, according to the
   \i{GRCh37 (hg19)} reference genome with the following query:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
@@ -342,8 +325,7 @@ WHERE {
   FILTER (?genotype != v:HomozygousReferenceGenotype)
 }
 LIMIT 2
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 Which may yield the following table:
 
@@ -378,8 +360,7 @@ Which may yield the following table:
   have an equivalent variant in \t{http://comparison/bbb} will be
   returned by the SPARQL endpoint.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX faldo:   <http://biohackathon.org/resource/faldo#>
 PREFIX vcf2rdf: <http://sparqling-genomics/vcf2rdf/>
@@ -415,8 +396,7 @@ WHERE
     }
   }
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   So the \t{MINUS} construct in SPARQL can be used to filter overlapping
   information between multiple graphs.
@@ -436,8 +416,7 @@ WHERE
 
 \subsection{Get an overview of Biomodels (from ENSEMBL)}
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX sbmlrdf: <http://identifiers.org/biomodels.vocabulary#>
 PREFIX sbmldb:  <http://identifiers.org/biomodels.db/>
 
@@ -447,8 +426,7 @@ SELECT ?speciesId ?name {
     ?speciesId sbmlrdf:name ?name
   }
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 Which may yield the following table:
 
@@ -489,8 +467,7 @@ Which may yield the following table:
   \t{COUNT} or \t{SUM} functions, always provide a name for
   the column.  Let's take a look at the following example:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -509,18 +486,15 @@ WHERE {
   }
 }
 GROUP BY ?cause
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   This query displays number of occurrences, and the causes of
   death for humans known to Wikipedia, limited to cancer.  The two
   columns are specified in the following line:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT DISTINCT ?cause COUNT(?cause)
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The first column will be named ``cause'', but what about the second?
   Some endpoints will automatically assign a unique name to the column,
@@ -529,11 +503,9 @@ SELECT DISTINCT ?cause COUNT(?cause)
   To avoid this, always provide a name for such a column by using the
   \t{AS} keyword.  The following line displays its usage:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 SELECT DISTINCT ?cause (COUNT(?cause) AS ?occurrences)
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   In addition to using the \t{AS} keyword, also wrap the statement in
   parentheses, so that the SPARQL interpreter can determine which name
@@ -541,8 +513,7 @@ SELECT DISTINCT ?cause (COUNT(?cause) AS ?occurrences)
 
   Our final query looks like this:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -561,5 +532,4 @@ WHERE {
   }
 }
 GROUP BY ?cause
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}

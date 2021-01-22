@@ -36,11 +36,10 @@
   In addition to the documented \t{Content-Type} values, the type
   \t{application/x-www-form-urlencoded} is also allowed, which expects
   the following format:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 parameter1=value1&parameter2=value2&...
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The \t{Content-Type} header line does not have to be equal to the
   \t{Accept} header line, so for example, parameters can be sent in
@@ -56,8 +55,7 @@ parameter1=value1&parameter2=value2&...
   accepted:
 \end{sloppypar}
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 POST /api/login HTTP/1.1
 Host: ...
 Content-Type: application/xml
@@ -68,16 +66,14 @@ Connection: close
   <username>...</username>
   <password>...</password>
 </parameters>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Subsequently, when \t{Accept}ing XML the results are wrapped in
   \t{<results>...</results>}, and data structures built from multiple
   key-value pairs are wrapped in \t{<result>...<result>}.  The
   following example illustrates receiving a project record:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 GET /api/projects HTTP/1.1
 Host: ...
 Accept: application/xml
@@ -91,8 +87,7 @@ Connection: close
     ...
   </result>
 </results>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \b{Note}: The actual response strips the whitespace.  It was added to
 this example for improved readability.
@@ -119,12 +114,10 @@ this example for improved readability.
 
   The following cURL command would log the user \t{jdoe} in:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl --cookie-jar - http://localhost/api/login \
      --data "username=jdoe&password=secret"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The response contains a cookie with the session token.  Use this cookie in
   subsequent requests.  When authentication fails, the service will respond
@@ -168,12 +161,10 @@ curl --cookie-jar - http://localhost/api/login \
   The following cURL command would create a session token named
   \t{my-program}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl --cookie "$COOKIE" http://localhost/api/new-session-token \
      --data "session-name=my-program"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Revoking a session token with \t{/api/remove-session}}
 
@@ -194,12 +185,10 @@ curl --cookie "$COOKIE" http://localhost/api/new-session-token \
   The following cURL command would revoke a session with token
   \t{FebA2zIBFFrsu2Dm}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl --cookie "$COOKIE" http://localhost/api/remove-session \
      --data "token=FebA2zIBFFrsu2Dm"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Managing connections}
 
@@ -216,13 +205,11 @@ curl --cookie "$COOKIE" http://localhost/api/remove-session \
   The following cURL command would retrieve all connection records in JSON
   format:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/connections \
      --cookie "$COOKIE"               \
      -H "Accept: application/json"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Create a new connection with \t{/api/add-connection}}
 \label{sec:api-create-connection}
@@ -252,8 +239,7 @@ curl http://localhost/api/connections \
   The following cURL command would create a connection, using JSON as
   the format to express the parameters:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/add-connection          \
      --cookie "$COOKIE"                           \
      -H "Accept: application/xml"                 \
@@ -263,8 +249,7 @@ curl http://localhost/api/add-connection          \
                 "username": "jdoe",               \
                 "password": "secret",             \
                 "backend":  "4store" }'
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Remove a connection with \t{/api/remove-connection}}
 
@@ -286,14 +271,12 @@ curl http://localhost/api/add-connection          \
   The following cURL command would remove the connection that was created in
   section \refer{sec:api-create-connection}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/remove-connection       \
      --cookie "$COOKIE"                           \
      -H "Accept: application/xml"                 \
      --data "name=Example"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Managing projects}
 
@@ -307,13 +290,11 @@ curl http://localhost/api/remove-connection       \
 
   The following cURL command would retrieve a list of projects:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/projects      \
      --cookie "$COOKIE"                 \
      -H "Accept: application/xml"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Create a new project with \t{/api/add-project}}
 \label{sec:api-add-project}
@@ -335,14 +316,12 @@ curl http://localhost/api/projects      \
 
   The following cURL command would add a project:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/add-project      \
      --cookie "$COOKIE"                    \
      -H "Accept: application/xml"          \
      --data "name=Example project"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Remove a project with \t{/api/remove-project}}
 
@@ -364,14 +343,12 @@ curl http://localhost/api/add-project      \
   The following cURL command would remove the project created in
   \refer{sec:api-add-project}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/remove-project \
      --cookie "$COOKIE"                  \
      -H "Accept: application/xml"        \
      --data "project-id=640c0...5a6d2"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Assign a graph to a project \t{/api/assign-graph}}
 
@@ -387,8 +364,8 @@ curl http://localhost/api/remove-project \
   \end{itemize}
 
   The following example based on cURL shows how to perform the request:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                               \
      -H "Accept: application/json"                         \
      -H "Content-Type: application/json"                   \
@@ -397,8 +374,7 @@ curl -X POST                                               \
                "connection": "wikidata",                   \
                "graph-uri": "http://the-new-graph-name" }' \
      http://localhost/api/assign-graph
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Unassign a graph from a project with \t{/api/unassign-graph}}
 
@@ -407,8 +383,8 @@ curl -X POST                                               \
   \t{/api/assign-graph}.
 
   The following example based on cURL shows how to perform the request:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                               \
      -H "Accept: application/json"                         \
      -H "Content-Type: application/json"                   \
@@ -416,8 +392,7 @@ curl -X POST                                               \
      --data '{ "project-id": "640c0...5a6d2",              \
                "graph-uri": "http://the-new-graph-name" }' \
      http://localhost/api/unassign-graph
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \pagebreak{}
 \subsection{Running and viewing queries}
@@ -431,13 +406,11 @@ curl -X POST                                               \
   The following cURL command would retrieve the entire query history, formatted
   as XML:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/queries \
      --cookie "$COOKIE"           \
      -H "Accept: application/xml"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Retrieve previously run queries with \t{/api/queries-by-project}}
 
@@ -447,14 +420,12 @@ curl http://localhost/api/queries \
   The following cURL command would retrieve the query history for a specific
   project, formatted as XML:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 curl http://localhost/api/queries \
      --cookie "$COOKIE"           \
      -H "Accept: application/xml" \
      --data "project-id="640c0...5a6d2"
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Toggle query marks}
 
@@ -465,16 +436,15 @@ curl http://localhost/api/queries \
 
   The following example based on cURL shows how to mark a query as
   \i{important}:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                       \
      -H "Accept: application/json"                 \
      -H "Content-Type: application/json"           \
      --cookie "SGSession=..."                      \
      --data '{ "query-id": "...", "state": true }' \
      http://localhost/api/query-mark
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Remove unmarked queries}
 
@@ -488,13 +458,12 @@ curl -X POST                                       \
   \end{itemize}
 
   The following example based on cURL shows how to perform the request:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 curl -X POST                                       \
      -H "Accept: application/json"                 \
      -H "Content-Type: application/json"           \
      --cookie "SGSession=..."                      \
      --data '{ "project-id": "640c0...5a6d2" }'    \
      http://localhost/api/queries-remove-unmarked
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}

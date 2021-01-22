@@ -26,11 +26,10 @@
 
   The following example illustrates how this works.  Consider the following
   SXML code to display an image.
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}[language=Lisp]
 (img (@ (src "/static/example-image.jpg") (alt "Example")))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   It refers to a file called \t{static/example-image.jpg}.  Let's further
   assume that this file is located on our filesystem at
@@ -38,11 +37,10 @@
 
   For \program{sg-web} to find this resource, we need to set \t{SG\_WEB\_ROOT}
   as the following:
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 export SG_WEB_ROOT=/home/user/form-module
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \section{Static pages}
 \label{sec:static-pages}
@@ -54,8 +52,7 @@ export SG_WEB_ROOT=/home/user/form-module
 
   The following example adds a page called ``About us'' to \program{sg-web}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define-module (www pages static about-us)
   #:use-module (www pages)
   #:export (page-static-about-us))
@@ -64,8 +61,7 @@ export SG_WEB_ROOT=/home/user/form-module
   (page-empty-template "About us" request-path
    `((h2 "About us")
      (p "This instance of sg-web is hosted by ..."))))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   To let \program{sg-web} display this page, save the file to
   \file{/opt/pages/www/pages/static/about-us.scm}, and set
@@ -106,14 +102,12 @@ export SG_WEB_ROOT=/home/user/form-module
   Because \program{sg-web} is written in GNU Guile \citep{guile},
   we use \t{define-module} to define the module for the form.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define-module (www forms example)
-  #:use-module (www pages) ; Provides the ‘page-empty-template’ procedure.
-  #:use-module (www util)  ; Provides the ‘string-is-longer-than’ procedure.
+  #:use-module (www pages) ; Provides the `page-empty-template' procedure.
+  #:use-module (www util)  ; Provides the `string-is-longer-than' procedure.
   #:export (page submit api))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Because the name of the module is \t{(www forms example)}, the location
   where \program{sg-web} searches for your module is `\t{www/forms/example.scm}'
@@ -132,8 +126,7 @@ export SG_WEB_ROOT=/home/user/form-module
   (ignoring optional arguments), returning an SXML tree.  The request path
   can be used to tell where to submit the form to.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define* (page request-path arguments #:optional (error-message #f))
   (page-empty-template "Example" request-path
    `((h2 "Example form")
@@ -150,23 +143,20 @@ export SG_WEB_ROOT=/home/user/form-module
        (input (@ (type  "submit")
                  (class "form-submit-button")
                  (value "Submit form")))))))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The \t{(www pages)} module provides a template that includes the familiar
   theme of the \program{sg-web} pages.  Our SXML tree will render to the
   following HTML:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=XML]
 <h2>Example form</h2>
 <form method="POST" action="/forms/example">
   <h3>Name</h3>
   <input type="text" id="name" name="name" />
   <input type="submit" class="form-submit-button" value="Submit form" />
 </form>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Note that this HTML snippet is wrapped inside the template constructed by
   \t{page-empty-template}, so when viewing the form in a web browser, we
@@ -186,8 +176,7 @@ export SG_WEB_ROOT=/home/user/form-module
   \t{submit} procedure.  This procedure is expected to take two arguments,
   and return an SXML tree.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define (submit request-path data)
   (let* ((name (assoc-ref data 'name))
          (state (cond
@@ -202,8 +191,7 @@ export SG_WEB_ROOT=/home/user/form-module
         (page-empty-template "Thank you" request-path
          `((h2 "Thank you, " ,name "!")))
         (page request-path #f (cadr state)))))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   After submitting the form, it may render in the web browser as displayed
   in figure \ref{fig:web-form-submit}.
@@ -235,13 +223,11 @@ export SG_WEB_ROOT=/home/user/form-module
   This procedure is primarily designed to provide autocompletion options
   for form fields.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define (api request-path arguments input-port output-port
              accept-type content-type content-length)
   ...)
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \pagebreak{}
 \section{Reports}
@@ -268,23 +254,19 @@ export SG_WEB_ROOT=/home/user/form-module
   The first part involves defining a Scheme modules with one procedure and
   two variables.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define-module (www reports example)
   #:export (title project report-overview))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Implementing \t{title} and \t{project}}
 
   Setting \t{title} and \t{project} involves defining two variables.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define title   "Example report")
 (define project "e434cfe3752025c6fdbedbccc3f25265198da4358b0e23c77897bf7f5844ba5c")
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Upon entering the \emph{Report} page, \t{sg-web} displays only the report
   modules that are configured for the current project.  Therefore it is
@@ -297,16 +279,14 @@ export SG_WEB_ROOT=/home/user/form-module
   return an SXML tree that renders HTML.  The following implementation of
   the \t{report-overview} procedure renders a table.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define (report-overview)
   `(table (@ (class "item-table"))
      (tr (th "Identifier")
          (th "Description"))
      (tr (td "foo")
          (td "bar"))))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsubsection{Implementing the \t{report-pdf} procedure}
 
@@ -316,16 +296,14 @@ export SG_WEB_ROOT=/home/user/form-module
   procedure produces a PDF report using the module \t{(www reports)}
   and writes it with the proper encoding to the output port:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (define (report-pdf port identifier)
   (let ((pdf (pdf-report)))
     (pdf-report-set-title!          pdf "Example")
     (pdf-report-render-text-field!  pdf "Identifier" identifier 1)
     (pdf-report-write-to-port! port pdf #t)
     (pdf-report-close               pdf)))
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \pagebreak{}
 \section{Create reports using R and Sweave}
@@ -338,11 +316,9 @@ export SG_WEB_ROOT=/home/user/form-module
   Reports are project-specific, so \t{sg-web} looks for Sweave reports
   in the following directory structure:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 SG_WEB_ROOT/PROJECT_ID/*.Rnw
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   So if \t{SG\_RNW\_ROOT} is set to \t{/opt/Rnw}, the project ID is
   \t{bewogpc}, and our report is called \t{Example.Rnw}, then \t{sg-web}

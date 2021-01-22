@@ -25,21 +25,19 @@
   with the following contents:
 
 %% TODO: Set up package signing, and remove the [trusted=yes] bits.
-\begin{siderules}
-\begin{verbatim}
+
+\begin{lstlisting}
 deb [trusted=yes] https://debian.sparqling-genomics.org buster main
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
+
 
   This will add a repository that contains the \code{sparqling-genomics}
   package.  To install it, use the following commands:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 apt-get update
 apt-get install sparqling-genomics
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{CentOS}
 
@@ -52,52 +50,44 @@ apt-get install sparqling-genomics
   Once the EPEL repository is set up, create a file called
   \file{/etc/yum.repos.d/sparqling-genomics.repo} with the following contents:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 [sparqling-genomics]
 name=SPARQLing-genomics
 baseurl=https://rpm.sparqling-genomics.org/centos
 enabled=1
 gpgcheck=1
 gpgkey=https://rpm.sparqling-genomics.org/sparqling-genomics.key
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 This will add a repository that contains the \code{sparqling-genomics} package.
 To install it, use the following commands:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=bash]
 yum update
 yum install sparqling-genomics
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Fedora}
 
 Create a file called \file{/etc/yum.repos.d/sparqling-genomics.repo}
 with the following contents:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 [sparqling-genomics]
 name=SPARQLing-genomics
 baseurl=https://rpm.sparqling-genomics.org/fedora
 enabled=1
 gpgcheck=1
 gpgkey=https://rpm.sparqling-genomics.org/sparqling-genomics.key
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 This will add a repository that contains the \code{sparqling-genomics} package.
 To install it, use the following commands:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 dnf update
 dnf install sparqling-genomics
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{Generic tarball for GNU/Linux}
 
@@ -105,14 +95,12 @@ dnf install sparqling-genomics
   can be obtained from the \href{https://github.com/UMCUGenetics/sparqling-genomics/releases}%
   {release page}.  All programs are ready-to-run after unpacking the tarball.
 
-\begin{siderules}
 \begin{lstlisting}
 curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
 download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
 tar axvf sparqling-genomics-(@*\sgversion{}*@)-pack.tar.gz
 bin/table2rdf --help
 \end{lstlisting}
-\end{siderules}
 
   The tarball includes both SPARQLing genomics and Virtuoso (open source
   edition).
@@ -126,13 +114,11 @@ bin/table2rdf --help
   A pre-built Docker container can be obtained from the release page.  It
   can be imported into docker using the following commands:
 
-\begin{siderules}
 \begin{lstlisting}
 curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
 download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 \end{lstlisting}
-\end{siderules}
 
   The container includes both SPARQLing genomics and Virtuoso (open source
   edition).
@@ -224,13 +210,11 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 
   Use the following command to install the build dependencies:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
                 guile-2.2 guile-2.2-dev libraptor2-dev libhts-dev \
                 texlive curl libxml2-dev libgnutls28-dev libpng-dev
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   This command has been tested on Debian 10.  If you're using a different
   version of Debian, some package names may differ.
@@ -246,24 +230,20 @@ apt-get install autoconf automake gcc make pkg-config zlib1g-dev  \
 
   All other dependencies can be installed using the following command:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 yum install autoconf automake gcc make pkgconfig guile guile-devel \
             raptor2-devel texlive curl libxml2-devel gnutls-devel  \
             libpng-devel
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{GNU Guix}
 
   For GNU Guix, use the \t{guix.scm} file to set up the development
   environment:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 guix environment -l guix.scm
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
 \subsection{macOS}
 
@@ -271,12 +251,10 @@ guix environment -l guix.scm
   can be installed using
   \href{https://brew.sh/}{homebrew}\footnote{\url{https://brew.sh/}}:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 brew install autoconf automake gcc make pkg-config guile \
              htslib curl raptor libxml2 zlib gnutls libpng
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Due to a missing \LaTeX{} distribution on MacOS, the documentation
   cannot be build.
@@ -289,12 +267,10 @@ brew install autoconf automake gcc make pkg-config guile \
   \href{https://www.msys2.org/}{MSYS2}\footnote{\url{https://www.msys2.org/}}.
   After installing MSYS2, issue the following command from its console:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 pacman -S autoconf automake gcc make pkg-config libguile-devel guile curl \
           libxml2 zlib gnutls
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   There are two missing dependencies: \t{raptor2} -- for which a package is
   \href{https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-raptor2}{upcoming}%
@@ -316,21 +292,18 @@ pacman -S autoconf automake gcc make pkg-config libguile-devel guile curl \
   \end{sloppypar}
 
   Or, directly download the tarball using the command-line:
-\begin{siderules}
+
 \begin{lstlisting}[language=bash]
 curl -LO https://github.com/UMCUGenetics/sparqling-genomics/releases/\
 download/(@*\sgversion{}*@)/sparqling-genomics-(@*\sgversion{}*@).tar.gz
 \end{lstlisting}
-\end{siderules}
 
   After obtaining the tarball, it can be unpacked using the \t{tar}
   command:
 
-\begin{siderules}
 \begin{lstlisting}
 tar zxvf sparqling-genomics-(@*\sgversion{}*@).tar.gz
 \end{lstlisting}
-\end{siderules}
 
 \section{Installation instructions}
 
@@ -338,7 +311,6 @@ tar zxvf sparqling-genomics-(@*\sgversion{}*@).tar.gz
   and obtaining the source code (see section \refer{sec:obtaining-tarball}),
   building involves running the following commands:
 
-\begin{siderules}
 \begin{lstlisting}
 cd sparqling-genomics-(@*\sgversion{}*@)
 autoreconf -vif # Only needed if the "./configure" step does not work.
@@ -346,7 +318,6 @@ autoreconf -vif # Only needed if the "./configure" step does not work.
 make
 make install
 \end{lstlisting}
-\end{siderules}
 
   To run the \t{make install} command, super user privileges may be
   required.  This step can be ignored, but will keep the tools in the project's
@@ -361,8 +332,6 @@ make install
   more specific \t{make -C <component-directory>}.  So, to \i{only}
   build \t{vcf2rdf}, the following command could be used:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}
 make -C tools/vcf2rdf
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}

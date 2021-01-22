@@ -20,11 +20,9 @@
   Sometimes we'd like to remove a graph altogether to make space for new
   datasets.  For this purpose we can use the \t{CLEAR GRAPH} query:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 CLEAR GRAPH <http://example>
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   After executing this query, all triples in the graph identified by
   \t{<http://example>} will be sent to a pieceful place where they
@@ -32,13 +30,11 @@ CLEAR GRAPH <http://example>
 
   The \t{CLEAR GRAPH} query is equivalent to the more elaborate:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 DELETE { ?s ?p ?o }
 FROM <http://example>
 WHERE { ?s ?p ?o }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   Using the \t{DELETE} construct, we can be more specific about which
   triples to remove from a graph by filling in one of the variables.
@@ -52,8 +48,7 @@ WHERE { ?s ?p ?o }
   the gender related to a sample by looking at whether there's a mutation on
   the Y-chromosome.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg:  <http://sparqling-genomics/>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
@@ -66,8 +61,7 @@ WHERE {
   ?variant  sg:sample       ?sample ;
             faldo:reference hg19:chrY .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
  Each \t{sample} returned by this query must've originated from a male
  donor, because it has a Y-chromosome (and also a mutation on the
@@ -78,16 +72,13 @@ WHERE {
  For the samples that definitely originated from a male donor (according to
  this inference rule), we can add a triplet in the form:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
    <sample-URI>  sg:gender sg:Male .
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   To do so, we use the \t{INSERT} construct:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg:  <http://sparqling-genomics/>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
@@ -105,14 +96,12 @@ WHERE {
               faldo:reference  hg19:chrY .
   }
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   After which we can query for samples that definitely originated from a male
   donor using the following query:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg:  <http://sparqling-genomics/>
 PREFIX faldo: <http://biohackathon.org/resource/faldo#>
@@ -125,8 +114,7 @@ WHERE {
   ?sample  rdf:type   sg:Sample ;
            sg:gender  sg:Male .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   The meaning of inferences is oftentimes limited in scope.  For example,
   inferring the gender by looking for mutations on the Y-chromosome works
@@ -157,8 +145,7 @@ WHERE {
   Furthermore, the example uses \t{guile-sparql} to interact with the
   SPARQL endpoint and GNU Guile as general-purpose programming language.
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=Lisp]
 (use-modules (sparql driver)
              (sparql util)
              (sparql lang))
@@ -206,8 +193,7 @@ WHERE {
                 (cdr origins))))))
 
 (gather-ownership-info)
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
 
   For a small amount of files, we could directly execute an \t{INSERT}
   query on the SPARQL endpoint, however, for a large amount of files we may
@@ -216,8 +202,7 @@ WHERE {
   This program provides the triples that enables us to find which user
   contributed which variant call data in the graph:
 
-\begin{siderules}
-\begin{verbatim}
+\begin{lstlisting}[language=SPARQL]
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX sg:  <http://sparqling-genomics/>
 PREFIX vcf2rdf:  <http://sparqling-genomics/vcf2rdf/>
@@ -232,5 +217,4 @@ WHERE {
   ?origin   vcf2rdf:filename ?filename ;
             sg:owner         ?user     .
 }
-\end{verbatim}
-\end{siderules}
+\end{lstlisting}
