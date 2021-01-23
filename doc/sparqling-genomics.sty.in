@@ -65,7 +65,11 @@
 \newcommand{\evenrow}{\rowcolor{EvenRowColor}}
 \newcommand{\headrow}{\rowcolor{Gray}}
 \newcommand{\B}{$\bullet{}$}
+\ifdefined\HCode
+\newcommand\code[1]{\texttt{#1}}
+\else
 \newcommand\code[1]{{\setlength{\fboxrule}{2.0pt}\fcolorbox{CodeBG}{CodeBG}{\textcolor{Code}{\texttt{#1}}}}}
+\fi
 \newcommand\triplet[3]{\code{#1} $\rightarrow$ \code{#2} $\rightarrow$ \code{#3}}
 \newcommand\refer[1]{\ref{#1} {\color{LinkGray}`\nameref{#1}'}}
 \newcommand\file[1]{`\texttt{#1}'}
@@ -149,9 +153,3 @@
 \renewcommand{\t}[1]{\texttt{#1}}
 \renewcommand{\i}[1]{\emph{#1}}
 \renewcommand{\b}[1]{\textbf{#1}}
-
-% Enable code listing features.
-%\usepackage{minted}
-%\setminted{autogobble,fontsize=\small}
-%\setmintedinline[c]{bgcolor={},fontsize=\normalsize}
-%\usemintedstyle{colorful}

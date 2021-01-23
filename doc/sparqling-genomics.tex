@@ -4,6 +4,7 @@
 \author{Roel Janssen}
 
 \ifdefined\HCode
+\Configure{@HEAD}{\HCode{<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\Hnewline}}
 \Configure{@HEAD}{\HCode{<link rel="stylesheet" href="sparqling-genomics.css">\Hnewline}}
 \Configure{@BODY}{\ifvmode\IgnorePar\fi\EndP\HCode{<div id="wrapper">}}
 \Configure{@/BODY}{\ifvmode\IgnorePar\fi\EndP\HCode{</div>}}
@@ -14,10 +15,6 @@
 \ifdefined\HCode
 \ScriptEnv{html} {\NoFonts\hfill\break} {\EndNoFonts}
 \Tag{TITLE+}{SPARQLing genomics}
-\fi
-
-%% Some style rules for HTML output
-\ifdefined\HCode
 \CssFile
 body,html{
   width: 100%;
