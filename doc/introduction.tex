@@ -21,15 +21,13 @@
 
 \subsection{Debian}
 
-  Create a file called \file{/etc/apt/sources.list.d/sparqling-genomics.list}
-  with the following contents:
+  Write the following line to \file{/etc/apt/sources.list.d/sparqling-genomics.list}:
 
 %% TODO: Set up package signing, and remove the [trusted=yes] bits.
 
 \begin{lstlisting}
 deb [trusted=yes] https://debian.sparqling-genomics.org buster main
 \end{lstlisting}
-
 
   This will add a repository that contains the \code{sparqling-genomics}
   package.  To install it, use the following commands:
@@ -47,8 +45,8 @@ apt-get install sparqling-genomics
   \t{htslib} package is found while resolving dependencies for
   \t{sparqling-genomics}.
 
-  Once the EPEL repository is set up, create a file called
-  \file{/etc/yum.repos.d/sparqling-genomics.repo} with the following contents:
+  With the EPEL repository set up, write the following to
+  \file{/etc/yum.repos.d/sparqling-genomics.repo}:
 
 \begin{lstlisting}
 [sparqling-genomics]
@@ -69,8 +67,7 @@ yum install sparqling-genomics
 
 \subsection{Fedora}
 
-Create a file called \file{/etc/yum.repos.d/sparqling-genomics.repo}
-with the following contents:
+Write the following to \file{/etc/yum.repos.d/sparqling-genomics.repo}:
 
 \begin{lstlisting}
 [sparqling-genomics]
@@ -123,6 +120,7 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
   The container includes both SPARQLing genomics and Virtuoso (open source
   edition).
 
+\pagebreak{}
 \section{Install from source}
 \label{sec:source-installation}
 
@@ -181,7 +179,7 @@ docker load < sparqling-genomics-(@*\sgversion{}*@)-docker.tar.gz
 \subsection{Optional dependencies and features}
 
   A fully operational version of SPARQLing-genomics can be built with the
-  dependencies from \refer{sec:prerequisites}.  To integrate into specific
+  dependencies from table \ref{table:dependencies}.  To integrate into specific
   set-ups, and enable extending SPARQLing-genomics with other programming
   languages, some additional dependencies may be required.  This section
   describes the optional dependencies required for specific set-ups.
@@ -307,9 +305,10 @@ tar zxvf sparqling-genomics-(@*\sgversion{}*@).tar.gz
 
 \section{Installation instructions}
 
-  After installing the required tools (see section \refer{sec:prerequisites}),
-  and obtaining the source code (see section \refer{sec:obtaining-tarball}),
-  building involves running the following commands:
+  After installing the required tools (see section
+  \refer{sec:source-installation}), and obtaining the source code (see
+  section \refer{sec:obtaining-tarball}), building involves running
+  the following commands:
 
 \begin{lstlisting}
 cd sparqling-genomics-(@*\sgversion{}*@)
