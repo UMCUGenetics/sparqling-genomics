@@ -4,13 +4,17 @@
 \author{Roel Janssen}
 
 \ifdefined\HCode
-\Configure{@HEAD}{\HCode{<meta charset="utf-8" />\Hnewline}}
-\Configure{@HEAD}{\HCode{<link rel="stylesheet" href="sparqling-genomics.css" />\Hnewline}}
+\Configure{@HEAD}{\HCode{<link rel="stylesheet" href="sparqling-genomics.css">\Hnewline}}
 \Configure{@BODY}{\ifvmode\IgnorePar\fi\EndP\HCode{<div id="wrapper">}}
 \Configure{@/BODY}{\ifvmode\IgnorePar\fi\EndP\HCode{</div>}}
 \fi
 
 \begin{document}
+
+\ifdefined\HCode
+\ScriptEnv{html} {\NoFonts\hfill\break} {\EndNoFonts}
+\Tag{TITLE+}{SPARQLing genomics}
+\fi
 
 %% Some style rules for HTML output
 \ifdefined\HCode
@@ -19,59 +23,81 @@ body,html{
   width: 100%;
   height: 100%;
   /*font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;*/
-  margin: 0px;
-  padding: 0px;
+  margin: 0pt;
+  padding: 0pt;
   background-color: #eeeeee;
 }
 #wrapper {
-  max-width: 900px;
-  background-color: #ffffff;
-  padding: 10pt;
-  border-left: solid 1px #cccccc;
-  border-right: solid 1px #cccccc;
+  max-width: 900pt;
+  min-width: 400pt;
   margin: auto;
+}
+.chapter {
+  background-color: #ffffff;
+  border-left: solid 1pt #cccccc;
+  border-right: solid 1pt #cccccc;
+  border-bottom: solid 1pt #cccccc;
+  padding: 0pt;
+  margin: auto auto 10pt auto;
   height: auto;
+  -webkit-border-radius: 4pt;
+  -moz-border-radius: 4pt;
+  border-radius: 4pt;
 }
-.ectt-1095 {
- font-family: fixed-width;
+.chapwrap {
+  padding: 0pt 0pt 10pt 0pt;
+  background: none;
+  -webkit-border-radius: 4pt;
+  -moz-border-radius: 4pt;
+  border-radius: 4pt;
 }
-.verbatim {
+.chapwrap p { padding: 0pt 10pt 0pt 10pt; }
+.chapwrap .sectionHead { padding: 0pt 10pt 0pt 10pt; }
+.chapwrap .subsectionHead { padding: 0pt 10pt 0pt 10pt; }
+.chapwrap .likesubsubsectionHead { padding: 0pt 10pt 0pt 10pt; }
+.ectt-1095 { font-family: "Lucida Console", Monaco, monospace; }
+.lstlisting {
   text-align: left;
   font-family: "Lucida Console", Monaco, monospace;
   font-size: 10pt;
   font-style: normal;
   background: #e3e2db;
-  padding: 4pt;
+  margin: 0pt 10pt 0pt 10pt;
+  padding: 10pt;
   -webkit-border-radius: 2pt;
   -moz-border-radius: 2pt;
   border-radius: 2pt;
-  border: solid 2px #c8c4b7;
+  border: solid 1pt #c8c4b7;
 }
-.center {
-  text-align: center;
-}
-.chapterHead {
-  margin-top: 100pt;
+.center { text-align: center; }
+.likechapterHead, .chapterHead {
+  margin: 0pt;
   padding: 10pt;
-  background-color: #444444 /*#ffe680*/ /*#fff6d5*/;
+  background-color: #111111;
   color: #eeeeee;
-  border-bottom: solid 2px #000;
   -webkit-border-radius: 4pt 4pt 0pt 0pt;
   -moz-border-radius: 4pt 4pt 0pt 0pt;
   border-radius: 4pt 4pt 0pt 0pt;
 }
-table { width: 100%; }
-table tr:nth-child(even) {
-  background: #f9f9f9;
-}
-.tableofcontents {
-  background-color: #f9f9f9;
-  border: solid 2px #f0f0f0;
-  padding: 10pt;
-  -webkit-border-radius: 4pt;
-  -moz-border-radius: 4pt;
-  border-radius: 4pt;
-}
+table { margin: auto 10pt auto 10pt; width: 880pt; }
+table tr:nth-child(even) { background: #f9f9f9; }
+table tr:first-child { background: #333333; color: #ffffff; }
+table tr:first-child a { color: #eeeeee; }
+table tr:first-child a:hover { color: #cccccc; }
+hr { margin: 5pt 10pt 5pt 10pt; }
+td { padding-left: 10pt; }
+.tableofcontents { padding: 10pt; }
+.chapterToc { display: inline-block; padding: 4pt; margin-top: .75em; font-size: 1.5em; font-weight: bold; }
+.chapterToc a { color: #000000; }
+.chapterToc a:hover { color: #666666; }
+.sectionToc { padding-left: 20pt; font-size 1.0em;}
+.sectionToc a { color: #7c0000; }
+.sectionToc a:hover { color: #af6666; }
+.subsectionToc { padding-left: 40pt; font-size: 0.75em; }
+.subsectionToc a { color: #00007c; }
+.subsectionToc a:hover { color: #6666af; }
+img { width: 60%; height: auto; }
+.caption { text-align: center; }
 \EndCssFile
 \fi
 
@@ -80,9 +106,7 @@ table tr:nth-child(even) {
   \vspace*{\fill}
   \begin{center}
     \ifdefined\HCode
-    % The build system copies the logo to the same directory as the HTML files.
-    % Therefore we must not specify the actual path towards ‘logo.png’.
-    \includegraphics[width=0.75\textwidth]{logo.png}~\\
+    \includegraphics[width=0.75\textwidth]{figures/logo.pdf}~\\
     \else
     \includegraphics[width=0.75\textwidth]{figures/logo.pdf}
     \fi
@@ -106,20 +130,101 @@ table tr:nth-child(even) {
 \setcounter{page}{1}
 \pagenumbering{roman}
 \hypersetup{linkcolor=black}
+
+\ifdefined\HCode
+\begin{html}
+<div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \tableofcontents
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
+\listoffigures
 \newpage{}
 \hypersetup{linkcolor=LinkGray}
 \setcounter{page}{1}
 \pagenumbering{arabic}
 
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{introduction}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{knowledge-graph}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{implemented-ontologies}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{command-line-tools}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{web-interface}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{information-retrieval}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \input{information-management}
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
 \input{programming-with-sparql}
+
+\ifdefined\HCode
+\begin{html}
+</div></div><div class="chapter"><div class="chapwrap">
+\end{html}
+\fi
+
 \bibliography{references}
+
+\ifdefined\HCode
+\begin{html}
+</div></div>
+\end{html}
+\fi
 
 \end{document}
