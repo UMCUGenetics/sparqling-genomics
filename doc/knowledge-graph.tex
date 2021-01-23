@@ -65,18 +65,19 @@
   to add context to.  For example, consider the following statement:
   \triplet{<H>}{<electronegativity}{2.20}.  We can extend our knowledge
   about \code{<H>} by also stating: \triplet{<H>}{<numberOfElectrons>}{1}.
-  The identifier \t{<H>} by itself has no meaning.  But that there is one
-  ``thing'' for which both properties \t{<electronegativity>} and
-  \t{<numberOfElectrons>} have a certain value provides insight into a
+  The identifier \code{<H>} by itself has no meaning.  But that there is one
+  ``thing'' for which both properties \code{<electronegativity>} and
+  \code{<numberOfElectrons>} have a certain value provides insight into a
   deeper structure.
 
+  \begin{sloppypar}
   We could go on and find more entities for which the properties
-  \t{<electronegativity>} and \t{<numberOfElectrons>} are bound to
+  \code{<electronegativity>} and \code{<numberOfElectrons>} are bound to
   specific values.  We can then identify the group of entities by a single
   \i{type} to make it easier to talk about.   In the example, the type
-  \t{<ChemicalElement>} may be suitable.  So we would add the triplet:
+  \code{<ChemicalElement>} may be suitable.  So we would add the triplet:
   \triplet{<H>}{rdf:type}{<ChemicalElement>}.
-
+  \end{sloppypar}
 \section{Patterns for layer 0}
 
   The programs that are part of SPARQLing genomics use a few patterns to
