@@ -60,8 +60,32 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
                           web-interface.tex                    \
                           web-programming-interface.tex
 
+if HAVE_HTLATEX
 $(doc_HTML):
-	$(HTLATEX) $(doc_TEX)
+	@$(HTLATEX) $(doc_TEX) > /dev/null
+	@printf "Generated $(doc_HTML).\n"
+
+nobase_dist_doc_DATA     = $(doc_HTML)                              \
+                           figures/layered-knowledge-.png           \
+                           figures/logo-.png                        \
+                           figures/sg-auth-manager-scaleout-.png    \
+                           figures/sg-web-dashboard-.png            \
+                           figures/sg-web-exploratory-.png          \
+                           figures/sg-web-form-example-.png         \
+                           figures/sg-web-form-example-submit-.png  \
+                           figures/sg-web-import-rdf-.png           \
+                           figures/sg-web-project-details-.png      \
+                           figures/sg-web-query-.png                \
+                           $(doc_NAME).css                          \
+                           $(doc_NAME)10.html                       \
+                           $(doc_NAME)2.html                        \
+                           $(doc_NAME)3.html                        \
+                           $(doc_NAME)4.html                        \
+                           $(doc_NAME)5.html                        \
+                           $(doc_NAME)6.html                        \
+                           $(doc_NAME)7.html                        \
+                           $(doc_NAME)8.html                        \
+                           $(doc_NAME)9.html
 endif
 
 docs-clean:
