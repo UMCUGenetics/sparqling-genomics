@@ -6,7 +6,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{parskip}
-\usepackage{mathtools}
 \usepackage{array}
 \usepackage[margin=1cm]{caption}
 
@@ -133,7 +132,7 @@
     rulecolor=\color{ShadowGray},
     backgroundcolor=\color{CodeGray},
     frame=single,
-    framesep=10pt,
+    framesep=5pt,
     framerule=1pt,
     columns=fullflexible,
     keepspaces=true,
@@ -141,8 +140,8 @@
     showstringspaces=false,
     showtabs=false,
     tabsize=2,
-    xleftmargin=10pt,
-    xrightmargin=10pt
+    xleftmargin=5pt,
+    xrightmargin=5pt
 }
 
 \lstset{style=codestyle}
