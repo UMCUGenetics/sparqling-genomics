@@ -60,6 +60,10 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
                           web-interface.tex                    \
                           web-programming-interface.tex
 
+$(doc_HTML):
+	$(HTLATEX) $(doc_TEX)
+endif
+
 docs-clean:
 	$(RM) -rf $(doc_NAME).aux			\
 		  $(doc_NAME).bbl			\
@@ -92,4 +96,4 @@ docs-clean:
 clean-local: docs-clean
 
 # Make sure there is something to run.
-all: $(doc_PDF)
+all: $(doc_PDF) $(doc_HTML)
