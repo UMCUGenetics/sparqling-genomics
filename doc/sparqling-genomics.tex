@@ -16,10 +16,38 @@
 \ScriptEnv{html} {\NoFonts\hfill\break} {\EndNoFonts}
 \Tag{TITLE+}{SPARQLing genomics}
 \CssFile
+@font-face {
+    font-family: 'Roboto';
+    src: url('web/static/fonts/Roboto-Light.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto-Italic';
+    src: url('web/static/fonts/Roboto-LightItalic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Roboto-Bold';
+    src: url('web/static/fonts/Roboto-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'FiraMono';
+    src: url('web/static/fonts/FiraMono-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body,html{
   width: 100%;
   height: 100%;
-  font-family: serif;
+  font-family: 'Roboto', serif;
   margin: 0pt;
   padding: 0pt;
   background-color: #f9f9f9;
@@ -55,7 +83,7 @@ body,html{
 .ectt-1095 { font-family: "Lucida Console", Monaco, monospace; }
 .lstlisting {
   text-align: left;
-  font-family: "Lucida Console", Monaco, monospace;
+  font-family: 'FiraMono', 'Lucida Console', Monaco, monospace;
   font-size: 10pt;
   font-style: normal;
   background: #e3e2db;
