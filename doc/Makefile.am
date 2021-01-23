@@ -29,16 +29,27 @@ endif
 
 EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)              \
                           command-line-tools.tex               \
+                          figures/layered-knowledge.pdf        \
+                          figures/layered-knowledge.xbb        \
                           figures/logo.pdf                     \
                           figures/logo.png                     \
+                          figures/logo.xbb                     \
                           figures/sg-auth-manager-scaleout.pdf \
+                          figures/sg-auth-manager-scaleout.xbb \
                           figures/sg-web-dashboard.pdf         \
+                          figures/sg-web-dashboard.xbb         \
                           figures/sg-web-exploratory.pdf       \
+                          figures/sg-web-exploratory.xbb       \
                           figures/sg-web-form-example-submit.pdf \
+                          figures/sg-web-form-example-submit.xbb \
                           figures/sg-web-form-example.pdf      \
+                          figures/sg-web-form-example.xbb      \
                           figures/sg-web-import-rdf.pdf        \
+                          figures/sg-web-import-rdf.xbb        \
                           figures/sg-web-project-details.pdf   \
+                          figures/sg-web-project-details.xbb   \
                           figures/sg-web-query.pdf             \
+                          figures/sg-web-query.xbb             \
                           implemented-ontologies.tex           \
                           information-management.tex           \
                           information-retrieval.tex            \
