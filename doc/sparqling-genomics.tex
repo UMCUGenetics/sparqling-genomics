@@ -19,10 +19,10 @@
 body,html{
   width: 100%;
   height: 100%;
-  /*font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;*/
+  font-family: serif;
   margin: 0pt;
   padding: 0pt;
-  background-color: #eeeeee;
+  background-color: #f9f9f9;
 }
 #wrapper {
   max-width: 900pt;
@@ -78,7 +78,13 @@ body,html{
 }
 table { margin: auto 10pt auto 10pt; width: 880pt; }
 table tr:nth-child(even) { background: #f9f9f9; }
-table tr:first-child { background: #333333; color: #ffffff; }
+table tr:first-child {
+  background: #333333;
+  color: #ffffff;
+  -webkit-border-radius: 4pt 4pt 0pt 0pt;
+  -moz-border-radius: 4pt 4pt 0pt 0pt;
+  border-radius: 4pt 4pt 0pt 0pt;
+}
 table tr:first-child a { color: #eeeeee; }
 table tr:first-child a:hover { color: #cccccc; }
 hr { margin: 5pt 10pt 5pt 10pt; }
@@ -95,6 +101,13 @@ td { padding-left: 10pt; }
 .subsectionToc a:hover { color: #6666af; }
 img { width: 60%; height: auto; }
 .caption { text-align: center; }
+.rotatebox {
+  writing-mode: sideways-lr;
+  transform: rotate(45deg) !important;
+  transform-origin: left;
+  margin: 10pt;
+  padding: 0pt;
+}
 \EndCssFile
 \fi
 
