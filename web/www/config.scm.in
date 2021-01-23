@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016-2020  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -83,8 +83,10 @@
             set-persist-connection-lock!
             set-system-connection!
             set-www-home!
+	    set-www-listen-address-family!
             set-www-listen-address!
             set-www-listen-port!
+            set-www-unix-socket!
             shorthand-uri->uri
             static-page-modules
             system-connection
@@ -99,6 +101,7 @@
             www-home
             www-name
             www-roots
+            www-unix-socket
             www-version))
 
 
@@ -157,6 +160,10 @@
   (www-listen-port          #:init-value 5000
                             #:getter get-www-listen-port
                             #:setter set-www-listen-port-private!)
+
+  (www-unix-socket          #:init-value #f
+                            #:getter get-www-unix-socket
+                            #:setter set-www-unix-socket-private!)
 
   (beacon-enabled?          #:init-value #f
                             #:getter get-beacon-enabled?
@@ -333,7 +340,6 @@
             orcid-enabled?
             r-reports-roots
             www-listen-address
-            www-listen-address-family
             www-max-file-size
             www-name
             www-roots
@@ -370,7 +376,9 @@
             persist-connection-lock
             system-connection
             www-home
-            www-listen-port))
+	    www-listen-address-family
+            www-listen-port
+	    www-unix-socket))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))

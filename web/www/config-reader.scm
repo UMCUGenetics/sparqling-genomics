@@ -1,4 +1,4 @@
-;;; Copyright © 2019  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2019-2021  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -43,6 +43,7 @@
         (let [(fork?             (assoc-ref config 'fork))
               (developer?        (assoc-ref config 'developer-mode))
               (backtrace?        (assoc-ref config 'backtrace-on-error))
+	      (unix-socket       (assoc-ref config 'unix-socket))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (home              (assoc-ref config 'home))
@@ -62,6 +63,9 @@
             (set-www-listen-port! (string->number (car port))))
           (when address
             (set-www-listen-address! (car address)))
+	  (when unix-socket
+	    (set-www-unix-socket! (car unix-socket))
+	    (set-www-listen-address-family! AF_UNIX))
           (when beacon
             (let [(enabled      (assoc-ref beacon 'enabled))
                   (connection   (assoc-ref beacon 'connection))

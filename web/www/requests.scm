@@ -1,4 +1,4 @@
-;;; Copyright © 2016, 2017, 2018, 2019, 2020  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016-2021  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -694,24 +694,29 @@
 
   ;; Listen to HTTP requests for user interaction.
   (let* ((family (www-listen-address-family))
-         (s (socket family SOCK_STREAM 0)))
-    (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
-
-    (bind s family (if (string? (www-listen-address))
-                       (inet-pton family (www-listen-address))
-                       (www-listen-address))
-          (www-listen-port))
+         (s      (socket family SOCK_STREAM 0)))
+    (if (eq? family AF_UNIX)
+	(bind s family (www-unix-socket))
+	(begin
+	  (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
+	  (bind s family (if (string? (www-listen-address))
+			     (inet-pton family (www-listen-address))
+			     (www-listen-address))
+		(www-listen-port))))
 
     (listen s 128)
 
     (unless (null? (default-debug-port))
-      (let ((address (inet-ntop (www-listen-address-family)
-                                (www-listen-address))))
-        (log-debug "sg-web" "SPARQLing-genomics is running at http://~a:~a"
-                   (if (eq? (www-listen-address-family) AF_INET6)
-                       (string-append "[" address "]")
-                       address)
-                   (www-listen-port))))
+      (if (eq? family AF_UNIX)
+	  (log-debug "sg-web" "SPARQLing-genomics is running at ~s"
+		     (www-unix-socket))
+	  (let ((address (inet-ntop (www-listen-address-family)
+                                    (www-listen-address))))
+            (log-debug "sg-web" "SPARQLing-genomics is running at http://~a:~a"
+                       (if (eq? (www-listen-address-family) AF_INET6)
+			   (string-append "[" address "]")
+			   address)
+                       (www-listen-port)))))
 
     (while #t
       (let* [(client-connection (accept s))

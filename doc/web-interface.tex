@@ -47,11 +47,16 @@
   \program{sg-web} process in the foreground of your shell, or
   \t{1} to run the \program{sg-web} process as a daemon.
 
-\subsection{Bind address and port}
+\subsection{Bind address and port or UNIX socket}
 
   To enable running multiple web services on single machine, \program{sg-web}
-  can be configured to bind on an arbitrary address and an arbitrary port.
-  Both IPv4 and IPv6 addresses are supported.
+  can be configured to bind on an arbitrary address and an arbitrary port, or
+  a UNIX domain socket.  For TCP sockets, both IPv4 and IPv6 addresses are
+  supported.
+
+  For UNIX domain sockets, use
+  \t{<unix-socket>/path/to/socket-file</unix-socket>} instead of the
+  \t{<bind-address>} and \t{<port>} configuration options.
 
 \subsection{Default home page}
 
