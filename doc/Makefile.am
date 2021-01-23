@@ -78,7 +78,16 @@ docs-clean:
 		  $(doc_NAME).lot			\
 		  $(doc_NAME).pdf                       \
 		  $(doc_NAME).html                      \
-		  texput.log
+                  $(doc_NAME)10.html                    \
+                  $(doc_NAME)2.html                     \
+                  $(doc_NAME)3.html                     \
+                  $(doc_NAME)4.html                     \
+                  $(doc_NAME)5.html                     \
+                  $(doc_NAME)6.html                     \
+                  $(doc_NAME)7.html                     \
+                  $(doc_NAME)8.html                     \
+                  $(doc_NAME)9.html                     \
+                  texput.log
 
 clean-local: docs-clean
 
