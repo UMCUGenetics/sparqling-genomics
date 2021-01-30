@@ -71,7 +71,25 @@
       #f)))
 
 ;; ----------------------------------------------------------------------------
-;; HANDLERS
+;; SIGNAL HANDLERS
+;; ----------------------------------------------------------------------------
+;;
+
+(define (sigint-handler signal)
+  (log-debug "sg-web" "Received SIGINT.  Quitting now.")
+
+  ;; Remove the UNIX socket file if it exists.
+  (when (and (eq? (www-listen-address-family) AF_UNIX)
+	     (string? (www-unix-socket)))
+    (delete-file (www-unix-socket))
+    (log-debug "sg-web" "Cleaned up ~s." (www-unix-socket)))
+
+  ;; Restore the original SIGINT handler, and invoke it.
+  (sigaction SIGINT SIG_DFL)
+  (kill (getpid) SIGINT))
+
+;; ----------------------------------------------------------------------------
+;; REQUEST HANDLERS
 ;; ----------------------------------------------------------------------------
 ;;
 ;; The way a request is handled varies upon the nature of the request.  It can
@@ -633,6 +651,10 @@
         (respond-303 client-port "/login" #f)]))))
 
 (define (health-maintainer)
+
+  ;; Register the SIGINT handler for this thread as well.
+  (sigaction SIGINT sigint-handler)
+
   (while #t
     (catch #t
       (lambda _
@@ -688,6 +710,9 @@
     (sleep 10)))
 
 (define (start-server request-handler)
+
+  ;; Register the SIGINT handler.
+  (sigaction SIGINT sigint-handler)
 
   ;; Start a background thread to maintain a healthy system.
   (call-with-new-thread health-maintainer)
