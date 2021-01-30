@@ -114,16 +114,6 @@ docs-clean:
 		  $(doc_NAME).lof			   \
 		  $(doc_NAME).lot			   \
 		  $(doc_NAME).pdf                          \
-                  figures/layered-knowledge-.png           \
-                  figures/logo-.png                        \
-                  figures/sg-auth-manager-scaleout-.png    \
-                  figures/sg-web-dashboard-.png            \
-                  figures/sg-web-exploratory-.png          \
-                  figures/sg-web-form-example-.png         \
-                  figures/sg-web-form-example-submit-.png  \
-                  figures/sg-web-import-rdf-.png           \
-                  figures/sg-web-project-details-.png      \
-                  figures/sg-web-query-.png                \
                   $(doc_NAME).css                          \
 		  $(doc_NAME).html                         \
                   $(doc_NAME)10.html                       \
