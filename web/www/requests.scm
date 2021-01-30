@@ -76,7 +76,8 @@
 ;;
 
 (define (sigint-handler signal)
-  (log-debug "sg-web" "Received SIGINT.  Quitting now.")
+  (log-debug "sg-web" "Received ~a.  Quitting now."
+	     (if (eq? signal SIGTERM) "SIGTERM" "SIGINT"))
 
   ;; Remove the UNIX socket file if it exists.
   (when (and (eq? (www-listen-address-family) AF_UNIX)
@@ -654,6 +655,7 @@
 
   ;; Register the SIGINT handler for this thread as well.
   (sigaction SIGINT sigint-handler)
+  (sigaction SIGTERM sigint-handler)
 
   (while #t
     (catch #t
@@ -713,6 +715,7 @@
 
   ;; Register the SIGINT handler.
   (sigaction SIGINT sigint-handler)
+  (sigaction SIGTERM sigint-handler)
 
   ;; Start a background thread to maintain a healthy system.
   (call-with-new-thread health-maintainer)
