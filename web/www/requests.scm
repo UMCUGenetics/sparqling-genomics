@@ -721,7 +721,9 @@
   (let* ((family (www-listen-address-family))
          (s      (socket family SOCK_STREAM 0)))
     (if (eq? family AF_UNIX)
-	(bind s family (www-unix-socket))
+	(begin
+	  (bind s family (www-unix-socket))
+	  (chmod (www-unix-socket) #o777))
 	(begin
 	  (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
 	  (bind s family (if (string? (www-listen-address))
