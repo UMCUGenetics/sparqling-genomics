@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <stdio.h>
 #include <getopt.h>
 #include <time.h>
 #include <libguile.h>
