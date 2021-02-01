@@ -104,7 +104,8 @@ process_variant_for_sample (bcf_hdr_t *header,
    * reference allele, we drop the variant.
    */
 
-  if (config.process_format_fields
+  if ((! config.keep_nonvariants)
+      && config.process_format_fields
       && number_of_samples > 0)
     {
       char **dst = NULL;

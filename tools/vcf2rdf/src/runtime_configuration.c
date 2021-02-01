@@ -30,6 +30,7 @@ runtime_configuration_init (void)
 {
   config.filter = NULL;
   config.keep = NULL;
+  config.keep_nonvariants = false;
   config.input_file = NULL;
   config.reference = NULL;
   config.caller = NULL;

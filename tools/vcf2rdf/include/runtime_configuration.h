@@ -65,6 +65,7 @@ typedef struct
   bool              process_info_fields;
   bool              process_format_fields;
   bool              input_from_stdin;
+  bool              keep_nonvariants;
 
   /* Raptor-specifics */
   raptor_world      *raptor_world;

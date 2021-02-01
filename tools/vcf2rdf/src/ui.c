@@ -49,6 +49,9 @@ ui_show_help (void)
                                        "file.\n"
         "  --keep=ARG,              -k  Omit calls without FILTER=ARG from the "
                                        "output.\n"
+	"  --keep-non-variants      -K  Keep variants that don't deviate from\n"
+	"                               the reference.  This mostly applies to\n"
+	"                               multi-sample VCFs.\n"
         "  --output-format,         -O  The output format to serialize to.\n"
         "  --reference=ARG,         -r  Prefix for the chromosome names.  "
                                        "Defaults to:\n"
@@ -77,6 +80,7 @@ ui_process_command_line (int argc, char **argv)
       { "input-file",            required_argument, 0, 'i' },
       { "stdin",                 no_argument,       0, 'I' },
       { "keep",                  required_argument, 0, 'k' },
+      { "keep-nonvariants",      no_argument,       0, 'K' },
       { "reference",             required_argument, 0, 'r' },
       { "header-only",           no_argument,       0, 'o' },
       { "metadata-only",         no_argument,       0, 'm' },
@@ -95,7 +99,7 @@ ui_process_command_line (int argc, char **argv)
   while ( arg != -1 )
     {
       /* Make sure to list all short options in the string below. */
-      arg = getopt_long (argc, argv, "c:f:i:k:r:O:s:H:Iomxyphv", options, &index);
+      arg = getopt_long (argc, argv, "c:f:i:k:r:O:s:H:KIomxyphv", options, &index);
       switch (arg)
         {
         case 'c': config.caller = optarg;                        break;
@@ -103,6 +107,7 @@ ui_process_command_line (int argc, char **argv)
         case 'i': config.input_file = optarg;                    break;
         case 'I': config.input_from_stdin = true;                break;
         case 'k': config.keep = optarg;                          break;
+        case 'K': config.keep_nonvariants = true;                break;
         case 'r': config.reference = optarg;                     break;
         case 'o': config.header_only = true;                     break;
         case 'm': config.metadata_only = true;                   break;
