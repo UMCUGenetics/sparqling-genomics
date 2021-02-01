@@ -244,17 +244,17 @@ $ table2rdf -O turtle \
     -i test.tsv       \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19#
 ...
-(@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
+(@*\Highlight{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
 ...
 <http://sparqling-genomics/table2rdf/Row/...-R0000000000>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    (@*\colorbox{Highlight}{col:chromosome p00000:chr1 ;}*@)
+    (@*\Highlight{col:chromosome p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
 <http://sparqling-genomics/table2rdf/Row/...-R0000000001>
     sg:originatedFrom <http://sparqling-genomics/...> ;
-    (@*\colorbox{Highlight}{col:chromosome p00000:chrMT ;}*@)
+    (@*\Highlight{col:chromosome p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
 ...
@@ -279,18 +279,18 @@ $ table2rdf -O turtle \
     -t Chromosome=http://rdf.biosemantics.org/data/genomeassemblies/hg19# \
     -T Chromosome=http://biohackathon.org/resource/faldo#reference
 ...
-(@*\colorbox{Highlight}{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
-(@*\colorbox{Highlight}{@prefix p00001: <http://biohackathon.org/resource/faldo\#> .}*@)
+(@*\Highlight{@prefix p00000: <http://rdf.biosemantics.org/data/genomeassemblies/hg19\#> .}*@)
+(@*\Highlight{@prefix p00001: <http://biohackathon.org/resource/faldo\#> .}*@)
 
 <origin://...@0>
     sg:originatedFrom <origin://...> ;
-    (@*\colorbox{Highlight}{p00001:reference p00000:chr1 ;}*@)
+    (@*\Highlight{p00001:reference p00000:chr1 ;}*@)
     col:position 1500000 ;
     a :Row .
 
 <origin://...@1>
     sg:originatedFrom <origin://...> ;
-    (@*\colorbox{Highlight}{p00001:reference p00000:chrMT ;}*@)
+    (@*\Highlight{p00001:reference p00000:chrMT ;}*@)
     col:position 11000 ;
     a :Row .
 ...
@@ -328,7 +328,7 @@ $ table2rdf -i multi.tsv -O turtle
 <origin://...@0>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
-    (@*\colorbox{Highlight}{col:filter "A;B;C;D"\^{}\^{}xsd:string ;}*@)
+    (@*\Highlight{col:filter "A;B;C;D"\^{}\^{}xsd:string ;}*@)
     col:position 10000 ;
     a :Row .
 \end{lstlisting}
@@ -341,8 +341,8 @@ $ table2rdf -i multi.tsv --secondary-delimiter ";" -O turtle
 <origin://...@0>
     sg:originatedFrom <http://sparqling-genomics/...> ;
     col:chromosome 1 ;
-    (@*\colorbox{Highlight}{col:filter "A"\^{}\^{}xsd:string, "B"\^{}\^{}xsd:string, "C"\^{}\^{}xsd:string,}*@)
-    (@*\colorbox{Highlight}{\space\space\space\space\space\space\space\space\space\space\space"D"\^{}\^{}xsd:string ;}*@)
+    (@*\Highlight{col:filter "A"\^{}\^{}xsd:string, "B"\^{}\^{}xsd:string, "C"\^{}\^{}xsd:string,}*@)
+    (@*\Highlight{\space\space\space\space\space\space\space\space\space\space\space"D"\^{}\^{}xsd:string ;}*@)
     col:position 10000 ;
     a :Row .
 \end{lstlisting}

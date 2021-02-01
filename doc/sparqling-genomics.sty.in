@@ -39,7 +39,7 @@
 \usepackage{color, colortbl}
 \definecolor{Gray}{rgb}{0.5, 0.63, 0.76}
 \definecolor{White}{gray}{1.00}
-\definecolor{Highlight}{rgb}{1.0, 0.97, 0.85}
+\definecolor{HighlightColor}{rgb}{1.0, 0.97, 0.85}
 \definecolor{EvenRowColor}{rgb}{0.97, 0.97, 0.97}
 \definecolor{OddRowColor}{rgb}{0.93, 0.93, 0.93}
 \definecolor{CodeGray}{rgb}{0.97, 0.97, 0.97}
@@ -70,6 +70,12 @@
 \else
 \newcommand\code[1]{{\setlength{\fboxrule}{2.0pt}\fcolorbox{CodeBG}{CodeBG}{\textcolor{Code}{\texttt{#1}}}}}
 \fi
+\ifdefined\HCode
+\newcommand\Highlight{}
+\else
+\newcommand\Highlight{\colorbox{HighlightColor}}
+\fi
+
 \newcommand\triplet[3]{\code{#1} $\rightarrow$ \code{#2} $\rightarrow$ \code{#3}}
 \newcommand\refer[1]{\ref{#1} {\color{LinkGray}`\nameref{#1}'}}
 \newcommand\file[1]{`\texttt{#1}'}
