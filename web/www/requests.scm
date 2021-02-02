@@ -85,6 +85,13 @@
     (delete-file (www-unix-socket))
     (log-debug "sg-web" "Cleaned up ~s." (www-unix-socket)))
 
+  ;; Close the log ports.
+  (unless (null? (default-debug-port))
+    (close-port (default-debug-port)))
+
+  (unless (null? (default-error-port))
+    (close-port (default-error-port)))
+
   ;; Restore the original SIGINT handler, and invoke it.
   (sigaction SIGINT SIG_DFL)
   (kill (getpid) SIGINT))

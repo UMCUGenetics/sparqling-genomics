@@ -43,6 +43,8 @@
         (let [(fork?             (assoc-ref config 'fork))
               (developer?        (assoc-ref config 'developer-mode))
               (backtrace?        (assoc-ref config 'backtrace-on-error))
+	      (debug-log         (assoc-ref config 'debug-log))
+	      (error-log         (assoc-ref config 'error-log))
 	      (unix-socket       (assoc-ref config 'unix-socket))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
@@ -50,6 +52,10 @@
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
+	  (when debug-log
+            (set-default-debug-port! (open-file (car debug-log) "a")))
+          (when error-log
+            (set-default-error-port! (open-file (car error-log) "a")))
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
           (when (and developer? (string= (car developer?) "1"))

@@ -29,6 +29,8 @@
   <home>/login</home>
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
+  <debug-log>/var/log/sg-web.log</debug-log>
+  <error-log>/var/log/sg-web.errors</error-log>
   <system-connection>
     <uri>http://localhost:8890/sparql-auth</uri>
     <backend>virtuoso</backend>
@@ -81,13 +83,14 @@
   The \program{sg-web} program keeps two logs: one for error reporting, and
   one for access and non-critical messages.  The log files can be specified
   as command-line options (\t{-e} for error reporting, \t{-d} for
-  non-critical messages).
+  non-critical messages), or as options in the configuration file.  The
+  latter takes precedence over the former.
 
   Backtraces help the developer to get an idea about how something might've
-  gone wrong.  It displays the location nearby the location in the source code
-  that throwed an error.  Backstraces can get long and verbose.  Therefore we
-  don't display them by default.  To enable reporting backtraces in the error
-  log, set the `\t{backtrace-on-error}' option to \t{1}.
+  gone wrong.  It displays the approximate location in the source code
+  that caused an unrecoverable error.  Backstraces can get long and verbose.
+  Therefore we don't display them by default.  To enable reporting backtraces
+  in the error log, set the `\t{backtrace-on-error}' option to \t{1}.
 
 \subsection{System connection}
 
