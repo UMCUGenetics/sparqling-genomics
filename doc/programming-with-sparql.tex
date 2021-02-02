@@ -45,6 +45,42 @@ library(jsonlite)
 data <- fromJSON(jsonData)
 \end{lstlisting}
 
+\section{Using SPARQL with Python 3}
+
+  In Python 3, we can use the built-in \code{json} and \code{http.client}
+  modules to perform a query over HTTP.  Consider the following procedure:
+
+\begin{lstlisting}[language=Python]
+def SGSPARQL (endpoint, projectId, token, query):
+    # Note: Use HTTPSConnection for real-world setups.
+    connection = http.client.HTTPConnection(endpoint)
+    headers = { "Accept":        "application/json",
+                "Cookie":        "SGSession=" + token,
+                "Content-Type":  "application/sparql-update" }
+    connection.request("POST", "/api/query/?project-id=" + projectId,
+                       query, headers)
+    response = connection.getresponse()
+    if response.status != 200:
+        connection.close()
+        return False
+    else:
+        jsonData = response.read()
+        connection.close()
+        data = json.loads(jsonData.decode())
+        return data
+\end{lstlisting}
+
+  With it, we can perform a request like so:
+
+\begin{lstlisting}[language=Python]
+endpoint    = "localhost:8001"
+projectId   = "<project-id>"
+token       = "<session-token>"
+query       = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 5"
+
+data = SGSPARQL (endpoint, projectId, token, query)
+\end{lstlisting}
+
 \section{Using SPARQL with GNU Guile}
 \label{sec:sparql-with-guile}
 
