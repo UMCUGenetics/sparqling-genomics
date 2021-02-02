@@ -11,7 +11,7 @@ doc_NAME                = sparqling-genomics
 doc_PDF                 = $(doc_NAME).pdf
 doc_HTML                = $(doc_NAME).html
 doc_TEX                 = $(doc_NAME).tex
-doc_STYLE	        = sparqling-genomics.sty
+doc_STYLE	        = $(doc_NAME).sty
 dist_doc_DATA =
 
 if HAVE_PDFLATEX
@@ -70,9 +70,15 @@ EXTRA_DIST              = $(doc_TEX) $(doc_STYLE)                  \
                           web-programming-interface.tex
 
 if HAVE_HTLATEX
-$(doc_HTML):
+$(doc_HTML): $(doc_PDF)
 	@$(HTLATEX) $(doc_TEX) > /dev/null
 	@printf "Generated $(doc_HTML).\n"
+
+.PHONY: $(doc_NAME).css $(doc_NAME)10.html $(doc_NAME)2.html
+.PHONY: $(doc_NAME)3.html $(doc_NAME)4.html $(doc_NAME)5.html
+.PHONY: $(doc_NAME)6.html $(doc_NAME)7.html $(doc_NAME)8.html
+.PHONY: $(doc_NAME)9.html
+
 
 nobase_dist_doc_DATA     = $(doc_HTML)                              \
                            figures/layered-knowledge-.png           \
@@ -128,6 +134,3 @@ docs-clean:
                   texput.log
 
 clean-local: docs-clean
-
-# Make sure there is something to run.
-all: $(doc_PDF) $(doc_HTML)
