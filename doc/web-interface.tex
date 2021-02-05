@@ -26,7 +26,10 @@
   <fork>0</fork>
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
-  <home>/login</home>
+  <static-pages>
+    <page home="1">welcome</page>
+    <page>about</page>
+  </static-pages>
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
   <debug-log>/var/log/sg-web.log</debug-log>
@@ -60,15 +63,17 @@
   \t{<unix-socket>/path/to/socket-file</unix-socket>} instead of the
   \t{<bind-address>} and \t{<port>} configuration options.
 
-\subsection{Default home page}
+\subsection{Static pages}
 
   When a user visits the \program{sg-web} instance, it defaults to showing
-  the \t{/login} page.  When adding static pages to the \program{sg-web}
-  instance, the \t{home} configuration option can be used to set a different
-  default landing page.
+  the \t{/login} page.  This can be changed by specifying static pages.  See
+  section \refer{sec:static-pages} to read about how to add static pages to
+  the \program{sg-web} instance.
 
-  See section \refer{sec:static-pages} to read about how to add static pages
-  to the \program{sg-web} instance.
+  Menu items of the static pages can be configured using the \t{<static-pages>}
+  configuration, where each page gets its own \t{<page>} entry.  Which of
+  the static pages becomes the landing page can be configured with the
+  \t{home="1"} argument.
 
 \subsection{Developer mode}
 

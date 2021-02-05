@@ -8,7 +8,10 @@
   <bind-address>127.0.0.1</bind-address>
   <port>8080</port>
   <backtrace-on-error>0</backtrace-on-error>
-  <home>/spage/home</home>
+  <static-pages>
+    <page home="1">home</page>
+    <page>about</page>
+  </static-pages>
   <authentication>
     <user>
       <username>changeme</username>

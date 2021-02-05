@@ -15,6 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www config-reader)
+  #:use-module (ice-9 match)
   #:use-module (ldap authenticate)
   #:use-module (logger)
   #:use-module (sparql driver)
@@ -48,7 +49,7 @@
 	      (unix-socket       (assoc-ref config 'unix-socket))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
-              (home              (assoc-ref config 'home))
+              (static-pages      (assoc-ref config 'static-pages))
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
@@ -62,9 +63,20 @@
             (set-developer-mode! #t))
           (when (and backtrace? (string= (car backtrace?) "1"))
             (set-backtrace-on-error! #t))
-          (when home
-            (set-www-home! (car home))
-            (log-debug "read-configuration-from-file" "Set home to ~s." (www-home)))
+          (when static-pages
+            (set-static-page-modules!
+             (delete #f
+               (map (lambda (page)
+                      (match page
+                        (`(page ,module-name) module-name)
+                        (`(page (@ (home ,default)) ,module-name)
+                         (when (string= default "1")
+                           (set-www-home! (string-append "/spage/" module-name))
+                           (log-debug "read-configuration-from-file"
+                                      "Set home to ~s." (www-home)))
+                         module-name)
+                        (_ #f)))
+                    static-pages))))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

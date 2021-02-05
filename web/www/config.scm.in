@@ -1,4 +1,4 @@
-;;; Copyright © 2016-2020  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2016-2021  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -81,6 +81,7 @@
             set-orcid-endpoint!
             set-orcid-redirect-uri!
             set-persist-connection-lock!
+	    set-static-page-modules!
             set-system-connection!
             set-www-home!
 	    set-www-listen-address-family!
@@ -164,6 +165,10 @@
   (www-unix-socket          #:init-value #f
                             #:getter get-www-unix-socket
                             #:setter set-www-unix-socket-private!)
+
+  (static-page-modules      #:init-value '()
+                            #:getter get-static-page-modules
+                            #:setter set-static-page-modules-private!)
 
   (beacon-enabled?          #:init-value #f
                             #:getter get-beacon-enabled?
@@ -374,35 +379,18 @@
             orcid-endpoint
             orcid-redirect-uri
             persist-connection-lock
+            static-page-modules
             system-connection
             www-home
-	    www-listen-address-family
+            www-listen-address-family
             www-listen-port
-	    www-unix-socket))
+            www-unix-socket))
 
 (define (www-cache-root)
   (let ((cache-root (get-www-cache-root %runtime-configuration)))
     (unless (file-exists? (cache-root))
       (mkdir-p (cache-root)))
     (cache-root)))
-
-(define* (static-page-modules #:key (found '())
-                              (roots %load-path))
-  (if (null? roots)
-      found
-      (let ((full-path (string-append (car roots) "/www/pages/static")))
-        (if (file-exists? full-path)
-            (static-page-modules
-             #:found (append (map (lambda (filename)
-                                    (basename filename ".scm"))
-                                  (scandir full-path
-                                           (lambda (filename)
-                                             (string-suffix? ".scm" filename))))
-                             found)
-             #:roots (cdr roots))
-            (static-page-modules
-             #:found found
-             #:roots (cdr roots))))))
 
 (define* (resolved-static-file-path path #:key (found #f)
                                                (roots (www-roots)))
