@@ -36,6 +36,8 @@
         ;; --------------------------------------------------------------------
         (let [(fork?        (assoc-ref config 'fork))
               (backtrace?   (assoc-ref config 'backtrace-on-error))
+	      (debug-log    (assoc-ref config 'debug-log))
+	      (error-log    (assoc-ref config 'error-log))
               (importing    (assoc-ref config 'enable-importing))
               (address      (assoc-ref config 'bind-address))
               (port         (assoc-ref config 'port))
@@ -44,6 +46,10 @@
               (public-uri   (assoc-ref config 'public-uri))
               (rdf-store    (assoc-ref config 'rdf-store))
               (sg-web       (assoc-ref config 'sg-web))]
+	  (when debug-log
+            (set-default-debug-port! (open-file (car debug-log) "a")))
+          (when error-log
+            (set-default-error-port! (open-file (car error-log) "a")))
           (when (and fork? (> (string->number (car fork?)) 0))
             (set-fork-on-startup! #t))
           (when (and importing (string= (car importing) "0"))
