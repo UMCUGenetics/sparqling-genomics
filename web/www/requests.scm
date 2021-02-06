@@ -23,6 +23,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-19)
   #:use-module (sxml simple)
   #:use-module (web client)
   #:use-module (web request)
@@ -125,7 +126,10 @@
             [(string= extension "ttf")  '(application/font-sfnt)]
             [(#t '(text/plain))])))
 
-  (let ((full-path (resolved-static-file-path path)))
+  (let* ((full-path (resolved-static-file-path path))
+         (file-stat (stat full-path #f))
+         (modified  (and file-stat
+                         (make-time time-utc 0 (stat:mtime file-stat)))))
     (if (not full-path)
         (respond-to-client 404 client-port '(text/html)
           (with-output-to-string
@@ -135,8 +139,10 @@
           (write-response
            (build-response
             #:code 200
-            #:headers `((content-type . ,(response-content-type full-path))
-                        (content-length . ,bytes)))
+            #:headers `((content-type   . ,(response-content-type full-path))
+                        (content-length . ,bytes)
+                        (last-modified  . ,(time-utc->date modified))
+                        (cache-control  . ((max-age . 86400)))))
            client-port)
           (call-with-input-file full-path
             (lambda (input-port)
