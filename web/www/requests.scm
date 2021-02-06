@@ -97,6 +97,9 @@
   (sigaction SIGINT SIG_DFL)
   (kill (getpid) SIGINT))
 
+(define (sigpipe-handler signal)
+  (log-debug "sg-web" "Received SIGPIPE.  Ignoring."))
+
 ;; ----------------------------------------------------------------------------
 ;; REQUEST HANDLERS
 ;; ----------------------------------------------------------------------------
@@ -768,7 +771,7 @@
         ;; Each request is handled in a separate thread.
         (call-with-new-thread
          (lambda _
-           (sigaction SIGPIPE SIG_IGN)
+           (sigaction SIGPIPE sigpipe-handler)
            (request-handler client-port)
            (close client-port))
          (lambda (key . args)
