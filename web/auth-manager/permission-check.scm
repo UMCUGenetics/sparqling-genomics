@@ -85,6 +85,24 @@ AUTH-TOKEN."
   "Returns #t when there is a triplet pattern without an explicit graph,
 otherwise it returns #f."
   (any not (map quint-graph (query-quints query))))
+(define (lock-check triplets graphs-in-project)
+  (let* ((graphs       (map quint-graph triplets))
+         (graph-states (map (lambda (graph)
+                               `(,(assoc-ref graph "graph") .
+                                 ,(assoc-ref graph "isLocked")))
+                             graphs-in-project))
+         (lock-state    (delete #f
+                         (map (lambda (graph)
+                                (let ((state (assoc-ref graph-states graph)))
+                                  (if (or (not state)
+                                          (string= state "1"))
+                                      graph
+                                      #f)))
+                              graphs))))
+    (if (null? lock-state)
+        (values #t "")
+        (values #f (format #f "The following graphs are locked:~{~%-> ~a~}"
+                           lock-state)))))
 
 (define (may-execute? auth-token project-id query)
   "Returns #t when the query may be executed, #f otherwise."
@@ -130,6 +148,20 @@ otherwise it returns #f."
             (let* [(g (delete-duplicates
                        (lset-difference string= used-graphs allowed-graphs)))]
               (values #f (format #f "Disallowed graphs:~{~%-> ~a~}" g)))]
+
+           ;; Check whether INSERT or DELETE operations are done on unlocked
+           ;; graphs only.
+           ;; -----------------------------------------------------------------
+           [(eq? (query-type parsed) 'INSERT)
+            (lock-check (query-insert-patterns parsed) graphs-in-project)]
+
+           [(eq? (query-type parsed) 'DELETE)
+            (lock-check (query-delete-patterns parsed) graphs-in-project)]
+
+           [(eq? (query-type parsed) 'DELETEINSERT)
+            (let ((check-graphs (append (query-insert-patterns parsed)
+                                        (query-delete-patterns parsed))))
+              (lock-check check-graphs graphs-in-project))]
 
            ;; If all previous tests passed, the query may be executed.
            ;; -----------------------------------------------------------------
