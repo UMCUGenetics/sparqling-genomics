@@ -15,6 +15,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (define-module (www query-builder)
+	#:use-module (www config)
 
   #:export (build-query
             safe-for-query?
@@ -35,14 +36,15 @@
 (define (build-query format-string . args)
   "Returns a string that is guaranteed to not contain a query
 injection, or throws UNSAFE-FOR-QUERY exception otherwise."
-  (apply format (append `(#f ,format-string)
-                        (map (lambda (arg)
-                               (cond
-                                [(and (string? arg)
-                                      (not (safe-for-query? arg)))
-                                 (throw 'unsafe-for-query arg)]
-                                [(and (char? arg)
-                                      (char-set-contains? %query-escape arg))
-                                 (throw 'unsafe-for-query arg)]
-                                [else arg]))
-                             args))))
+  (string-append internal-prefixes
+    (apply format (append `(#f ,format-string)
+													(map (lambda (arg)
+																 (cond
+																	[(and (string? arg)
+																				(not (safe-for-query? arg)))
+																	 (throw 'unsafe-for-query arg)]
+																	[(and (char? arg)
+																				(char-set-contains? %query-escape arg))
+																	 (throw 'unsafe-for-query arg)]
+																	[else arg]))
+															 args)))))
