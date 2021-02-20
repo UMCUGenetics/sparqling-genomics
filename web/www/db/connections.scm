@@ -512,7 +512,7 @@
     (lambda _
       (let [(uri (connection-uri record))]
         (receive (header body)
-            (http-get uri
+            (http-get (string-append uri "/api/status")
               #:headers `((accept . ((application/s-expression)))))
           (unless (or (= (response-code header) 200)
                       (= (response-code header) 401))
