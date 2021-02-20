@@ -1,4 +1,4 @@
-;;; Copyright © 2020  Roel Janssen <roel@gnu.org>
+;;; Copyright © 2020, 2021  Roel Janssen <roel@gnu.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or
 ;;; modify it under the terms of the GNU Affero General Public License
@@ -27,8 +27,7 @@
 (define (contains-non-az09space input)
   (not (string-every %Az09space input)))
 
-(define %query-escape
-  (string->char-set "(){};.?#"))
+(define %query-escape (string->char-set "(){}?#")) ; Also include ";" and "."?
 
 (define (safe-for-query? input)
   (not (string-any %query-escape input)))
