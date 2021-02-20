@@ -79,12 +79,17 @@ AUTH-TOKEN."
 (define (inferred-graphs query)
   "Returns a list of graph names that are used in the query."
   (append (query-global-graphs query)
-          (delete #f (map quint-graph (query-quints query)))))
+          (delete #f (map quint-graph (query-quints query)))
+          (delete #f (map quint-graph (query-insert-patterns query)))
+          (delete #f (map quint-graph (query-delete-patterns query)))))
 
 (define (has-unscoped-variables? query)
   "Returns #t when there is a triplet pattern without an explicit graph,
 otherwise it returns #f."
-  (any not (map quint-graph (query-quints query))))
+  (or (any not (map quint-graph (query-quints query)))
+      (any not (map quint-graph (query-insert-patterns query)))
+      (any not (map quint-graph (query-delete-patterns query)))))
+
 (define (lock-check triplets graphs-in-project)
   (let* ((graphs       (map quint-graph triplets))
          (graph-states (map (lambda (graph)
@@ -114,9 +119,10 @@ otherwise it returns #f."
     ;; -----------------------------------------------------------------------
     (if (not parsed)
         (values #f (format #f "Couldn't parse:~%~a" query))
-        (let* [(allowed-graphs (map (lambda (item) (assoc-ref item "graph"))
-                                    (graphs-by-project auth-token project-id)))
-               (global-graphs  (query-global-graphs parsed))
+        (let* [(graphs-in-project (graphs-by-project auth-token project-id))
+               (allowed-graphs    (map (lambda (item) (assoc-ref item "graph"))
+                                       graphs-in-project))
+               (global-graphs     (query-global-graphs parsed))
                (disallowed-graphs (lset-difference string= global-graphs
                                                    allowed-graphs))
                (used-graphs    (inferred-graphs parsed))]
@@ -134,13 +140,16 @@ otherwise it returns #f."
                  (string-append
                   "Specify the graph to search for the following triplets:"
                   (format #f "~{~%-> ~a~}"
-                    (delete #f (map (lambda (quint)
-                                      (if (quint-graph quint) #f
-                                          (format #f "~a ~a ~a"
-                                                  (quint-subject quint)
-                                                  (quint-predicate quint)
-                                                  (quint-object quint))))
-                                    (query-quints parsed)))))))]
+                    (delete #f
+                      (map (lambda (quint)
+                             (if (quint-graph quint) #f
+                                 (format #f "~a ~a ~a"
+                                         (quint-subject quint)
+                                         (quint-predicate quint)
+                                         (quint-object quint))))
+                           (append (query-quints parsed)
+                                   (query-insert-patterns parsed)
+                                   (query-delete-patterns parsed))))))))]
 
            ;; Check whether only allowed-graphs are used.
            ;; -----------------------------------------------------------------
