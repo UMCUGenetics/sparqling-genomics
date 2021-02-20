@@ -291,7 +291,9 @@
   (define (read-prologue out query start)
     (let* [(after-base     (read-base out query 0))
            (after-prefixes (read-prefixes out query 0))]
-      after-prefixes))
+      (if (> after-prefixes after-base)
+          after-prefixes
+          after-base)))
 
   (define (determine-query-type out text start)
     (let* [(types  (filter
