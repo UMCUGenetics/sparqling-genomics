@@ -691,7 +691,7 @@
                    (process-global-graph uri out))
                   (("INTO" . uri)
                    (process-global-graph uri out))
-                  (else #f)))
+                  (_ #f)))
               tokens))
 
   (define (read-out-variables out tokens)
@@ -813,7 +813,7 @@
             ('DESCRIBE     (parse-describe-query out query (+ cursor 8)))
             ('INSERT       (parse-insert-query out query (+ cursor 6)))
             ('SELECT       (parse-select-query out query (+ cursor 6)))
-            (else          (throw 'unknown-query-type #f))))
+            (_             (throw 'unknown-query-type #f))))
         out))
     (lambda (key . args)
       (log-error "parse-query" "Thrown: ~a: ~s" key args)
