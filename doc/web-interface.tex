@@ -30,6 +30,7 @@
     <page home="1">welcome</page>
     <page>about</page>
   </static-pages>
+  <system-state-graph>sg-web://state</system-state-graph>
   <developer-mode>0</developer-mode>
   <backtrace-on-error>0</backstrace-on-error>
   <debug-log>/var/log/sg-web.log</debug-log>
@@ -74,6 +75,16 @@
   configuration, where each page gets its own \t{<page>} entry.  Which of
   the static pages becomes the landing page can be configured with the
   \t{home="1"} argument.
+
+\subsection{System state graph}
+
+  The state displayed by \program{sg-web} is stored in the
+  \t{system-connection}'s RDF store.  All triplets are stored in a single
+  graph configured with the \t{system-state-graph} configuration option.
+
+  Changing the \t{system-state-graph} makes it look like a completely empty
+  system.  One can revert to the previous state by using the previous
+  \t{system-state-graph}.
 
 \subsection{Developer mode}
 

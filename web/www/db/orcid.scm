@@ -32,7 +32,7 @@
          (name      (assoc-ref record 'name))
          (query     (string-append
                      internal-prefixes
-                     "INSERT INTO <" system-state-graph "> {"
+                     "INSERT INTO <" (system-state-graph) "> {"
                      "agent:" id
                      " rdfs:label \"" name "\"^^xsd:string ;"
                      " sg:orcidUri <https://orcid.org/" id "> . "
@@ -48,6 +48,6 @@
 (define (orcid-record-by-user username)
   (let ((query (string-append
                 internal-prefixes
-                "SELECT ?id ?name ?uri FROM <" system-state-graph "> { "
+                "SELECT ?id ?name ?uri FROM <" (system-state-graph) "> { "
                 "agent:" username " rdfs:label ?name ; sg:orcidUri ?uri .")))
     (query-results->alist (system-sparql-query query))))

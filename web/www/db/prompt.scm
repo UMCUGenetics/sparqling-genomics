@@ -65,7 +65,7 @@
          (prompt-id (generate-id "prompt-" username "-" timestamp))
          (query (string-append
                  internal-prefixes
-                 "INSERT INTO <" system-state-graph "> {"
+                 "INSERT INTO <" (system-state-graph) "> {"
                  " <prompt://" prompt-id "> rdf:type <prompt://session> ;"
                  " sg:owner agent:" username " ;"
                  (if tag
@@ -82,7 +82,7 @@
   (let* [(query (string-append
                  internal-prefixes
                  "SELECT DISTINCT (STRAFTER(STR(?id), 'prompt://') AS ?id)"
-                 " WHERE { GRAPH <" system-state-graph "> {"
+                 " WHERE { GRAPH <" (system-state-graph) "> {"
                  " ?id rdf:type <prompt://session> ;"
                  " sg:owner agent:" username " ;"
                  " sg:promptTag \"" tag "\"^^xsd:string . } } LIMIT 1"))
@@ -98,18 +98,18 @@
     (lambda _
       (let* [(query1 (string-append
                       internal-prefixes
-                      "DELETE { GRAPH <" system-state-graph "> {"
+                      "DELETE { GRAPH <" (system-state-graph) "> {"
                       " ?prompt_id ?p ?o . } } "
-                      "WHERE { GRAPH <" system-state-graph "> { "
+                      "WHERE { GRAPH <" (system-state-graph) "> { "
                       " ?prompt_id rdf:type <prompt://session> ;"
                       " sg:owner agent:" username " ; ?p ?o ."
                       " FILTER (?prompt_id = <prompt://" prompt-id ">) "
                       "} }"))
              (query2 (string-append
                       internal-prefixes
-                      "DELETE { GRAPH <" system-state-graph "> {"
+                      "DELETE { GRAPH <" (system-state-graph) "> {"
                       " ?triplet_id ?p ?o . } } "
-                      "WHERE { GRAPH <" system-state-graph "> { "
+                      "WHERE { GRAPH <" (system-state-graph) "> { "
                       " ?triplet_id sg:isPartOf ?prompt_id ; ?p ?o ."
                       " FILTER (?prompt_id = <prompt://" prompt-id ">) "
                       "} }"))]
@@ -130,9 +130,9 @@
     (lambda _
       (let* [(query (string-append
                     internal-prefixes
-                    "DELETE { GRAPH <" system-state-graph "> {"
+                    "DELETE { GRAPH <" (system-state-graph) "> {"
                     " ?triplet_id ?p ?o . } } "
-                    "WHERE { GRAPH <" system-state-graph "> { "
+                    "WHERE { GRAPH <" (system-state-graph) "> { "
                     " ?prompt rdf:type <prompt://session> ;"
                     " sg:owner agent:" username " ."
                     " ?triplet_id sg:isPartOf ?prompt ; ?p ?o . "
@@ -153,7 +153,7 @@
       (let* [(triplet-id (generate-id "triplet-" subject predicate object))
              (query (string-append
                     internal-prefixes
-                    "INSERT INTO <" system-state-graph "> {"
+                    "INSERT INTO <" (system-state-graph) "> {"
                     " <prompt://" prompt-id "> rdf:type <prompt://session> ;"
                     "                          sg:owner agent:" username " ."
                     " <triplet://" triplet-id "> sg:isPartOf <prompt://" prompt-id "> ;"
@@ -177,7 +177,7 @@
                      internal-prefixes
                      "SELECT (STRAFTER(STR(?triplet_id), 'triplet://') AS ?triplet_id) "
                      "?subject ?predicate ?object WHERE {"
-                     " GRAPH <" system-state-graph "> {"
+                     " GRAPH <" (system-state-graph) "> {"
                      " <prompt://" prompt-id "> rdf:type <prompt://session> ;"
                      "                          sg:owner agent:" username " ."
                      " ?triplet_id sg:isPartOf <prompt://" prompt-id "> ;"
@@ -201,7 +201,7 @@
         (let [(query (string-append
               internal-prefixes
               "INSERT { GRAPH <" graph "> { ?s ?p ?o . } } "
-              "WHERE { GRAPH <" system-state-graph "> { "
+              "WHERE { GRAPH <" (system-state-graph) "> { "
               "?triplet sg:isPartOf <prompt://" prompt-id "> ; "
               "<triplet://subject> ?s ; "
               "<triplet://predicate> ?p ; "
@@ -229,7 +229,7 @@
                  internal-prefixes
                  "SELECT (STRAFTER(STR(?prompt), \"prompt://\") AS ?id)"
                  " ?tag ?creationDate (COUNT(?triplet) AS ?triplets) "
-                 "WHERE { GRAPH <" system-state-graph "> {"
+                 "WHERE { GRAPH <" (system-state-graph) "> {"
                  " ?prompt rdf:type <prompt://session> ."
                  " OPTIONAL { ?prompt sg:promptTag ?tag . }"
                  " ?prompt sg:owner agent:" username " ."

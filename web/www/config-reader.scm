@@ -50,6 +50,7 @@
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (static-pages      (assoc-ref config 'static-pages))
+              (system-state-graph (assoc-ref config 'system-state-graph))
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
@@ -77,6 +78,9 @@
                          module-name)
                         (_ #f)))
                     static-pages))))
+          (when (and system-state-graph
+										 (string? system-state-graph))
+            (set-system-state-graph! system-state-graph))
           (when port
             (set-www-listen-port! (string->number (car port))))
           (when address

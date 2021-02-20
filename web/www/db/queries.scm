@@ -80,7 +80,7 @@
 (define (set-query-property! query-id predicate object type)
   (let [(query (string-append
                 internal-prefixes
-                "WITH <" system-state-graph ">
+                "WITH <" (system-state-graph) ">
 DELETE { ?query " predicate " ?value . }
 INSERT { ?query " predicate " " (if type
                                     (if (string= type "xsd:boolean")
@@ -96,7 +96,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
 (define (remove-query-property! query-id predicate)
   (let [(query (string-append
                 internal-prefixes
-                "WITH <" system-state-graph ">
+                "WITH <" (system-state-graph) ">
 DELETE { ?query " predicate " ?value . }
 WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
         (connection (system-connection))]
@@ -146,7 +146,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
                                                (gmtime timestamp)))))
          (query (string-append
                  internal-prefixes
-                 "INSERT INTO <" system-state-graph "> { "
+                 "INSERT INTO <" (system-state-graph) "> { "
                  "query:" query-id
                  " rdf:type sg:Query ;"
                  " sg:queryText " (format #f "~s^^xsd:string" content) " ;"
@@ -193,7 +193,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
   "Removes the reference in the internal graph for QUERY."
   (let [(query (string-append
                 internal-prefixes
-                "WITH <" system-state-graph ">"
+                "WITH <" (system-state-graph) ">"
                 " DELETE { <" query-uri "> ?predicate ?object . }"
                 " WHERE  { <" query-uri "> ?predicate ?object ; "
                 "sg:executedBy agent:" username " . }"))]
@@ -208,7 +208,7 @@ WHERE  { ?query ?predicate ?value . FILTER (?query = <" query-id ">) }"))
   "Removes queries for which marked? is #f inside PROJECT-ID."
   (let [(query (string-append
                 internal-prefixes
-                "WITH <" system-state-graph ">
+                "WITH <" (system-state-graph) ">
 DELETE { ?query ?p ?o }
 WHERE { ?query sg:executedBy agent:" username " ;
                sg:isRelevantTo project:" project-id " ; ?p ?o .
@@ -245,7 +245,7 @@ SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
        ?executedBy ?projectTitle ?isProtected ?name
        (MAX(?startTime) AS ?startTime) (MAX(?endTime) AS ?endTime)
        (AVG(?executionTime) AS ?executionTime)
-FROM <" system-state-graph ">
+FROM <" (system-state-graph) ">
 WHERE {
   ?query rdf:type         sg:Query ;
          sg:queryText     ?queryText     ;

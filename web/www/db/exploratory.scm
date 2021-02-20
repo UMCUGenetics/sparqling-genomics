@@ -50,7 +50,7 @@
       (let [(query (string-append
                     internal-prefixes
                     "SELECT DISTINCT ?graph ?isLocked ?connectionName "
-                    "FROM <" system-state-graph "> "
+                    "FROM <" (system-state-graph) "> "
                     "WHERE {"
                     " project:" project-id " sg:hasAssignedGraph ?graph ."
                     " agent:" username " sg:isAssignedTo project:" project-id " ."

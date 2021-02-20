@@ -83,6 +83,7 @@
             set-persist-connection-lock!
 	    set-static-page-modules!
             set-system-connection!
+            set-system-state-graph!
             set-www-home!
 	    set-www-listen-address-family!
             set-www-listen-address!
@@ -169,6 +170,10 @@
   (static-page-modules      #:init-value '()
                             #:getter get-static-page-modules
                             #:setter set-static-page-modules-private!)
+
+	(system-state-graph       #:init-value "http://sparqling-genomics.org/sg-web/state"
+														#:getter get-system-state-graph
+														#:setter set-system-state-graph-private!)
 
   (beacon-enabled?          #:init-value #f
                             #:getter get-beacon-enabled?
@@ -380,6 +385,7 @@
             orcid-redirect-uri
             persist-connection-lock
             static-page-modules
+						system-state-graph
             system-connection
             www-home
             www-listen-address-family
@@ -519,8 +525,6 @@
                                 (not (string-prefix? "sg://" input))))
                          default-uri-strings)))))
     (lambda (key . args) #f)))
-
-(define system-state-graph "http://sparqling-genomics.org/sg-web/state")
 
 (define-syntax-rule
   (uri-string key)

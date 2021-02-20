@@ -29,7 +29,7 @@
   (let* [(query (string-append
                  internal-prefixes
                  "SELECT DISTINCT ?graph ?isLocked ?connectionName"
-                 " FROM <" system-state-graph ">"
+                 " FROM <" (system-state-graph) ">"
                  " WHERE {"
                  " ?agent     sg:isAssignedTo     ?projectId ."
                  " ?projectId sg:hasAssignedGraph ?graph ."
