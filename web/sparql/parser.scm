@@ -580,7 +580,7 @@
               #:quints   quints
               #:graph   #f
               #:tokens  (if (eq? (car modes) 'black-mode)
-                            '()
+                            tokens
                             (cons-token out current tokens)))]
            [(and (eq? buffer #\<)
                  (not (eq? (car modes) 'black-mode)))
