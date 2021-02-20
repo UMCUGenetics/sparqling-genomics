@@ -633,6 +633,19 @@
        [(string-prefix? "/static/" request-path)
         (request-file-handler request-path client-port)]
 
+			 ;; Convenience redirect for “/manual” to the actual HTML page.
+       ;; ----------------------------------------------------------------------
+			 [(or (string= "/manual" request-path)
+						(string= "/manual/" request-path))
+				(respond-303 client-port "/manual/sparqling-genomics.html" #f)]
+
+       ;; The manual's resources are served using the ‘request-file-handler’.
+       ;; ----------------------------------------------------------------------
+       [(and (string-prefix? "/manual/" request-path)
+						 (not (string-prefix? "/manual/ontologies" request-path)))
+				;; Remove the “/manual” prefix to make it fit the ‘www-roots’.
+        (request-file-handler (substring request-path 7) client-port)]
+
        ;; Authentication is required for almost all pages.
        ;; ----------------------------------------------------------------------
        [session

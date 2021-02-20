@@ -131,10 +131,11 @@
 
   (www-roots                #:init-value
                             (let ((internal "@WEB_ROOT@/sparqling-genomics/web")
+																	(manual   "@WEB_ROOT@/sparqling-genomics")
                                   (external (getenv "SG_WEB_ROOT")))
                               (if external
                                   (cons internal (string-split external #\:))
-                                  (list internal)))
+                                  (list internal manual)))
                             #:getter get-www-roots)
 
   (www-cache-root           #:init-value
