@@ -294,18 +294,16 @@ WHERE {
   (let* [(query (string-append
                  internal-prefixes
                  "
-SELECT DISTINCT ?user ?profileUri (COUNT(DISTINCT ?query) AS ?queries)
+SELECT DISTINCT ?id ?name ?profileUri (COUNT(DISTINCT ?query) AS ?queries)
 FROM <" (system-state-graph) ">
 WHERE { ?agent sg:isAssignedTo ?project .
 OPTIONAL { ?query sg:executedBy ?agent ; sg:isRelevantTo ?project . }
-OPTIONAL { ?agent rdfs:label ?agentName . }
+OPTIONAL { ?agent rdfs:label ?name . }
 OPTIONAL { ?agent sg:orcidUri ?orcidUri . }
 
-BIND(IF(BOUND(?agentName),
-       ?agentName,
-       STRAFTER(STR(?agent), STR(agent:))) AS ?user)
-
-BIND(IF(BOUND(?orcidUri), ?orcidUri, \"#\") AS ?profileUri)
+BIND (IF(BOUND(?name), ?name, STRAFTER(STR(?agent), STR(agent:))) AS ?name)
+BIND (STRAFTER(STR(?agent), STR(agent:)) AS ?id)
+BIND (IF(BOUND(?orcidUri), ?orcidUri, \"#\") AS ?profileUri)
 FILTER (?project = project:" project-id ")
 }
 ORDER BY ASC(?user)"))]
