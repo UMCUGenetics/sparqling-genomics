@@ -100,6 +100,14 @@
 (define (sigpipe-handler signal)
   (log-debug "sg-web" "Received SIGPIPE.  Ignoring."))
 
+(define (sigusr1-handler signal)
+  (gc)
+  (let ((stats (gc-stats)))
+    (log-debug "sg-web" "Received SIGUSR1.  Showing GC statistics.")
+    (for-each (lambda (pair)
+                (log-debug "sg-web" "~25a: ~a" (car pair) (cdr pair)))
+              stats)))
+
 ;; ----------------------------------------------------------------------------
 ;; REQUEST HANDLERS
 ;; ----------------------------------------------------------------------------
@@ -672,6 +680,7 @@
   ;; Register the SIGINT handler for this thread as well.
   (sigaction SIGINT sigint-handler)
   (sigaction SIGTERM sigint-handler)
+	(sigaction SIGUSR1 sigusr1-handler)
 
   (while #t
     (catch #t
@@ -732,6 +741,7 @@
   ;; Register the SIGINT handler.
   (sigaction SIGINT sigint-handler)
   (sigaction SIGTERM sigint-handler)
+	(sigaction SIGUSR1 sigusr1-handler)
 
   ;; Start a background thread to maintain a healthy system.
   (call-with-new-thread health-maintainer)
