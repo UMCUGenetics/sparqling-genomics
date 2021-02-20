@@ -44,9 +44,9 @@
         (let [(fork?             (assoc-ref config 'fork))
               (developer?        (assoc-ref config 'developer-mode))
               (backtrace?        (assoc-ref config 'backtrace-on-error))
-	      (debug-log         (assoc-ref config 'debug-log))
-	      (error-log         (assoc-ref config 'error-log))
-	      (unix-socket       (assoc-ref config 'unix-socket))
+              (debug-log         (assoc-ref config 'debug-log))
+              (error-log         (assoc-ref config 'error-log))
+              (unix-socket       (assoc-ref config 'unix-socket))
               (address           (assoc-ref config 'bind-address))
               (port              (assoc-ref config 'port))
               (static-pages      (assoc-ref config 'static-pages))
@@ -54,7 +54,7 @@
               (beacon            (assoc-ref config 'beacon))
               (authentication    (assoc-ref config 'authentication))
               (sys-connection    (assoc-ref config 'system-connection))]
-	  (when debug-log
+    (when debug-log
             (set-default-debug-port! (open-file (car debug-log) "a")))
           (when error-log
             (set-default-error-port! (open-file (car error-log) "a")))
@@ -85,9 +85,9 @@
             (set-www-listen-port! (string->number (car port))))
           (when address
             (set-www-listen-address! (car address)))
-	  (when unix-socket
-	    (set-www-unix-socket! (car unix-socket))
-	    (set-www-listen-address-family! AF_UNIX))
+    (when unix-socket
+      (set-www-unix-socket! (car unix-socket))
+      (set-www-listen-address-family! AF_UNIX))
           (when beacon
             (let [(enabled      (assoc-ref beacon 'enabled))
                   (connection   (assoc-ref beacon 'connection))

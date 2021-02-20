@@ -60,7 +60,7 @@
             js
             h2-button
             table-button
-	    total-available-memory))
+            total-available-memory))
 
 (define (flatten lst)
   (cond [(null? lst)

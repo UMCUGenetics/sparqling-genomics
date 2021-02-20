@@ -81,11 +81,11 @@
             set-orcid-endpoint!
             set-orcid-redirect-uri!
             set-persist-connection-lock!
-	    set-static-page-modules!
+            set-static-page-modules!
             set-system-connection!
             set-system-state-graph!
             set-www-home!
-	    set-www-listen-address-family!
+            set-www-listen-address-family!
             set-www-listen-address!
             set-www-listen-port!
             set-www-unix-socket!
