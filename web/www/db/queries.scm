@@ -38,6 +38,7 @@
             query-id
             query-name
             query-username
+						query-user-id
             query-content
             query-endpoint
             query-project
@@ -70,6 +71,7 @@
 (define-syntax-rule (query-content query)        (assoc-ref query "queryText"))
 (define-syntax-rule (query-endpoint query)       (assoc-ref query "executedAt"))
 (define-syntax-rule (query-username query)       (assoc-ref query "executedBy"))
+(define-syntax-rule (query-user-id query)        (assoc-ref query "userId"))
 (define-syntax-rule (query-start-time query)     (assoc-ref query "startTime"))
 (define-syntax-rule (query-end-time query)       (assoc-ref query "endTime"))
 (define-syntax-rule (query-execution-time query) (assoc-ref query "executionTime"))
@@ -242,7 +244,8 @@ WHERE { ?query sg:executedBy agent:" username " ;
    internal-prefixes
    "
 SELECT DISTINCT ?query AS ?queryId ?queryText ?executedAt
-       ?executedBy ?projectTitle ?isProtected ?name
+       ?executedBy (STRAFTER(STR(?agent), STR(agent:)) AS ?userId)
+       ?projectTitle ?isProtected ?name
        (MAX(?startTime) AS ?startTime) (MAX(?endTime) AS ?endTime)
        (AVG(?executionTime) AS ?executionTime)
 FROM <" (system-state-graph) ">
@@ -266,15 +269,13 @@ WHERE {
              0)
         AS ?executionTime)
 
-  BIND(IF(BOUND(?agentName),
-         ?agentName,
-         STRAFTER(STR(?agent), STR(agent:))) AS ?executedBy)
+  BIND(COALESCE(?agentName, STRAFTER(STR(?agent), STR(agent:))) AS ?executedBy)
 "
    (if filters
        (format #f "~{  FILTER (~a)~%~}" filters)
        "")
    "}
-GROUP BY ?queryId ?name ?query ?queryText ?executedAt ?executedBy ?projectTitle ?isProtected
+GROUP BY ?queryId ?name ?query ?queryText ?executedAt ?executedBy ?agent ?projectTitle ?isProtected
 ORDER BY DESC(?startTime)"))
 
 (define* (all-queries #:key (filter #f))
